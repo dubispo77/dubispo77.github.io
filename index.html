@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eduardo Bispo — Videomaker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #F4F1EB;
+      --gray: #999999;
+      --light: #EAE6DE;
+      --white: #1A2C3E;
+      --accent: #1A2C3E;
+      --font: 'Barlow', sans-serif;
+      --font-cond: 'Barlow Condensed', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--white);
+      background: linear-gradient(160deg, #EDE8DF 0%, #F4F1EB 50%, #F8F6F2 100%) fixed;
+      overflow-x: hidden;
+    }
+
+    /* ─── NAVIGATION ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: rgba(244,241,235,0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .nav-logo {
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--white);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--white);
+      opacity: 0.55;
+      transition: opacity 0.2s;
+    }
+
+    .nav-links a:hover { opacity: 1; color: var(--accent); }
+
+    .nav-social {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-social a {
+      opacity: 0.5;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-social a:hover { opacity: 1; }
+
+    .nav-social svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: var(--white);
+      stroke-width: 1.8;
+    }
+
+    .nav-social a.whatsapp:hover svg { stroke: #25D366; }
+    .nav-social a.linkedin:hover svg { stroke: #0A66C2; }
+    .nav-social a.instagram:hover svg { stroke: #E91E8C; }
+
+    /* mobile hamburger */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+
+    .nav-toggle span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--white);
+      transition: all 0.3s;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 120px 40px 100px;
+      position: relative;
+      background-color: transparent;
+      background-image: radial-gradient(rgba(0,0,0,0.08) 1.5px, transparent 1.5px);
+      background-size: 26px 26px;
+    }
+
+    .hero-title {
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: clamp(80px, 15vw, 170px);
+      line-height: 0.88;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      color: var(--white);
+    }
+
+    .hero-role {
+      font-family: var(--font-cond);
+      font-weight: 700;
+      font-size: clamp(22px, 3.2vw, 44px);
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: rgba(26,44,62,0.7);
+      margin-top: 20px;
+    }
+
+    .hero-subs {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(26,44,62,0.45);
+      margin-top: 14px;
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(26,44,62,0.45);
+      cursor: pointer;
+      white-space: nowrap;
+      font-style: italic;
+    }
+
+    .hero-scroll-label { display: flex; align-items: center; }
+    .hero-scroll-label::before { display: none; }
+
+    .scroll-arrow {
+      display: flex;
+      align-items: center;
+      animation: bounceDown 1.6s ease-in-out infinite;
+    }
+
+    .scroll-arrow svg {
+      width: 40px;
+      height: 40px;
+      stroke: rgba(26,44,62,0.5);
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @keyframes bounceDown {
+      0%, 100% { transform: translateY(0); opacity: 0.5; }
+      50%       { transform: translateY(8px); opacity: 1; }
+    }
+
+    .hero-stats { display: none; }
+    .stat { margin-bottom: 20px; }
+    .stat-number {
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: 32px;
+      line-height: 1;
+      display: block;
+      color: var(--accent);
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+
+    /* ─── SECTION HEADER ─── */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 60px 40px 32px;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .section-num {
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+    }
+
+    .section-title {
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: clamp(32px, 5vw, 52px);
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+    }
+
+    /* ─── DESTAQUE — GUILHERME CORTÊS ─── */
+    #destaque {
+      padding: 0 40px 80px;
+    }
+
+    .destaque-card {
+      background: #1a1a00;
+      border: 1px solid rgba(255,230,0,0.15);
+      color: var(--white);
+      border-radius: 12px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 420px;
+    }
+
+    .destaque-info {
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .destaque-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 8px;
+    }
+
+    .destaque-name {
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: clamp(36px, 4vw, 58px);
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+    }
+
+    .destaque-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.65);
+      margin-top: 16px;
+    }
+
+    .destaque-metrics {
+      display: flex;
+      gap: 32px;
+      margin-top: 32px;
+    }
+
+    .metric-val {
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: 28px;
+      display: block;
+      color: var(--white);
+    }
+
+    .metric-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .destaque-visual {
+      background: linear-gradient(135deg, #222 0%, #444 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-cond);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .destaque-visual::before {
+      content: 'COMUNICAÇÃO\APPOLÍTICA';
+      white-space: pre;
+      font-size: 9vw;
+      font-weight: 900;
+      opacity: 0.07;
+      position: absolute;
+      text-align: center;
+      line-height: 0.85;
+    }
+
+    .play-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .play-badge::after {
+      content: '';
+      border: 10px solid transparent;
+      border-left: 18px solid white;
+      margin-left: 4px;
+      opacity: 0.7;
+    }
+
+    /* ─── TRABALHOS — SWIPE CAROUSEL ─── */
+    #trabalhos {
+      padding-bottom: 80px;
+    }
+
+    .works-track {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2px;
+      padding: 0 40px;
+    }
+
+    .work-card {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      cursor: pointer;
+      background: var(--light);
+    }
+
+    .work-card-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--black);
+      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .work-card:hover .work-card-bg { transform: scale(1.04); }
+
+    .work-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 55%);
+      opacity: 0.85;
+      transition: opacity 0.3s;
+    }
+
+    .work-card:hover .work-card-overlay { opacity: 1; }
+
+    .work-card-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      transform: translateY(8px);
+      transition: transform 0.3s;
+    }
+
+    .work-card:hover .work-card-content { transform: translateY(0); }
+
+    .work-cat {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #FFE600;
+      margin-bottom: 6px;
+    }
+
+    .work-title {
+      font-family: var(--font-cond);
+      font-weight: 700;
+      font-size: 28px;
+      text-transform: uppercase;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+
+    .work-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 6px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .work-card--featured .work-card-content { padding-bottom: 28px; }
+    .work-card--featured .work-title { font-size: 32px; }
+
+    /* card color swatches — Cortês, NSports, Stock Car, F4, MavTV, Tecmundo, Airbrush */
+    .work-card:nth-child(1) .work-card-bg { background: #1a1a00; }
+    .work-card:nth-child(2) .work-card-bg { background: #0d1a2e; }
+    .work-card:nth-child(3) .work-card-bg { background: #1a2f1a; }
+    .work-card:nth-child(4) .work-card-bg { background: #1a2333; }
+    .work-card:nth-child(5) .work-card-bg { background: #2d1a1a; }
+    .work-card:nth-child(6) .work-card-bg { background: #1A2C3E; }
+    .work-card:nth-child(7) .work-card-bg { background: #231a2d; }
+
+    /* decorative texture inside each card */
+    .work-card-bg::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: 80px;
+      color: rgba(255,255,255,0.05);
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    /* ─── SOBRE ─── */
+    #sobre {
+      padding: 0 40px 80px;
+    }
+
+    .sobre-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .sobre-text p {
+      font-size: 17px;
+      line-height: 1.75;
+      color: rgba(26,44,62,0.6);
+      margin-bottom: 20px;
+    }
+
+    .sobre-text strong { color: var(--accent); }
+
+    .skills-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 32px;
+    }
+
+    .skill-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border: 1.5px solid rgba(26,44,62,0.25);
+      border-radius: 100px;
+      color: rgba(26,44,62,0.7);
+      transition: transform 0.2s, background 0.2s, border-color 0.2s;
+      cursor: default;
+    }
+
+    .skill-tag:hover {
+      transform: scale(1.1);
+      background: rgba(26,44,62,0.07);
+      border-color: rgba(26,44,62,0.5);
+    }
+
+    .sobre-timeline {
+      border-left: 2px solid rgba(0,0,0,0.12);
+      padding-left: 28px;
+    }
+
+    .timeline-item {
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -35px;
+      top: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .timeline-period {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 4px;
+    }
+
+    .timeline-role {
+      font-family: var(--font-cond);
+      font-weight: 700;
+      font-size: 18px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .timeline-place {
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    /* ─── CONTATO ─── */
+    #contato {
+      background: var(--black);
+      color: var(--white);
+      padding: 80px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .contato-title {
+      font-family: var(--font-cond);
+      font-weight: 900;
+      font-size: clamp(40px, 6vw, 72px);
+      text-transform: uppercase;
+      line-height: 0.95;
+      letter-spacing: -0.01em;
+    }
+
+    .contato-sub {
+      font-size: 15px;
+      color: rgba(26,44,62,0.55);
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    .contato-links {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .contato-link {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: var(--white);
+      padding: 20px 24px;
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 8px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .contato-link:hover {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.25);
+    }
+
+    .contato-link-icon {
+      font-size: 20px;
+      width: 40px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .contato-link-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(26,44,62,0.45);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .contato-link-value {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--black);
+      padding: 20px 40px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer span {
+      font-size: 11px;
+      color: rgba(26,44,62,0.45);
+      letter-spacing: 0.05em;
+    }
+
+    /* ─────────────────────────────────── */
+    /* MOBILE STYLES  ≤ 768px             */
+    /* ─────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav {
+        padding: 16px 20px;
+      }
+
+      .nav-links {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: var(--black);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        z-index: 99;
+      }
+
+      .nav-links.open { display: flex; }
+      .nav-links a { font-size: 18px; opacity: 1; }
+      .nav-toggle { display: flex; z-index: 101; }
+
+      /* HERO mobile */
+      #hero {
+        padding: 100px 24px 80px;
+        min-height: 100svh;
+      }
+
+      .hero-title {
+        font-size: clamp(64px, 18vw, 100px);
+      }
+
+      /* Section headers mobile */
+      .section-header {
+        padding: 48px 20px 24px;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* DESTAQUE mobile */
+      #destaque { padding: 0 20px 60px; }
+
+      .destaque-card {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .destaque-info { padding: 32px 28px; }
+
+      .destaque-visual {
+        height: 200px;
+      }
+
+      .destaque-metrics {
+        gap: 20px;
+      }
+
+      /* ★★★ SWIPE CAROUSEL — MOBILE ★★★ */
+      .works-track {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        gap: 12px;
+        padding: 0 20px 24px;
+        scrollbar-width: none;
+      }
+
+      .works-track::-webkit-scrollbar { display: none; }
+
+      .work-card {
+        flex: 0 0 82vw;
+        scroll-snap-align: start;
+        aspect-ratio: 3/4;
+        border-radius: 12px;
+      }
+
+      /* swipe hint pill */
+      .swipe-hint {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 20px;
+        margin-bottom: 16px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gray);
+      }
+
+      .swipe-hint svg { flex-shrink: 0; }
+
+      /* SOBRE mobile */
+      #sobre { padding: 0 20px 60px; }
+      .sobre-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+      .sobre-text p { font-size: 15px; }
+
+      /* CONTATO mobile */
+      #contato {
+        grid-template-columns: 1fr;
+        padding: 60px 20px;
+        gap: 48px;
+      }
+
+      footer {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+    }
+
+    /* desktop: hide swipe hint */
+    .swipe-hint { display: none; }
+
+    @media (max-width: 768px) {
+      .swipe-hint { display: flex; }
+    }
+
+    /* ─── SCROLL PROGRESS DOTS (mobile) ─── */
+    .dots-wrap {
+      display: none;
+      justify-content: center;
+      gap: 6px;
+      padding: 4px 0 20px;
+    }
+
+    @media (max-width: 768px) {
+      .dots-wrap { display: flex; }
+    }
+
+    .dot {
+      background: rgba(255,255,255,0.3) !important;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.15);
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .dot.active {
+      background: var(--accent) !important;
+      transform: scale(1.4);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    .reveal.visible {
+      animation: fadeUp 0.6s ease forwards;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">Eduardo Bispo</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#trabalhos" onclick="closeMenu()">Portfólio</a></li>
+      <li><a href="#sobre" onclick="closeMenu()">Sobre</a></li>
+      <li><a href="#contato" onclick="closeMenu()">Contato</a></li>
+    </ul>
+    <div class="nav-social">
+      <!-- WhatsApp -->
+      <a href="https://wa.me/5511999999999" target="_blank" rel="noopener" class="whatsapp" aria-label="WhatsApp">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.41a8.22 8.22 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.32a8.19 8.19 0 0 1-1.26-4.37c.01-4.54 3.7-8.24 8.25-8.24zM8.53 7.33c-.16 0-.43.06-.66.31-.22.25-.87.86-.87 2.07 0 1.22.89 2.39 1.01 2.56.13.17 1.75 2.67 4.25 3.73.59.27 1.05.42 1.41.53.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.16-.48-.27-.25-.14-1.47-.74-1.69-.82-.23-.08-.37-.12-.56.12-.16.25-.64.81-.78.97-.15.17-.29.19-.53.07-.26-.13-1.06-.39-2.02-1.25-.75-.66-1.24-1.49-1.39-1.74-.14-.24-.01-.39.11-.5.11-.11.27-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.11-.56-1.35-.77-1.84-.2-.48-.41-.42-.56-.43-.14 0-.3-.01-.47-.01z"/>
+        </svg>
+      </a>
+      <!-- LinkedIn -->
+      <a href="https://www.linkedin.com/in/eduardorbispo" target="_blank" rel="noopener" class="linkedin" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+          <rect x="2" y="9" width="4" height="12"/>
+          <circle cx="4" cy="4" r="2"/>
+        </svg>
+      </a>
+      <!-- Instagram -->
+      <a href="https://instagram.com/eduardobispo" target="_blank" rel="noopener" class="instagram" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <h1 class="hero-title">Eduardo<br>Bispo</h1>
+    <p class="hero-role">Videomaker · São Paulo</p>
+    <p class="hero-subs">Edição &nbsp;·&nbsp; Produção &nbsp;·&nbsp; Roteiro</p>
+
+    <div class="hero-scroll" onclick="document.getElementById('trabalhos').scrollIntoView({behavior:'smooth'})">
+      <span class="hero-scroll-label">Olha só tudo que eu já fiz</span>
+      <div class="scroll-arrow">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- PORTFÓLIO (swipe no mobile) -->
+  <div class="section-header reveal">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Portfólio</h2>
+  </div>
+
+  <!-- swipe hint — só aparece no mobile -->
+  <p class="swipe-hint">
+    <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
+      <path d="M1 7h15M13 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Deslize para ver mais
+  </p>
+
+  <section id="trabalhos">
+    <div class="works-track" id="worksTrack">
+
+      <!-- 1. Guilherme Cortês — comunicação política -->
+      <div class="work-card work-card--featured">
+        <div class="work-card-bg" data-text="CORTÊS"></div>
+        <div class="work-card-overlay"></div>
+        <div class="work-card-content">
+          <p class="work-cat">Comunicação Política · ALESP</p>
+          <h3 class="work-title">Dep. Guilherme<br>Cortês</h3>
+          <p class="work-desc">De 100K para +500K seguidores · 5× crescimento</p>
+        </div>
+      </div>
+
+      <!-- 2. NSports -->
+      <div class="work-card">
+        <div class="work-card-bg" data-text="NSPORTS"></div>
+        <div class="work-card-overlay"></div>
+        <div class="work-card-content">
+          <p class="work-cat">Esporte · 2020–2024</p>
+          <h3 class="work-title">NSports</h3>
+        </div>
+      </div>
+
+      <!-- 3. Stock Car -->
+      <div class="work-card">
+        <div class="work-card-bg" data-text="STOCK"></div>
+        <div class="work-card-overlay"></div>
+        <div class="work-card-content">
+          <p class="work-cat">Automobilismo</p>
+          <h3 class="work-title">Stock Car</h3>
+        </div>
+      </div>
+
+      <!-- 4. Fórmula 4 -->
+      <div class="work-card">
+        <div class="work-card-bg" data-text="F4"></div>
+        <div class="work-card-overlay"></div>
+        <div class="work-card-content">
+          <p class="work-cat">Automobilismo</p>
+          <h3 class="work-title">Fórmula 4</h3>
+        </div>
+      </div>
+
+      <!-- 5. MavTV -->
+      <div class="work-card">
+        <div class="work-card-bg" data-text="MAVTV"></div>
+        <div class="work-card-overlay"></div>
+        <div class="work-card-content">
+          <p class="work-cat">TV Internacional</p>
+          <h3 class="work-title">MavTV</h3>
+        </div>
+      </div>
+
+      <!-- 6. Tecmundo -->
+      <div class="work-card">
+        <div class="work-card-bg" data-text="TECH"></div>
+        <div class="work-card-overlay"></div>
+        <div class="work-card-content">
+          <p class="work-cat">Tecnologia</p>
+          <h3 class="work-title">Tecmundo</h3>
+        </div>
+      </div>
+
+      <!-- 7. Airbrush -->
+      <div class="work-card">
+        <div class="work-card-bg" data-text="AIR"></div>
+        <div class="work-card-overlay"></div>
+        <div class="work-card-content">
+          <p class="work-cat">Arte & Cultura</p>
+          <h3 class="work-title">Airbrush</h3>
+        </div>
+      </div>
+
+    </div><!-- /works-track -->
+
+    <!-- dots (mobile) -->
+    <div class="dots-wrap" id="dotsWrap"></div>
+
+  </section>
+
+  <!-- SOBRE -->
+  <div class="section-header reveal">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Sobre</h2>
+  </div>
+
+  <section id="sobre" class="reveal">
+    <div class="sobre-grid">
+
+      <div class="sobre-text">
+        <p>
+          <strong>Videomaker e jornalista</strong> formado pela <strong>Oakland University</strong> (Michigan, EUA) com mais de <strong>15 anos de carreira</strong> — 12 deles construídos no Brasil, em telejornalismo, esporte, automobilismo e comunicação política.
+        </p>
+        <p>
+          Nos últimos anos, atuou como videomaker do gabinete do Dep. Guilherme Cortês na ALESP, ajudando a transformar uma conta com menos de 100K seguidores em uma das mais relevantes da Assembleia, com <strong>+500K seguidores</strong> e vídeos que ultrapassaram 250K visualizações.
+        </p>
+        <p>
+          Também narrador e comentarista esportivo com experiência internacional em Stock Car, Fórmula 4 e MavTV. Combina olhar jornalístico, técnica de edição e senso de pauta para criar conteúdo que <strong>gera resultado real</strong>.
+        </p>
+
+        <div class="skills-list">
+          <span class="skill-tag">Premiere Pro</span>
+          <span class="skill-tag">After Effects</span>
+          <span class="skill-tag">DaVinci Resolve</span>
+          <span class="skill-tag">Reels & TikTok</span>
+          <span class="skill-tag">Narração</span>
+          <span class="skill-tag">Roteiro</span>
+          <span class="skill-tag">Comunicação Política</span>
+          <span class="skill-tag">Jornalismo</span>
+          <span class="skill-tag">Lives & Transmissões</span>
+        </div>
+      </div>
+
+      <div class="sobre-timeline">
+        <div class="timeline-item">
+          <p class="timeline-period">2024 – 2026</p>
+          <p class="timeline-role">Videomaker</p>
+          <p class="timeline-place">Gabinete Dep. Guilherme Cortês · ALESP</p>
+        </div>
+        <div class="timeline-item">
+          <p class="timeline-period">2020 – 2024</p>
+          <p class="timeline-role">Editor de Vídeo</p>
+          <p class="timeline-place">NSports</p>
+        </div>
+        <div class="timeline-item">
+          <p class="timeline-period">2018 – 2020</p>
+          <p class="timeline-role">Editor de Vídeo</p>
+          <p class="timeline-place">ESPN Brasil</p>
+        </div>
+        <div class="timeline-item">
+          <p class="timeline-period">2012 – 2018</p>
+          <p class="timeline-role">Editor de Vídeo</p>
+          <p class="timeline-place">TV Globo</p>
+        </div>
+        <div class="timeline-item">
+          <p class="timeline-period">2010 – 2012</p>
+          <p class="timeline-role">Narrador & Comentarista</p>
+          <p class="timeline-place">MavTV · Stock Car · Fórmula 4</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CONTATO -->
+  <section id="contato" class="reveal">
+    <div>
+      <h2 class="contato-title">Disponível<br>para novos<br>projetos.</h2>
+      <p class="contato-sub">
+        Videomaker com experiência em gabinetes parlamentares, emissoras de TV e conteúdo digital. Pronto para começar.
+      </p>
+    </div>
+
+    <div class="contato-links">
+      <!-- WhatsApp -->
+      <a class="contato-link" href="https://wa.me/5511999999999" target="_blank" rel="noopener">
+        <span class="contato-link-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+        </span>
+        <span>
+          <span class="contato-link-label">WhatsApp</span>
+          <span class="contato-link-value">Fale agora</span>
+        </span>
+      </a>
+      <!-- E-mail -->
+      <a class="contato-link" href="mailto:eduardo.romanobispo@gmail.com">
+        <span class="contato-link-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </span>
+        <span>
+          <span class="contato-link-label">E-mail</span>
+          <span class="contato-link-value">eduardo.romanobispo@gmail.com</span>
+        </span>
+      </a>
+      <!-- LinkedIn -->
+      <a class="contato-link" href="https://www.linkedin.com/in/eduardorbispo" target="_blank" rel="noopener">
+        <span class="contato-link-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+            <rect x="2" y="9" width="4" height="12"/>
+            <circle cx="4" cy="4" r="2"/>
+          </svg>
+        </span>
+        <span>
+          <span class="contato-link-label">LinkedIn</span>
+          <span class="contato-link-value">linkedin.com/in/eduardorbispo</span>
+        </span>
+      </a>
+      <!-- Instagram -->
+      <a class="contato-link" href="https://instagram.com/eduardobispo" target="_blank" rel="noopener">
+        <span class="contato-link-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
+        <span>
+          <span class="contato-link-label">Instagram</span>
+          <span class="contato-link-value">@eduardobispo</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Eduardo Bispo</span>
+    <span>Videomaker · São Paulo, Brasil</span>
+  </footer>
+
+  <script>
+    // ─── NAV toggle ───
+    const toggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+
+    toggle.addEventListener('click', () => {
+      navLinks.classList.toggle('open');
+      document.body.style.overflow = navLinks.classList.contains('open') ? 'hidden' : '';
+    });
+
+    function closeMenu() {
+      navLinks.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // ─── SWIPE DOTS (mobile) ───
+    const track = document.getElementById('worksTrack');
+    const dotsWrap = document.getElementById('dotsWrap');
+    const cards = track.querySelectorAll('.work-card');
+
+    // build dots
+    cards.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.style.cssText = 'border:none;cursor:pointer;padding:0;';
+      d.setAttribute('aria-label', 'Ir para projeto ' + (i + 1));
+      d.addEventListener('click', () => {
+        track.scrollTo({ left: cards[i].offsetLeft - 20, behavior: 'smooth' });
+      });
+      dotsWrap.appendChild(d);
+    });
+
+    const dots = dotsWrap.querySelectorAll('.dot');
+
+    // update dots on scroll
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const idx = Array.from(cards).indexOf(entry.target);
+          dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        }
+      });
+    }, { root: track, threshold: 0.6 });
+
+    cards.forEach(c => observer.observe(c));
+
+    // ─── SCROLL REVEAL ───
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+          revealObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    revealEls.forEach(el => revealObserver.observe(el));
+  </script>
+
+  <!-- anotação removida -->
+  <style>
+    #annotate-btn-DISABLED {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      background: #FFE600;
+      color: #111;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 18px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,230,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.15s;
+      user-select: none;
+    }
+    #annotate-btn:hover { transform: scale(1.05); }
+    #annotate-btn.active { background: #ff4444; color: white; box-shadow: 0 4px 20px rgba(255,68,68,0.4); }
+
+    #annotate-toolbar {
+      position: fixed;
+      bottom: 80px;
+      right: 28px;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    #annotate-toolbar.visible { display: flex; }
+
+    .ann-tool-btn {
+      background: #1e1e1e;
+      color: white;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .ann-tool-btn:hover { background: #333; }
+
+    .ann-color {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .ann-color.sel { border-color: white; transform: scale(1.2); }
+    #ann-colors { display: flex; gap: 6px; background: #1e1e1e; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); }
+
+    #ann-size {
+      background: #1e1e1e;
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    #ann-size span { font-size: 11px; color: #888; font-family: 'Barlow', sans-serif; }
+    #ann-size input { width: 80px; accent-color: #FFE600; }
+
+    #draw-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      cursor: crosshair;
+      display: none;
+      touch-action: none;
+    }
+    #draw-canvas.active { display: block; }
+  </style>
+
+</body>
+</html>
