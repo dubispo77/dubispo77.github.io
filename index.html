@@ -172,12 +172,8 @@
     .hero-text-block {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      width: max-content;
-    }
-
-    .hero-title {
-      text-align: left;
+      align-items: flex-end;
+      text-align: right;
     }
 
     .hero-role {
@@ -188,7 +184,6 @@
       letter-spacing: 0.22em;
       color: rgba(26,44,62,0.7);
       margin-top: 28px;
-      text-align: left;
     }
 
     .hero-subs {
@@ -199,7 +194,6 @@
       text-transform: lowercase;
       color: rgba(26,44,62,0.45);
       margin-top: 7px;
-      text-align: left;
     }
 
     .hero-scroll {
@@ -1325,22 +1319,6 @@
     }
     #draw-canvas.active { display: block; }
   </style>
-  <script>
-    function alignHeroSubtitles() {
-      if (window.innerWidth <= 768) return; // só no desktop
-      const title = document.querySelector('.hero-title');
-      const role  = document.querySelector('.hero-role');
-      const subs  = document.querySelector('.hero-subs');
-      if (!title || !role || !subs) return;
-      const w = title.offsetWidth;
-      role.style.width = w + 'px';
-      subs.style.width = w + 'px';
-      role.style.textAlign = 'right';
-      subs.style.textAlign = 'right';
-    }
-    document.addEventListener('DOMContentLoaded', alignHeroSubtitles);
-    window.addEventListener('resize', alignHeroSubtitles);
-  </script>
 
 </body>
 </html>
