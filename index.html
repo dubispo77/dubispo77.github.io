@@ -558,47 +558,95 @@
       border-color: rgba(26,44,62,0.5);
     }
 
+    /* ─── TIMELINE VERTICAL ─── */
     .sobre-timeline {
-      border-left: 2px solid rgba(0,0,0,0.12);
-      padding-left: 28px;
+      position: relative;
+      padding-left: 32px;
+      max-width: 560px;
+    }
+
+    .sobre-timeline::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 8px; bottom: 8px;
+      width: 1px;
+      background: rgba(26,44,62,0.18);
     }
 
     .timeline-item {
-      margin-bottom: 36px;
       position: relative;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 28px;
     }
 
-    .timeline-item::before {
-      content: '';
+    .timeline-item:last-child { margin-bottom: 0; }
+
+    .timeline-dot {
       position: absolute;
-      left: -35px;
-      top: 6px;
-      width: 8px;
-      height: 8px;
+      left: -37px; top: 8px;
+      width: 10px; height: 10px;
       border-radius: 50%;
-      background: var(--accent);
+      background: rgba(26,44,62,0.22);
+      border: 2px solid #F4F1EB;
+      box-shadow: 0 0 0 1px rgba(26,44,62,0.18);
     }
+
+    .timeline-item:first-child .timeline-dot {
+      background: #1A2C3E;
+    }
+
+    .timeline-logo {
+      width: 44px; height: 44px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid rgba(26,44,62,0.12);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+
+    .timeline-logo img {
+      width: 30px; height: 30px;
+      object-fit: contain;
+    }
+
+    .timeline-logo.ph {
+      background: rgba(26,44,62,0.07);
+    }
+
+    .timeline-logo.ph span {
+      font-family: var(--font-cond);
+      font-weight: 700;
+      font-size: 12px;
+      color: rgba(26,44,62,0.42);
+    }
+
+    .timeline-text { padding-top: 2px; }
 
     .timeline-period {
-      font-size: 11px;
+      font-family: var(--font-cond);
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: lowercase;
-      color: var(--gray);
-      margin-bottom: 4px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(26,44,62,0.32);
+      margin-bottom: 3px;
     }
 
     .timeline-role {
-      font-family: var(--font-cond);
+      font-size: 15px;
       font-weight: 700;
-      font-size: 18px;
       text-transform: lowercase;
+      color: rgba(26,44,62,0.88);
       margin-bottom: 2px;
     }
 
     .timeline-place {
       font-size: 13px;
-      color: var(--gray);
+      color: rgba(26,44,62,0.5);
+      text-transform: lowercase;
     }
 
     /* ─── CONTATO ─── */
@@ -1119,31 +1167,128 @@
       </div>
 
       <div class="sobre-timeline">
+
         <div class="timeline-item">
-          <p class="timeline-period">2024 – 2026</p>
-          <p class="timeline-role">Videomaker</p>
-          <p class="timeline-place">Gabinete Dep. Guilherme Cortez · ALESP</p>
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo ph"><span>AL</span></div>
+          <div class="timeline-text">
+            <p class="timeline-period">2024 – 2026</p>
+            <p class="timeline-role">videomaker</p>
+            <p class="timeline-place">Gabinete Dep. Guilherme Cortez · ALESP</p>
+          </div>
         </div>
+
         <div class="timeline-item">
-          <p class="timeline-period">2020 – 2024</p>
-          <p class="timeline-role">Editor de Vídeo</p>
-          <p class="timeline-place">NSports</p>
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/NSport%2B.svg" alt="NSports"
+              onerror="this.parentNode.classList.add('ph');this.parentNode.innerHTML='<span>NS</span>'">
+          </div>
+          <div class="timeline-text">
+            <p class="timeline-period">mai 2021 – presente</p>
+            <p class="timeline-role">narrador e comentarista</p>
+            <p class="timeline-place">NSports · freelance</p>
+          </div>
         </div>
+
         <div class="timeline-item">
-          <p class="timeline-period">2018 – 2020</p>
-          <p class="timeline-role">Editor de Vídeo</p>
-          <p class="timeline-place">ESPN Brasil</p>
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo">
+            <img src="https://logo.clearbit.com/claro.com.br" alt="Claro"
+              onerror="this.parentNode.classList.add('ph');this.parentNode.innerHTML='<span>CL</span>'">
+          </div>
+          <div class="timeline-text">
+            <p class="timeline-period">nov 2021 – abr 2022</p>
+            <p class="timeline-role">editor e pós-produtor</p>
+            <p class="timeline-place">Claro Brasil · freelance</p>
+          </div>
         </div>
+
         <div class="timeline-item">
-          <p class="timeline-period">2012 – 2018</p>
-          <p class="timeline-role">Editor de Vídeo</p>
-          <p class="timeline-place">TV Globo</p>
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo ph"><span>PT</span></div>
+          <div class="timeline-text">
+            <p class="timeline-period">fev 2019 – jan 2021</p>
+            <p class="timeline-role">editor e roteirista</p>
+            <p class="timeline-place">Primetalk · tempo integral</p>
+          </div>
         </div>
+
         <div class="timeline-item">
-          <p class="timeline-period">2010 – 2012</p>
-          <p class="timeline-role">Narrador & Comentarista</p>
-          <p class="timeline-place">MavTV · Stock Car · Fórmula 4</p>
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo">
+            <img src="https://logo.clearbit.com/globo.com" alt="Globo"
+              onerror="this.parentNode.classList.add('ph');this.parentNode.innerHTML='<span>GL</span>'">
+          </div>
+          <div class="timeline-text">
+            <p class="timeline-period">out 2015 – mai 2018</p>
+            <p class="timeline-role">editor</p>
+            <p class="timeline-place">Rede Globo · freelance</p>
+          </div>
         </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo">
+            <img src="https://logo.clearbit.com/espn.com" alt="ESPN"
+              onerror="this.parentNode.classList.add('ph');this.parentNode.innerHTML='<span>ESPN</span>'">
+          </div>
+          <div class="timeline-text">
+            <p class="timeline-period">mar 2016 – set 2017</p>
+            <p class="timeline-role">editor</p>
+            <p class="timeline-place">ESPN Brasil · freelance</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo">
+            <img src="https://logo.clearbit.com/gm.com" alt="GM"
+              onerror="this.parentNode.classList.add('ph');this.parentNode.innerHTML='<span>GM</span>'">
+          </div>
+          <div class="timeline-text">
+            <p class="timeline-period">mai 2014 – jun 2015</p>
+            <p class="timeline-role">analista de comunicação</p>
+            <p class="timeline-place">General Motors · tempo integral</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo">
+            <img src="https://logo.clearbit.com/nbcnews.com" alt="NBC News"
+              onerror="this.parentNode.classList.add('ph');this.parentNode.innerHTML='<span>NBC</span>'">
+          </div>
+          <div class="timeline-text">
+            <p class="timeline-period">abr 2011 – dez 2011</p>
+            <p class="timeline-role">repórter, editor e produtor</p>
+            <p class="timeline-place">NBC News · estágio</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo ph"><span>GM</span></div>
+          <div class="timeline-text">
+            <p class="timeline-period">fev 2010 – mar 2011</p>
+            <p class="timeline-role">editor assistente</p>
+            <p class="timeline-place">Greater Media · estágio</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-logo">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/MavTV-2018.PNG" alt="MavTV"
+              onerror="this.parentNode.classList.add('ph');this.parentNode.innerHTML='<span>MAV</span>'">
+          </div>
+          <div class="timeline-text">
+            <p class="timeline-period">2010 – 2012</p>
+            <p class="timeline-role">narrador & comentarista</p>
+            <p class="timeline-place">MavTV · Stock Car · Fórmula 4</p>
+          </div>
+        </div>
+
       </div>
 
     </div>
