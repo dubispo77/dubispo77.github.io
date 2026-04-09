@@ -170,9 +170,13 @@
     }
 
     .hero-text-block {
-      display: grid;
-      grid-template-columns: max-content;
-      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .hero-title {
+      text-align: left;
     }
 
     .hero-role {
@@ -183,8 +187,7 @@
       letter-spacing: 0.22em;
       color: rgba(26,44,62,0.7);
       margin-top: 28px;
-      text-align: justify;
-      text-align-last: justify;
+      text-align: left;
     }
 
     .hero-subs {
@@ -195,8 +198,7 @@
       text-transform: lowercase;
       color: rgba(26,44,62,0.45);
       margin-top: 7px;
-      text-align: justify;
-      text-align-last: justify;
+      text-align: left;
     }
 
     .hero-scroll {
