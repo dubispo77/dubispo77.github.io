@@ -123,13 +123,13 @@
       min-height: 100svh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 120px 40px 100px;
+      justify-content: flex-end;
+      align-items: flex-start;
+      text-align: left;
+      padding: 120px 60px 80px;
       position: relative;
       overflow: hidden;
-      background-color: #1A2C3E;
+      background-color: #EDE8DF;
     }
 
     .hero-video {
@@ -144,7 +144,7 @@
     .hero-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.35);
+      background: rgba(244,241,235,0.72);
       z-index: 1;
     }
 
@@ -163,7 +163,7 @@
       font-size: clamp(64px, 12vw, 140px);
       line-height: 0.9;
       letter-spacing: -0.03em;
-      color: #ffffff;
+      color: var(--white);
     }
 
     .hero-role {
@@ -172,7 +172,7 @@
       font-size: clamp(19px, 2.6vw, 36px);
       text-transform: uppercase;
       letter-spacing: 0.22em;
-      color: rgba(255,255,255,0.85);
+      color: rgba(26,44,62,0.7);
       margin-top: 20px;
     }
 
@@ -181,24 +181,25 @@
       font-weight: 600;
       letter-spacing: 0.14em;
       text-transform: lowercase;
-      color: rgba(255,255,255,0.55);
+      color: rgba(26,44,62,0.45);
       margin-top: 14px;
     }
 
     .hero-scroll {
       position: absolute;
       bottom: 36px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 60px;
+      transform: none;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
+      gap: 10px !important;
       gap: 6px;
       font-size: 15px;
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: lowercase;
-      color: rgba(255,255,255,0.6);
+      color: rgba(26,44,62,0.65);
       cursor: pointer;
       white-space: nowrap;
       font-style: italic;
@@ -216,7 +217,7 @@
     .scroll-arrow svg {
       width: 40px;
       height: 40px;
-      stroke: rgba(255,255,255,0.6);
+      stroke: rgba(26,44,62,0.5);
       stroke-width: 2.5;
       fill: none;
       stroke-linecap: round;
