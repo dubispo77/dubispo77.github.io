@@ -170,9 +170,8 @@
     }
 
     .hero-text-block {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
+      display: grid;
+      grid-template-columns: max-content;
       text-align: right;
     }
 
@@ -184,6 +183,8 @@
       letter-spacing: 0.22em;
       color: rgba(26,44,62,0.7);
       margin-top: 28px;
+      text-align: justify;
+      text-align-last: justify;
     }
 
     .hero-subs {
@@ -194,6 +195,8 @@
       text-transform: lowercase;
       color: rgba(26,44,62,0.45);
       margin-top: 7px;
+      text-align: justify;
+      text-align-last: justify;
     }
 
     .hero-scroll {
