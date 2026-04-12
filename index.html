@@ -458,7 +458,6 @@
     .work-card:hover .work-card-content { transform: translateY(0); }
 
     .work-cat {
-      display: none;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.15em;
@@ -470,14 +469,13 @@
     .work-title {
       font-family: var(--font-cond);
       font-weight: 700;
-      font-size: 44px;
+      font-size: 28px;
       text-transform: lowercase;
       color: #ffffff;
       line-height: 1.1;
     }
 
     .work-desc {
-      display: none;
       font-size: 12px;
       color: rgba(255,255,255,0.5);
       margin-top: 6px;
@@ -486,22 +484,22 @@
     }
 
     .work-card--featured .work-card-content { padding-bottom: 28px; }
-    .work-card--featured .work-title { font-size: 44px; }
+    .work-card--featured .work-title { font-size: 32px; }
 
     /* card color swatches — Cortez, NSports, Stock Car, F4, MavTV, Tecmundo, Airbrush */
-    .work-card:nth-child(1)  .work-card-bg { background: #1a1a00; background-image: url('Thumbs/cortez.jpg'); background-size: 176%; background-position: 61% 34%; }
+    .work-card:nth-child(1)  .work-card-bg { background: #1a1a00; background-image: url('Thumbs/cortez.jpg'); background-size: 227%; background-position: 60% 36%; }
     .work-card:nth-child(2)  .work-card-bg { background: #0d1520; background-image: url('Thumbs/stockcar.jpg'); background-size: 182%; background-position: 46% 72%; }
-    .work-card:nth-child(3)  .work-card-bg { background: #2d0a0a; background-image: url('Thumbs/claro.jpg'); background-size: 171%; background-position: 7% 15%; }
+    .work-card:nth-child(3)  .work-card-bg { background: #2d0a0a; background-image: url('Thumbs/claro.jpg'); background-size: 177%; background-position: 3% 9%; }
     .work-card:nth-child(4)  .work-card-bg { background: #1a1a2e; background-image: url('Thumbs/airbrush.jpg'); background-size: 105%; background-position: 16% 30%; }
-    .work-card:nth-child(5)  .work-card-bg { background: #0a1a2e; background-image: url('Thumbs/formula4.jpg'); background-size: 192%; background-position: 51% 84%; }
-    .work-card:nth-child(6)  .work-card-bg { background: #0d1f1a; background-image: url('Thumbs/tecmundo.jpg'); background-size: 144%; background-position: 100% 28.67%; }
-    .work-card:nth-child(7)  .work-card-bg { background: #1a2810; background-image: url('Thumbs/turismo.jpg'); background-size: 132%; background-position: 33.67% 57.67%; }
-    .work-card:nth-child(8)  .work-card-bg { background: #102810; background-image: url('Thumbs/formula_grun.jpg'); background-size: 193%; background-position: 66% 14%; }
+    .work-card:nth-child(5)  .work-card-bg { background: #0a1a2e; background-image: url('Thumbs/f4.jpg'); background-size: 112%; background-position: 96% 50%; }
+    .work-card:nth-child(6)  .work-card-bg { background: #0d1f1a; background-image: url('Thumbs/tecmundo.jpg'); background-size: 100%; background-position: 50% 0%; }
+    .work-card:nth-child(7)  .work-card-bg { background: #1a2810; background-image: url('Thumbs/tn.jpg'); background-size: 105%; background-position: 0% 50%; }
+    .work-card:nth-child(8)  .work-card-bg { background: #102810; background-image: url('Thumbs/grun.jpg'); background-size: 193%; background-position: 66% 14%; }
     .work-card:nth-child(9)  .work-card-bg { background: #1a1a1a; background-image: url('Thumbs/decoupling.jpg'); background-size: 182%; background-position: 58% 31%; }
     .work-card:nth-child(10) .work-card-bg { background: #2a1a0a; background-image: url('Thumbs/menze.jpg'); background-size: 135%; background-position: 64% 0%; }
-    .work-card:nth-child(11) .work-card-bg { background: #0a0a1a; background-image: url('Thumbs/universal.jpg'); background-size: 159%; background-position: 85.67% 8%; }
-    .work-card:nth-child(12) .work-card-bg { background: #1a0d00; background-image: url('Thumbs/mavtv.jpg'); background-size: 158%; background-position: 27.67% 99.33%; }
-    .work-card:nth-child(13) .work-card-bg { background: #003d1a; background-image: url('Thumbs/brasileirao.jpg'); background-size: 121%; background-position: 39.33% 22.33%; }
+    .work-card:nth-child(11) .work-card-bg { background: #0a0a1a; background-image: url('Thumbs/mavtv.jpg'); background-size: 111%; background-position: 50% 50%; }
+    .work-card:nth-child(12) .work-card-bg { background: #1a0d00; background-image: url('Thumbs/mavtv.jpg'); background-size: 150%; background-position: 50% 30%; }
+    .work-card:nth-child(13) .work-card-bg { background: #003d1a; background-image: url('Thumbs/brasileirao.jpg'); background-size: 305%; background-position: 67% 100%; }
 
     /* decorative texture inside each card */
     .work-card-bg::after {
@@ -849,6 +847,7 @@
       /* HERO mobile */
       #hero {
         padding: 100px 24px 80px;
+        height: 100svh;
         min-height: 100svh;
       }
 
@@ -880,7 +879,15 @@
       }
 
       .hero-video-desktop { display: none; }
-      .hero-video-mobile { display: block; }
+      .hero-video-mobile {
+        display: block;
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        filter: none;
+        transform: none;
+      }
 
       /* Section headers mobile */
       .section-header {
@@ -1061,7 +1068,7 @@
     <video class="hero-video hero-video-desktop" autoplay muted loop playsinline>
       <source src="video-horizontal.mp4" type="video/mp4">
     </video>
-    <!-- vídeo mobile (vertical) -->
+    <!-- vídeo mobile (vertical - fullscreen) -->
     <video class="hero-video hero-video-mobile" autoplay muted loop playsinline>
       <source src="video-vertical.mp4" type="video/mp4">
     </video>
@@ -1106,7 +1113,7 @@
         <div class="work-card-overlay"></div>
         <div class="work-card-content">
           <p class="work-cat">Comunicação Política · ALESP</p>
-          <h3 class="work-title">Deputado<br>Guilherme Cortez</h3>
+          <h3 class="work-title">Dep. Guilherme<br>Cortez</h3>
           <p class="work-desc">De 100K para +500K seguidores · 5× crescimento</p>
         </div>
       </div>
@@ -1143,7 +1150,7 @@
 
       <!-- 5. Fórmula 4 BRB -->
       <div class="work-card">
-        <div class="work-card-bg" data-text="F4" style="background-image:url('Thumbs/formula4.jpg')"></div>
+        <div class="work-card-bg" data-text="F4" style="background-image:url('Thumbs/f4.jpg')"></div>
         <div class="work-card-overlay"></div>
         <div class="work-card-content">
           <p class="work-cat">Automobilismo · BRB</p>
@@ -1163,7 +1170,7 @@
 
       <!-- 7. Turismo Nacional -->
       <div class="work-card">
-        <div class="work-card-bg" data-text="TURISMO" style="background-image:url('Thumbs/turismo.jpg')"></div>
+        <div class="work-card-bg" data-text="TURISMO" style="background-image:url('Thumbs/tn.jpg')"></div>
         <div class="work-card-overlay"></div>
         <div class="work-card-content">
           <p class="work-cat">Automobilismo</p>
@@ -1173,7 +1180,7 @@
 
       <!-- 8. Fórmula Grün -->
       <div class="work-card">
-        <div class="work-card-bg" data-text="GRÜN" style="background-image:url('Thumbs/formula_grun.jpg')"></div>
+        <div class="work-card-bg" data-text="GRÜN" style="background-image:url('Thumbs/grun.jpg')"></div>
         <div class="work-card-overlay"></div>
         <div class="work-card-content">
           <p class="work-cat">Automobilismo</p>
@@ -1203,7 +1210,7 @@
 
       <!-- 11. Universal -->
       <div class="work-card">
-        <div class="work-card-bg" data-text="UNIV" style="background-image:url('Thumbs/universal.jpg')"></div>
+        <div class="work-card-bg" data-text="UNIV" style="background-image:url('Thumbs/mavtv.jpg')"></div>
         <div class="work-card-overlay"></div>
         <div class="work-card-content">
           <p class="work-cat">Entretenimento</p>
