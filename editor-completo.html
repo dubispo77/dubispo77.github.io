@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Editor Completo — Posição & Tamanho</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -169,7 +166,7 @@
         ];
 
         const imageFiles = [
-            'cortez.jpg', 'stockcar.jpg', 'claro.jpg', 'airbrush.jpg', 'formula4.jpg',
+            'cortez.jpg', 'stockcar.jpg', 'claro.jpg', 'Airbrush_02.png', 'F4_01.png',
             'tecmundo.jpg', 'turismo.jpg', 'formula_grun.jpg', 'decoupling.jpg', 'menze.jpg',
             'universal.jpg', 'mavtv.jpg', 'brasileirao.jpg'
         ];
@@ -193,6 +190,7 @@
         let selectedCard = 0;
         let isDragging = false;
         let dragStart = { x: 0, y: 0 };
+        const timestamp = Date.now();
 
         // Inicializar botões
         const buttonsContainer = document.getElementById('buttons');
@@ -203,11 +201,6 @@
             btn.onclick = () => selectCard(idx);
             buttonsContainer.appendChild(btn);
         });
-
-        function getImageUrl(idx) {
-            const timestamp = Date.now();
-            return `https://dubispo77.github.io/Thumbs/${imageFiles[idx]}?t=${timestamp}`;
-        }
 
         function selectCard(idx) {
             selectedCard = idx;
@@ -232,7 +225,7 @@
 
         function updatePreview() {
             const s = state[selectedCard];
-            const imageUrl = getImageUrl(selectedCard);
+            const imageUrl = `https://dubispo77.github.io/Thumbs/${imageFiles[selectedCard]}?v=${timestamp}`;
             const preview = document.getElementById('preview');
             preview.style.backgroundImage = `url("${imageUrl}")`;
             preview.style.backgroundSize = `${s.size}%`;
