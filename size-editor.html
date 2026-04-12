@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Tamanhos — Portfólio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0f0f0f;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 20px; }
+        .subtitle { color: #4ade80; font-size: 12px; margin-bottom: 20px; }
+
+        .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #374151;
+            color: #d1d5db;
+        }
+        button:hover { background: #4b5563; }
+        button.active { background: #2563eb; color: white; transform: scale(1.05); }
+
+        .card-name { text-align: center; color: #999; font-size: 12px; margin-bottom: 10px; }
+
+        .preview {
+            width: 100%;
+            max-width: 480px;
+            aspect-ratio: 4/3;
+            margin: 0 auto 20px;
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            background-repeat: no-repeat;
+            background-position: 50% 50%;
+        }
+
+        .controls { margin-bottom: 20px; }
+        .control-group { margin-bottom: 15px; }
+        .label { font-size: 12px; color: #d1d5db; display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .value { color: #60a5fa; font-weight: bold; font-size: 14px; }
+
+        input[type="range"] {
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            background: #374151;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: none;
+        }
+
+        .quick-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+        .quick-buttons button { padding: 8px; font-size: 11px; }
+
+        .button-row { display: flex; gap: 10px; }
+        .button-row button { flex: 1; }
+        .reset-btn { background: #4b5563; }
+        .copy-btn { background: #2563eb; }
+        .copy-btn.copied { background: #16a34a; }
+
+        .css-output {
+            background: #1a1a1a;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .css-output p { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        .css-output pre { font-family: 'Monaco', 'Courier New', monospace; font-size: 11px; color: #4ade80; white-space: pre-wrap; word-break: break-all; }
+
+        .hint { font-size: 11px; color: #666; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📏 Editor de Tamanhos</h1>
+        <p class="subtitle">Ajuste o background-size de cada thumbnail</p>
+
+        <div class="buttons" id="buttons"></div>
+
+        <p class="card-name" id="cardName">Cortez</p>
+
+        <div class="preview" id="preview"></div>
+
+        <div class="controls">
+            <div class="control-group">
+                <div class="label">
+                    <span>Tamanho da Imagem</span>
+                    <span class="value"><span id="sizeValue">100</span>%</span>
+                </div>
+                <input type="range" id="sizeSlider" min="50" max="400" value="100">
+            </div>
+
+            <div class="quick-buttons" id="quickButtons"></div>
+
+            <div class="button-row">
+                <button class="reset-btn" onclick="resetSize()">↺ Resetar (100%)</button>
+                <button class="copy-btn" id="copyBtn" onclick="copyCSSToClipboard()">📋 Copiar CSS</button>
+            </div>
+        </div>
+
+        <div class="css-output">
+            <p>CSS Gerado</p>
+            <pre id="cssOutput"></pre>
+        </div>
+
+        <p class="hint">💡 Menos de 100% = imagem menor (mais zoom in) • Mais de 100% = imagem maior (mais zoom out)</p>
+    </div>
+
+    <script>
+        const cardNames = [
+            'Cortez', 'Stock Car', 'Claro tv+', 'AirBrush', 'Fórmula 4',
+            'Tecmundo', 'Turismo Nac.', 'Fórmula Grün', 'Decoupling', 'Menze',
+            'Universal', 'MAVTV', 'Brasileirão Play'
+        ];
+
+        const imageFiles = [
+            'cortez.jpg', 'stockcar.jpg', 'claro.jpg', 'airbrush.jpg', 'formula4.jpg',
+            'tecmundo.jpg', 'turismo.jpg', 'formula_grun.jpg', 'decoupling.jpg', 'menze.jpg',
+            'universal.jpg', 'mavtv.jpg', 'brasileirao.jpg'
+        ];
+
+        const sizes = {
+            0: 227, 1: 100, 2: 100, 3: 105, 4: 100,
+            5: 100, 6: 100, 7: 100, 8: 100, 9: 100,
+            10: 100, 11: 100, 12: 305
+        };
+
+        const positions = {
+            0: { x: 60, y: 36 },
+            12: { x: 67, y: 100 }
+        };
+
+        let selectedCard = 0;
+        const timestamp = Date.now();
+
+        // Inicializar botões
+        const buttonsContainer = document.getElementById('buttons');
+        cardNames.forEach((name, idx) => {
+            const btn = document.createElement('button');
+            btn.textContent = name;
+            btn.className = idx === 0 ? 'active' : '';
+            btn.onclick = () => selectCard(idx);
+            buttonsContainer.appendChild(btn);
+        });
+
+        // Inicializar botões rápidos
+        const quickButtonsContainer = document.getElementById('quickButtons');
+        [80, 100, 120, 150].forEach(size => {
+            const btn = document.createElement('button');
+            btn.textContent = size + '%';
+            btn.onclick = () => {
+                document.getElementById('sizeSlider').value = size;
+                updateSize();
+            };
+            quickButtonsContainer.appendChild(btn);
+        });
+
+        function selectCard(idx) {
+            selectedCard = idx;
+            document.querySelectorAll('.buttons button').forEach((btn, i) => {
+                btn.classList.toggle('active', i === idx);
+            });
+            document.getElementById('sizeSlider').value = sizes[idx] || 100;
+            document.getElementById('cardName').textContent = cardNames[idx];
+            updatePreview();
+            updateCSS();
+        }
+
+        function updateSize() {
+            const size = parseInt(document.getElementById('sizeSlider').value);
+            sizes[selectedCard] = size;
+            document.getElementById('sizeValue').textContent = size;
+            updatePreview();
+            updateCSS();
+        }
+
+        function resetSize() {
+            sizes[selectedCard] = 100;
+            document.getElementById('sizeSlider').value = 100;
+            document.getElementById('sizeValue').textContent = 100;
+            updatePreview();
+            updateCSS();
+        }
+
+        function updatePreview() {
+            const size = sizes[selectedCard] || 100;
+            const pos = positions[selectedCard] || { x: 50, y: 50 };
+            const imageUrl = `https://dubispo77.github.io/Thumbs/${imageFiles[selectedCard]}?v=${timestamp}`;
+            const preview = document.getElementById('preview');
+            preview.style.backgroundImage = `url("${imageUrl}")`;
+            preview.style.backgroundSize = `${size}%`;
+            preview.style.backgroundPosition = `${pos.x}% ${pos.y}%`;
+        }
+
+        function updateCSS() {
+            const childIndex = selectedCard + 1;
+            const size = sizes[selectedCard] || 100;
+            const pos = positions[selectedCard] || { x: 50, y: 50 };
+            const css = `.work-card:nth-child(${childIndex}) .work-card-bg {
+  background-image: url('Thumbs/${imageFiles[selectedCard]}');
+  background-size: ${size}%;
+  background-position: ${pos.x.toFixed(0)}% ${pos.y.toFixed(0)}%;
+}`;
+            document.getElementById('cssOutput').textContent = css;
+        }
+
+        function copyCSSToClipboard() {
+            const css = document.getElementById('cssOutput').textContent;
+            navigator.clipboard.writeText(css).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✓ Copiado!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copiar CSS';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        document.getElementById('sizeSlider').addEventListener('input', updateSize);
+
+        // Inicializar
+        updatePreview();
+        updateCSS();
+    </script>
+</body>
+</html>
