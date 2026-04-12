@@ -844,11 +844,12 @@
       .nav-links a { font-size: 18px; opacity: 1; }
       .nav-toggle { display: flex; z-index: 101; }
 
-      /* HERO mobile */
+      /* HERO mobile — capa cobre tela inteira */
       #hero {
         padding: 100px 24px 80px;
         height: 100svh;
-        min-height: 100svh;
+        max-height: 100svh;
+        overflow: hidden;
       }
 
       .hero-title {
