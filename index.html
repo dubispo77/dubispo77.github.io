@@ -960,6 +960,22 @@
       }
       .sobre-text p { font-size: 15px; }
 
+      /* TIMELINE mobile — uma coluna só */
+      .tl-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      /* OVERFLOW — nada vaza pro lado */
+      html, body {
+        overflow-x: hidden;
+        max-width: 100vw;
+      }
+      section, #destaque, #sobre, #contato, .sobre-timeline {
+        overflow-x: hidden;
+        max-width: 100vw;
+      }
+
       /* CONTATO mobile */
       #contato {
         grid-template-columns: 1fr;
