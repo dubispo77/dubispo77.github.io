@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Thumbnails — Mobile vs Desktop</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f0f0f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 15px; }
+        h1 { font-size: 22px; text-align: center; margin-bottom: 5px; }
+        .subtitle { color: #4ade80; font-size: 11px; text-align: center; margin-bottom: 15px; }
+
+        .card-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; justify-content: center; }
+        .card-buttons button {
+            padding: 6px 10px; border: none; border-radius: 6px; font-size: 11px;
+            font-weight: 600; cursor: pointer; background: #374151; color: #d1d5db; transition: all .15s;
+        }
+        .card-buttons button:hover { background: #4b5563; }
+        .card-buttons button.active { background: #2563eb; color: #fff; transform: scale(1.05); }
+        .card-buttons button.has-diff { border: 2px solid #f59e0b; }
+
+        .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .panel { background: #1a1a1a; border-radius: 8px; padding: 12px; }
+        .panel-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .panel-title .icon { font-size: 16px; }
+
+        .preview-box {
+            width: 100%; aspect-ratio: 16/10; background: #1f2937; border: 2px solid #374151;
+            border-radius: 6px; background-repeat: no-repeat; cursor: grab; user-select: none;
+            margin-bottom: 10px; position: relative;
+        }
+        .preview-box:active { cursor: grabbing; }
+        .preview-box.mobile { max-width: 280px; aspect-ratio: 9/14; margin: 0 auto 10px; }
+
+        .ctrl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .ctrl-group label { font-size: 10px; color: #9ca3af; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .ctrl-group .val { color: #60a5fa; font-weight: 700; }
+        input[type="range"] {
+            width: 100%; height: 8px; border-radius: 4px; background: #374151; outline: none;
+            -webkit-appearance: none; appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+            background: #2563eb; cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px; height: 16px; border-radius: 50%; background: #2563eb; cursor: pointer; border: none;
+        }
+
+        .btn-row { display: flex; gap: 6px; margin-bottom: 8px; }
+        .btn-row button { flex: 1; padding: 6px; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; }
+        .btn-reset { background: #4b5563; color: #d1d5db; }
+        .btn-copy { background: #2563eb; color: #fff; }
+        .btn-copy.copied { background: #16a34a; }
+
+        .css-out {
+            background: #111; border-left: 3px solid #2563eb; padding: 8px; border-radius: 4px;
+            font-family: 'Monaco','Courier New', monospace; font-size: 10px; color: #4ade80;
+            white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto;
+        }
+
+        .diff-badge {
+            display: inline-block; background: #f59e0b; color: #000; font-size: 9px;
+            padding: 1px 5px; border-radius: 3px; font-weight: 700; margin-left: 6px;
+        }
+
+        .image-info { font-size: 9px; color: #6b7280; text-align: center; margin-bottom: 4px; word-break: break-all; }
+
+        @media (max-width: 900px) {
+            .panels { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Editor de Thumbnails</h1>
+    <p class="subtitle">Mobile vs Desktop — ajuste e copie o CSS</p>
+
+    <div class="card-buttons" id="cardBtns"></div>
+
+    <div class="panels">
+        <!-- MOBILE -->
+        <div class="panel" id="panelMobile">
+            <div class="panel-title"><span class="icon">📱</span> Mobile (375px)</div>
+            <div class="image-info" id="mobileImgInfo"></div>
+            <div class="preview-box mobile" id="previewMobile"></div>
+            <div class="ctrl-row">
+                <div class="ctrl-group">
+                    <label>Tamanho <span class="val" id="mSizeVal">100%</span></label>
+                    <input type="range" id="mSize" min="50" max="500" value="100">
+                </div>
+                <div class="ctrl-group">
+                    <label>Pos. X <span class="val" id="mPosXVal">50%</span></label>
+                    <input type="range" id="mPosX" min="0" max="100" value="50" step="0.01">
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <label>Pos. Y <span class="val" id="mPosYVal">50%</span></label>
+                <input type="range" id="mPosY" min="0" max="100" value="50" step="0.01">
+            </div>
+            <div class="btn-row">
+                <button class="btn-reset" onclick="resetPanel('mobile')">↺ Reset</button>
+                <button class="btn-copy" id="mCopyBtn" onclick="copyCSS('mobile')">📋 Copiar CSS</button>
+            </div>
+            <div class="css-out" id="mCssOut"></div>
+        </div>
+
+        <!-- DESKTOP -->
+        <div class="panel" id="panelDesktop">
+            <div class="panel-title"><span class="icon">🖥️</span> Desktop (1280px)</div>
+            <div class="image-info" id="desktopImgInfo"></div>
+            <div class="preview-box" id="previewDesktop"></div>
+            <div class="ctrl-row">
+                <div class="ctrl-group">
+                    <label>Tamanho <span class="val" id="dSizeVal">100%</span></label>
+                    <input type="range" id="dSize" min="50" max="500" value="100">
+                </div>
+                <div class="ctrl-group">
+                    <label>Pos. X <span class="val" id="dPosXVal">50%</span></label>
+                    <input type="range" id="dPosX" min="0" max="100" value="50" step="0.01">
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <label>Pos. Y <span class="val" id="dPosYVal">50%</span></label>
+                <input type="range" id="dPosY" min="0" max="100" value="50" step="0.01">
+            </div>
+            <div class="btn-row">
+                <button class="btn-reset" onclick="resetPanel('desktop')">↺ Reset</button>
+                <button class="btn-copy" id="dCopyBtn" onclick="copyCSS('desktop')">📋 Copiar CSS</button>
+            </div>
+            <div class="css-out" id="dCssOut"></div>
+        </div>
+    </div>
+
+<script>
+const BASE = 'https://dubispo77.github.io/Thumbs/';
+const ts = Date.now();
+
+const cards = [
+    {
+        name: 'Cortez', n: 1, bg: '#1a1a00',
+        desktop: { img: 'cortez.jpg', size: 155, x: 55.44, y: 26.73 },
+        mobile:  { img: 'cortez.jpg', size: 202, x: 63.03, y: 47.85 }
+    },
+    {
+        name: 'Stock Car', n: 2, bg: '#0d1520',
+        desktop: { img: 'stockcar.jpg', size: 172, x: 33.66, y: 54.45 },
+        mobile:  { img: 'stockcar.jpg', size: 285, x: 40.59, y: 59.4 }
+    },
+    {
+        name: 'Claro tv+', n: 3, bg: '#2d0a0a',
+        desktop: { img: 'claro.jpg?v=3', size: 210, x: 0, y: 34.65 },
+        mobile:  { img: 'claro.jpg?v=3', size: 236, x: 4.62, y: 83.82 }
+    },
+    {
+        name: 'AirBrush', n: 4, bg: '#1a1a2e',
+        desktop: { img: 'Airbrush_02.png', size: 104, x: 7.59, y: 27.72 },
+        mobile:  { img: 'Airbrush_02.png', size: 101, x: 0, y: 32.67 }
+    },
+    {
+        name: 'Formula 4', n: 5, bg: '#0a1a2e',
+        desktop: { img: 'F4_01.png', size: 117, x: 23, y: 67 },
+        mobile:  { img: 'https://thenews2.com/wp-content/uploads/2023/04/F4-Brasil-11-scaled.jpg', size: 100, x: 50, y: 50, isExternal: true }
+    },
+    {
+        name: 'Tecmundo', n: 6, bg: '#0d1f1a',
+        desktop: { img: 'tecmundo.jpg?v=2', size: 144, x: 100, y: 28.67 },
+        mobile:  { img: 'tecmundo.jpg?v=2', size: 218, x: 72, y: 52 }
+    },
+    {
+        name: 'Turismo', n: 7, bg: '#1a2810',
+        desktop: { img: 'turismo.jpg', size: 132, x: 33.67, y: 57.67 },
+        mobile:  { img: 'turismo.jpg', size: 249, x: 61, y: 93 }
+    },
+    {
+        name: 'Formula Grun', n: 8, bg: '#102810',
+        desktop: { img: 'formula_grun.jpg', size: 193, x: 66, y: 14 },
+        mobile:  { img: 'formula_grun.jpg', size: 300, x: 67, y: 8 }
+    },
+    {
+        name: 'Decoupling', n: 9, bg: '#1a1a1a',
+        desktop: { img: 'https://assets-prd.ignimgs.com/2023/10/20/gettyimages-1732217264-1697809929616.jpg', size: 182, x: 58, y: 31, isExternal: true },
+        mobile:  { img: 'https://assets-prd.ignimgs.com/2023/10/20/gettyimages-1732217264-1697809929616.jpg', size: 273, x: 50, y: 33, isExternal: true }
+    },
+    {
+        name: 'Menze', n: 10, bg: '#2a1a0a',
+        desktop: { img: 'menze.jpg?v=2', size: 135, x: 64, y: 0 },
+        mobile:  { img: 'menze.jpg?v=2', size: 206, x: 49, y: 1 }
+    },
+    {
+        name: 'Universal', n: 11, bg: '#0a0a1a',
+        desktop: { img: 'universal.jpg', size: 159, x: 85.67, y: 8 },
+        mobile:  { img: 'universal.jpg', size: 266, x: 86, y: 7 }
+    },
+    {
+        name: 'MAVTV', n: 12, bg: '#1a0d00',
+        desktop: { img: 'mavtv.jpg', size: 148, x: 0, y: 100 },
+        mobile:  { img: 'mavtv.jpg', size: 201, x: 28, y: 51 }
+    },
+    {
+        name: 'Brasileirao', n: 13, bg: '#003d1a',
+        desktop: { img: 'https://s2-ge.glbimg.com/XedJPDc0sZ6TkoFESN04rN5z98o=/0x0:2400x3000/1000x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228b6673f488aa253bbcb03c80ec5/internal_photos/bs/2026/S/q/nKxmnWQByK56uus6qYrg/55056124351-b84ce71421-3k.jpg', size: 121, x: 39.33, y: 22.33, isExternal: true },
+        mobile:  { img: 'https://s2-ge.glbimg.com/XedJPDc0sZ6TkoFESN04rN5z98o=/0x0:2400x3000/1000x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228b6673f488aa253bbcb03c80ec5/internal_photos/bs/2026/S/q/nKxmnWQByK56uus6qYrg/55056124351-b84ce71421-3k.jpg', size: 232, x: 2, y: 60, isExternal: true }
+    }
+];
+
+const initialState = JSON.parse(JSON.stringify(cards));
+let sel = 0;
+
+const btnsEl = document.getElementById('cardBtns');
+cards.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.textContent = `${c.n}. ${c.name}`;
+    if (c.desktop.img !== c.mobile.img || c.mobile.isExternal) b.classList.add('has-diff');
+    b.onclick = () => selectCard(i);
+    btnsEl.appendChild(b);
+});
+
+function selectCard(i) {
+    sel = i;
+    btnsEl.querySelectorAll('button').forEach((b, j) => b.classList.toggle('active', j === i));
+    loadSliders();
+    render();
+}
+
+function loadSliders() {
+    const c = cards[sel];
+    document.getElementById('mSize').value = c.mobile.size;
+    document.getElementById('mPosX').value = c.mobile.x;
+    document.getElementById('mPosY').value = c.mobile.y;
+    document.getElementById('dSize').value = c.desktop.size;
+    document.getElementById('dPosX').value = c.desktop.x;
+    document.getElementById('dPosY').value = c.desktop.y;
+}
+
+function render() {
+    const c = cards[sel];
+    const m = c.mobile;
+    const d = c.desktop;
+
+    const mUrl = m.isExternal ? m.img : `${BASE}${m.img}?_=${ts}`;
+    const pm = document.getElementById('previewMobile');
+    pm.style.backgroundImage = `url("${mUrl}")`;
+    pm.style.backgroundSize = `${m.size}%`;
+    pm.style.backgroundPosition = `${m.x}% ${m.y}%`;
+    document.getElementById('mobileImgInfo').textContent = m.isExternal ? m.img.split('/').pop() : m.img;
+
+    const dUrl = d.isExternal ? d.img : `${BASE}${d.img}?_=${ts}`;
+    const pd = document.getElementById('previewDesktop');
+    pd.style.backgroundImage = `url("${dUrl}")`;
+    pd.style.backgroundSize = `${d.size}%`;
+    pd.style.backgroundPosition = `${d.x}% ${d.y}%`;
+    document.getElementById('desktopImgInfo').textContent = d.isExternal ? d.img.split('/').pop() : d.img;
+
+    const diffM = document.querySelector('#panelMobile .diff-badge');
+    const diffD = document.querySelector('#panelDesktop .diff-badge');
+    if (diffM) diffM.remove();
+    if (diffD) diffD.remove();
+    if (m.img !== d.img || m.isExternal) {
+        document.querySelector('#panelMobile .panel-title').insertAdjacentHTML('beforeend', '<span class="diff-badge">IMG DIFERENTE</span>');
+    }
+
+    document.getElementById('mSizeVal').textContent = m.size + '%';
+    document.getElementById('mPosXVal').textContent = m.x + '%';
+    document.getElementById('mPosYVal').textContent = m.y + '%';
+    document.getElementById('dSizeVal').textContent = d.size + '%';
+    document.getElementById('dPosXVal').textContent = d.x + '%';
+    document.getElementById('dPosYVal').textContent = d.y + '%';
+
+    const mImgLine = m.isExternal ? `  background-image: url('${m.img}') !important;\n` : '';
+    const mCSS = `.work-card:nth-child(${c.n}) .work-card-bg {\n` +
+        mImgLine +
+        `  background-size: ${m.size}% !important;\n` +
+        `  background-position: ${m.x}% ${m.y}% !important;\n}`;
+    document.getElementById('mCssOut').textContent = mCSS;
+
+    const dImgUrl = d.isExternal ? d.img : `Thumbs/${d.img}`;
+    const dCSS = `.work-card:nth-child(${c.n}) .work-card-bg {\n` +
+        `  background: ${c.bg};\n` +
+        `  background-image: url('${dImgUrl}');\n` +
+        `  background-size: ${d.size}%;\n` +
+        `  background-position: ${d.x}% ${d.y}%;\n}`;
+    document.getElementById('dCssOut').textContent = dCSS;
+}
+
+['mSize','mPosX','mPosY'].forEach(id => {
+    document.getElementById(id).addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        const c = cards[sel].mobile;
+        if (id === 'mSize') c.size = v;
+        else if (id === 'mPosX') c.x = v;
+        else c.y = v;
+        render();
+    });
+});
+['dSize','dPosX','dPosY'].forEach(id => {
+    document.getElementById(id).addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        const c = cards[sel].desktop;
+        if (id === 'dSize') c.size = v;
+        else if (id === 'dPosX') c.x = v;
+        else c.y = v;
+        render();
+    });
+});
+
+function setupDrag(previewId, target) {
+    const el = document.getElementById(previewId);
+    let dragging = false, startX, startY, startPosX, startPosY;
+
+    el.addEventListener('mousedown', e => {
+        dragging = true;
+        startX = e.clientX; startY = e.clientY;
+        const c = target === 'mobile' ? cards[sel].mobile : cards[sel].desktop;
+        startPosX = c.x; startPosY = c.y;
+        e.preventDefault();
+    });
+    window.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const dx = (e.clientX - startX) / el.offsetWidth * 50;
+        const dy = (e.clientY - startY) / el.offsetHeight * 50;
+        const c = target === 'mobile' ? cards[sel].mobile : cards[sel].desktop;
+        c.x = Math.round(Math.max(0, Math.min(100, startPosX - dx)) * 100) / 100;
+        c.y = Math.round(Math.max(0, Math.min(100, startPosY - dy)) * 100) / 100;
+        loadSliders();
+        render();
+    });
+    window.addEventListener('mouseup', () => { dragging = false; });
+
+    el.addEventListener('touchstart', e => {
+        dragging = true;
+        const t = e.touches[0];
+        startX = t.clientX; startY = t.clientY;
+        const c = target === 'mobile' ? cards[sel].mobile : cards[sel].desktop;
+        startPosX = c.x; startPosY = c.y;
+        e.preventDefault();
+    }, { passive: false });
+    el.addEventListener('touchmove', e => {
+        if (!dragging) return;
+        const t = e.touches[0];
+        const dx = (t.clientX - startX) / el.offsetWidth * 50;
+        const dy = (t.clientY - startY) / el.offsetHeight * 50;
+        const c = target === 'mobile' ? cards[sel].mobile : cards[sel].desktop;
+        c.x = Math.round(Math.max(0, Math.min(100, startPosX - dx)) * 100) / 100;
+        c.y = Math.round(Math.max(0, Math.min(100, startPosY - dy)) * 100) / 100;
+        loadSliders();
+        render();
+    }, { passive: false });
+    el.addEventListener('touchend', () => { dragging = false; });
+
+    el.addEventListener('wheel', e => {
+        e.preventDefault();
+        const c = target === 'mobile' ? cards[sel].mobile : cards[sel].desktop;
+        c.size = Math.max(50, Math.min(500, c.size + (e.deltaY < 0 ? 5 : -5)));
+        loadSliders();
+        render();
+    }, { passive: false });
+}
+
+setupDrag('previewMobile', 'mobile');
+setupDrag('previewDesktop', 'desktop');
+
+function resetPanel(which) {
+    const orig = initialState[sel];
+    if (which === 'mobile') {
+        cards[sel].mobile = JSON.parse(JSON.stringify(orig.mobile));
+    } else {
+        cards[sel].desktop = JSON.parse(JSON.stringify(orig.desktop));
+    }
+    loadSliders();
+    render();
+}
+
+function copyCSS(which) {
+    const text = document.getElementById(which === 'mobile' ? 'mCssOut' : 'dCssOut').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById(which === 'mobile' ? 'mCopyBtn' : 'dCopyBtn');
+        btn.classList.add('copied');
+        btn.textContent = '✅ Copiado!';
+        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '📋 Copiar CSS'; }, 1500);
+    });
+}
+
+selectCard(0);
+</script>
+</body>
+</html>
