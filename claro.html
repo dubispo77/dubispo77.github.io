@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Fórmula Grün — Eduardo Bispo</title>
+<title>Claro TV+ — Eduardo Bispo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Barlow+Condensed:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -20,7 +20,7 @@
     --line:rgba(26,44,62,.28);
     --font:'Barlow',sans-serif;
     --cond:'Barlow Condensed',sans-serif;
-    --capa:url('Capas/F%C3%B3rmula%20Grun/A240345_web_2880.jpg');
+    --capa:url('https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/claro/Claro_capa.webp');
   }
 
   html{scroll-behavior:smooth}
@@ -48,18 +48,11 @@
     display:inline-flex;align-items:center;gap:10px;
     font-family:var(--cond);font-size:13px;letter-spacing:3px;
     text-transform:uppercase;text-decoration:none;
-    color:var(--subtle);transition:color .2s;
+    color:var(--ink);opacity:.7;transition:opacity .2s;
   }
-  nav .back:hover{color:var(--ink)}
-  nav .back::before{content:'←';font-size:16px}
+  nav .back:hover{opacity:1}
 
-  @media(max-width:720px){
-    nav{padding:14px 20px}
-    nav a.logo{font-size:18px}
-    nav .back{font-size:11px;letter-spacing:2px}
-  }
-
-  /* ───── HERO (V3 · imagem full + degradê diagonal navy) ───── */
+  /* ───── HERO ───── */
   .hero{
     position:relative;overflow:hidden;
     max-width:1400px;margin:68px auto 0;
@@ -77,27 +70,7 @@
     background:linear-gradient(135deg,rgba(26,44,62,.94) 0%,rgba(26,44,62,.55) 55%,rgba(26,44,62,.15) 100%);
   }
   .hero .hero-content{position:relative;z-index:2;max-width:700px}
-  .hero .brand{
-    display:inline-block;margin-bottom:20px;line-height:0;
-  }
-  .hero .brand img{
-    display:block;width:auto;max-height:130px;
-    filter:drop-shadow(0 2px 12px rgba(0,0,0,.25));
-    /* corta a linha "além da velocidade" embaixo */
-    clip-path:inset(0 0 26% 0);
-    margin-bottom:-30px;
-  }
-  @media(max-width:720px){
-    .hero .brand img{max-height:100px;margin-bottom:-24px}
-  }
-  .hero .eyebrow{
-    font-family:var(--cond);font-size:13px;letter-spacing:4px;
-    text-transform:uppercase;color:var(--bg);margin-bottom:18px;
-    display:flex;align-items:center;gap:14px;font-weight:700;opacity:.92;
-  }
-  .hero .eyebrow::before{
-    content:'';display:inline-block;width:28px;height:1px;background:var(--bg);opacity:.55;
-  }
+
   .hero h1{
     font-family:var(--cond);font-weight:800;
     font-size:clamp(44px,7vw,96px);
@@ -137,75 +110,53 @@
   .hero .meta .ico svg{width:13px;height:13px;display:block}
   .hero .meta strong{color:var(--bg);font-weight:800;margin-right:3px;letter-spacing:1.8px}
 
-  /* LOGOS SOCIAIS — hover */
-  .hero-logo {
-    color: currentColor;
-    display: inline-flex;
-    opacity: 0.95;
-    filter: brightness(1.9) saturate(1.1);
-    transition: color 0.2s, opacity 0.2s, filter 0.2s, transform 0.2s;
+  /* LOGOS SOCIAIS */
+  .hero-logo{
+    color:currentColor;display:inline-flex;opacity:.95;
+    filter:brightness(1.9) saturate(1.1);
+    transition:color .2s,opacity .2s,filter .2s,transform .2s;
   }
-  .hero-logo:hover {
-    color: rgba(244,241,235,0.95);
-    opacity: 1;
-    filter: brightness(1.1) saturate(0);
-    transform: translateY(-2px);
+  .hero-logo:hover{
+    color:rgba(244,241,235,.95);opacity:1;
+    filter:brightness(1.1) saturate(0);transform:translateY(-2px);
   }
-
-  /* DESKTOP */
-  /* tamanhos controlados direto no SVG */
 
   @media(max-width:720px){
     .hero{margin-top:60px;min-height:420px;padding:30px 22px}
     .hero .hero-bg::after{background:linear-gradient(160deg,rgba(26,44,62,.95) 0%,rgba(26,44,62,.7) 55%,rgba(26,44,62,.3) 100%)}
     .hero h1{letter-spacing:-1.5px;font-size:clamp(40px,11vw,64px);margin-bottom:18px}
     .hero .lede{font-size:18px}
-    .hero .eyebrow{font-size:11px;letter-spacing:2.5px;margin-bottom:12px}
     .hero .meta{font-size:13px;gap:8px;margin:16px 0 20px}
     .hero .meta .ico{width:22px;height:22px}
     .hero .meta .ico svg{width:11px;height:11px}
 
-    /* Hero logos sociais — proporcional ao h1 mobile (~55% do desktop) */
     .hero-social{top:-14px !important;gap:5px !important}
-    .hero-social .hero-logo svg{width:23px !important;height:23px !important}
-    .hero-social .hero-logo:nth-child(1) svg{width:29px !important;height:29px !important}
-    .hero-social .hero-logo:nth-child(3) svg{width:26px !important;height:26px !important}
-    .hero-social .hero-logo:nth-child(1){margin-right:5px !important}
+    .hero-social .hero-logo svg{width:29px !important;height:29px !important}
     .hero .title-wrapper{margin-top:30px !important}
   }
 
-  /* ───── CAROUSEL (11A) ───── */
-  .showcase{
-    padding:18px 0 39px;max-width:1400px;margin:0 auto;
-  }
+  /* ───── CAROUSEL ───── */
+  .showcase{padding:18px 0 39px;max-width:1400px;margin:0 auto}
   .showcase .showcase-title{
     font-family:var(--cond);font-size:16px;letter-spacing:4px;
     text-transform:uppercase;color:var(--subtle);margin-bottom:16px;
-    display:flex;align-items:center;gap:14px;
-    padding:0 4px;
+    display:flex;align-items:center;gap:14px;padding:0 4px;
   }
   .showcase .showcase-title::before{content:'';width:28px;height:1px;background:var(--ink);opacity:.4}
 
   .carousel{position:relative;padding:0}
   .track{
     display:flex;gap:14px;overflow-x:auto;
-    scroll-snap-type:x mandatory;scroll-behavior:smooth;
-    padding-bottom:14px;
+    scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:14px;
   }
   .track::-webkit-scrollbar{height:8px}
   .track::-webkit-scrollbar-track{background:rgba(26,44,62,.08);border-radius:4px}
   .track::-webkit-scrollbar-thumb{background:var(--ink);border-radius:4px;opacity:.85}
-  .track::-webkit-scrollbar-thumb:hover{background:#0e1d2e}
 
   .card{
-    height:440px;
-    background:var(--bg-alt);
-    border:1px solid var(--line);
-    border-radius:8px;
-    position:relative;
-    scroll-snap-align:start;
-    flex-shrink:0;overflow:hidden;
-    cursor:pointer;
+    height:440px;background:var(--bg-alt);border:1px solid var(--line);
+    border-radius:8px;position:relative;scroll-snap-align:start;
+    flex-shrink:0;overflow:hidden;cursor:pointer;
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(26,44,62,.16)}
@@ -221,7 +172,6 @@
     background:linear-gradient(to top,rgba(26,44,62,.85) 0%, rgba(26,44,62,.35) 45%, rgba(26,44,62,0) 70%);
     pointer-events:none;
   }
-
   .card .play{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:52px;height:52px;border-radius:50%;
@@ -231,14 +181,6 @@
     transition:transform .2s,background .2s;
   }
   .card:hover .play{background:rgba(244,241,235,.22);transform:translate(-50%,-50%) scale(1.08)}
-
-  .card .badge{
-    position:absolute;top:12px;right:12px;
-    background:rgba(244,241,235,.15);backdrop-filter:blur(6px);
-    color:var(--bg);font-family:var(--cond);font-size:10px;
-    padding:4px 8px;letter-spacing:2px;border-radius:3px;
-    border:1px solid rgba(244,241,235,.2);
-  }
 
   .card .meta{position:absolute;bottom:14px;left:16px;right:16px;color:var(--bg)}
   .card .meta span{
@@ -278,39 +220,10 @@
     .arrow{display:none}
   }
 
-  /* ───── TEXT / SOBRE ───── */
-  .body-copy{
-    max-width:780px;margin:40px auto 0;padding:60px 40px 70px;
-    border-top:1px solid var(--line);
-  }
-  .body-copy .kicker{
-    font-family:var(--cond);font-size:13px;letter-spacing:4px;
-    text-transform:uppercase;color:var(--subtle);margin-bottom:22px;
-  }
-  .body-copy p{
-    font-size:18px;line-height:1.72;color:var(--ink);margin-bottom:22px;font-weight:400;
-  }
-  .body-copy p strong{font-weight:700;color:var(--ink)}
-  .body-copy .drop::first-letter{
-    font-family:var(--cond);font-size:64px;font-weight:900;
-    float:left;line-height:.85;margin:6px 12px 0 0;color:var(--ink);
-  }
-  .body-copy .signature{
-    margin-top:30px;font-family:var(--cond);font-size:12px;
-    letter-spacing:3px;text-transform:uppercase;color:var(--subtle);
-  }
-  .body-copy .signature a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink)}
-
-  @media(max-width:720px){
-    .body-copy{padding:40px 22px 60px}
-    .body-copy p{font-size:16px;line-height:1.7}
-  }
-
   /* ───── FOOTER ───── */
   footer{
     background:var(--ink);color:var(--bg);
-    padding:36px 40px 36px;text-align:center;
-    margin-top:0;
+    padding:36px 40px 36px;text-align:center;margin-top:0;
   }
   footer .to-top{
     display:inline-block;margin-bottom:28px;
@@ -318,18 +231,14 @@
     text-transform:uppercase;color:var(--bg);font-weight:500;
     text-decoration:none;border-bottom:1px solid var(--bg);padding-bottom:3px;
   }
-  footer .social{
-    display:flex;align-items:center;justify-content:center;gap:9px;
-    margin-bottom:22px;
-  }
+  footer .social{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:22px}
   footer .social a{color:var(--bg);opacity:.75;transition:opacity .2s, transform .2s;display:flex;align-items:center;justify-content:center;width:32px;height:32px}
   footer .social a:hover{opacity:1;transform:translateY(-1px)}
   footer .social svg{width:23px;height:23px;display:block}
   footer .social .be-box{
     width:25px;height:25px;background:var(--bg);color:var(--ink);
     display:flex;align-items:center;justify-content:center;border-radius:6px;
-    font-family:var(--font);font-weight:900;font-size:11px;
-    letter-spacing:-.5px;line-height:1;
+    font-family:var(--font);font-weight:900;font-size:11px;letter-spacing:-.5px;line-height:1;
   }
   footer p{font-size:13px;color:rgba(244,241,235,.6);font-family:var(--cond);letter-spacing:2px;text-transform:uppercase}
   @media(max-width:720px){
@@ -342,25 +251,21 @@
 
   /* ───── LIGHTBOX ───── */
   .lightbox{
-    position:fixed;inset:0;
-    background:rgba(26,44,62,.96);
+    position:fixed;inset:0;background:rgba(26,44,62,.96);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     z-index:200;padding:60px 30px 80px;gap:18px;
     opacity:0;visibility:hidden;pointer-events:none;
     transition:opacity .25s ease, visibility .25s ease;
   }
   .lightbox.open{opacity:1;visibility:visible;pointer-events:auto}
-
   .lightbox .close{
     position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;
     background:var(--bg);color:var(--ink);
     display:flex;align-items:center;justify-content:center;
-    font-size:20px;cursor:pointer;z-index:10;
-    font-family:var(--cond);border:none;
+    font-size:20px;cursor:pointer;z-index:10;font-family:var(--cond);border:none;
     transition:background .15s,transform .15s;
   }
   .lightbox .close:hover{background:#fff;transform:rotate(90deg)}
-
   .lightbox .nav-prev,.lightbox .nav-next{
     position:absolute;top:50%;transform:translateY(-50%);
     width:44px;height:44px;border:none;background:transparent;
@@ -374,7 +279,6 @@
   .lightbox .nav-next:hover{transform:translateY(-50%) translateX(3px)}
   .lightbox .nav-prev{left:22px}
   .lightbox .nav-next{right:22px}
-
   .lightbox .player{
     position:relative;background:#000;border-radius:4px;overflow:hidden;
     box-shadow:0 30px 80px rgba(0,0,0,.45);
@@ -383,7 +287,6 @@
   .lightbox .player.horizontal{width:min(1100px,92vw);aspect-ratio:16/9}
   .lightbox .player.vertical{height:72vh;aspect-ratio:9/16}
   .lightbox video{width:100%;height:100%;display:block;background:#000}
-
   .lightbox .info-bar{
     width:min(1100px,92vw);
     display:flex;align-items:center;justify-content:space-between;
@@ -401,7 +304,6 @@
     color:rgba(244,241,235,.6);
   }
   .lightbox .info-bar .counter strong{color:var(--bg);font-weight:800}
-
   @media(max-width:720px){
     .lightbox{padding:50px 14px 70px}
     .lightbox .player.horizontal{width:96vw}
@@ -427,51 +329,38 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <!-- logos canto superior esquerdo -->
     <div class="hero-social" style="position:absolute;top:-38px;left:0;display:flex;gap:7px;align-items:center;color:var(--ink);z-index:3;">
-      <a href="https://www.youtube.com/formulagrun" target="_blank" rel="noopener noreferrer" aria-label="YouTube Fórmula Grün" class="hero-logo" style="margin-right:8px;">
+      <a href="https://www.youtube.com/@ClaroBrasil" target="_blank" rel="noopener noreferrer" aria-label="YouTube Claro Brasil" class="hero-logo">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
         </svg>
       </a>
-      <a href="https://www.instagram.com/formulagrun/" target="_blank" rel="noopener noreferrer" aria-label="Instagram Fórmula Grün" class="hero-logo">
-        <svg width="33" height="33" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-        </svg>
-      </a>
-      <a href="https://www.tiktok.com/@formulagrun" target="_blank" rel="noopener noreferrer" aria-label="TikTok Fórmula Grün" class="hero-logo">
-        <svg width="35" height="35" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.1z"/>
-        </svg>
-      </a>
     </div>
     <div class="title-wrapper" style="display:inline-block;margin-top:9px;">
-      <h1 style="margin:0;"><span class="accent">Fórmula</span> Grün</h1>
+      <h1 style="margin:0;">Claro <span class="accent">TV+</span></h1>
     </div>
     <div class="meta">
       <div class="item">
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
         </span>
-        <strong>Atuação</strong>Edição · Roteiro · Motion
+        <strong>Atuação</strong>Edição · Pós-produção · Motion
       </div>
       <div class="item">
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>
         </span>
-        <strong>Formatos</strong>Vídeos longos · Reels · Teasers
+        <strong>Formatos</strong>Teasers · Reportagens · Promos · Lives
       </div>
       <div class="item">
         <span class="ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4"/><path d="M19.1 4.9a10 10 0 0 1 0 14.2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2"/></svg>
         </span>
-        <strong>Canais</strong>YouTube · Instagram
+        <strong>Canais</strong>YouTube · TV Digital
       </div>
     </div>
     <p class="lede">
-      No Fórmula Grün, trabalhei com <em>edição</em>, <em>sound design</em> e <em>motion</em> — frentes da produção de conteúdo que capturavam a energia das provas de um dos <em>maiores canais de esportes a motor</em> do Brasil. A cobertura passava por Fórmula 1, Fórmula E, Indy, MotoGP e Stock Car, e o resultado combinava <em>técnicas avançadas de edição</em> e <em>storytelling visual</em> para sustentar o engajamento no&nbsp;YouTube.
+      Na Claro TV+, fiz parte da <em>reformulação editorial</em> da emissora, ajudando a implementar uma série de <em>tendências digitais</em> que redesenharam a qualidade e a linguagem dos produtos. Liderei os <em>processos de pós-produção</em>, sustentando um ritmo de narrativa capaz de engajar o público do YouTube sem abrir mão da linguagem de TV.
     </p>
     <div class="signature-hero">
       <a href="https://www.linkedin.com/in/eduardo-bispo-85b59717/" target="_blank" rel="noopener">Mais no LinkedIn →</a>
@@ -490,33 +379,23 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
     </button>
     <div class="track" id="track">
-      <!-- card 0 - Eric Granado (horizontal) -->
       <div class="card h" onclick="openLB(0)">
-        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_v2.jpg" alt="Eric Granado" loading="lazy"/>
+        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/claro/Claro_1.jpg" alt="Vídeo 1" loading="lazy"/>
         <div class="scrim"></div>
         <div class="play">▶</div>
-        <div class="meta"><span>EP · 2023</span><h4>Eric Granado</h4></div>
+        <div class="meta"><span>PROJETO · 2021</span><h4>Vídeo 1</h4></div>
       </div>
-      <!-- card 1 - Lucas Moraes (horizontal) -->
       <div class="card h" onclick="openLB(1)">
-        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/Lucas_Moraes_v7.jpg" alt="Lucas Moraes" loading="lazy"/>
+        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/claro/Claro_2.jpg" alt="Vídeo 2" loading="lazy"/>
         <div class="scrim"></div>
         <div class="play">▶</div>
-        <div class="meta"><span>EP · 2023</span><h4>Lucas Moraes</h4></div>
+        <div class="meta"><span>PROJETO · 2021</span><h4>Vídeo 2</h4></div>
       </div>
-      <!-- card 2 - Granado VER01 (vertical/reel) -->
-      <div class="card v" onclick="openLB(2)">
-        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_VER01.jpg" alt="Granado · v01" loading="lazy"/>
+      <div class="card h" onclick="openLB(2)">
+        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/claro/Claro_3.jpg" alt="Vídeo 3" loading="lazy"/>
         <div class="scrim"></div>
         <div class="play">▶</div>
-        <div class="meta"><span>REEL · 2022</span><h4>Granado · v01</h4></div>
-      </div>
-      <!-- card 3 - Granado VER02 (vertical/reel) -->
-      <div class="card v" onclick="openLB(3)">
-        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_VER02.jpg" alt="Granado · v02" loading="lazy"/>
-        <div class="scrim"></div>
-        <div class="play">▶</div>
-        <div class="meta"><span>REEL · 2022</span><h4>Granado · v02</h4></div>
+        <div class="meta"><span>PROJETO · 2021</span><h4>Vídeo 3</h4></div>
       </div>
     </div>
   </div>
@@ -560,53 +439,27 @@
       <span id="lb-span"></span>
       <h4 id="lb-title"></h4>
     </div>
-    <div class="counter"><strong id="lb-idx">1</strong> / <span id="lb-tot">4</span></div>
+    <div class="counter"><strong id="lb-idx">1</strong> / <span id="lb-tot">3</span></div>
   </div>
 </div>
 
 <script>
-  // Lista de vídeos (caminhos URL-encodados pois têm caracteres especiais)
-  const R2_BASE = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/';
+  const R2_BASE = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/claro/';
   const VIDEOS = [
-    {
-      src: R2_BASE + 'FG_Eric_Granado_v2_220323.mp4',
-      poster: R2_BASE + 'FG_Eric_Granado_v2.jpg',
-      title: 'Eric Granado',
-      eyebrow: 'EP · MARÇO 2023',
-      orient: 'horizontal'
-    },
-    {
-      src: R2_BASE + 'Lucas_Moraes_v7_070323.mp4',
-      poster: R2_BASE + 'Lucas_Moraes_v7.jpg',
-      title: 'Lucas Moraes',
-      eyebrow: 'EP · MARÇO 2023',
-      orient: 'horizontal'
-    },
-    {
-      src: R2_BASE + 'FG_Eric_Granado_VER01_v2_040522.mp4',
-      poster: R2_BASE + 'FG_Eric_Granado_VER01.jpg',
-      title: 'Granado · versão 01',
-      eyebrow: 'REEL · MAIO 2022',
-      orient: 'vertical'
-    },
-    {
-      src: R2_BASE + 'FG_Eric_Granado_VER02_v2_040522.mp4',
-      poster: R2_BASE + 'FG_Eric_Granado_VER02.jpg',
-      title: 'Granado · versão 02',
-      eyebrow: 'REEL · MAIO 2022',
-      orient: 'vertical'
-    }
+    { src: R2_BASE + 'Claro_1.mp4', poster: R2_BASE + 'Claro_1.jpg', title: 'Vídeo 1', eyebrow: 'PROJETO · 2021', orient: 'horizontal' },
+    { src: R2_BASE + 'Claro_2.mp4', poster: R2_BASE + 'Claro_2.jpg', title: 'Vídeo 2', eyebrow: 'PROJETO · 2021', orient: 'horizontal' },
+    { src: R2_BASE + 'Claro_3.mp4', poster: R2_BASE + 'Claro_3.jpg', title: 'Vídeo 3', eyebrow: 'PROJETO · 2021', orient: 'horizontal' }
   ];
 
   let currentIdx = 0;
-  const lb     = document.getElementById('lb');
+  const lb = document.getElementById('lb');
   const player = document.getElementById('player');
-  const video  = document.getElementById('video');
+  const video = document.getElementById('video');
   const lbSpan = document.getElementById('lb-span');
-  const lbTitle= document.getElementById('lb-title');
-  const lbIdx  = document.getElementById('lb-idx');
-  const lbTot  = document.getElementById('lb-tot');
-  const track  = document.getElementById('track');
+  const lbTitle = document.getElementById('lb-title');
+  const lbIdx = document.getElementById('lb-idx');
+  const lbTot = document.getElementById('lb-tot');
+  const track = document.getElementById('track');
 
   lbTot.textContent = VIDEOS.length;
 
@@ -618,10 +471,9 @@
     video.src = v.src;
     if (v.poster) video.poster = v.poster;
     video.load();
-    lbSpan.textContent  = v.eyebrow;
+    lbSpan.textContent = v.eyebrow;
     lbTitle.textContent = v.title;
-    lbIdx.textContent   = i + 1;
-    // auto-ajuste caso a orientação real divirja do palpite
+    lbIdx.textContent = i + 1;
     video.addEventListener('loadedmetadata', function onMeta(){
       if(video.videoWidth && video.videoHeight){
         const isV = video.videoHeight > video.videoWidth;
@@ -636,7 +488,6 @@
     showVideo(i);
     lb.classList.add('open');
     document.body.style.overflow = 'hidden';
-    // tentar autoplay (pode falhar sem gesto, mas controls estão visíveis)
     video.play().catch(()=>{});
   }
 
@@ -656,7 +507,6 @@
     video.play().catch(()=>{});
   }
 
-  // Teclado: setas + esc
   document.addEventListener('keydown', (e)=>{
     if(!lb.classList.contains('open')) return;
     if(e.key === 'Escape')    closeLB();
@@ -664,38 +514,14 @@
     if(e.key === 'ArrowRight')navLB(1);
   });
 
-  // Clicar fora do player fecha
   lb.addEventListener('click', (e)=>{
     if(e.target === lb) closeLB();
   });
 
-  // Carrossel: setas navegam ~1 card
   function scrollTrack(dir){
     const amount = track.clientWidth * 0.7 * dir;
     track.scrollBy({left: amount, behavior:'smooth'});
   }
-
-  // Fallback pro caminho da foto de capa (macOS NFD/NFC)
-  (function(){
-    const candidates = [
-      'Capas/Fórmula Grun/A240345_web_2880.jpg',
-      'Capas/F%C3%B3rmula%20Grun/A240345_web_2880.jpg',
-      'Capas/Fo%CC%81rmula%20Grun/A240345_web_2880.jpg'
-    ];
-    function tryLoad(i){
-      if(i>=candidates.length){console.warn('Nenhum caminho da capa funcionou');return}
-      const img = new Image();
-      img.onload = () => {
-        const url = candidates[i].replace(/'/g, "\\'");
-        document.documentElement.style.setProperty('--capa', "url('" + url + "')");
-        console.log('Capa carregada via:', candidates[i]);
-      };
-      img.onerror = () => tryLoad(i+1);
-      img.src = candidates[i];
-    }
-    tryLoad(0);
-  })();
-
 </script>
 </body>
 </html>
