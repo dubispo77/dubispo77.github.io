@@ -492,6 +492,7 @@
     <div class="track" id="track">
       <!-- card 0 - Eric Granado (horizontal) -->
       <div class="card h" onclick="openLB(0)">
+        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_v2.jpg" alt="Eric Granado" loading="lazy"/>
         <div class="scrim"></div>
         <div class="badge">16:9</div>
         <div class="play">▶</div>
@@ -499,6 +500,7 @@
       </div>
       <!-- card 1 - Lucas Moraes (horizontal) -->
       <div class="card h" onclick="openLB(1)">
+        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/Lucas_Moraes_v7.jpg" alt="Lucas Moraes" loading="lazy"/>
         <div class="scrim"></div>
         <div class="badge">16:9</div>
         <div class="play">▶</div>
@@ -506,6 +508,7 @@
       </div>
       <!-- card 2 - Granado VER01 (vertical/reel) -->
       <div class="card v" onclick="openLB(2)">
+        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_VER01.jpg" alt="Granado · v01" loading="lazy"/>
         <div class="scrim"></div>
         <div class="badge">9:16</div>
         <div class="play">▶</div>
@@ -513,6 +516,7 @@
       </div>
       <!-- card 3 - Granado VER02 (vertical/reel) -->
       <div class="card v" onclick="openLB(3)">
+        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_VER02.jpg" alt="Granado · v02" loading="lazy"/>
         <div class="scrim"></div>
         <div class="badge">9:16</div>
         <div class="play">▶</div>
@@ -566,27 +570,32 @@
 
 <script>
   // Lista de vídeos (caminhos URL-encodados pois têm caracteres especiais)
+  const R2_BASE = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/';
   const VIDEOS = [
     {
-      src: 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_v2_220323.mp4',
+      src: R2_BASE + 'FG_Eric_Granado_v2_220323.mp4',
+      poster: R2_BASE + 'FG_Eric_Granado_v2.jpg',
       title: 'Eric Granado',
       eyebrow: 'EP · MARÇO 2023',
       orient: 'horizontal'
     },
     {
-      src: 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/Lucas_Moraes_v7_070323.mp4',
+      src: R2_BASE + 'Lucas_Moraes_v7_070323.mp4',
+      poster: R2_BASE + 'Lucas_Moraes_v7.jpg',
       title: 'Lucas Moraes',
       eyebrow: 'EP · MARÇO 2023',
       orient: 'horizontal'
     },
     {
-      src: 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_VER01_v2_040522.mp4',
+      src: R2_BASE + 'FG_Eric_Granado_VER01_v2_040522.mp4',
+      poster: R2_BASE + 'FG_Eric_Granado_VER01.jpg',
       title: 'Granado · versão 01',
       eyebrow: 'REEL · MAIO 2022',
       orient: 'vertical'
     },
     {
-      src: 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_VER02_v2_040522.mp4',
+      src: R2_BASE + 'FG_Eric_Granado_VER02_v2_040522.mp4',
+      poster: R2_BASE + 'FG_Eric_Granado_VER02.jpg',
       title: 'Granado · versão 02',
       eyebrow: 'REEL · MAIO 2022',
       orient: 'vertical'
@@ -611,6 +620,7 @@
     player.classList.remove('horizontal','vertical');
     player.classList.add(v.orient);
     video.src = v.src;
+    if (v.poster) video.poster = v.poster;
     video.load();
     lbSpan.textContent  = v.eyebrow;
     lbTitle.textContent = v.title;
