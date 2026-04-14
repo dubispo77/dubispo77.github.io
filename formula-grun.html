@@ -59,7 +59,7 @@
     nav .back{font-size:11px;letter-spacing:2px}
   }
 
-  /* ───── HERO ───── */
+  /* ───── HERO (V3 · imagem full + degradê diagonal navy) ───── */
   .hero{
     position:relative;overflow:hidden;
     max-width:1400px;margin:68px auto 0;
@@ -77,11 +77,15 @@
     background:linear-gradient(135deg,rgba(26,44,62,.94) 0%,rgba(26,44,62,.55) 55%,rgba(26,44,62,.15) 100%);
   }
   .hero .hero-content{position:relative;z-index:2;max-width:700px}
-  .hero .brand{display:inline-block;margin-bottom:20px;line-height:0}
+  .hero .brand{
+    display:inline-block;margin-bottom:20px;line-height:0;
+  }
   .hero .brand img{
     display:block;width:auto;max-height:130px;
     filter:drop-shadow(0 2px 12px rgba(0,0,0,.25));
-    clip-path:inset(0 0 26% 0);margin-bottom:-30px;
+    /* corta a linha "além da velocidade" embaixo */
+    clip-path:inset(0 0 26% 0);
+    margin-bottom:-30px;
   }
   @media(max-width:720px){
     .hero .brand img{max-height:100px;margin-bottom:-24px}
@@ -99,7 +103,8 @@
     font-size:clamp(44px,7vw,96px);
     line-height:.95;letter-spacing:-1.8px;
     text-transform:uppercase;color:var(--bg);
-    margin-bottom:26px;text-shadow:0 2px 16px rgba(0,0,0,.15);
+    margin-bottom:26px;
+    text-shadow:0 2px 16px rgba(0,0,0,.15);
   }
   .hero h1 .accent{color:var(--bg);position:relative;display:inline-block}
   .hero .lede{
@@ -143,19 +148,23 @@
     .hero .meta .ico svg{width:11px;height:11px}
   }
 
-  /* ───── CAROUSEL ───── */
-  .showcase{padding:18px 0 70px;max-width:1400px;margin:0 auto}
+  /* ───── CAROUSEL (11A) ───── */
+  .showcase{
+    padding:18px 0 70px;max-width:1400px;margin:0 auto;
+  }
   .showcase .showcase-title{
     font-family:var(--cond);font-size:16px;letter-spacing:4px;
     text-transform:uppercase;color:var(--subtle);margin-bottom:16px;
-    display:flex;align-items:center;gap:14px;padding:0 4px;
+    display:flex;align-items:center;gap:14px;
+    padding:0 4px;
   }
   .showcase .showcase-title::before{content:'';width:28px;height:1px;background:var(--ink);opacity:.4}
 
   .carousel{position:relative;padding:0}
   .track{
     display:flex;gap:14px;overflow-x:auto;
-    scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:14px;
+    scroll-snap-type:x mandatory;scroll-behavior:smooth;
+    padding-bottom:14px;
   }
   .track::-webkit-scrollbar{height:8px}
   .track::-webkit-scrollbar-track{background:rgba(26,44,62,.08);border-radius:4px}
@@ -163,10 +172,14 @@
   .track::-webkit-scrollbar-thumb:hover{background:#0e1d2e}
 
   .card{
-    height:440px;background:var(--bg-alt);
-    border:1px solid var(--line);border-radius:8px;
-    position:relative;scroll-snap-align:start;
-    flex-shrink:0;overflow:hidden;cursor:pointer;
+    height:440px;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-radius:8px;
+    position:relative;
+    scroll-snap-align:start;
+    flex-shrink:0;overflow:hidden;
+    cursor:pointer;
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(26,44,62,.16)}
@@ -248,7 +261,9 @@
     font-family:var(--cond);font-size:13px;letter-spacing:4px;
     text-transform:uppercase;color:var(--subtle);margin-bottom:22px;
   }
-  .body-copy p{font-size:18px;line-height:1.72;color:var(--ink);margin-bottom:22px;font-weight:400}
+  .body-copy p{
+    font-size:18px;line-height:1.72;color:var(--ink);margin-bottom:22px;font-weight:400;
+  }
   .body-copy p strong{font-weight:700;color:var(--ink)}
   .body-copy .drop::first-letter{
     font-family:var(--cond);font-size:64px;font-weight:900;
@@ -259,6 +274,7 @@
     letter-spacing:3px;text-transform:uppercase;color:var(--subtle);
   }
   .body-copy .signature a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink)}
+
   @media(max-width:720px){
     .body-copy{padding:40px 22px 60px}
     .body-copy p{font-size:16px;line-height:1.7}
@@ -267,7 +283,8 @@
   /* ───── FOOTER ───── */
   footer{
     background:var(--ink);color:var(--bg);
-    padding:36px 40px 36px;text-align:center;margin-top:0;
+    padding:36px 40px 36px;text-align:center;
+    margin-top:0;
   }
   footer .to-top{
     display:inline-block;margin-bottom:28px;
@@ -276,7 +293,8 @@
     text-decoration:none;border-bottom:1px solid var(--bg);padding-bottom:3px;
   }
   footer .social{
-    display:flex;align-items:center;justify-content:center;gap:28px;margin-bottom:22px;
+    display:flex;align-items:center;justify-content:center;gap:28px;
+    margin-bottom:22px;
   }
   footer .social a{color:var(--bg);opacity:.75;transition:opacity .2s, transform .2s;display:flex;align-items:center}
   footer .social a:hover{opacity:1;transform:translateY(-1px)}
@@ -296,7 +314,8 @@
 
   /* ───── LIGHTBOX ───── */
   .lightbox{
-    position:fixed;inset:0;background:rgba(26,44,62,.96);
+    position:fixed;inset:0;
+    background:rgba(26,44,62,.96);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     z-index:200;padding:60px 30px 80px;gap:18px;
     opacity:0;visibility:hidden;pointer-events:none;
@@ -376,7 +395,7 @@
   <a class="back" href="index.html#works">voltar</a>
 </nav>
 
-<!-- HERO -->
+<!-- ───── HERO ───── -->
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
@@ -410,7 +429,7 @@
   </div>
 </section>
 
-<!-- CAROUSEL -->
+<!-- ───── CAROUSEL ───── -->
 <section class="showcase">
   <div class="showcase-title">Projetos em destaque</div>
   <div class="carousel">
@@ -421,24 +440,28 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
     </button>
     <div class="track" id="track">
+      <!-- card 0 - Eric Granado (horizontal) -->
       <div class="card h" onclick="openLB(0)">
         <div class="scrim"></div>
         <div class="badge">16:9</div>
         <div class="play">▶</div>
         <div class="meta"><span>EP · 2023</span><h4>Eric Granado</h4></div>
       </div>
+      <!-- card 1 - Lucas Moraes (horizontal) -->
       <div class="card h" onclick="openLB(1)">
         <div class="scrim"></div>
         <div class="badge">16:9</div>
         <div class="play">▶</div>
         <div class="meta"><span>EP · 2023</span><h4>Lucas Moraes</h4></div>
       </div>
+      <!-- card 2 - Granado VER01 (vertical/reel) -->
       <div class="card v" onclick="openLB(2)">
         <div class="scrim"></div>
         <div class="badge">9:16</div>
         <div class="play">▶</div>
         <div class="meta"><span>REEL · 2022</span><h4>Granado · v01</h4></div>
       </div>
+      <!-- card 3 - Granado VER02 (vertical/reel) -->
       <div class="card v" onclick="openLB(3)">
         <div class="scrim"></div>
         <div class="badge">9:16</div>
@@ -468,7 +491,7 @@
   <p>Eduardo Bispo · Videomaker · São Paulo</p>
 </footer>
 
-<!-- LIGHTBOX -->
+<!-- ───── LIGHTBOX ───── -->
 <div class="lightbox" id="lb">
   <button class="close" onclick="closeLB()" aria-label="Fechar">×</button>
   <button class="nav-prev" onclick="navLB(-1)" aria-label="Vídeo anterior">
@@ -477,9 +500,11 @@
   <button class="nav-next" onclick="navLB(1)" aria-label="Próximo vídeo">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
   </button>
+
   <div class="player" id="player">
     <video id="video" controls playsinline preload="metadata"></video>
   </div>
+
   <div class="info-bar">
     <div class="left">
       <span id="lb-span"></span>
@@ -490,6 +515,7 @@
 </div>
 
 <script>
+  // Lista de vídeos (caminhos URL-encodados pois têm caracteres especiais)
   const VIDEOS = [
     {
       src: 'V%C3%ADdeos%20escolhidos/F%C3%B3rmula%20Grun/FG_Eric_Granado_v2_220323.mp4',
@@ -539,6 +565,7 @@
     lbSpan.textContent  = v.eyebrow;
     lbTitle.textContent = v.title;
     lbIdx.textContent   = i + 1;
+    // auto-ajuste caso a orientação real divirja do palpite
     video.addEventListener('loadedmetadata', function onMeta(){
       if(video.videoWidth && video.videoHeight){
         const isV = video.videoHeight > video.videoWidth;
@@ -553,6 +580,7 @@
     showVideo(i);
     lb.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // tentar autoplay (pode falhar sem gesto, mas controls estão visíveis)
     video.play().catch(()=>{});
   }
 
@@ -572,6 +600,7 @@
     video.play().catch(()=>{});
   }
 
+  // Teclado: setas + esc
   document.addEventListener('keydown', (e)=>{
     if(!lb.classList.contains('open')) return;
     if(e.key === 'Escape')    closeLB();
@@ -579,15 +608,18 @@
     if(e.key === 'ArrowRight')navLB(1);
   });
 
+  // Clicar fora do player fecha
   lb.addEventListener('click', (e)=>{
     if(e.target === lb) closeLB();
   });
 
+  // Carrossel: setas navegam ~1 card
   function scrollTrack(dir){
     const amount = track.clientWidth * 0.7 * dir;
     track.scrollBy({left: amount, behavior:'smooth'});
   }
 
+  // Fallback pro caminho da foto de capa (macOS NFD/NFC)
   (function(){
     const candidates = [
       'Capas/Fórmula Grun/A240345_web_2880.jpg',
@@ -598,14 +630,16 @@
       if(i>=candidates.length){console.warn('Nenhum caminho da capa funcionou');return}
       const img = new Image();
       img.onload = () => {
-        const url = candidates[i].replace(/'/g, "\\'");
+        const url = candidates[i].replace(/'/g, "\'");
         document.documentElement.style.setProperty('--capa', "url('" + url + "')");
+        console.log('Capa carregada via:', candidates[i]);
       };
       img.onerror = () => tryLoad(i+1);
       img.src = candidates[i];
     }
     tryLoad(0);
   })();
+
 </script>
 </body>
 </html>
