@@ -65,7 +65,7 @@
     content:'';position:absolute;top:50%;left:50%;
     width:1280px;height:720px;
     background-image:var(--capa);background-repeat:no-repeat;background-size:100% 100%;
-    transform:translate(-50%,-50%) scale(1);
+    transform:translate(-50%,-50%) translate(0px, 0px) scale(0.525);
     transform-origin:center center;
     filter:blur(2.85px);
   }
@@ -127,7 +127,7 @@
 
   @media(max-width:720px){
     .hero{margin-top:60px;min-height:420px;padding:30px 22px}
-    .hero .hero-bg::before{transform:translate(-50%,-50%) scale(1)}
+    .hero .hero-bg::before{transform:translate(-50%,-50%) translate(7px, -3px) scale(0.715)}
     .hero .hero-bg::after{background:linear-gradient(160deg,rgba(26,44,62,.95) 0%,rgba(26,44,62,.7) 55%,rgba(26,44,62,.3) 100%)}
     .hero h1{letter-spacing:-1.5px;font-size:clamp(40px,11vw,64px);margin-bottom:18px}
     .hero .lede{font-size:18px}
