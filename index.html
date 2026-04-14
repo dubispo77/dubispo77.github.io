@@ -490,22 +490,11 @@
     .work-card:nth-child(10) .work-card-bg { background: #2a1a0a; background-image: url('Thumbs/menze.jpg?v=2'); background-size: 134%; background-position: 60.59% 28.52%; }
     .work-card:nth-child(11) .work-card-bg { background: #0a0a1a; background-image: url('Thumbs/universal.jpg'); background-size: 101%; background-position: 52.3% 34.34%; }
     .work-card:nth-child(12) .work-card-bg { background: #1a0d00; background-image: url('Thumbs/mavtv.jpg'); background-size: 148%; background-position: 0% 100%; }
-    .work-card:nth-child(13) .work-card-bg { background: #003d1a; background-image: url('https://s2-ge.glbimg.com/XedJPDc0sZ6TkoFESN04rN5z98o=/0x0:2400x3000/1000x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228b6673f488aa253bbcb03c80ec5/internal_photos/bs/2026/S/q/nKxmnWQByK56uus6qYrg/55056124351-b84ce71421-3k.jpg'); background-size: 129%; background-position: 40.63% 17.18%; }
+    .work-card:nth-child(13) .work-card-bg { background: #003d1a; background-image: url('https://s2-ge.glbimg.com/XedJPDc0sZ6TkoFESN04rN5z98o=/0x0:2400x3000/1000x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228b6673f488aa253bbcb03c80ec5/internal_photos/bs/2026/S/q/nKxmnWQByK56uus6qYrg/55056124351-b84ce71421-3k.jpg'); background-size: 110%; background-position: 60.39% 13.81%; }
 
-    /* decorative texture inside each card */
+    /* decorative texture inside each card — DESATIVADO */
     .work-card-bg::after {
-      content: attr(data-text);
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-cond);
-      font-weight: 900;
-      font-size: 80px;
       display: none;
-      letter-spacing: -0.02em;
-      text-transform: lowercase;
     }
 
     /* ─── SOBRE ─── */
@@ -1015,14 +1004,14 @@
       .work-card:nth-child(1) .work-card-bg { background-size: 202% !important; background-position: 63.03% 47.85% !important; }
       .work-card:nth-child(2) .work-card-bg { background-size: 285% !important; background-position: 40.59% 59.4% !important; }
       .work-card:nth-child(3) .work-card-bg { background-size: 236% !important; background-position: 4.62% 83.82% !important; }
-                  .work-card:nth-child(4) .work-card-bg { background-size: 101% !important; background-position: 0% 32.67% !important; }
+      .work-card:nth-child(4) .work-card-bg { background-size: 101% !important; background-position: 0% 32.67% !important; }
       .work-card:nth-child(5) .work-card-bg { background-image: url('https://thenews2.com/wp-content/uploads/2023/04/F4-Brasil-11-scaled.jpg') !important; background-size: 290% !important; background-position: 41.26% 52.06% !important; }
       .work-card:nth-child(6) .work-card-bg { background-size: 287% !important; background-position: 49.86% 50.86% !important; }
       .work-card:nth-child(7) .work-card-bg { background-size: 486% !important; background-position: 65.47% 45.86% !important; }
       .work-card:nth-child(8) .work-card-bg { background-size: 359% !important; background-position: 68.61% 14.19% !important; }
       .work-card:nth-child(9) .work-card-bg { background-image: url('https://assets-prd.ignimgs.com/2023/10/20/gettyimages-1732217264-1697809929616.jpg') !important; background-size: 285% !important; background-position: 48.75% 33.11% !important; }
       .work-card:nth-child(10) .work-card-bg { background-size: 242% !important; background-position: 50.97% 33.81% !important; }
-      .work-card:nth-child(11) .work-card-bg { background-size: 124% !important; background-position: 39.93% 66.86% !important; }
+      .work-card:nth-child(11) .work-card-bg { background-size: 124% !important; background-position: 27.79% 96.34% !important; }
       .work-card:nth-child(12) .work-card-bg { background-size: 237% !important; background-position: 31.03% 30.05% !important; }
       .work-card:nth-child(13) .work-card-bg { background-image: url('https://s2-ge.glbimg.com/XedJPDc0sZ6TkoFESN04rN5z98o=/0x0:2400x3000/1000x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228b6673f488aa253bbcb03c80ec5/internal_photos/bs/2026/S/q/nKxmnWQByK56uus6qYrg/55056124351-b84ce71421-3k.jpg') !important; background-size: 281% !important; background-position: 51.82% 19.06% !important; }
     }
@@ -1235,7 +1224,7 @@
       <a class="work-card" href="formula-grun.html" style="text-decoration:none;color:inherit;display:block;">
         <div class="work-card-bg" data-text="GRÜN" style="background-image:url('Thumbs/formula_grun.jpg')"></div>
         <div class="work-card-overlay"></div>
-        <div class="work-card-content">
+        <div class="work-card-content" style="font-size:0.85em;">
           <p class="work-cat">Automobilismo</p>
           <h3 class="work-title">Fórmula Grün</h3>
         </div>
@@ -1243,7 +1232,7 @@
 
       <!-- 9. Decoupling -->
       <div class="work-card">
-        <div class="work-card-bg" data-text="DCB" style="background-image:url('https://assets-prd.ignimgs.com/2023/10/20/gettyimages-1732217264-1697809929616.jpg')"></div>
+        <div class="work-card-bg" data-text="DCB" style="background-image:url('Thumbs/decoupling.jpg')"></div>
         <div class="work-card-overlay"></div>
         <div class="work-card-content">
           <p class="work-cat">Conteúdo Digital</p>
@@ -1283,7 +1272,7 @@
 
       <!-- 13. Brasileirão Play -->
       <div class="work-card">
-        <div class="work-card-bg" data-text="BR" style="background-image:url('https://s2-ge.glbimg.com/XedJPDc0sZ6TkoFESN04rN5z98o=/0x0:2400x3000/1000x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_bc8228b6673f488aa253bbcb03c80ec5/internal_photos/bs/2026/S/q/nKxmnWQByK56uus6qYrg/55056124351-b84ce71421-3k.jpg')"></div>
+        <div class="work-card-bg" data-text="BR" style="background-image:url('Thumbs/brasileirao.jpg')"></div>
         <div class="work-card-overlay"></div>
         <div class="work-card-content">
           <p class="work-cat">Esporte</p>
