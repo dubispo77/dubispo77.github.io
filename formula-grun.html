@@ -252,17 +252,16 @@
 
   .arrow{
     position:absolute;top:50%;transform:translateY(-50%);
-    width:52px;height:52px;border-radius:50%;
-    background:rgba(20,24,32,.85);color:#fff;
+    width:36px;height:36px;border-radius:0;
+    background:transparent;color:var(--ink);
     display:flex;align-items:center;justify-content:center;
-    cursor:pointer;z-index:3;border:none;padding:0;opacity:1;
-    box-shadow:0 4px 14px rgba(0,0,0,.35);
-    transition:background .2s,transform .2s,color .2s;
+    cursor:pointer;z-index:3;border:none;padding:0;opacity:.85;
+    transition:opacity .2s,transform .2s,color .2s;
   }
-  .arrow svg{width:30px;height:30px;display:block}
-  .arrow:hover{background:#f0c13b;color:#141820}
-  .arrow.l{left:-20px}
-  .arrow.r{right:-20px}
+  .arrow svg{width:28px;height:28px;display:block}
+  .arrow:hover{opacity:1;color:#141820}
+  .arrow.l{left:-36px}
+  .arrow.r{right:-36px}
   .arrow.l:hover{transform:translateY(-50%) translateX(-3px)}
   .arrow.r:hover{transform:translateY(-50%) translateX(3px)}
 
