@@ -199,16 +199,16 @@
 
   .arrow{
     position:absolute;top:50%;transform:translateY(-50%);
-    width:36px;height:36px;border-radius:0;
-    background:transparent;color:var(--ink);
+    width:38px;height:38px;border-radius:50%;
+    background:rgba(20,24,32,.35);color:#fff;
     display:flex;align-items:center;justify-content:center;
-    cursor:pointer;z-index:3;border:none;padding:0;opacity:.85;
-    transition:opacity .2s,transform .2s,color .2s;
+    cursor:pointer;z-index:3;border:none;padding:0;opacity:1;
+    transition:background .2s,transform .2s,color .2s;
   }
-  .arrow svg{width:28px;height:28px;display:block}
-  .arrow:hover{opacity:1;color:#141820}
-  .arrow.l{left:-36px}
-  .arrow.r{right:-36px}
+  .arrow svg{width:22px;height:22px;display:block}
+  .arrow:hover{background:rgba(20,24,32,.7)}
+  .arrow.l{left:-10px}
+  .arrow.r{right:-10px}
   .arrow.l:hover{transform:translateY(-50%) translateX(-3px)}
   .arrow.r:hover{transform:translateY(-50%) translateX(3px)}
 
