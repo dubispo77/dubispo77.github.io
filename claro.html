@@ -199,16 +199,17 @@
 
   .arrow{
     position:absolute;top:50%;transform:translateY(-50%);
-    width:36px;height:36px;border-radius:0;
-    background:transparent;color:var(--ink);
+    width:52px;height:52px;border-radius:50%;
+    background:rgba(20,24,32,.85);color:#fff;
     display:flex;align-items:center;justify-content:center;
-    cursor:pointer;z-index:3;border:none;padding:0;opacity:.45;
-    transition:opacity .2s,transform .2s;
+    cursor:pointer;z-index:3;border:none;padding:0;opacity:1;
+    box-shadow:0 4px 14px rgba(0,0,0,.35);
+    transition:background .2s,transform .2s,color .2s;
   }
-  .arrow svg{width:20px;height:20px;display:block}
-  .arrow:hover{opacity:1;background:transparent}
-  .arrow.l{left:-36px}
-  .arrow.r{right:-36px}
+  .arrow svg{width:30px;height:30px;display:block}
+  .arrow:hover{background:#f0c13b;color:#141820}
+  .arrow.l{left:-20px}
+  .arrow.r{right:-20px}
   .arrow.l:hover{transform:translateY(-50%) translateX(-3px)}
   .arrow.r:hover{transform:translateY(-50%) translateX(3px)}
 
@@ -379,10 +380,10 @@
   <div class="showcase-title">Projetos em destaque</div>
   <div class="carousel">
     <button class="arrow l" onclick="scrollTrack(-1)" aria-label="Anterior">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
     </button>
     <button class="arrow r" onclick="scrollTrack(1)" aria-label="Próximo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
     </button>
     <div class="track" id="track">
       <div class="card h" onclick="openLB(0)">
