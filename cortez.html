@@ -165,11 +165,13 @@
   @media(max-width:900px){
     .cresc-grid{grid-template-columns:1fr;gap:24px}
     .cresc-grid .ig-carousel,.cresc-grid .cresc-right{grid-column:1}
+    .ig-carousel{height:auto}
+    .ig-stage{flex:none;aspect-ratio:9/16}
   }
 
   /* Carrossel IG */
-  .ig-carousel{position:relative;background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(26,44,62,.1)}
-  .ig-stage{position:relative;aspect-ratio:9/16;background:#000;overflow:hidden}
+  .ig-carousel{position:relative;background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(26,44,62,.1);display:flex;flex-direction:column;height:100%}
+  .ig-stage{position:relative;flex:1;min-height:0;background:#000;overflow:hidden}
   .ig-slide{position:absolute;inset:0;opacity:0;transition:opacity .35s;display:flex;align-items:center;justify-content:center}
   .ig-slide.active{opacity:1}
   .ig-slide blockquote.instagram-media{margin:0!important;width:100%!important;max-width:none!important;min-width:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#000!important;height:100%}
@@ -249,42 +251,72 @@
   .track::-webkit-scrollbar-thumb{background:var(--ink);border-radius:4px;opacity:.85}
 
   .card{
-    height:440px;background:var(--bg-alt);border:1px solid var(--line);
+    height:440px;
+    background:linear-gradient(160deg,#2a3f56 0%,#0d1824 100%);
+    border:1px solid var(--line);
     border-radius:8px;position:relative;scroll-snap-align:start;
     flex-shrink:0;overflow:hidden;cursor:pointer;
     transition:transform .2s ease, box-shadow .2s ease;
     text-decoration:none;color:inherit;display:block;
     aspect-ratio:9/16;
   }
-  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(26,44,62,.16)}
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(26,44,62,.25)}
+  .card::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(ellipse at 30% 20%, rgba(240,193,59,.18) 0%, transparent 55%);
+    pointer-events:none;
+  }
 
   .card .thumb{
-    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    background:linear-gradient(135deg,#2a3f56 0%,#0d1824 100%);
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;
   }
   .card .scrim{
-    position:absolute;inset:0;
-    background:linear-gradient(to top,rgba(26,44,62,.85) 0%, rgba(26,44,62,.35) 45%, rgba(26,44,62,0) 70%);
+    position:absolute;inset:0;z-index:2;
+    background:linear-gradient(to top,rgba(13,24,36,.92) 0%, rgba(13,24,36,.25) 50%, rgba(13,24,36,0) 80%);
     pointer-events:none;
+  }
+  .card .tag{
+    position:absolute;top:14px;left:16px;z-index:3;
+    font-family:var(--cond);font-size:10px;letter-spacing:2.5px;
+    text-transform:uppercase;font-weight:800;
+    color:var(--accent);
+    background:rgba(13,24,36,.55);padding:4px 8px;border-radius:4px;
+    border:1px solid rgba(240,193,59,.35);
+    backdrop-filter:blur(4px);
+  }
+  .card .big{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);
+    text-align:center;z-index:3;color:var(--bg);
+    width:100%;padding:0 14px;
+  }
+  .card .big .num{
+    font-family:var(--cond);font-weight:900;
+    font-size:clamp(38px,5.5vw,62px);
+    line-height:.95;letter-spacing:-1px;color:var(--accent);
+    text-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+  .card .big .what{
+    font-family:var(--cond);font-size:11px;letter-spacing:3px;
+    text-transform:uppercase;color:rgba(244,241,235,.75);font-weight:700;
+    margin-top:4px;
   }
   .card .play{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:52px;height:52px;border-radius:50%;
     background:rgba(244,241,235,.14);backdrop-filter:blur(6px);
-    color:var(--bg);display:flex;align-items:center;justify-content:center;
-    font-size:16px;border:1.5px solid rgba(244,241,235,.3);
+    color:var(--bg);display:none;align-items:center;justify-content:center;
+    font-size:16px;border:1.5px solid rgba(244,241,235,.3);z-index:4;
     transition:transform .2s,background .2s;
   }
-  .card:hover .play{background:rgba(244,241,235,.22);transform:translate(-50%,-50%) scale(1.08)}
 
-  .card .meta{position:absolute;bottom:14px;left:16px;right:16px;color:var(--bg)}
+  .card .meta{position:absolute;bottom:14px;left:16px;right:16px;color:var(--bg);z-index:3}
   .card .meta span{
-    font-family:var(--cond);font-size:10px;letter-spacing:3px;
-    color:rgba(244,241,235,.7);text-transform:uppercase;display:block;margin-bottom:2px;
+    font-family:var(--cond);font-size:10px;letter-spacing:2.5px;
+    color:rgba(244,241,235,.65);text-transform:uppercase;display:block;margin-bottom:2px;font-weight:700;
   }
   .card .meta h4{
-    font-family:var(--cond);font-size:18px;font-weight:800;
-    text-transform:uppercase;letter-spacing:-.3px;
+    font-family:var(--cond);font-size:15px;font-weight:800;
+    text-transform:uppercase;letter-spacing:.3px;color:var(--bg);
   }
 
   .arrow{
@@ -663,14 +695,15 @@ const REELS = [
 const track = document.getElementById('track');
 track.innerHTML = REELS.map(r=>`
   <a class="card v-reel" href="https://www.instagram.com/p/${r.shortcode}/" target="_blank" rel="noopener">
-    <img class="thumb" loading="lazy" alt="Reel ${r.shortcode}"
-         src="https://www.instagram.com/p/${r.shortcode}/media/?size=l"
-         onerror="this.style.display='none'"/>
     <div class="scrim"></div>
-    <div class="play">▶</div>
+    <div class="tag">${r.tag}</div>
+    <div class="big">
+      <div class="num">${r.likes}</div>
+      <div class="what">curtidas</div>
+    </div>
     <div class="meta">
-      <span>${r.tag} · ${r.likes} curtidas</span>
-      <h4>${r.comments} comentários</h4>
+      <span>${r.comments} comentários</span>
+      <h4>Ver no Instagram →</h4>
     </div>
   </a>
 `).join('');
