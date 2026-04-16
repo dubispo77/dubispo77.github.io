@@ -266,57 +266,39 @@
     pointer-events:none;
   }
 
-  .card .thumb{
-    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;
-  }
-  .card .scrim{
-    position:absolute;inset:0;z-index:2;
-    background:linear-gradient(to top,rgba(13,24,36,.92) 0%, rgba(13,24,36,.25) 50%, rgba(13,24,36,0) 80%);
-    pointer-events:none;
+  /* iframe IG dentro do card (thumb real do reel) */
+  .card iframe{
+    position:absolute;inset:0;width:100%;height:100%;
+    border:0;display:block;z-index:2;background:#fff;
   }
   .card .tag{
-    position:absolute;top:14px;left:16px;z-index:3;
+    position:absolute;top:12px;left:12px;z-index:3;
     font-family:var(--cond);font-size:10px;letter-spacing:2.5px;
     text-transform:uppercase;font-weight:800;
     color:var(--accent);
-    background:rgba(13,24,36,.55);padding:4px 8px;border-radius:4px;
-    border:1px solid rgba(240,193,59,.35);
+    background:rgba(13,24,36,.72);padding:4px 8px;border-radius:4px;
+    border:1px solid rgba(240,193,59,.4);
     backdrop-filter:blur(4px);
+    pointer-events:none;
   }
-  .card .big{
-    position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);
-    text-align:center;z-index:3;color:var(--bg);
-    width:100%;padding:0 14px;
+  .card .stat{
+    position:absolute;top:12px;right:12px;z-index:3;
+    font-family:var(--cond);font-size:11px;letter-spacing:1.5px;
+    text-transform:uppercase;font-weight:800;
+    color:var(--bg);
+    background:rgba(13,24,36,.72);padding:4px 9px;border-radius:4px;
+    backdrop-filter:blur(4px);
+    pointer-events:none;
   }
-  .card .big .num{
-    font-family:var(--cond);font-weight:900;
-    font-size:clamp(38px,5.5vw,62px);
-    line-height:.95;letter-spacing:-1px;color:var(--accent);
-    text-shadow:0 4px 20px rgba(0,0,0,.4);
+  .card .stat b{color:var(--accent);font-weight:900;margin-right:3px}
+  /* placeholder enquanto iframe carrega */
+  .card .placeholder{
+    position:absolute;inset:0;z-index:1;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:rgba(244,241,235,.5);font-family:var(--cond);
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;gap:8px;
   }
-  .card .big .what{
-    font-family:var(--cond);font-size:11px;letter-spacing:3px;
-    text-transform:uppercase;color:rgba(244,241,235,.75);font-weight:700;
-    margin-top:4px;
-  }
-  .card .play{
-    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-    width:52px;height:52px;border-radius:50%;
-    background:rgba(244,241,235,.14);backdrop-filter:blur(6px);
-    color:var(--bg);display:none;align-items:center;justify-content:center;
-    font-size:16px;border:1.5px solid rgba(244,241,235,.3);z-index:4;
-    transition:transform .2s,background .2s;
-  }
-
-  .card .meta{position:absolute;bottom:14px;left:16px;right:16px;color:var(--bg);z-index:3}
-  .card .meta span{
-    font-family:var(--cond);font-size:10px;letter-spacing:2.5px;
-    color:rgba(244,241,235,.65);text-transform:uppercase;display:block;margin-bottom:2px;font-weight:700;
-  }
-  .card .meta h4{
-    font-family:var(--cond);font-size:15px;font-weight:800;
-    text-transform:uppercase;letter-spacing:.3px;color:var(--bg);
-  }
+  .card .placeholder svg{width:36px;height:36px;opacity:.4}
 
   .arrow{
     position:absolute;top:50%;transform:translateY(-50%);
@@ -694,19 +676,16 @@ const REELS = [
 ];
 
 const track = document.getElementById('track');
-track.innerHTML = REELS.map(r=>`
-  <a class="card v-reel" href="https://www.instagram.com/p/${r.shortcode}/" target="_blank" rel="noopener">
-    <div class="scrim"></div>
+track.innerHTML = REELS.map((r,i)=>`
+  <div class="card v-reel">
+    <div class="placeholder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/></svg>
+      <span>carregando...</span>
+    </div>
+    <iframe src="https://www.instagram.com/p/${r.shortcode}/embed/" loading="lazy" allowtransparency="true" allowfullscreen="true" frameborder="0" scrolling="no"></iframe>
     <div class="tag">${r.tag}</div>
-    <div class="big">
-      <div class="num">${r.likes}</div>
-      <div class="what">curtidas</div>
-    </div>
-    <div class="meta">
-      <span>${r.comments} comentários</span>
-      <h4>Ver no Instagram →</h4>
-    </div>
-  </a>
+    <div class="stat"><b>${r.likes}</b>curtidas</div>
+  </div>
 `).join('');
 
 function scrollTrack(dir){
