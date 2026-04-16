@@ -269,43 +269,33 @@
     pointer-events:none;
   }
 
-  /* Data card visual (sem iframe - design limpo) */
-  .card::before{
-    content:'';position:absolute;inset:0;
-    background:radial-gradient(ellipse at 30% 20%, rgba(240,193,59,.15) 0%, transparent 55%);
-    pointer-events:none;z-index:1;
+  /* Card com thumb real */
+  .card .thumb{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;
+    background:linear-gradient(135deg,#2a3f56,#0d1824);
   }
-  .card .tag{
-    position:absolute;top:14px;left:16px;z-index:2;
-    font-family:var(--cond);font-size:10px;letter-spacing:2.5px;
-    text-transform:uppercase;font-weight:800;
-    color:var(--accent);
-    background:rgba(13,24,36,.55);padding:4px 8px;border-radius:4px;
-    border:1px solid rgba(240,193,59,.35);
-    backdrop-filter:blur(4px);
+  .card .scrim{
+    position:absolute;inset:0;z-index:2;
+    background:linear-gradient(to top,rgba(26,44,62,.85) 0%, rgba(26,44,62,.25) 45%, rgba(26,44,62,0) 70%);
+    pointer-events:none;
   }
-  .card .big{
-    position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);
-    text-align:center;z-index:2;color:var(--bg);width:100%;padding:0 14px;
+  .card .play{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:56px;height:56px;border-radius:50%;
+    background:rgba(244,241,235,.15);backdrop-filter:blur(6px);
+    color:var(--bg);display:flex;align-items:center;justify-content:center;
+    font-size:16px;border:1.5px solid rgba(244,241,235,.35);z-index:3;
+    transition:transform .2s,background .2s;
   }
-  .card .big .num{
-    font-family:var(--cond);font-weight:900;
-    font-size:clamp(36px,5vw,58px);
-    line-height:.95;letter-spacing:-1px;color:var(--accent);
-    text-shadow:0 4px 20px rgba(0,0,0,.4);
-  }
-  .card .big .what{
-    font-family:var(--cond);font-size:11px;letter-spacing:3px;
-    text-transform:uppercase;color:rgba(244,241,235,.7);font-weight:700;margin-top:5px;
-  }
-  .card .card-meta{position:absolute;bottom:14px;left:16px;right:16px;z-index:2;color:var(--bg)}
+  .card:hover .play{background:rgba(244,241,235,.25);transform:translate(-50%,-50%) scale(1.08)}
+  .card .card-meta{position:absolute;bottom:14px;left:16px;right:16px;z-index:3;color:var(--bg)}
   .card .card-meta span{
-    font-family:var(--cond);font-size:10px;letter-spacing:2.5px;
-    color:rgba(244,241,235,.6);text-transform:uppercase;display:block;margin-bottom:2px;font-weight:700;
+    font-family:var(--cond);font-size:10px;letter-spacing:3px;
+    color:rgba(244,241,235,.7);text-transform:uppercase;display:block;margin-bottom:2px;
   }
   .card .card-meta h4{
-    font-family:var(--cond);font-size:15px;font-weight:800;
-    text-transform:uppercase;letter-spacing:.3px;
+    font-family:var(--cond);font-size:18px;font-weight:800;
+    text-transform:uppercase;letter-spacing:-.3px;
   }
 
   /* ───── LIGHTBOX REELS ───── */
@@ -763,16 +753,15 @@ const REELS = [
 ];
 
 const track = document.getElementById('track');
+const THUMB_BASE = 'https://dubispo77.github.io/thumbs/reel_';
 track.innerHTML = REELS.map((r,i)=>`
   <div class="card v-reel" onclick="openReelLB(${i})">
-    <div class="tag">${r.tag}</div>
-    <div class="big">
-      <div class="num">${r.likes}</div>
-      <div class="what">curtidas</div>
-    </div>
+    <img class="thumb" src="${THUMB_BASE}${r.shortcode}.jpg" alt="${r.tag}" loading="lazy"/>
+    <div class="scrim"></div>
+    <div class="play">▶</div>
     <div class="card-meta">
-      <span>${r.comments} comentários</span>
-      <h4>Ver post embedado →</h4>
+      <span>${r.tag} · ${r.likes} curtidas</span>
+      <h4>${r.comments} comentários</h4>
     </div>
   </div>
 `).join('');
