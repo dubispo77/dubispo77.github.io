@@ -269,15 +269,33 @@
     pointer-events:none;
   }
 
-  /* iframe IG dentro do card — crop pra mostrar só a mídia (sem header/footer do IG) */
+  /* iframe IG dentro do card — crop pra mostrar SÓ a mídia (sem header/footer/tarjas) */
   .card .iframe-wrap{
     position:absolute;inset:0;overflow:hidden;z-index:2;background:#000;
   }
   .card iframe{
-    position:absolute;left:50%;top:-62px;
-    width:100%;height:calc(100% + 240px);
-    transform:translateX(-50%);
-    border:0;display:block;background:#fff;
+    position:absolute;
+    top:-88px;
+    left:-9%;
+    width:118%;
+    height:calc(100% + 300px);
+    border:0;display:block;background:#000;
+  }
+  .card .play-overlay{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:60px;height:60px;border-radius:50%;
+    background:rgba(0,0,0,.35);backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;
+    z-index:3;pointer-events:none;
+    border:1.5px solid rgba(255,255,255,.6);
+  }
+  .card .play-overlay::before{
+    content:'';display:block;
+    width:0;height:0;
+    border-left:18px solid rgba(255,255,255,.92);
+    border-top:11px solid transparent;
+    border-bottom:11px solid transparent;
+    margin-left:4px;
   }
   /* placeholder enquanto iframe carrega */
   .card .placeholder{
@@ -674,6 +692,7 @@ track.innerHTML = REELS.map((r,i)=>`
     <div class="iframe-wrap">
       <iframe src="https://www.instagram.com/p/${r.shortcode}/embed/" loading="lazy" allowtransparency="true" allowfullscreen="true" frameborder="0" scrolling="no"></iframe>
     </div>
+    <div class="play-overlay" aria-hidden="true"></div>
   </div>
 `).join('');
 
