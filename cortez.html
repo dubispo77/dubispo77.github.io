@@ -166,12 +166,12 @@
     .cresc-grid{grid-template-columns:1fr;gap:24px}
     .cresc-grid .ig-carousel,.cresc-grid .cresc-right{grid-column:1}
     .ig-carousel{height:auto}
-    .ig-stage{flex:none;aspect-ratio:9/16}
+    .ig-stage{flex:none;aspect-ratio:1/1}
   }
 
   /* Carrossel IG */
   .ig-carousel{position:relative;background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(26,44,62,.1);display:flex;flex-direction:column;height:100%}
-  .ig-stage{position:relative;flex:1;min-height:0;background:#000;overflow:hidden}
+  .ig-stage{position:relative;flex:1;min-height:0;background:#000;overflow:hidden;aspect-ratio:1/1}
   .ig-slide{position:absolute;inset:0;opacity:0;transition:opacity .35s;display:flex;align-items:center;justify-content:center}
   .ig-slide.active{opacity:1}
   .ig-slide iframe{width:100%;height:100%;border:0;background:#fff;display:block}
@@ -253,14 +253,13 @@
   .track::-webkit-scrollbar-thumb{background:var(--ink);border-radius:4px;opacity:.85}
 
   .card{
-    height:440px;
     background:linear-gradient(160deg,#2a3f56 0%,#0d1824 100%);
     border:1px solid var(--line);
     border-radius:8px;position:relative;scroll-snap-align:start;
     flex-shrink:0;overflow:hidden;cursor:pointer;
     transition:transform .2s ease, box-shadow .2s ease;
     text-decoration:none;color:inherit;display:block;
-    aspect-ratio:9/16;
+    aspect-ratio:1/1;
   }
   .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(26,44,62,.25)}
   .card::before{
@@ -370,7 +369,7 @@
   .arrow.l:hover{transform:translateY(-50%) translateX(-3px)}
   .arrow.r:hover{transform:translateY(-50%) translateX(3px)}
 
-  .card.v-reel{width:calc((1400px - 4*14px - 64px) / 5)}
+  .card.v-reel{width:calc((1400px - 4*14px - 64px) / 5);height:auto}
   @media(max-width:1400px){.card.v-reel{width:calc((100vw - 4*14px - 64px) / 5)}}
   @media(max-width:1100px){.card.v-reel{width:calc((100vw - 3*14px - 64px) / 4)}}
   @media(max-width:720px){
@@ -378,8 +377,8 @@
     .showcase .showcase-title{padding:0 22px}
     .carousel{padding:0}
     .track{gap:12px;padding:0 22px 14px;scroll-padding-left:22px}
-    .card.v-reel{width:min(58vw,280px);height:auto}
-    .card .meta h4{font-size:17px}
+    .card.v-reel{width:min(55vw,260px);height:auto}
+    .card .card-meta h4{font-size:17px}
     .card .play{width:58px;height:58px}
     .arrow{display:none}
   }
