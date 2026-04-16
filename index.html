@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <title>Eduardo Bispo — Videomaker</title>
+  <link rel="preload" as="video" href="video-horizontal.mp4" type="video/mp4">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Barlow+Condensed:wght@700;900&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -1107,11 +1105,11 @@
   <!-- HERO -->
   <section id="hero">
     <!-- vídeo desktop (horizontal) -->
-    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline>
+    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
       <source src="video-horizontal.mp4" type="video/mp4">
     </video>
     <!-- vídeo mobile (vertical - fullscreen) -->
-    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline>
+    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto">
       <source src="video-vertical.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
