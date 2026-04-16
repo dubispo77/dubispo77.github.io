@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Guilherme Cortez — Eduardo Bispo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;900&family=Barlow+Condensed:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --capa: url('https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/cortez/capa.jpg');
+    --bg:#141820;
+    --bg2:#1a2331;
+    --ink:#f4f1eb;
+    --ink2:#d6dbe3;
+    --muted:#8a94a4;
+    --line:#2a3344;
+    --accent:#f0c13b;
+    --psol:#e3322b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Barlow','Helvetica Neue',sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+
+  /* ═══════════════ HERO ═══════════════ */
+  .hero{position:relative;min-height:min(68vh,640px);overflow:hidden;padding:90px 6vw 70px}
+  .hero-bg{position:absolute;inset:-8px;z-index:0;overflow:hidden}
+  .hero-bg::before{
+    content:'';position:absolute;top:50%;left:50%;
+    width:100%;height:100%;
+    background-image:var(--capa);background-repeat:no-repeat;background-size:cover;background-position:center;
+    transform:translate(-50%,-50%) translate(2.77px, 61.73px) scale(0.430);
+    transform-origin:center center;filter:blur(2.85px);
+  }
+  .hero-bg::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(26,44,62,.94) 0%,rgba(26,44,62,.55) 55%,rgba(26,44,62,.15) 100%);
+  }
+  .hero > *{position:relative;z-index:2}
+  .hero-social{position:absolute;top:-29px;left:1px;display:flex;gap:8px;z-index:3}
+  .hero-social a{color:var(--ink);text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:4px}
+  .hero h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(40px,8vw,96px);letter-spacing:2px;text-transform:uppercase;line-height:.95;margin:8px 0 18px;font-weight:900}
+  .hero .eyebrow{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .hero .lede{max-width:760px;font-size:clamp(15px,1.6vw,18px);line-height:1.55;color:var(--ink2)}
+  .hero .lede em{color:var(--accent);font-style:italic;font-weight:500}
+  .hero .meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:16px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+  .hero .meta b{color:var(--ink);font-weight:600}
+  @media(max-width:720px){
+    .hero-bg::before{transform:translate(-50%,-50%) translate(0.58px, -8.04px) scale(0.300)}
+    .hero-bg::after{background:linear-gradient(160deg,rgba(26,44,62,.95) 0%,rgba(26,44,62,.7) 55%,rgba(26,44,62,.3) 100%)}
+    .hero-social{top:-4px !important;left:3px !important;gap:5px !important}
+  }
+
+  /* ═══════════════ BLOCO 1 ═══════════════ */
+  .bloco{padding:80px 6vw;border-top:1px solid var(--line)}
+  .bloco-head{margin-bottom:40px;max-width:900px}
+  .bloco-eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:8px}
+  .bloco-head h2{font-family:'Barlow Condensed',sans-serif;font-size:clamp(32px,4vw,52px);text-transform:uppercase;letter-spacing:1.5px;margin:0;line-height:1;font-weight:900}
+
+  .bloco1-subtitle{font-family:'Barlow Condensed',sans-serif;font-size:clamp(22px,2.4vw,32px);text-transform:uppercase;letter-spacing:1px;margin:0 0 28px;color:var(--ink);font-weight:700;line-height:1.1}
+  .bloco1-grid{
+    display:grid;
+    grid-template-columns:30fr 70fr;
+    grid-template-rows:auto 1fr;
+    gap:24px 32px;
+    align-items:stretch;
+    margin:0 0 48px;
+  }
+  .bloco1-grid .carousel{grid-column:1;grid-row:1 / span 2}
+  .bloco1-grid .col-text{grid-column:2;grid-row:1;display:flex;align-items:center}
+  .bloco1-grid .bloco1-chart-full{grid-column:2;grid-row:2;min-height:0;display:flex}
+  .bloco1-grid .bloco1-chart-full .chart-wrap{flex:1;display:flex;flex-direction:column;height:100%}
+  .bloco1-grid .bloco1-chart-full .chart-svg{flex:1;min-height:0;width:100%;height:100%}
+  @media(max-width:900px){
+    .bloco1-grid{grid-template-columns:1fr;gap:24px}
+    .bloco1-grid .carousel,
+    .bloco1-grid .col-text,
+    .bloco1-grid .bloco1-chart-full{grid-column:1;grid-row:auto}
+    .bloco1-grid .bloco1-chart-full .chart-svg{height:auto;flex:0 0 auto}
+  }
+
+  /* Carrossel */
+  .carousel{position:relative;background:var(--bg2);border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  .carousel-stage{position:relative;aspect-ratio:9/16;background:#000;overflow:hidden}
+  .carousel-slide{position:absolute;inset:0;opacity:0;transition:opacity .35s;display:flex;align-items:center;justify-content:center}
+  .carousel-slide.active{opacity:1}
+  .carousel-slide blockquote.instagram-media{margin:0!important;width:100%!important;max-width:none!important;min-width:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#000!important;height:100%}
+  .carousel-slide iframe{width:100%!important;max-width:none!important;height:140%!important;margin-top:-10%!important;border:0!important}
+  .carousel-arrows{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none;padding:0 8px;z-index:5}
+  .carousel-arrows button{pointer-events:auto;width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+  .carousel-arrows button:hover{background:rgba(0,0,0,.9)}
+  .carousel-meta{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line)}
+  .carousel-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+  .carousel-label b{color:var(--accent);font-weight:700}
+  .carousel-dots{display:flex;gap:6px}
+  .carousel-dots span{width:8px;height:8px;border-radius:50%;background:var(--line);cursor:pointer;transition:background .15s}
+  .carousel-dots span.active{background:var(--accent)}
+
+  /* Coluna direita */
+  .col-text h3{font-family:'Barlow Condensed',sans-serif;font-size:28px;text-transform:uppercase;letter-spacing:1px;margin:0 0 14px;color:var(--ink)}
+  .col-text p.intro{font-size:clamp(17px,1.3vw,20px);line-height:1.6;color:var(--ink2);margin:0}
+  .col-text p.intro em{color:var(--accent);font-style:italic;font-weight:500}
+
+  /* Gráfico */
+  .chart-wrap{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:24px}
+  .chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;flex-wrap:wrap;gap:8px}
+  .chart-title{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .chart-stats{display:flex;gap:24px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .chart-stats b{color:var(--accent);font-weight:700;font-size:14px}
+  /* IG em destaque (no topo do card) */
+  .chart-ig-hero{display:flex;align-items:center;gap:14px;padding:10px 14px;border:1px solid rgba(240,193,59,.35);background:rgba(240,193,59,.06);border-radius:8px}
+  .chart-ig-hero .logo{width:30px;height:30px;flex:0 0 30px;color:#f0c13b;display:flex;align-items:center;justify-content:center}
+  .chart-ig-hero .logo svg{width:100%;height:100%;display:block}
+  .chart-ig-hero .info{display:flex;flex-direction:column;line-height:1.1}
+  .chart-ig-hero .net-name{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .chart-ig-hero .nums{font-size:20px;font-weight:800;color:var(--ink);letter-spacing:.3px;margin-top:3px}
+  .chart-ig-hero .pct{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:900;color:#f0c13b;line-height:1;letter-spacing:.5px}
+
+  /* Outras redes (abaixo do gráfico) */
+  .chart-others{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .chart-others .net{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+  .chart-others .net .logo{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center}
+  .chart-others .net .logo svg{width:100%;height:100%;display:block}
+  .chart-others .net .info{display:flex;flex-direction:column;line-height:1.1;min-width:0}
+  .chart-others .net .net-name{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .chart-others .net .nums{font-size:14px;font-weight:700;color:var(--ink);margin-top:2px;letter-spacing:.2px}
+  .chart-others .net .pct{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;line-height:1}
+  .chart-others .net-tt .logo{color:#ff2c55} .chart-others .net-tt .pct{color:#ff2c55}
+  .chart-others .net-x  .logo{color:#ffffff} .chart-others .net-x  .pct{color:#ffffff}
+  .chart-others .net-fb .logo{color:#1877f2} .chart-others .net-fb .pct{color:#1877f2}
+  @media(max-width:720px){
+    .chart-ig-hero{flex-wrap:wrap} .chart-ig-hero .pct{margin-left:0;font-size:28px}
+    .chart-others{grid-template-columns:1fr}
+  }
+  .chart-svg{width:100%;height:auto;display:block}
+  .chart-svg .axis{stroke:#3a4458;stroke-width:1}
+  .chart-svg .axis-label{fill:var(--muted);font-size:10px;font-family:'Barlow',sans-serif;letter-spacing:.5px}
+  .chart-svg .grid{stroke:#26303f;stroke-width:1;stroke-dasharray:2 4}
+  .chart-svg .line{fill:none;stroke:var(--accent);stroke-width:2.5}
+  .chart-svg .area{fill:url(#grad);opacity:.4}
+  .chart-svg .dot{fill:var(--accent);stroke:var(--bg2);stroke-width:2}
+  .chart-svg .dot-active{fill:#fff;stroke:var(--accent);stroke-width:3;r:7}
+  .chart-svg .dot-start{fill:var(--psol);stroke:#fff;stroke-width:2}
+  .chart-svg .start-halo{fill:none;stroke:var(--psol);stroke-opacity:.25;stroke-width:1}
+  .chart-svg .start-pin-label{fill:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+  .chart-svg .start-pin-sub{fill:var(--muted);font-family:'Barlow',sans-serif;font-size:10px;font-weight:500;letter-spacing:.3px}
+  .chart-svg .start-line{stroke:var(--psol);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
+  .chart-svg .milestone-label{fill:var(--accent);font-size:10px;font-weight:600;letter-spacing:.5px}
+
+  /* ═══════════════ BLOCO 2 — CARROSSEL HORIZONTAL (padrão portfolio) ═══════════════ */
+  .videos{padding:60px 6vw;position:relative}
+  .videos .eyebrow-section{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:600;text-align:center;margin-bottom:22px}
+  .carousel-wrap{position:relative}
+  .track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 0 14px;scrollbar-width:none;-ms-overflow-style:none}
+  .track::-webkit-scrollbar{display:none}
+  .card{flex:0 0 calc(25% - 14px);scroll-snap-align:start;position:relative;aspect-ratio:9/16;border-radius:8px;overflow:hidden;cursor:pointer;background:#000;display:block;text-decoration:none;color:inherit;transition:transform .2s}
+  .card:hover{transform:translateY(-2px)}
+  .card .thumb{width:100%;height:100%;object-fit:cover;display:block}
+  .card .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.72) 100%)}
+  .card .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(255,255,255,.95);line-height:1;backdrop-filter:blur(4px);padding-left:3px}
+  .card .meta{position:absolute;bottom:12px;left:14px;right:14px}
+  .card .meta span{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .card .meta h4{margin:2px 0 0;font-size:15px;font-weight:600;color:#fff;letter-spacing:.2px}
+  .carousel-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;transition:background .15s;backdrop-filter:blur(4px)}
+  .carousel-nav:hover{background:rgba(255,255,255,.18)}
+  .carousel-nav.prev{left:-8px}
+  .carousel-nav.next{right:-8px}
+  @media(max-width:1100px){.card{flex:0 0 calc(33.33% - 12px)}}
+  @media(max-width:800px){.card{flex:0 0 calc(50% - 9px)}}
+  @media(max-width:520px){.card{flex:0 0 70%}.carousel-nav{display:none}}
+
+  /* ═══════════════ END ═══════════════ */
+  footer.note{padding:40px 6vw 80px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+  footer.note b{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- ════════════ HERO ════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <nav class="hero-social">
+    <a href="https://www.instagram.com/guilhermecortez_/?hl=pt-br" target="_blank" rel="noopener" data-logo="ig">Instagram</a>
+    <a href="https://www.tiktok.com/@guilhermecortez_" target="_blank" rel="noopener" data-logo="tt">TikTok</a>
+    <a href="https://www.facebook.com/cortezpsol/?locale=pt_BR" target="_blank" rel="noopener" data-logo="fb">Facebook</a>
+    <a href="https://x.com/cortezpsol" target="_blank" rel="noopener" data-logo="x">X (Twitter)</a>
+  </nav>
+  <div class="eyebrow">Instagram · TikTok · Facebook · X (Twitter)</div>
+  <h1>Guilherme Cortez</h1>
+  <p class="lede">Da militância estudantil em Franca a uma das vozes mais influentes da esquerda brasileira, o deputado estadual Guilherme Cortez (PSOL-SP) se tornou uma referência na disputa política nas redes sociais no país. Como integrante da equipe de comunicação do deputado na Alesp, comandei todos os processos <em>audiovisuais</em> e auxiliei nas <em>estratégias digitais</em> que ajudaram o mandato do Guilherme a <em>quadruplicar</em> seu <em>alcance</em> e <em>engajamento</em>, consolidando Cortez como uma <em>figura política de influência nacional</em> e desafiando a <em>hegemonia da extrema-direita</em> nas redes sociais.</p>
+  <div class="meta">
+    <span><b>Atuação:</b> Produção, Edição, Motion, Captação</span>
+    <span><b>Formato:</b> Reels, Shorts, Campanhas</span>
+    <span><b>Alcance:</b> 20 mil interações/post no Instagram</span>
+    <span><b>Engajamento:</b> 4,16% no Instagram</span>
+  </div>
+</section>
+
+<!-- ════════════ BLOCO 1 — MARCOS DE SEGUIDORES ════════════ -->
+<section class="bloco">
+  <div class="bloco-head">
+    <h2 class="bloco1-subtitle">A esquerda na briga:<br>os números do crescimento</h2>
+  </div>
+
+  <div class="bloco1-grid">
+
+    <!-- ── Carrossel à esquerda ── -->
+    <div class="carousel" id="carousel">
+      <div class="carousel-stage" id="carousel-stage">
+        <!-- Slides serão injetados via JS -->
+      </div>
+      <div class="carousel-arrows">
+        <button id="prev" aria-label="Anterior">‹</button>
+        <button id="next" aria-label="Próximo">›</button>
+      </div>
+    </div>
+
+    <!-- ── Texto à direita (linha 1) ── -->
+    <div class="col-text">
+      <p class="intro">Por trás do <em>avanço da linguagem digital</em>, existe uma produção audiovisual cada vez mais dinâmica, intensa e de alto volume diário. Com uma proposta de comunicação construída para conquistar corações e mentes também na internet e nas redes sociais, desenvolvemos estratégias digitais que deram muito resultado: no Instagram, foram <em>+408% de seguidores</em>, com <em>média de 20 mil interações</em> por publicação e <em>4,16% de engajamento</em> — cerca de <em>três vezes acima do benchmark</em> da política brasileira. No TikTok, o aumento no mesmo período foi de <em>+695%</em>. Somando as quatro redes sociais, Guilherme Cortez ultrapassou a marca de <em>1 milhão de seguidores</em> em março de 2026.</p>
+    </div>
+
+    <!-- ── Gráfico à direita (linha 2) ── -->
+    <div class="bloco1-chart-full">
+      <div class="chart-wrap">
+        <div class="chart-head">
+          <div class="chart-title">Crescimento das redes sociais · Guilherme Cortez</div>
+          <div class="chart-ig-hero">
+            <span class="logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.849.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.849.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12s.014 3.668.072 4.948c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+            </span>
+            <div class="info">
+              <span class="net-name">Instagram</span>
+              <span class="nums">103k → 523k</span>
+            </div>
+            <span class="pct">+408%</span>
+          </div>
+        </div>
+        <svg class="chart-svg" viewBox="0 0 800 320" preserveAspectRatio="none" aria-label="Gráfico de crescimento de seguidores">
+          <defs>
+            <linearGradient id="grad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#f0c13b" stop-opacity=".7"/>
+              <stop offset="100%" stop-color="#f0c13b" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- Grid horizontal -->
+          <g id="grid"></g>
+          <!-- Eixo X (meses) -->
+          <g id="xaxis"></g>
+          <!-- Área + linha -->
+          <path id="area" class="area" d=""/>
+          <path id="line" class="line" d=""/>
+          <!-- Marcadores -->
+          <g id="dots"></g>
+          <!-- Marco "Cheguei aqui" -->
+          <g id="start-marker"></g>
+        </svg>
+
+        <div class="chart-others">
+          <div class="net net-tt">
+            <span class="logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.1z"/></svg>
+            </span>
+            <div class="info">
+              <span class="net-name">TikTok</span>
+              <span class="nums">40k → 318k</span>
+            </div>
+            <span class="pct">+695%</span>
+          </div>
+          <div class="net net-x">
+            <span class="logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </span>
+            <div class="info">
+              <span class="net-name">X (Twitter)</span>
+              <span class="nums">90k → 170k</span>
+            </div>
+            <span class="pct">+89%</span>
+          </div>
+          <div class="net net-fb">
+            <span class="logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </span>
+            <div class="info">
+              <span class="net-name">Facebook</span>
+              <span class="nums">60k → 73k</span>
+            </div>
+            <span class="pct">+22%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════ BLOCO 2 — REELS DE MAIOR ALCANCE ════════════ -->
+<section class="videos">
+  <div class="eyebrow-section">— Reels em destaque —</div>
+  <div class="carousel-wrap">
+    <button class="carousel-nav prev" id="reels-prev" aria-label="Anterior">‹</button>
+    <div class="track" id="reels-track"></div>
+    <button class="carousel-nav next" id="reels-next" aria-label="Próximo">›</button>
+  </div>
+</section>
+
+<footer class="note" style="text-align:center">
+  <a href="index.html" style="color:var(--accent);text-decoration:none;letter-spacing:2px;text-transform:uppercase;font-size:12px;font-weight:600">← Voltar ao portfólio</a>
+</footer>
+
+<script>
+/* ═════════════ DADOS ═════════════ */
+const MARCOS = [
+  {label:'100k', idx:0, mes:'fev/2024', value:100000, igUrl:'https://www.instagram.com/guilhermecortez_/p/C3nRSN-OA3K/'},
+  {label:'200k', idx:1, mes:'mai/2025', value:200000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DKzjSlCOvz8/'},
+  {label:'300k', idx:2, mes:'ago/2025', value:300000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DPMMM9qjc8S/'},
+  {label:'400k', idx:3, mes:'out/2025', value:400000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DRxoJfrju-M/'},
+  {label:'500k', idx:4, mes:'jan/2026', value:500000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DWHFpI7jYD4/'},
+];
+
+// Curvas de seguidores (jan/24 → abr/26) — IG é dado real, demais são estimativa
+const MESES = ['jan/24','fev/24','mar/24','abr/24','mai/24','jun/24','jul/24','ago/24','set/24','out/24','nov/24','dez/24','jan/25','fev/25','mar/25','abr/25','mai/25','jun/25','jul/25','ago/25','set/25','out/25','nov/25','dez/25','jan/26','fev/26','mar/26','abr/26'];
+
+const SERIES_IG = [95000,99000,103000,115000,135000,155000,178000,198000,215000,235000,255000,275000,295000,315000,340000,365000,390000,415000,435000,455000,472000,488000,500000,510000,516000,520000,522000,523000];
+const SERIES_TT = [35000,38000,40000,45000,55000,70000,90000,115000,140000,165000,185000,200000,215000,230000,245000,258000,270000,280000,288000,295000,302000,308000,313000,315000,316000,317000,318000,318000];
+const SERIES_X  = [85000,87000,90000,92000,95000,99000,104000,110000,115000,122000,128000,134000,138000,142000,146000,150000,154000,157000,160000,162000,164000,166000,167000,168000,169000,169500,170000,170000];
+const SERIES_FB = [58000,59000,60000,60500,61000,62000,63000,64000,64500,65000,65500,66000,66500,67000,67500,68000,68500,69000,70000,70500,71000,71500,72000,72500,72700,72800,72900,73000];
+
+const SERIES = SERIES_IG.map((v,i)=>({m:MESES[i], v}));
+
+const NETWORKS = [
+  {key:'ig', name:'Instagram', data:SERIES_IG, color:'#f0c13b', start:103000, end:523000},
+  {key:'tt', name:'TikTok',    data:SERIES_TT, color:'#ff2c55', start:40000,  end:318000},
+  {key:'x',  name:'X',         data:SERIES_X,  color:'#ffffff', start:90000,  end:170000},
+  {key:'fb', name:'Facebook',  data:SERIES_FB, color:'#1877f2', start:60000,  end:73000},
+];
+
+/* ═════════════ CARROSSEL ═════════════ */
+const stage = document.getElementById('carousel-stage');
+const dotsEl = document.getElementById('carousel-dots');
+let cur = 0;
+
+function buildSlides(){
+  stage.innerHTML = MARCOS.map((m,i)=>`
+    <div class="carousel-slide ${i===0?'active':''}" data-idx="${i}">
+      <blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${m.igUrl}" data-instgrm-version="14"></blockquote>
+    </div>`).join('');
+  if(dotsEl) dotsEl.innerHTML = MARCOS.map((m,i)=>`<span data-idx="${i}" class="${i===0?'active':''}"></span>`).join('');
+  if(dotsEl) dotsEl.querySelectorAll('span').forEach(d=>d.onclick=()=>go(+d.dataset.idx));
+}
+function go(i){
+  cur = (i + MARCOS.length) % MARCOS.length;
+  stage.querySelectorAll('.carousel-slide').forEach((el,k)=>el.classList.toggle('active', k===cur));
+  if(dotsEl) dotsEl.querySelectorAll('span').forEach((el,k)=>el.classList.toggle('active', k===cur));
+  const lbl = document.getElementById('marco-label'); if(lbl) lbl.textContent = MARCOS[cur].label;
+  const pidx = document.getElementById('post-idx'); if(pidx) pidx.textContent = cur+1;
+  highlightDot(MARCOS[cur].value);
+}
+document.getElementById('prev').onclick = ()=>go(cur-1);
+document.getElementById('next').onclick = ()=>go(cur+1);
+
+buildSlides();
+
+// Carrega embed.js do IG
+const sc = document.createElement('script');
+sc.src = 'https://www.instagram.com/embed.js'; sc.async = true;
+document.body.appendChild(sc);
+
+/* ═════════════ GRÁFICO ═════════════ */
+const W = 800, H = 320;
+const PAD = {l:50, r:20, t:18, b:36};
+const innerW = W - PAD.l - PAD.r;
+const innerH = H - PAD.t - PAD.b;
+const minV = 0, maxV = 600000;
+
+const xOf = i => PAD.l + (i / (SERIES.length-1)) * innerW;
+const yOf = v => PAD.t + (1 - (v - minV)/(maxV - minV)) * innerH;
+
+// Paths para cada rede — inseridos ANTES do grupo de bolinhas,
+// para que os dots fiquem por cima das linhas (senão a linha amarela corta a bolinha)
+const svgEl = document.querySelector('.chart-svg');
+const dotsRef = document.getElementById('dots');
+NETWORKS.forEach(net=>{
+  const pts = net.data.map((v,i)=>`${xOf(i)},${yOf(v)}`).join(' L');
+  const linePath = `M${pts}`;
+  // Área (só para IG, pra não poluir)
+  if(net.key==='ig'){
+    const areaPath = `${linePath} L${xOf(net.data.length-1)},${yOf(0)} L${xOf(0)},${yOf(0)} Z`;
+    document.getElementById('area').setAttribute('d', areaPath);
+  }
+  const isIG = net.key==='ig';
+  dotsRef.insertAdjacentHTML('beforebegin',
+    `<path d="${linePath}" fill="none" stroke="${net.color}" stroke-width="${isIG?2.5:1.8}" stroke-opacity="${isIG?1:.85}" data-net="${net.key}"/>`);
+});
+// Remove path antigo único
+document.getElementById('line').setAttribute('d','');
+
+// Grid + Y labels
+const yTicks = [0,100000,200000,300000,400000,500000,600000];
+const gridG = document.getElementById('grid');
+yTicks.forEach(v=>{
+  const y = yOf(v);
+  gridG.insertAdjacentHTML('beforeend',
+    `<line class="grid" x1="${PAD.l}" x2="${W-PAD.r}" y1="${y}" y2="${y}"/>
+     <text class="axis-label" x="${PAD.l-8}" y="${y+3}" text-anchor="end">${v/1000}k</text>`);
+});
+
+// X axis (every 3 months)
+const xG = document.getElementById('xaxis');
+SERIES.forEach((p,i)=>{
+  if(i%3===0 || i===SERIES.length-1){
+    const x = xOf(i);
+    xG.insertAdjacentHTML('beforeend',
+      `<text class="axis-label" x="${x}" y="${H-PAD.b+18}" text-anchor="middle">${p.m}</text>`);
+  }
+});
+
+// Marcador "Cheguei aqui" (mar/24 = índice 2)
+// Estilo discreto: bolinha pequena na linha + leader fino subindo até label no topo do gráfico
+const startIdx = 2;
+const sx = xOf(startIdx), sy = yOf(SERIES[startIdx].v);
+const labelY = PAD.t + 4;             // bem no topo, longe das linhas
+document.getElementById('start-marker').innerHTML = `
+  <line class="start-line" x1="${sx}" y1="${sy - 6}" x2="${sx}" y2="${labelY + 10}"/>
+  <circle class="start-halo" cx="${sx}" cy="${sy}" r="8"/>
+  <circle class="dot-start" cx="${sx}" cy="${sy}" r="4"/>
+  <text class="start-pin-label" x="${sx + 6}" y="${labelY + 4}">Cheguei aqui</text>
+  <text class="start-pin-sub"   x="${sx + 6}" y="${labelY + 17}">mar/2024 · 103 mil</text>
+`;
+
+// Pontos dos marcos (cada 100k)
+const dotsG = document.getElementById('dots');
+function findIdxByValue(v){
+  // Encontra primeiro mês onde a curva cruzou o valor
+  for(let i=0;i<SERIES.length;i++){ if(SERIES[i].v >= v) return i; }
+  return SERIES.length-1;
+}
+MARCOS.forEach((m,k)=>{
+  const i = findIdxByValue(m.value);
+  const x = xOf(i), y = yOf(SERIES[i].v); // senta em cima da linha real, não no valor redondo do marco
+  dotsG.insertAdjacentHTML('beforeend',
+    `<g data-marco="${k}">
+       <circle class="dot" cx="${x}" cy="${y}" r="5"/>
+       <text class="milestone-label" x="${x}" y="${y-12}" text-anchor="middle">${m.label}</text>
+     </g>`);
+});
+
+function highlightDot(value){
+  dotsG.querySelectorAll('g').forEach(g=>{
+    const c = g.querySelector('circle');
+    c.setAttribute('class','dot');
+    c.setAttribute('r','5');
+  });
+  const k = MARCOS.findIndex(m=>m.value===value);
+  if(k<0) return;
+  const c = dotsG.querySelectorAll('g')[k].querySelector('circle');
+  c.setAttribute('class','dot dot-active');
+  c.setAttribute('r','7');
+}
+highlightDot(MARCOS[0].value);
+
+/* ═════════════ BLOCO 2 — CARROSSEL DE REELS ═════════════ */
+const REELS = [
+  {shortcode:'DTxrOROE-VG', tag:'REEL',          likes:'167 mil', comments:'3.710'},
+  {shortcode:'DQuI9WijfBz', tag:'REEL',          likes:'132 mil', comments:'3.400'},
+  {shortcode:'DRmrpDsE4ZC', tag:'ANTI-TARCÍSIO', likes:'108 mil', comments:'3.442'},
+  {shortcode:'DVKEzKwE6rJ', tag:'REEL',          likes:'84 mil',  comments:'1.321'},
+  {shortcode:'DVemL-sDSWM', tag:'REEL',          likes:'42 mil',  comments:'1.142'},
+  {shortcode:'DTiP8AgDR9B', tag:'REEL',          likes:'30 mil',  comments:'732'},
+  {shortcode:'DL0jTf0O3le', tag:'ANTI-TARCÍSIO', likes:'27 mil',  comments:'1.215'},
+  {shortcode:'DRhexY2E4vb', tag:'ANTI-TARCÍSIO', likes:'25 mil',  comments:'718'},
+  {shortcode:'DUVuq5FjWip', tag:'REEL',          likes:'21 mil',  comments:'619'},
+  {shortcode:'DNinXlNts05', tag:'ANTI-TARCÍSIO', likes:'7,7 mil', comments:'596'},
+];
+
+const track = document.getElementById('reels-track');
+track.innerHTML = REELS.map(r=>`
+  <a class="card" href="https://www.instagram.com/p/${r.shortcode}/" target="_blank" rel="noopener">
+    <img class="thumb" loading="lazy" alt="Reel ${r.shortcode}"
+         src="https://www.instagram.com/p/${r.shortcode}/media/?size=l"
+         onerror="this.style.display='none'"/>
+    <div class="scrim"></div>
+    <div class="play">▶</div>
+    <div class="meta">
+      <span>${r.tag} · ${r.likes} curtidas</span>
+      <h4>${r.comments} comentários</h4>
+    </div>
+  </a>
+`).join('');
+
+/* Setas de navegação */
+const btnPrev = document.getElementById('reels-prev');
+const btnNext = document.getElementById('reels-next');
+function scrollByCard(dir){
+  const firstCard = track.querySelector('.card');
+  if(!firstCard) return;
+  const step = firstCard.getBoundingClientRect().width + 18;
+  track.scrollBy({left: dir * step, behavior:'smooth'});
+}
+btnPrev.onclick = ()=> scrollByCard(-1);
+btnNext.onclick = ()=> scrollByCard(1);
+</script>
+
+</body>
+</html>
