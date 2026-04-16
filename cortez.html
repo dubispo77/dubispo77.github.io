@@ -2,299 +2,464 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preload" as="image" href="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/cortez/capa.jpg" fetchpriority="high">
+<link rel="preconnect" href="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev" crossorigin>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Guilherme Cortez — Eduardo Bispo</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;900&family=Barlow+Condensed:wght@600;700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Barlow+Condensed:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
   :root{
-    --capa: url('https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/cortez/capa.jpg');
     --bg:#F4F1EB;
-    --bg2:#EAE6DE;
+    --bg-alt:#EAE6DE;
     --ink:#1A2C3E;
-    --ink2:#354a61;
-    --muted:#6d7a8a;
-    --line:rgba(26,44,62,0.13);
-    --accent:#C89B3C;
-    --psol:#E53935;
+    --accent:#F0C13B;
+    --subtle:rgba(26,44,62,.58);
+    --soft:rgba(26,44,62,.35);
+    --line:rgba(26,44,62,.28);
+    --font:'Barlow',sans-serif;
+    --cond:'Barlow Condensed',sans-serif;
+    --capa:url('https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/cortez/capa.jpg');
   }
-  *{box-sizing:border-box}
+
   html{scroll-behavior:smooth}
-  body{margin:0;font-family:'Barlow','Helvetica Neue',sans-serif;background:linear-gradient(160deg,#EDE8DF 0%,#F4F1EB 50%,#F8F6F2 100%) fixed;color:var(--ink);line-height:1.55}
-
-  /* ═══════════════ NAV (padrão portfólio) ═══════════════ */
-  nav.site-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:rgba(244,241,235,0.96);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.08)}
-  nav.site-nav .nav-logo{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:24px;letter-spacing:.01em;text-transform:lowercase;text-decoration:none;color:var(--ink)}
-  nav.site-nav .nav-links{display:flex;gap:32px;list-style:none;margin:0;padding:0}
-  nav.site-nav .nav-links a{font-size:16px;font-weight:600;letter-spacing:.08em;text-transform:lowercase;text-decoration:none;color:var(--ink);opacity:.55;transition:opacity .2s}
-  nav.site-nav .nav-links a:hover{opacity:1}
-  nav.site-nav .nav-social{display:flex;align-items:center;gap:16px}
-  nav.site-nav .nav-social a{opacity:.5;transition:opacity .2s;display:flex;align-items:center}
-  nav.site-nav .nav-social a:hover{opacity:1}
-  nav.site-nav .nav-social svg{width:18px;height:18px;fill:none;stroke:var(--ink);stroke-width:1.8}
-  nav.site-nav .nav-social a.whatsapp:hover svg{stroke:#25D366}
-  nav.site-nav .nav-social a.linkedin:hover svg{stroke:#0A66C2}
-  nav.site-nav .nav-social a.instagram:hover svg{stroke:#E91E8C}
-  @media(max-width:720px){
-    nav.site-nav{padding:14px 20px}
-    nav.site-nav .nav-links{display:none}
+  body{
+    font-family:var(--font);color:var(--ink);line-height:1.55;
+    background:linear-gradient(160deg,#EDE8DF 0%,#F4F1EB 50%,#F8F6F2 100%) fixed;
+    min-height:100vh;overflow-x:hidden;
   }
 
-  /* ═══════════════ HERO ═══════════════ */
-  .hero{position:relative;min-height:min(82vh,760px);overflow:hidden;padding:140px 6vw 80px;display:flex;flex-direction:column;justify-content:flex-end}
-  .hero-bg{position:absolute;inset:0;z-index:0;background-image:var(--capa);background-repeat:no-repeat;background-size:cover;background-position:center 30%}
-  .hero-bg::after{
+  /* ───── NAV ───── */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 40px;
+    background:rgba(244,241,235,.96);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(0,0,0,.08);
+  }
+  nav a.logo{
+    font-family:var(--cond);font-weight:700;font-size:22px;
+    letter-spacing:.02em;text-transform:lowercase;
+    text-decoration:none;color:var(--ink);
+  }
+  nav .back{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--cond);font-size:13px;letter-spacing:3px;
+    text-transform:uppercase;text-decoration:none;
+    color:var(--ink);opacity:.7;transition:opacity .2s;
+  }
+  nav .back:hover{opacity:1}
+
+  /* ───── HERO ───── */
+  .hero{
+    position:relative;overflow:hidden;
+    max-width:1400px;margin:68px auto 0;
+    min-height:640px;
+    display:flex;flex-direction:column;justify-content:center;
+    padding:60px 32px;
+  }
+  .hero .hero-bg{position:absolute;inset:-8px;z-index:0;overflow:hidden;background:none}
+  .hero .hero-bg::before{
+    content:'';position:absolute;top:50%;left:50%;
+    width:100%;height:100%;
+    background-image:var(--capa);background-repeat:no-repeat;background-size:cover;background-position:center 30%;
+    transform:translate(-50%,-50%);
+    filter:blur(2.85px);
+  }
+  .hero .hero-bg::after{
     content:'';position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(244,241,235,.35) 0%,rgba(244,241,235,.55) 45%,rgba(244,241,235,.92) 85%,#F4F1EB 100%);
+    background:linear-gradient(135deg,rgba(26,44,62,.94) 0%,rgba(26,44,62,.55) 55%,rgba(26,44,62,.15) 100%);
   }
-  .hero > *{position:relative;z-index:2}
-  .hero-social{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-  .hero-social a{color:var(--ink);text-decoration:none;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;padding:6px 10px;border:1px solid rgba(26,44,62,.25);border-radius:4px;background:rgba(244,241,235,.6);backdrop-filter:blur(3px);font-weight:600}
-  .hero-social a:hover{background:rgba(244,241,235,.9)}
-  .hero .eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;font-weight:700}
-  .hero h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(44px,8.5vw,104px);letter-spacing:2px;text-transform:uppercase;line-height:.92;margin:4px 0 20px;font-weight:900;color:var(--ink)}
-  .hero .lede{max-width:780px;font-size:clamp(15px,1.6vw,18px);line-height:1.6;color:var(--ink2)}
-  .hero .lede em{color:var(--ink);font-style:italic;font-weight:600;border-bottom:1px solid var(--accent)}
-  .hero .meta{margin-top:26px;display:flex;flex-wrap:wrap;gap:20px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
-  .hero .meta b{color:var(--ink);font-weight:700}
+  .hero .hero-content{position:relative;z-index:2;max-width:700px}
+
+  .hero h1{
+    font-family:var(--cond);font-weight:800;
+    font-size:clamp(44px,7vw,96px);
+    line-height:.95;letter-spacing:-1.8px;
+    text-transform:uppercase;color:var(--bg);
+    margin-bottom:1px;
+    text-shadow:0 2px 16px rgba(0,0,0,.15);
+  }
+  .hero h1 .accent{color:var(--bg);position:relative;display:inline-block}
+  .hero .lede{
+    font-size:22px;line-height:1.35;color:rgba(244,241,235,.75);max-width:none;font-weight:400;
+    text-wrap:pretty;letter-spacing:0;
+  }
+  .hero .lede em{color:#fff;font-style:normal;font-weight:470;letter-spacing:.5px}
+  .hero .lede strong{color:#fff;font-weight:470;letter-spacing:.5px}
+  .hero .signature-hero{
+    margin-top:22px;font-family:var(--cond);font-size:13.5px;
+    letter-spacing:3px;text-transform:uppercase;color:rgba(244,241,235,.62);
+  }
+  .hero .signature-hero a{
+    color:rgba(244,241,235,.9);text-decoration:none;
+    border-bottom:1px solid rgba(244,241,235,.4);padding-bottom:1px;
+  }
+  .hero .signature-hero a:hover{border-bottom-color:rgba(244,241,235,.9)}
+  .hero .meta{
+    margin:26px 0 22px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;
+    font-family:var(--cond);font-size:14.5px;letter-spacing:1px;
+    text-transform:uppercase;color:rgba(244,241,235,.78);font-weight:400;
+  }
+  .hero .meta .item{display:inline-flex;align-items:center;gap:6px}
+  .hero .meta .ico{
+    width:24px;height:24px;border-radius:50%;
+    border:1.5px solid var(--bg);color:var(--bg);
+    display:inline-flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .hero .meta .ico svg{width:13px;height:13px;display:block}
+  .hero .meta strong{color:var(--bg);font-weight:800;margin-right:3px;letter-spacing:1.8px}
+
+  /* LOGOS SOCIAIS */
+  .hero-logo{
+    color:currentColor;display:inline-flex;opacity:.95;
+    filter:brightness(1.9) saturate(1.1);
+    transition:color .2s,opacity .2s,filter .2s,transform .2s;
+  }
+  .hero-logo:hover{
+    color:rgba(244,241,235,.95);opacity:1;
+    filter:brightness(1.1) saturate(0);transform:translateY(-2px);
+  }
+
   @media(max-width:720px){
-    .hero{min-height:82svh;padding:110px 6vw 60px}
-    .hero-bg{background-position:center 25%}
-    .hero-bg::after{background:linear-gradient(180deg,rgba(244,241,235,.25) 0%,rgba(244,241,235,.5) 40%,rgba(244,241,235,.94) 80%,#F4F1EB 100%)}
+    .hero{margin-top:60px;min-height:420px;padding:30px 22px}
+    .hero .hero-bg::after{background:linear-gradient(160deg,rgba(26,44,62,.95) 0%,rgba(26,44,62,.7) 55%,rgba(26,44,62,.3) 100%)}
+    .hero h1{letter-spacing:-1.5px;font-size:clamp(40px,11vw,64px);margin-bottom:18px}
+    .hero .lede{font-size:18px}
+    .hero .meta{font-size:13px;gap:8px;margin:16px 0 20px}
+    .hero .meta .ico{width:22px;height:22px}
+    .hero .meta .ico svg{width:11px;height:11px}
+
+    .hero-social{top:-4px !important;left:3px !important;gap:5px !important}
+    .hero-social .hero-logo svg{width:29px !important;height:29px !important}
+    .hero .title-wrapper{margin-top:30px !important}
   }
 
-  /* ═══════════════ BLOCO 1 ═══════════════ */
-  .bloco{padding:80px 6vw;border-top:1px solid var(--line)}
-  .bloco-head{margin-bottom:40px;max-width:900px}
-  .bloco-eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
-  .bloco-head h2{font-family:'Barlow Condensed',sans-serif;font-size:clamp(32px,4vw,52px);text-transform:uppercase;letter-spacing:1.5px;margin:0;line-height:1;font-weight:900;color:var(--ink)}
-
-  .bloco1-subtitle{font-family:'Barlow Condensed',sans-serif;font-size:clamp(22px,2.4vw,32px);text-transform:uppercase;letter-spacing:1px;margin:0 0 28px;color:var(--ink);font-weight:700;line-height:1.15}
-  .bloco1-grid{
-    display:grid;
-    grid-template-columns:30fr 70fr;
-    grid-template-rows:auto 1fr;
-    gap:24px 32px;
-    align-items:stretch;
-    margin:0 0 48px;
+  /* ───── SECTION TITLE (comum) ───── */
+  .section-title{
+    font-family:var(--cond);font-size:16px;letter-spacing:4px;
+    text-transform:uppercase;color:var(--subtle);margin-bottom:16px;
+    display:flex;align-items:center;gap:14px;padding:0 4px;
   }
-  .bloco1-grid .carousel{grid-column:1;grid-row:1 / span 2}
-  .bloco1-grid .col-text{grid-column:2;grid-row:1;display:flex;align-items:center}
-  .bloco1-grid .bloco1-chart-full{grid-column:2;grid-row:2;min-height:0;display:flex}
-  .bloco1-grid .bloco1-chart-full .chart-wrap{flex:1;display:flex;flex-direction:column;height:100%}
-  .bloco1-grid .bloco1-chart-full .chart-svg{flex:1;min-height:0;width:100%;height:100%}
+  .section-title::before{content:'';width:28px;height:1px;background:var(--ink);opacity:.4}
+
+  /* ───── BLOCO CRESCIMENTO ───── */
+  .crescimento{max-width:1400px;margin:0 auto;padding:48px 32px 32px}
+  .crescimento h2{
+    font-family:var(--cond);font-weight:900;font-size:clamp(30px,4vw,48px);
+    text-transform:uppercase;letter-spacing:-1px;line-height:1;color:var(--ink);
+    margin:8px 0 32px;max-width:900px;
+  }
+  .crescimento h2 small{display:block;font-size:.55em;font-weight:700;color:var(--subtle);margin-top:6px;letter-spacing:0}
+
+  .cresc-grid{
+    display:grid;grid-template-columns:30fr 70fr;gap:28px;align-items:stretch;
+  }
+  .cresc-grid .ig-carousel{grid-column:1}
+  .cresc-grid .cresc-right{grid-column:2;display:flex;flex-direction:column;gap:20px}
   @media(max-width:900px){
-    .bloco1-grid{grid-template-columns:1fr;gap:24px}
-    .bloco1-grid .carousel,
-    .bloco1-grid .col-text,
-    .bloco1-grid .bloco1-chart-full{grid-column:1;grid-row:auto}
-    .bloco1-grid .bloco1-chart-full .chart-svg{height:auto;flex:0 0 auto}
+    .cresc-grid{grid-template-columns:1fr;gap:24px}
+    .cresc-grid .ig-carousel,.cresc-grid .cresc-right{grid-column:1}
   }
 
-  /* Carrossel */
-  .carousel{position:relative;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--line);box-shadow:0 6px 24px rgba(26,44,62,0.08)}
-  .carousel-stage{position:relative;aspect-ratio:9/16;background:#000;overflow:hidden}
-  .carousel-slide{position:absolute;inset:0;opacity:0;transition:opacity .35s;display:flex;align-items:center;justify-content:center}
-  .carousel-slide.active{opacity:1}
-  .carousel-slide blockquote.instagram-media{margin:0!important;width:100%!important;max-width:none!important;min-width:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#000!important;height:100%}
-  .carousel-slide iframe{width:100%!important;max-width:none!important;height:140%!important;margin-top:-10%!important;border:0!important}
-  .carousel-arrows{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none;padding:0 8px;z-index:5}
-  .carousel-arrows button{pointer-events:auto;width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
-  .carousel-arrows button:hover{background:rgba(0,0,0,.9)}
-  .carousel-meta{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);background:var(--bg2)}
-  .carousel-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
-  .carousel-label b{color:var(--accent);font-weight:700}
-  .carousel-dots{display:flex;gap:6px}
-  .carousel-dots span{width:8px;height:8px;border-radius:50%;background:var(--line);cursor:pointer;transition:background .15s}
-  .carousel-dots span.active{background:var(--accent)}
+  /* Carrossel IG */
+  .ig-carousel{position:relative;background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(26,44,62,.1)}
+  .ig-stage{position:relative;aspect-ratio:9/16;background:#000;overflow:hidden}
+  .ig-slide{position:absolute;inset:0;opacity:0;transition:opacity .35s;display:flex;align-items:center;justify-content:center}
+  .ig-slide.active{opacity:1}
+  .ig-slide blockquote.instagram-media{margin:0!important;width:100%!important;max-width:none!important;min-width:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#000!important;height:100%}
+  .ig-slide iframe{width:100%!important;max-width:none!important;height:140%!important;margin-top:-10%!important;border:0!important}
+  .ig-arrows{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none;padding:0 8px;z-index:5}
+  .ig-arrows button{pointer-events:auto;width:38px;height:38px;border-radius:50%;border:0;background:rgba(20,24,32,.45);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+  .ig-arrows button:hover{background:rgba(20,24,32,.85)}
+  .ig-caption{padding:12px 14px;background:var(--bg-alt);border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-family:var(--cond);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--subtle)}
+  .ig-caption b{color:var(--ink);font-weight:800}
 
-  /* Coluna direita */
-  .col-text h3{font-family:'Barlow Condensed',sans-serif;font-size:28px;text-transform:uppercase;letter-spacing:1px;margin:0 0 14px;color:var(--ink)}
-  .col-text p.intro{font-size:clamp(17px,1.3vw,20px);line-height:1.65;color:var(--ink2);margin:0}
-  .col-text p.intro em{color:var(--ink);font-style:italic;font-weight:600;border-bottom:1px solid var(--accent);padding-bottom:1px}
+  .cresc-intro{
+    font-size:18px;line-height:1.55;color:var(--ink);
+  }
+  .cresc-intro em{color:var(--ink);font-style:normal;font-weight:700;border-bottom:1px solid var(--accent);padding-bottom:1px}
 
-  /* Gráfico */
-  .chart-wrap{background:#ffffff;border:1px solid var(--line);border-radius:10px;padding:24px;box-shadow:0 6px 24px rgba(26,44,62,0.06)}
-  .chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;flex-wrap:wrap;gap:12px}
-  .chart-title{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700}
-  .chart-stats{display:flex;gap:24px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-  .chart-stats b{color:var(--accent);font-weight:700;font-size:14px}
-  /* IG em destaque (no topo do card) */
-  .chart-ig-hero{display:flex;align-items:center;gap:14px;padding:10px 14px;border:1px solid rgba(200,155,60,.45);background:rgba(200,155,60,.08);border-radius:8px}
-  .chart-ig-hero .logo{width:30px;height:30px;flex:0 0 30px;color:#C89B3C;display:flex;align-items:center;justify-content:center}
-  .chart-ig-hero .logo svg{width:100%;height:100%;display:block}
-  .chart-ig-hero .info{display:flex;flex-direction:column;line-height:1.1}
-  .chart-ig-hero .net-name{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700}
-  .chart-ig-hero .nums{font-size:20px;font-weight:800;color:var(--ink);letter-spacing:.3px;margin-top:3px}
-  .chart-ig-hero .pct{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:900;color:#C89B3C;line-height:1;letter-spacing:.5px}
+  /* Chart card */
+  .chart-card{
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:22px;box-shadow:0 10px 30px rgba(26,44,62,.08);
+  }
+  .chart-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .chart-title{font-family:var(--cond);font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--subtle);font-weight:700}
+  .ig-hero{display:flex;align-items:center;gap:12px;padding:9px 14px;border:1px solid rgba(240,193,59,.5);background:rgba(240,193,59,.1);border-radius:8px}
+  .ig-hero .logo{width:26px;height:26px;color:#C89B3C;display:flex;align-items:center;justify-content:center}
+  .ig-hero .logo svg{width:100%;height:100%}
+  .ig-hero .net-name{font-family:var(--cond);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--subtle);font-weight:700;display:block}
+  .ig-hero .nums{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:.2px;margin-top:2px;display:block}
+  .ig-hero .pct{margin-left:6px;font-family:var(--cond);font-size:28px;font-weight:900;color:#C89B3C;line-height:1;letter-spacing:.5px}
 
-  /* Outras redes (abaixo do gráfico) */
-  .chart-others{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
-  .chart-others .net{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg2);border:1px solid var(--line)}
-  .chart-others .net .logo{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center}
-  .chart-others .net .logo svg{width:100%;height:100%;display:block}
+  .chart-svg{width:100%;height:auto;display:block}
+  .chart-svg .axis-label{fill:var(--subtle);font-size:10px;font-family:var(--font)}
+  .chart-svg .grid{stroke:rgba(26,44,62,.1);stroke-width:1;stroke-dasharray:2 4}
+  .chart-svg .line-ig{fill:none;stroke:var(--accent);stroke-width:2.5}
+  .chart-svg .area{fill:url(#grad);opacity:.3}
+  .chart-svg .dot{fill:var(--accent);stroke:#fff;stroke-width:2}
+  .chart-svg .dot-active{fill:var(--ink);stroke:var(--accent);stroke-width:3}
+  .chart-svg .dot-start{fill:#E53935;stroke:#fff;stroke-width:2}
+  .chart-svg .start-halo{fill:none;stroke:#E53935;stroke-opacity:.3;stroke-width:1}
+  .chart-svg .start-line{stroke:#E53935;stroke-width:1;stroke-dasharray:3 3;opacity:.6}
+  .chart-svg .start-pin-label{fill:var(--ink);font-family:var(--cond);font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+  .chart-svg .start-pin-sub{fill:var(--subtle);font-family:var(--font);font-size:10px;font-weight:500}
+  .chart-svg .milestone-label{fill:#8a6a1e;font-size:10px;font-weight:700}
+
+  .chart-others{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  .chart-others .net{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg-alt);border:1px solid var(--line)}
+  .chart-others .net .logo{width:20px;height:20px;flex:0 0 20px;display:flex;align-items:center;justify-content:center}
+  .chart-others .net .logo svg{width:100%;height:100%}
   .chart-others .net .info{display:flex;flex-direction:column;line-height:1.1;min-width:0}
-  .chart-others .net .net-name{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700}
-  .chart-others .net .nums{font-size:14px;font-weight:700;color:var(--ink);margin-top:2px;letter-spacing:.2px}
-  .chart-others .net .pct{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;line-height:1}
+  .chart-others .net .net-name{font-family:var(--cond);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--subtle);font-weight:700}
+  .chart-others .net .nums{font-size:13px;font-weight:700;color:var(--ink);margin-top:2px;letter-spacing:.2px}
+  .chart-others .net .pct{margin-left:auto;font-family:var(--cond);font-size:20px;font-weight:900;line-height:1}
   .chart-others .net-tt .logo{color:#ff2c55} .chart-others .net-tt .pct{color:#ff2c55}
   .chart-others .net-x  .logo{color:#1A2C3E} .chart-others .net-x  .pct{color:#1A2C3E}
   .chart-others .net-fb .logo{color:#1877f2} .chart-others .net-fb .pct{color:#1877f2}
   @media(max-width:720px){
-    .chart-ig-hero{flex-wrap:wrap} .chart-ig-hero .pct{margin-left:0;font-size:28px}
+    .crescimento{padding:36px 22px 24px}
+    .ig-hero{flex-wrap:wrap} .ig-hero .pct{margin-left:0;font-size:24px}
     .chart-others{grid-template-columns:1fr}
   }
-  .chart-svg{width:100%;height:auto;display:block}
-  .chart-svg .axis{stroke:rgba(26,44,62,.25);stroke-width:1}
-  .chart-svg .axis-label{fill:var(--muted);font-size:10px;font-family:'Barlow',sans-serif;letter-spacing:.5px}
-  .chart-svg .grid{stroke:rgba(26,44,62,.1);stroke-width:1;stroke-dasharray:2 4}
-  .chart-svg .line{fill:none;stroke:var(--accent);stroke-width:2.5}
-  .chart-svg .area{fill:url(#grad);opacity:.35}
-  .chart-svg .dot{fill:var(--accent);stroke:#fff;stroke-width:2}
-  .chart-svg .dot-active{fill:#1A2C3E;stroke:var(--accent);stroke-width:3;r:7}
-  .chart-svg .dot-start{fill:var(--psol);stroke:#fff;stroke-width:2}
-  .chart-svg .start-halo{fill:none;stroke:var(--psol);stroke-opacity:.3;stroke-width:1}
-  .chart-svg .start-pin-label{fill:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
-  .chart-svg .start-pin-sub{fill:var(--muted);font-family:'Barlow',sans-serif;font-size:10px;font-weight:500;letter-spacing:.3px}
-  .chart-svg .start-line{stroke:var(--psol);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
-  .chart-svg .milestone-label{fill:var(--accent);font-size:10px;font-weight:700;letter-spacing:.5px}
 
-  /* ═══════════════ BLOCO 2 — CARROSSEL HORIZONTAL (padrão portfolio) ═══════════════ */
-  .videos{padding:60px 6vw;position:relative}
-  .videos .eyebrow-section{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:700;text-align:center;margin-bottom:22px}
-  .carousel-wrap{position:relative}
-  .track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 0 14px;scrollbar-width:none;-ms-overflow-style:none}
-  .track::-webkit-scrollbar{display:none}
-  .card{flex:0 0 calc(25% - 14px);scroll-snap-align:start;position:relative;aspect-ratio:9/16;border-radius:10px;overflow:hidden;cursor:pointer;background:#000;display:block;text-decoration:none;color:inherit;transition:transform .2s;box-shadow:0 6px 20px rgba(26,44,62,0.1)}
-  .card:hover{transform:translateY(-2px)}
-  .card .thumb{width:100%;height:100%;object-fit:cover;display:block}
-  .card .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.72) 100%)}
-  .card .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(255,255,255,.95);line-height:1;backdrop-filter:blur(4px);padding-left:3px}
-  .card .meta{position:absolute;bottom:12px;left:14px;right:14px}
-  .card .meta span{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#F4C85A;font-weight:700}
-  .card .meta h4{margin:2px 0 0;font-size:15px;font-weight:600;color:#fff;letter-spacing:.2px}
-  .carousel-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:rgba(26,44,62,.08);border:1px solid rgba(26,44,62,.18);color:var(--ink);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;transition:background .15s;backdrop-filter:blur(4px)}
-  .carousel-nav:hover{background:rgba(26,44,62,.18)}
-  .carousel-nav.prev{left:-8px}
-  .carousel-nav.next{right:-8px}
-  @media(max-width:1100px){.card{flex:0 0 calc(33.33% - 12px)}}
-  @media(max-width:800px){.card{flex:0 0 calc(50% - 9px)}}
-  @media(max-width:520px){.card{flex:0 0 70%}.carousel-nav{display:none}}
+  /* ───── SHOWCASE (reels) ───── */
+  .showcase{padding:18px 0 39px;max-width:1400px;margin:0 auto}
+  .showcase .showcase-title{
+    font-family:var(--cond);font-size:16px;letter-spacing:4px;
+    text-transform:uppercase;color:var(--subtle);margin-bottom:16px;
+    display:flex;align-items:center;gap:14px;padding:0 36px;
+  }
+  .showcase .showcase-title::before{content:'';width:28px;height:1px;background:var(--ink);opacity:.4}
 
-  /* ═══════════════ END ═══════════════ */
-  footer.note{padding:40px 6vw 80px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
-  footer.note b{color:var(--accent)}
-  footer.note a:hover{opacity:.7}
+  .carousel{position:relative;padding:0 32px}
+  .track{
+    display:flex;gap:14px;overflow-x:auto;
+    scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:14px;
+  }
+  .track::-webkit-scrollbar{height:8px}
+  .track::-webkit-scrollbar-track{background:rgba(26,44,62,.08);border-radius:4px}
+  .track::-webkit-scrollbar-thumb{background:var(--ink);border-radius:4px;opacity:.85}
+
+  .card{
+    height:440px;background:var(--bg-alt);border:1px solid var(--line);
+    border-radius:8px;position:relative;scroll-snap-align:start;
+    flex-shrink:0;overflow:hidden;cursor:pointer;
+    transition:transform .2s ease, box-shadow .2s ease;
+    text-decoration:none;color:inherit;display:block;
+    aspect-ratio:9/16;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(26,44,62,.16)}
+
+  .card .thumb{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    background:linear-gradient(135deg,#2a3f56 0%,#0d1824 100%);
+  }
+  .card .scrim{
+    position:absolute;inset:0;
+    background:linear-gradient(to top,rgba(26,44,62,.85) 0%, rgba(26,44,62,.35) 45%, rgba(26,44,62,0) 70%);
+    pointer-events:none;
+  }
+  .card .play{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:52px;height:52px;border-radius:50%;
+    background:rgba(244,241,235,.14);backdrop-filter:blur(6px);
+    color:var(--bg);display:flex;align-items:center;justify-content:center;
+    font-size:16px;border:1.5px solid rgba(244,241,235,.3);
+    transition:transform .2s,background .2s;
+  }
+  .card:hover .play{background:rgba(244,241,235,.22);transform:translate(-50%,-50%) scale(1.08)}
+
+  .card .meta{position:absolute;bottom:14px;left:16px;right:16px;color:var(--bg)}
+  .card .meta span{
+    font-family:var(--cond);font-size:10px;letter-spacing:3px;
+    color:rgba(244,241,235,.7);text-transform:uppercase;display:block;margin-bottom:2px;
+  }
+  .card .meta h4{
+    font-family:var(--cond);font-size:18px;font-weight:800;
+    text-transform:uppercase;letter-spacing:-.3px;
+  }
+
+  .arrow{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:38px;height:38px;border-radius:50%;
+    background:rgba(20,24,32,.35);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;z-index:3;border:none;padding:0;opacity:1;
+    transition:background .2s,transform .2s,color .2s;
+  }
+  .arrow svg{width:22px;height:22px;display:block}
+  .arrow:hover{background:rgba(20,24,32,.7)}
+  .arrow.l{left:8px}
+  .arrow.r{right:8px}
+  .arrow.l:hover{transform:translateY(-50%) translateX(-3px)}
+  .arrow.r:hover{transform:translateY(-50%) translateX(3px)}
+
+  .card.v-reel{width:calc((1400px - 4*14px - 64px) / 5)}
+  @media(max-width:1400px){.card.v-reel{width:calc((100vw - 4*14px - 64px) / 5)}}
+  @media(max-width:1100px){.card.v-reel{width:calc((100vw - 3*14px - 64px) / 4)}}
+  @media(max-width:720px){
+    .showcase{padding:16px 0 28px}
+    .showcase .showcase-title{padding:0 22px}
+    .carousel{padding:0}
+    .track{gap:12px;padding:0 22px 14px;scroll-padding-left:22px}
+    .card.v-reel{width:min(58vw,280px);height:auto}
+    .card .meta h4{font-size:17px}
+    .card .play{width:58px;height:58px}
+    .arrow{display:none}
+  }
+
+  /* ───── FOOTER ───── */
+  footer{
+    background:var(--ink);color:var(--bg);
+    padding:36px 40px 36px;text-align:center;margin-top:0;
+  }
+  footer .to-top{
+    display:inline-block;margin-bottom:28px;
+    font-family:var(--cond);font-size:12px;letter-spacing:4px;
+    text-transform:uppercase;color:var(--bg);font-weight:500;
+    text-decoration:none;border-bottom:1px solid var(--bg);padding-bottom:3px;
+  }
+  footer .social{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:22px}
+  footer .social a{color:var(--bg);opacity:.75;transition:opacity .2s, transform .2s;display:flex;align-items:center;justify-content:center;width:32px;height:32px}
+  footer .social a:hover{opacity:1;transform:translateY(-1px)}
+  footer .social svg{width:23px;height:23px;display:block}
+  footer .social .be-box{
+    width:25px;height:25px;background:var(--bg);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;border-radius:6px;
+    font-family:var(--font);font-weight:900;font-size:11px;letter-spacing:-.5px;line-height:1;
+  }
+  footer p{font-size:13px;color:rgba(244,241,235,.6);font-family:var(--cond);letter-spacing:2px;text-transform:uppercase}
+  @media(max-width:720px){
+    footer{padding:28px 22px 28px}
+    footer .social{gap:9px}
+    footer .social a{width:27px;height:27px}
+    footer .social svg{width:20px;height:20px}
+    footer .social .be-box{width:21px;height:21px;font-size:10px}
+  }
 </style>
 </head>
 <body>
 
-<!-- ════════════ NAV (portfólio) ════════════ -->
-<nav class="site-nav">
-  <a class="nav-logo" href="index.html">eduardo bispo</a>
-  <ul class="nav-links">
-    <li><a href="index.html#trabalhos">portfólio</a></li>
-    <li><a href="index.html#sobre">sobre</a></li>
-    <li><a href="index.html#contato">contato</a></li>
-  </ul>
-  <div class="nav-social">
-    <a href="https://wa.me/5511999999999" target="_blank" rel="noopener" class="whatsapp" aria-label="WhatsApp">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9z"/></svg>
-    </a>
-    <a href="https://www.linkedin.com/in/eduardorbispo" target="_blank" rel="noopener" class="linkedin" aria-label="LinkedIn">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-    </a>
-    <a href="https://instagram.com/du.bispo" target="_blank" rel="noopener" class="instagram" aria-label="Instagram">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/></svg>
-    </a>
-  </div>
+<nav>
+  <a class="logo" href="index.html">eduardo bispo</a>
+  <a class="back" href="index.html#works">voltar</a>
 </nav>
 
-
-<!-- ════════════ HERO ════════════ -->
+<!-- ───── HERO ───── -->
 <section class="hero">
   <div class="hero-bg"></div>
-  <nav class="hero-social">
-    <a href="https://www.instagram.com/guilhermecortez_/?hl=pt-br" target="_blank" rel="noopener" data-logo="ig">Instagram</a>
-    <a href="https://www.tiktok.com/@guilhermecortez_" target="_blank" rel="noopener" data-logo="tt">TikTok</a>
-    <a href="https://www.facebook.com/cortezpsol/?locale=pt_BR" target="_blank" rel="noopener" data-logo="fb">Facebook</a>
-    <a href="https://x.com/cortezpsol" target="_blank" rel="noopener" data-logo="x">X (Twitter)</a>
-  </nav>
-  <div class="eyebrow">Instagram · TikTok · Facebook · X (Twitter)</div>
-  <h1>Guilherme Cortez</h1>
-  <p class="lede">Da militância estudantil em Franca a uma das vozes mais influentes da esquerda brasileira, o deputado estadual Guilherme Cortez (PSOL-SP) se tornou uma referência na disputa política nas redes sociais no país. Como integrante da equipe de comunicação do deputado na Alesp, comandei todos os processos <em>audiovisuais</em> e auxiliei nas <em>estratégias digitais</em> que ajudaram o mandato do Guilherme a <em>quadruplicar</em> seu <em>alcance</em> e <em>engajamento</em>, consolidando Cortez como uma <em>figura política de influência nacional</em> e desafiando a <em>hegemonia da extrema-direita</em> nas redes sociais.</p>
-  <div class="meta">
-    <span><b>Atuação:</b> Produção, Edição, Motion, Captação</span>
-    <span><b>Formato:</b> Reels, Shorts, Campanhas</span>
-    <span><b>Alcance:</b> 20 mil interações/post no Instagram</span>
-    <span><b>Engajamento:</b> 4,16% no Instagram</span>
+  <div class="hero-content">
+    <div class="hero-social" style="position:absolute;top:-29px;left:1px;display:flex;gap:7px;align-items:center;color:var(--ink);z-index:3;">
+      <a href="https://www.instagram.com/guilhermecortez_/?hl=pt-br" target="_blank" rel="noopener noreferrer" aria-label="Instagram Guilherme Cortez" class="hero-logo">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@guilhermecortez_" target="_blank" rel="noopener noreferrer" aria-label="TikTok Guilherme Cortez" class="hero-logo">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.1z"/></svg>
+      </a>
+      <a href="https://www.facebook.com/cortezpsol/?locale=pt_BR" target="_blank" rel="noopener noreferrer" aria-label="Facebook Guilherme Cortez" class="hero-logo">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      </a>
+      <a href="https://x.com/cortezpsol" target="_blank" rel="noopener noreferrer" aria-label="X Guilherme Cortez" class="hero-logo">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+    </div>
+    <div class="title-wrapper" style="display:inline-block;margin-top:9px;">
+      <h1 style="margin:0;">Guilherme <span class="accent">Cortez</span></h1>
+    </div>
+    <div class="meta">
+      <div class="item">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+        </span>
+        <strong>Atuação</strong>Produção · Edição · Motion · Captação
+      </div>
+      <div class="item">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+        </span>
+        <strong>Formatos</strong>Reels · Shorts · Campanhas
+      </div>
+      <div class="item">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4"/><path d="M19.1 4.9a10 10 0 0 1 0 14.2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2"/></svg>
+        </span>
+        <strong>Canais</strong>Instagram · TikTok · Facebook · X
+      </div>
+    </div>
+    <p class="lede">
+      Da militância estudantil em Franca a uma das vozes mais influentes da esquerda brasileira, o deputado estadual <em>Guilherme Cortez</em> (PSOL-SP) se tornou referência na disputa política nas redes. Como integrante da equipe de comunicação do mandato na <em>Alesp</em>, comandei todos os processos <em>audiovisuais</em> e ajudei nas <em>estratégias digitais</em> que <em>quadruplicaram</em> o alcance e o engajamento do deputado.
+    </p>
+    <div class="signature-hero">
+      <a href="https://www.linkedin.com/in/eduardo-bispo-85b59717/" target="_blank" rel="noopener">Mais no LinkedIn →</a>
+    </div>
   </div>
 </section>
 
-<!-- ════════════ BLOCO 1 — MARCOS DE SEGUIDORES ════════════ -->
-<section class="bloco">
-  <div class="bloco-head">
-    <h2 class="bloco1-subtitle">A esquerda na briga:<br>os números do crescimento</h2>
-  </div>
+<!-- ───── BLOCO CRESCIMENTO ───── -->
+<section class="crescimento">
+  <div class="section-title">Crescimento nas redes</div>
+  <h2>A esquerda na briga:<br>os números do crescimento<small>mar/2024 a abr/2026 · período do mandato na Alesp</small></h2>
 
-  <div class="bloco1-grid">
+  <div class="cresc-grid">
 
-    <!-- ── Carrossel à esquerda ── -->
-    <div class="carousel" id="carousel">
-      <div class="carousel-stage" id="carousel-stage">
-        <!-- Slides serão injetados via JS -->
+    <!-- Carrossel IG (marcos) -->
+    <div class="ig-carousel" id="ig-carousel">
+      <div class="ig-stage" id="ig-stage"></div>
+      <div class="ig-arrows">
+        <button id="ig-prev" aria-label="Anterior">‹</button>
+        <button id="ig-next" aria-label="Próximo">›</button>
       </div>
-      <div class="carousel-arrows">
-        <button id="prev" aria-label="Anterior">‹</button>
-        <button id="next" aria-label="Próximo">›</button>
+      <div class="ig-caption">
+        <span>Marco <b id="marco-label">100k</b></span>
+        <span><b id="post-idx">1</b> / <span id="post-tot">5</span></span>
       </div>
     </div>
 
-    <!-- ── Texto à direita (linha 1) ── -->
-    <div class="col-text">
-      <p class="intro">Por trás do <em>avanço da linguagem digital</em>, existe uma produção audiovisual cada vez mais dinâmica, intensa e de alto volume diário. Com uma proposta de comunicação construída para conquistar corações e mentes também na internet e nas redes sociais, desenvolvemos estratégias digitais que deram muito resultado: no Instagram, foram <em>+408% de seguidores</em>, com <em>média de 20 mil interações</em> por publicação e <em>4,16% de engajamento</em> — cerca de <em>três vezes acima do benchmark</em> da política brasileira. No TikTok, o aumento no mesmo período foi de <em>+695%</em>. Somando as quatro redes sociais, Guilherme Cortez ultrapassou a marca de <em>1 milhão de seguidores</em> em março de 2026.</p>
-    </div>
+    <div class="cresc-right">
+      <p class="cresc-intro">
+        Por trás do <em>avanço da linguagem digital</em>, uma produção audiovisual dinâmica, intensa e de alto volume diário. No <em>Instagram</em>, <em>+408% de seguidores</em>, com <em>média de 20 mil interações</em> por publicação e <em>4,16% de engajamento</em> — cerca de <em>três vezes acima do benchmark</em> da política brasileira. No <em>TikTok</em>, <em>+695%</em>. Somando as quatro redes, Guilherme Cortez ultrapassou <em>1 milhão de seguidores</em> em março de 2026.
+      </p>
 
-    <!-- ── Gráfico à direita (linha 2) ── -->
-    <div class="bloco1-chart-full">
-      <div class="chart-wrap">
+      <div class="chart-card">
         <div class="chart-head">
-          <div class="chart-title">Crescimento das redes sociais · Guilherme Cortez</div>
-          <div class="chart-ig-hero">
+          <div class="chart-title">Crescimento das redes sociais</div>
+          <div class="ig-hero">
             <span class="logo" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.849.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.849.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12s.014 3.668.072 4.948c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
             </span>
-            <div class="info">
+            <div>
               <span class="net-name">Instagram</span>
               <span class="nums">103k → 523k</span>
             </div>
             <span class="pct">+408%</span>
           </div>
         </div>
-        <svg class="chart-svg" viewBox="0 0 800 320" preserveAspectRatio="none" aria-label="Gráfico de crescimento de seguidores">
+        <svg class="chart-svg" viewBox="0 0 800 280" preserveAspectRatio="none" aria-label="Crescimento de seguidores">
           <defs>
             <linearGradient id="grad" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stop-color="#f0c13b" stop-opacity=".7"/>
               <stop offset="100%" stop-color="#f0c13b" stop-opacity="0"/>
             </linearGradient>
           </defs>
-          <!-- Grid horizontal -->
           <g id="grid"></g>
-          <!-- Eixo X (meses) -->
           <g id="xaxis"></g>
-          <!-- Área + linha -->
           <path id="area" class="area" d=""/>
-          <path id="line" class="line" d=""/>
-          <!-- Marcadores -->
+          <g id="lines"></g>
           <g id="dots"></g>
-          <!-- Marco "Cheguei aqui" -->
           <g id="start-marker"></g>
         </svg>
 
         <div class="chart-others">
           <div class="net net-tt">
-            <span class="logo" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.1z"/></svg>
-            </span>
+            <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.1z"/></svg></span>
             <div class="info">
               <span class="net-name">TikTok</span>
               <span class="nums">40k → 318k</span>
@@ -302,9 +467,7 @@
             <span class="pct">+695%</span>
           </div>
           <div class="net net-x">
-            <span class="logo" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            </span>
+            <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
             <div class="info">
               <span class="net-name">X (Twitter)</span>
               <span class="nums">90k → 170k</span>
@@ -312,9 +475,7 @@
             <span class="pct">+89%</span>
           </div>
           <div class="net net-fb">
-            <span class="logo" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-            </span>
+            <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>
             <div class="info">
               <span class="net-name">Facebook</span>
               <span class="nums">60k → 73k</span>
@@ -324,154 +485,148 @@
         </div>
       </div>
     </div>
-
   </div>
 </section>
 
-<!-- ════════════ BLOCO 2 — REELS DE MAIOR ALCANCE ════════════ -->
-<section class="videos">
-  <div class="eyebrow-section">— Reels em destaque —</div>
-  <div class="carousel-wrap">
-    <button class="carousel-nav prev" id="reels-prev" aria-label="Anterior">‹</button>
-    <div class="track" id="reels-track"></div>
-    <button class="carousel-nav next" id="reels-next" aria-label="Próximo">›</button>
+<!-- ───── CAROUSEL REELS ───── -->
+<section class="showcase">
+  <div class="showcase-title">Reels em destaque</div>
+  <div class="carousel">
+    <button class="arrow l" onclick="scrollTrack(-1)" aria-label="Anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+    </button>
+    <button class="arrow r" onclick="scrollTrack(1)" aria-label="Próximo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+    <div class="track" id="track"></div>
   </div>
 </section>
 
-<footer class="note" style="text-align:center">
-  <a href="index.html" style="color:var(--accent);text-decoration:none;letter-spacing:2px;text-transform:uppercase;font-size:12px;font-weight:600">← Voltar ao portfólio</a>
+<footer>
+  <a class="to-top" href="#">↑ Voltar ao topo</a>
+  <div class="social">
+    <a href="https://wa.me/5511999999999" target="_blank" rel="noopener" aria-label="WhatsApp" style="margin-right:-3px;">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413"/></svg>
+    </a>
+    <a href="https://instagram.com/du.bispo" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/eduardorbispo/" target="_blank" rel="noopener" aria-label="LinkedIn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    </a>
+    <a href="https://www.behance.net/eduardobispo" target="_blank" rel="noopener" aria-label="Behance">
+      <span class="be-box">Bē</span>
+    </a>
+  </div>
+  <p>Eduardo Bispo · Videomaker · São Paulo</p>
 </footer>
 
 <script>
-/* ═════════════ DADOS ═════════════ */
+/* ═══ MARCOS IG ═══ */
 const MARCOS = [
-  {label:'100k', idx:0, mes:'fev/2024', value:100000, igUrl:'https://www.instagram.com/guilhermecortez_/p/C3nRSN-OA3K/'},
-  {label:'200k', idx:1, mes:'mai/2025', value:200000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DKzjSlCOvz8/'},
-  {label:'300k', idx:2, mes:'ago/2025', value:300000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DPMMM9qjc8S/'},
-  {label:'400k', idx:3, mes:'out/2025', value:400000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DRxoJfrju-M/'},
-  {label:'500k', idx:4, mes:'jan/2026', value:500000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DWHFpI7jYD4/'},
+  {label:'100k', mes:'fev/2024', value:100000, igUrl:'https://www.instagram.com/guilhermecortez_/p/C3nRSN-OA3K/'},
+  {label:'200k', mes:'mai/2025', value:200000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DKzjSlCOvz8/'},
+  {label:'300k', mes:'ago/2025', value:300000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DPMMM9qjc8S/'},
+  {label:'400k', mes:'out/2025', value:400000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DRxoJfrju-M/'},
+  {label:'500k', mes:'jan/2026', value:500000, igUrl:'https://www.instagram.com/guilhermecortez_/p/DWHFpI7jYD4/'},
 ];
 
-// Curvas de seguidores (jan/24 → abr/26) — IG é dado real, demais são estimativa
+/* ═══ SÉRIES (jan/24 → abr/26) ═══ */
 const MESES = ['jan/24','fev/24','mar/24','abr/24','mai/24','jun/24','jul/24','ago/24','set/24','out/24','nov/24','dez/24','jan/25','fev/25','mar/25','abr/25','mai/25','jun/25','jul/25','ago/25','set/25','out/25','nov/25','dez/25','jan/26','fev/26','mar/26','abr/26'];
-
 const SERIES_IG = [95000,99000,103000,115000,135000,155000,178000,198000,215000,235000,255000,275000,295000,315000,340000,365000,390000,415000,435000,455000,472000,488000,500000,510000,516000,520000,522000,523000];
 const SERIES_TT = [35000,38000,40000,45000,55000,70000,90000,115000,140000,165000,185000,200000,215000,230000,245000,258000,270000,280000,288000,295000,302000,308000,313000,315000,316000,317000,318000,318000];
 const SERIES_X  = [85000,87000,90000,92000,95000,99000,104000,110000,115000,122000,128000,134000,138000,142000,146000,150000,154000,157000,160000,162000,164000,166000,167000,168000,169000,169500,170000,170000];
 const SERIES_FB = [58000,59000,60000,60500,61000,62000,63000,64000,64500,65000,65500,66000,66500,67000,67500,68000,68500,69000,70000,70500,71000,71500,72000,72500,72700,72800,72900,73000];
 
-const SERIES = SERIES_IG.map((v,i)=>({m:MESES[i], v}));
-
 const NETWORKS = [
-  {key:'ig', name:'Instagram', data:SERIES_IG, color:'#f0c13b', start:103000, end:523000},
-  {key:'tt', name:'TikTok',    data:SERIES_TT, color:'#ff2c55', start:40000,  end:318000},
-  {key:'x',  name:'X',         data:SERIES_X,  color:'#ffffff', start:90000,  end:170000},
-  {key:'fb', name:'Facebook',  data:SERIES_FB, color:'#1877f2', start:60000,  end:73000},
+  {key:'ig', data:SERIES_IG, color:'#F0C13B', w:2.5, opacity:1},
+  {key:'tt', data:SERIES_TT, color:'#ff2c55', w:1.6, opacity:.78},
+  {key:'x',  data:SERIES_X,  color:'#1A2C3E', w:1.6, opacity:.6},
+  {key:'fb', data:SERIES_FB, color:'#1877f2', w:1.6, opacity:.78},
 ];
 
-/* ═════════════ CARROSSEL ═════════════ */
-const stage = document.getElementById('carousel-stage');
-const dotsEl = document.getElementById('carousel-dots');
+/* ═══ CARROSSEL IG ═══ */
+const stage = document.getElementById('ig-stage');
+const marcoLabel = document.getElementById('marco-label');
+const postIdx = document.getElementById('post-idx');
+document.getElementById('post-tot').textContent = MARCOS.length;
 let cur = 0;
 
-function buildSlides(){
-  stage.innerHTML = MARCOS.map((m,i)=>`
-    <div class="carousel-slide ${i===0?'active':''}" data-idx="${i}">
-      <blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${m.igUrl}" data-instgrm-version="14"></blockquote>
-    </div>`).join('');
-  if(dotsEl) dotsEl.innerHTML = MARCOS.map((m,i)=>`<span data-idx="${i}" class="${i===0?'active':''}"></span>`).join('');
-  if(dotsEl) dotsEl.querySelectorAll('span').forEach(d=>d.onclick=()=>go(+d.dataset.idx));
-}
+stage.innerHTML = MARCOS.map((m,i)=>`
+  <div class="ig-slide ${i===0?'active':''}" data-idx="${i}">
+    <blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${m.igUrl}" data-instgrm-version="14"></blockquote>
+  </div>`).join('');
+
 function go(i){
   cur = (i + MARCOS.length) % MARCOS.length;
-  stage.querySelectorAll('.carousel-slide').forEach((el,k)=>el.classList.toggle('active', k===cur));
-  if(dotsEl) dotsEl.querySelectorAll('span').forEach((el,k)=>el.classList.toggle('active', k===cur));
-  const lbl = document.getElementById('marco-label'); if(lbl) lbl.textContent = MARCOS[cur].label;
-  const pidx = document.getElementById('post-idx'); if(pidx) pidx.textContent = cur+1;
+  stage.querySelectorAll('.ig-slide').forEach((el,k)=>el.classList.toggle('active', k===cur));
+  marcoLabel.textContent = MARCOS[cur].label;
+  postIdx.textContent = cur+1;
   highlightDot(MARCOS[cur].value);
 }
-document.getElementById('prev').onclick = ()=>go(cur-1);
-document.getElementById('next').onclick = ()=>go(cur+1);
+document.getElementById('ig-prev').onclick = ()=>go(cur-1);
+document.getElementById('ig-next').onclick = ()=>go(cur+1);
 
-buildSlides();
+const igScript = document.createElement('script');
+igScript.src = 'https://www.instagram.com/embed.js'; igScript.async = true;
+document.body.appendChild(igScript);
 
-// Carrega embed.js do IG
-const sc = document.createElement('script');
-sc.src = 'https://www.instagram.com/embed.js'; sc.async = true;
-document.body.appendChild(sc);
+/* ═══ GRÁFICO ═══ */
+const W=800, H=280, PAD={l:48,r:16,t:16,b:32};
+const innerW=W-PAD.l-PAD.r, innerH=H-PAD.t-PAD.b;
+const minV=0, maxV=600000;
+const xOf=i=>PAD.l+(i/(MESES.length-1))*innerW;
+const yOf=v=>PAD.t+(1-(v-minV)/(maxV-minV))*innerH;
 
-/* ═════════════ GRÁFICO ═════════════ */
-const W = 800, H = 320;
-const PAD = {l:50, r:20, t:18, b:36};
-const innerW = W - PAD.l - PAD.r;
-const innerH = H - PAD.t - PAD.b;
-const minV = 0, maxV = 600000;
-
-const xOf = i => PAD.l + (i / (SERIES.length-1)) * innerW;
-const yOf = v => PAD.t + (1 - (v - minV)/(maxV - minV)) * innerH;
-
-// Paths para cada rede — inseridos ANTES do grupo de bolinhas,
-// para que os dots fiquem por cima das linhas (senão a linha amarela corta a bolinha)
-const svgEl = document.querySelector('.chart-svg');
-const dotsRef = document.getElementById('dots');
+const linesG = document.getElementById('lines');
 NETWORKS.forEach(net=>{
   const pts = net.data.map((v,i)=>`${xOf(i)},${yOf(v)}`).join(' L');
-  const linePath = `M${pts}`;
-  // Área (só para IG, pra não poluir)
+  linesG.insertAdjacentHTML('beforeend',
+    `<path d="M${pts}" fill="none" stroke="${net.color}" stroke-width="${net.w}" stroke-opacity="${net.opacity}" data-net="${net.key}"/>`);
   if(net.key==='ig'){
-    const areaPath = `${linePath} L${xOf(net.data.length-1)},${yOf(0)} L${xOf(0)},${yOf(0)} Z`;
+    const areaPath = `M${pts} L${xOf(net.data.length-1)},${yOf(0)} L${xOf(0)},${yOf(0)} Z`;
     document.getElementById('area').setAttribute('d', areaPath);
   }
-  const isIG = net.key==='ig';
-  dotsRef.insertAdjacentHTML('beforebegin',
-    `<path d="${linePath}" fill="none" stroke="${net.color}" stroke-width="${isIG?2.5:1.8}" stroke-opacity="${isIG?1:.85}" data-net="${net.key}"/>`);
 });
-// Remove path antigo único
-document.getElementById('line').setAttribute('d','');
 
-// Grid + Y labels
-const yTicks = [0,100000,200000,300000,400000,500000,600000];
-const gridG = document.getElementById('grid');
+const yTicks=[0,100000,200000,300000,400000,500000,600000];
+const gridG=document.getElementById('grid');
 yTicks.forEach(v=>{
-  const y = yOf(v);
+  const y=yOf(v);
   gridG.insertAdjacentHTML('beforeend',
     `<line class="grid" x1="${PAD.l}" x2="${W-PAD.r}" y1="${y}" y2="${y}"/>
      <text class="axis-label" x="${PAD.l-8}" y="${y+3}" text-anchor="end">${v/1000}k</text>`);
 });
 
-// X axis (every 3 months)
-const xG = document.getElementById('xaxis');
-SERIES.forEach((p,i)=>{
-  if(i%3===0 || i===SERIES.length-1){
-    const x = xOf(i);
+const xG=document.getElementById('xaxis');
+MESES.forEach((m,i)=>{
+  if(i%3===0 || i===MESES.length-1){
+    const x=xOf(i);
     xG.insertAdjacentHTML('beforeend',
-      `<text class="axis-label" x="${x}" y="${H-PAD.b+18}" text-anchor="middle">${p.m}</text>`);
+      `<text class="axis-label" x="${x}" y="${H-PAD.b+18}" text-anchor="middle">${m}</text>`);
   }
 });
 
-// Marcador "Cheguei aqui" (mar/24 = índice 2)
-// Estilo discreto: bolinha pequena na linha + leader fino subindo até label no topo do gráfico
-const startIdx = 2;
-const sx = xOf(startIdx), sy = yOf(SERIES[startIdx].v);
-const labelY = PAD.t + 4;             // bem no topo, longe das linhas
+/* Marcador "Cheguei aqui" (mar/24 = idx 2) */
+const startIdx=2, sx=xOf(startIdx), sy=yOf(SERIES_IG[startIdx]);
+const labelY=PAD.t+4;
 document.getElementById('start-marker').innerHTML = `
-  <line class="start-line" x1="${sx}" y1="${sy - 6}" x2="${sx}" y2="${labelY + 10}"/>
+  <line class="start-line" x1="${sx}" y1="${sy-6}" x2="${sx}" y2="${labelY+10}"/>
   <circle class="start-halo" cx="${sx}" cy="${sy}" r="8"/>
   <circle class="dot-start" cx="${sx}" cy="${sy}" r="4"/>
-  <text class="start-pin-label" x="${sx + 6}" y="${labelY + 4}">Cheguei aqui</text>
-  <text class="start-pin-sub"   x="${sx + 6}" y="${labelY + 17}">mar/2024 · 103 mil</text>
+  <text class="start-pin-label" x="${sx+6}" y="${labelY+4}">Cheguei aqui</text>
+  <text class="start-pin-sub"   x="${sx+6}" y="${labelY+17}">mar/2024 · 103 mil</text>
 `;
 
-// Pontos dos marcos (cada 100k)
-const dotsG = document.getElementById('dots');
+/* Marcos (100k, 200k, 300k, 400k, 500k) */
+const dotsG=document.getElementById('dots');
 function findIdxByValue(v){
-  // Encontra primeiro mês onde a curva cruzou o valor
-  for(let i=0;i<SERIES.length;i++){ if(SERIES[i].v >= v) return i; }
-  return SERIES.length-1;
+  for(let i=0;i<SERIES_IG.length;i++){ if(SERIES_IG[i]>=v) return i; }
+  return SERIES_IG.length-1;
 }
 MARCOS.forEach((m,k)=>{
-  const i = findIdxByValue(m.value);
-  const x = xOf(i), y = yOf(SERIES[i].v); // senta em cima da linha real, não no valor redondo do marco
+  const i=findIdxByValue(m.value);
+  const x=xOf(i), y=yOf(SERIES_IG[i]);
   dotsG.insertAdjacentHTML('beforeend',
     `<g data-marco="${k}">
        <circle class="dot" cx="${x}" cy="${y}" r="5"/>
@@ -481,19 +636,17 @@ MARCOS.forEach((m,k)=>{
 
 function highlightDot(value){
   dotsG.querySelectorAll('g').forEach(g=>{
-    const c = g.querySelector('circle');
-    c.setAttribute('class','dot');
-    c.setAttribute('r','5');
+    const c=g.querySelector('circle');
+    c.setAttribute('class','dot'); c.setAttribute('r','5');
   });
-  const k = MARCOS.findIndex(m=>m.value===value);
+  const k=MARCOS.findIndex(m=>m.value===value);
   if(k<0) return;
-  const c = dotsG.querySelectorAll('g')[k].querySelector('circle');
-  c.setAttribute('class','dot dot-active');
-  c.setAttribute('r','7');
+  const c=dotsG.querySelectorAll('g')[k].querySelector('circle');
+  c.setAttribute('class','dot dot-active'); c.setAttribute('r','7');
 }
 highlightDot(MARCOS[0].value);
 
-/* ═════════════ BLOCO 2 — CARROSSEL DE REELS ═════════════ */
+/* ═══ CAROUSEL REELS ═══ */
 const REELS = [
   {shortcode:'DTxrOROE-VG', tag:'REEL',          likes:'167 mil', comments:'3.710'},
   {shortcode:'DQuI9WijfBz', tag:'REEL',          likes:'132 mil', comments:'3.400'},
@@ -507,9 +660,9 @@ const REELS = [
   {shortcode:'DNinXlNts05', tag:'ANTI-TARCÍSIO', likes:'7,7 mil', comments:'596'},
 ];
 
-const track = document.getElementById('reels-track');
+const track = document.getElementById('track');
 track.innerHTML = REELS.map(r=>`
-  <a class="card" href="https://www.instagram.com/p/${r.shortcode}/" target="_blank" rel="noopener">
+  <a class="card v-reel" href="https://www.instagram.com/p/${r.shortcode}/" target="_blank" rel="noopener">
     <img class="thumb" loading="lazy" alt="Reel ${r.shortcode}"
          src="https://www.instagram.com/p/${r.shortcode}/media/?size=l"
          onerror="this.style.display='none'"/>
@@ -522,18 +675,10 @@ track.innerHTML = REELS.map(r=>`
   </a>
 `).join('');
 
-/* Setas de navegação */
-const btnPrev = document.getElementById('reels-prev');
-const btnNext = document.getElementById('reels-next');
-function scrollByCard(dir){
-  const firstCard = track.querySelector('.card');
-  if(!firstCard) return;
-  const step = firstCard.getBoundingClientRect().width + 18;
-  track.scrollBy({left: dir * step, behavior:'smooth'});
+function scrollTrack(dir){
+  const amount = track.clientWidth * 0.7 * dir;
+  track.scrollBy({left: amount, behavior:'smooth'});
 }
-btnPrev.onclick = ()=> scrollByCard(-1);
-btnNext.onclick = ()=> scrollByCard(1);
 </script>
-
 </body>
 </html>
