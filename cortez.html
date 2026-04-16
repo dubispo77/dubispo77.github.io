@@ -269,25 +269,101 @@
     pointer-events:none;
   }
 
-  /* iframe IG dentro do card — usa scale + overflow:hidden pra cortar header/footer/tarjas */
-  .card .iframe-wrap{
-    position:absolute;inset:0;overflow:hidden;z-index:2;background:#000;
+  /* Data card visual (sem iframe - design limpo) */
+  .card::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(ellipse at 30% 20%, rgba(240,193,59,.15) 0%, transparent 55%);
+    pointer-events:none;z-index:1;
   }
-  .card iframe{
-    position:absolute;inset:0;
-    width:100%;height:100%;
-    border:0;display:block;background:#000;
-    transform:scale(1.6) translateY(-3%);
-    transform-origin:center center;
+  .card .tag{
+    position:absolute;top:14px;left:16px;z-index:2;
+    font-family:var(--cond);font-size:10px;letter-spacing:2.5px;
+    text-transform:uppercase;font-weight:800;
+    color:var(--accent);
+    background:rgba(13,24,36,.55);padding:4px 8px;border-radius:4px;
+    border:1px solid rgba(240,193,59,.35);
+    backdrop-filter:blur(4px);
   }
-  /* placeholder enquanto iframe carrega */
-  .card .placeholder{
-    position:absolute;inset:0;z-index:1;
+  .card .big{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);
+    text-align:center;z-index:2;color:var(--bg);width:100%;padding:0 14px;
+  }
+  .card .big .num{
+    font-family:var(--cond);font-weight:900;
+    font-size:clamp(36px,5vw,58px);
+    line-height:.95;letter-spacing:-1px;color:var(--accent);
+    text-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+  .card .big .what{
+    font-family:var(--cond);font-size:11px;letter-spacing:3px;
+    text-transform:uppercase;color:rgba(244,241,235,.7);font-weight:700;margin-top:5px;
+  }
+  .card .card-meta{position:absolute;bottom:14px;left:16px;right:16px;z-index:2;color:var(--bg)}
+  .card .card-meta span{
+    font-family:var(--cond);font-size:10px;letter-spacing:2.5px;
+    color:rgba(244,241,235,.6);text-transform:uppercase;display:block;margin-bottom:2px;font-weight:700;
+  }
+  .card .card-meta h4{
+    font-family:var(--cond);font-size:15px;font-weight:800;
+    text-transform:uppercase;letter-spacing:.3px;
+  }
+
+  /* ───── LIGHTBOX REELS ───── */
+  .reel-lb{
+    position:fixed;inset:0;background:rgba(26,44,62,.96);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    color:rgba(244,241,235,.5);font-family:var(--cond);
-    font-size:11px;letter-spacing:3px;text-transform:uppercase;gap:8px;
+    z-index:200;padding:60px 20px 40px;gap:16px;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .25s ease, visibility .25s ease;
   }
-  .card .placeholder svg{width:36px;height:36px;opacity:.4}
+  .reel-lb.open{opacity:1;visibility:visible;pointer-events:auto}
+  .reel-lb .close{
+    position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;
+    background:var(--bg);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;cursor:pointer;z-index:10;font-family:var(--cond);border:none;
+    transition:background .15s,transform .15s;
+  }
+  .reel-lb .close:hover{background:#fff;transform:rotate(90deg)}
+  .reel-lb .lb-prev,.reel-lb .lb-next{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:44px;height:44px;border:none;background:transparent;
+    color:rgba(244,241,235,.9);cursor:pointer;z-index:20;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:color .2s,transform .2s;user-select:none;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
+  }
+  .reel-lb .lb-prev svg,.reel-lb .lb-next svg{width:30px;height:30px;display:block}
+  .reel-lb .lb-prev:hover,.reel-lb .lb-next:hover{color:var(--accent)}
+  .reel-lb .lb-prev{left:22px}
+  .reel-lb .lb-next{right:22px}
+  .reel-lb .embed-frame{
+    width:min(420px,90vw);height:min(80vh,750px);
+    border-radius:8px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.45);background:#fff;
+  }
+  .reel-lb .embed-frame iframe{width:100%;height:100%;border:0;display:block}
+  .reel-lb .lb-info{
+    width:min(420px,90vw);display:flex;align-items:center;justify-content:space-between;
+    color:var(--bg);font-family:var(--cond);gap:16px;
+  }
+  .reel-lb .lb-info .left span{
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(244,241,235,.6);display:block;margin-bottom:3px;
+  }
+  .reel-lb .lb-info .left h4{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+  .reel-lb .lb-info .counter{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(244,241,235,.6)}
+  .reel-lb .lb-info .counter strong{color:var(--bg);font-weight:800}
+  @media(max-width:720px){
+    .reel-lb{padding:50px 14px 30px}
+    .reel-lb .embed-frame{width:96vw;height:70vh}
+    .reel-lb .lb-info{width:96vw}
+    .reel-lb .lb-prev,.reel-lb .lb-next{width:40px;height:40px}
+    .reel-lb .lb-prev svg,.reel-lb .lb-next svg{width:24px;height:24px}
+    .reel-lb .lb-prev{left:8px}
+    .reel-lb .lb-next{right:8px}
+    .reel-lb .close{top:14px;right:14px;width:34px;height:34px;font-size:17px}
+  }
 
   .arrow{
     position:absolute;top:50%;transform:translateY(-50%);
@@ -505,6 +581,27 @@
   </div>
 </section>
 
+<!-- ───── LIGHTBOX REELS ───── -->
+<div class="reel-lb" id="reel-lb">
+  <button class="close" onclick="closeReelLB()" aria-label="Fechar">×</button>
+  <button class="lb-prev" onclick="navReelLB(-1)" aria-label="Anterior">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+  </button>
+  <button class="lb-next" onclick="navReelLB(1)" aria-label="Próximo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+  </button>
+  <div class="embed-frame" id="embed-frame">
+    <iframe id="reel-iframe" src="about:blank" allowtransparency="true" allowfullscreen="true" frameborder="0" scrolling="yes"></iframe>
+  </div>
+  <div class="lb-info">
+    <div class="left">
+      <span id="reel-lb-tag"></span>
+      <h4 id="reel-lb-title"></h4>
+    </div>
+    <div class="counter"><strong id="reel-lb-idx">1</strong> / <span id="reel-lb-tot">10</span></div>
+  </div>
+</div>
+
 <footer>
   <a class="to-top" href="#">↑ Voltar ao topo</a>
   <div class="social">
@@ -667,13 +764,15 @@ const REELS = [
 
 const track = document.getElementById('track');
 track.innerHTML = REELS.map((r,i)=>`
-  <div class="card v-reel">
-    <div class="placeholder">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/></svg>
-      <span>carregando...</span>
+  <div class="card v-reel" onclick="openReelLB(${i})">
+    <div class="tag">${r.tag}</div>
+    <div class="big">
+      <div class="num">${r.likes}</div>
+      <div class="what">curtidas</div>
     </div>
-    <div class="iframe-wrap">
-      <iframe src="https://www.instagram.com/p/${r.shortcode}/embed/" loading="lazy" allowtransparency="true" allowfullscreen="true" frameborder="0" scrolling="no"></iframe>
+    <div class="card-meta">
+      <span>${r.comments} comentários</span>
+      <h4>Ver post embedado →</h4>
     </div>
   </div>
 `).join('');
@@ -682,6 +781,54 @@ function scrollTrack(dir){
   const amount = track.clientWidth * 0.7 * dir;
   track.scrollBy({left: amount, behavior:'smooth'});
 }
+
+/* ═══ LIGHTBOX REELS ═══ */
+const reelLB = document.getElementById('reel-lb');
+const reelIframe = document.getElementById('reel-iframe');
+const reelTag = document.getElementById('reel-lb-tag');
+const reelTitle = document.getElementById('reel-lb-title');
+const reelIdx = document.getElementById('reel-lb-idx');
+document.getElementById('reel-lb-tot').textContent = REELS.length;
+let curReel = 0;
+
+function showReel(i){
+  curReel = i;
+  const r = REELS[i];
+  reelIframe.src = 'https://www.instagram.com/p/' + r.shortcode + '/embed/captioned/';
+  reelTag.textContent = r.tag + ' · ' + r.likes + ' curtidas';
+  reelTitle.textContent = r.comments + ' comentários';
+  reelIdx.textContent = i + 1;
+}
+
+function openReelLB(i){
+  showReel(i);
+  reelLB.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeReelLB(){
+  reelLB.classList.remove('open');
+  reelIframe.src = 'about:blank';
+  document.body.style.overflow = '';
+}
+
+function navReelLB(delta){
+  let n = curReel + delta;
+  if(n < 0) n = REELS.length - 1;
+  if(n >= REELS.length) n = 0;
+  showReel(n);
+}
+
+document.addEventListener('keydown', (e)=>{
+  if(!reelLB.classList.contains('open')) return;
+  if(e.key === 'Escape')    closeReelLB();
+  if(e.key === 'ArrowLeft') navReelLB(-1);
+  if(e.key === 'ArrowRight')navReelLB(1);
+});
+
+reelLB.addEventListener('click', (e)=>{
+  if(e.target === reelLB) closeReelLB();
+});
 </script>
 </body>
 </html>
