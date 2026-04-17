@@ -75,20 +75,29 @@
     .nav-social {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
     }
 
     .nav-social a {
-      color: var(--white);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: .02em;
       opacity: 0.5;
       transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
     }
 
     .nav-social a:hover { opacity: 1; }
+
+    .nav-social svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: var(--white);
+      stroke-width: 1.8;
+    }
+
+    .nav-social a.whatsapp:hover svg { stroke: #25D366; }
+    .nav-social a.linkedin:hover svg { stroke: #0A66C2; }
+    .nav-social a.instagram:hover svg { stroke: #E91E8C; }
 
     /* mobile hamburger */
     .nav-toggle {
@@ -1067,9 +1076,28 @@
       <li><a href="#contato" onclick="closeMenu()">Contato</a></li>
     </ul>
     <div class="nav-social">
-      <a href="https://instagram.com/du.bispo" target="_blank" rel="noopener">Instagram</a>
-      <a href="https://wa.me/5511998420733" target="_blank" rel="noopener">WhatsApp</a>
-      <a href="https://www.linkedin.com/in/eduardorbispo" target="_blank" rel="noopener">LinkedIn</a>
+      <!-- WhatsApp -->
+      <a href="https://wa.me/5511998420733" target="_blank" rel="noopener" class="whatsapp" aria-label="WhatsApp">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9z"/>
+        </svg>
+      </a>
+      <!-- LinkedIn -->
+      <a href="https://www.linkedin.com/in/eduardorbispo" target="_blank" rel="noopener" class="linkedin" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+          <rect x="2" y="9" width="4" height="12"/>
+          <circle cx="4" cy="4" r="2"/>
+        </svg>
+      </a>
+      <!-- Instagram -->
+      <a href="https://instagram.com/du.bispo" target="_blank" rel="noopener" class="instagram" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
     </div>
   </nav>
 
