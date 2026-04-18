@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preload" as="image" href="https://pub-e17c00b528da445eae71498d73949e56.r2.dev/airbrush/capa.jpg" fetchpriority="high">
+<link rel="preconnect" href="https://pub-e17c00b528da445eae71498d73949e56.r2.dev" crossorigin>
+<title>AirBrush — Eduardo Bispo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Barlow+Condensed:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --bg:#F4F1EB;
+    --bg-alt:#EAE6DE;
+    --ink:#1A2C3E;
+    --accent:#F0C13B;
+    --subtle:rgba(26,44,62,.58);
+    --soft:rgba(26,44,62,.35);
+    --line:rgba(26,44,62,.28);
+    --font:'Barlow',sans-serif;
+    --cond:'Barlow Condensed',sans-serif;
+    --capa:url('https://pub-e17c00b528da445eae71498d73949e56.r2.dev/airbrush/capa.jpg');
+  }
+
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--font);color:var(--ink);line-height:1.55;
+    background:linear-gradient(160deg,#EDE8DF 0%,#F4F1EB 50%,#F8F6F2 100%) fixed;
+    min-height:100vh;overflow-x:hidden;
+  }
+
+  /* ───── NAV ───── */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 40px;
+    background:rgba(244,241,235,.96);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(0,0,0,.08);
+  }
+  nav a.logo{
+    font-family:var(--cond);font-weight:700;font-size:22px;
+    letter-spacing:.02em;text-transform:lowercase;
+    text-decoration:none;color:var(--ink);
+  }
+  nav .back{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--cond);font-size:13px;letter-spacing:3px;
+    text-transform:uppercase;text-decoration:none;
+    color:var(--ink);opacity:.7;transition:opacity .2s;
+  }
+  nav .back:hover{opacity:1}
+
+  /* ───── HERO ───── */
+  .hero{
+    position:relative;overflow:hidden;
+    max-width:1400px;margin:68px auto 0;
+    min-height:640px;
+    display:flex;flex-direction:column;justify-content:center;
+    padding:60px 32px;
+  }
+  .hero .hero-bg{position:absolute;inset:-8px;z-index:0;overflow:hidden;background:none}
+  .hero .hero-bg::before{
+    content:'';position:absolute;top:50%;left:50%;
+    width:100%;height:100%;
+    background-image:var(--capa);background-repeat:no-repeat;background-size:cover;background-position:center;
+    transform:translate(-50%,-50%) translate(0px, 0px) scale(1.531);
+    transform-origin:center center;
+    filter:blur(2.85px);
+  }
+  .hero .hero-bg::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(26,44,62,.94) 0%,rgba(26,44,62,.55) 55%,rgba(26,44,62,.15) 100%);
+  }
+  .hero .hero-content{position:relative;z-index:2;max-width:700px}
+
+  .hero h1{
+    font-family:var(--cond);font-weight:800;
+    font-size:clamp(44px,7vw,96px);
+    line-height:.95;letter-spacing:-1.8px;
+    text-transform:uppercase;color:var(--bg);
+    margin-bottom:1px;
+    text-shadow:0 2px 16px rgba(0,0,0,.15);
+  }
+  .hero .lede{
+    font-size:22px;line-height:1.35;color:rgba(244,241,235,.75);max-width:none;font-weight:400;
+    text-wrap:pretty;letter-spacing:0;
+  }
+  .hero .lede em{color:#fff;font-style:normal;font-weight:470;letter-spacing:.5px}
+  .hero .signature-hero{
+    margin-top:22px;font-family:var(--cond);font-size:13.5px;
+    letter-spacing:3px;text-transform:uppercase;color:rgba(244,241,235,.62);
+  }
+  .hero .signature-hero a{
+    color:rgba(244,241,235,.9);text-decoration:none;
+    border-bottom:1px solid rgba(244,241,235,.4);padding-bottom:1px;
+  }
+  .hero .signature-hero a:hover{border-bottom-color:rgba(244,241,235,.9)}
+  .hero .meta{
+    margin:26px 0 22px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;
+    font-family:var(--cond);font-size:14.5px;letter-spacing:1px;
+    text-transform:uppercase;color:rgba(244,241,235,.78);font-weight:400;
+  }
+  .hero .meta .item{display:inline-flex;align-items:center;gap:6px}
+  .hero .meta .ico{
+    width:24px;height:24px;border-radius:50%;
+    border:1.5px solid var(--bg);color:var(--bg);
+    display:inline-flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .hero .meta .ico svg{width:13px;height:13px;display:block}
+  .hero .meta strong{color:var(--bg);font-weight:800;margin-right:3px;letter-spacing:1.8px}
+
+  @media(max-width:720px){
+    .hero{margin-top:60px;min-height:420px;padding:30px 22px}
+    .hero .hero-bg::before{transform:translate(-50%,-50%) translate(0px, 0px) scale(1.000)}
+    .hero .hero-bg::after{background:linear-gradient(160deg,rgba(26,44,62,.95) 0%,rgba(26,44,62,.7) 55%,rgba(26,44,62,.3) 100%)}
+    .hero h1{letter-spacing:-1.5px;font-size:clamp(40px,11vw,64px);margin-bottom:18px}
+    .hero .lede{font-size:18px}
+    .hero .meta{font-size:13px;gap:8px;margin:16px 0 20px}
+    .hero .meta .ico{width:22px;height:22px}
+    .hero .meta .ico svg{width:11px;height:11px}
+    .hero .title-wrapper{margin-top:30px !important}
+  }
+
+  /* ───── CAROUSEL ───── */
+  .showcase{padding:18px 0 39px;max-width:1400px;margin:0 auto}
+  .showcase .showcase-title{
+    font-family:var(--cond);font-size:16px;letter-spacing:4px;
+    text-transform:uppercase;color:var(--subtle);margin-bottom:16px;
+    display:flex;align-items:center;gap:14px;padding:0 4px;
+  }
+  .showcase .showcase-title::before{content:'';width:28px;height:1px;background:var(--ink);opacity:.4}
+
+  .track{
+    display:flex;gap:14px;overflow-x:auto;
+    scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:14px;
+  }
+  .track::-webkit-scrollbar{height:8px}
+  .track::-webkit-scrollbar-track{background:rgba(26,44,62,.08);border-radius:4px}
+  .track::-webkit-scrollbar-thumb{background:var(--ink);border-radius:4px;opacity:.85}
+
+  .card{
+    height:440px;background:var(--bg-alt);border:1px solid var(--line);
+    border-radius:8px;position:relative;scroll-snap-align:start;
+    flex-shrink:0;overflow:hidden;cursor:pointer;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(26,44,62,.16)}
+  .card.h{aspect-ratio:16/9}
+  .card.v{aspect-ratio:9/16}
+
+  .card .thumb{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    background:linear-gradient(135deg,#2a3f56 0%,#0d1824 100%);
+  }
+  .card .scrim{
+    position:absolute;inset:0;
+    background:linear-gradient(to top,rgba(26,44,62,.85) 0%, rgba(26,44,62,.35) 45%, rgba(26,44,62,0) 70%);
+    pointer-events:none;
+  }
+  .card .play{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:52px;height:52px;border-radius:50%;
+    background:rgba(244,241,235,.14);backdrop-filter:blur(6px);
+    color:var(--bg);display:flex;align-items:center;justify-content:center;
+    font-size:16px;border:1.5px solid rgba(244,241,235,.3);
+    transition:transform .2s,background .2s;
+  }
+  .card:hover .play{background:rgba(244,241,235,.22);transform:translate(-50%,-50%) scale(1.08)}
+
+  .card .meta{position:absolute;bottom:14px;left:16px;right:16px;color:var(--bg)}
+  .card .meta span{
+    font-family:var(--cond);font-size:10px;letter-spacing:3px;
+    color:rgba(244,241,235,.7);text-transform:uppercase;display:block;margin-bottom:2px;
+  }
+  .card .meta h4{
+    font-family:var(--cond);font-size:18px;font-weight:800;
+    text-transform:uppercase;letter-spacing:-.3px;
+  }
+
+  .arrow{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:38px;height:38px;border-radius:50%;
+    background:rgba(20,24,32,.35);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;z-index:3;border:none;padding:0;opacity:1;
+    transition:background .2s,transform .2s,color .2s;
+  }
+  .arrow svg{width:22px;height:22px;display:block}
+  .arrow:hover{background:rgba(20,24,32,.7)}
+  .arrow.l{left:-10px}
+  .arrow.r{right:-10px}
+  .arrow.l:hover{transform:translateY(-50%) translateX(-3px)}
+  .arrow.r:hover{transform:translateY(-50%) translateX(3px)}
+
+  @media(max-width:720px){
+    .showcase{padding:16px 0 28px}
+    .showcase .showcase-title{padding:0 22px}
+    .carousel{padding:0}
+    .track{gap:12px;padding:0 22px 14px;scroll-padding-left:22px}
+    .card{height:auto}
+    .card.h{width:min(80vw,480px);aspect-ratio:16/9}
+    .card.v{width:min(58vw,280px);aspect-ratio:9/16}
+    .card .meta h4{font-size:17px}
+    .card .play{width:58px;height:58px}
+    .arrow{display:none}
+  }
+
+  /* ───── FOOTER ───── */
+  footer{
+    background:var(--ink);color:var(--bg);
+    padding:36px 40px 36px;text-align:center;margin-top:0;
+  }
+  footer .to-top{
+    display:inline-block;margin-bottom:28px;
+    font-family:var(--cond);font-size:12px;letter-spacing:4px;
+    text-transform:uppercase;color:var(--bg);font-weight:500;
+    text-decoration:none;border-bottom:1px solid var(--bg);padding-bottom:3px;
+  }
+  footer .social{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:22px}
+  footer .social a{color:var(--bg);opacity:.75;transition:opacity .2s, transform .2s;display:flex;align-items:center;justify-content:center;width:32px;height:32px}
+  footer .social a:hover{opacity:1;transform:translateY(-1px)}
+  footer .social svg{width:23px;height:23px;display:block}
+  footer .social .be-box{
+    width:25px;height:25px;background:var(--bg);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;border-radius:6px;
+    font-family:var(--font);font-weight:900;font-size:11px;letter-spacing:-.5px;line-height:1;
+  }
+  footer p{font-size:13px;color:rgba(244,241,235,.6);font-family:var(--cond);letter-spacing:2px;text-transform:uppercase}
+  @media(max-width:720px){
+    footer{padding:28px 22px 28px}
+    footer .social{gap:9px}
+    footer .social a{width:27px;height:27px}
+    footer .social svg{width:20px;height:20px}
+    footer .social .be-box{width:21px;height:21px;font-size:10px}
+  }
+
+  /* ───── LIGHTBOX ───── */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(26,44,62,.96);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    z-index:200;padding:60px 30px 80px;gap:18px;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .25s ease, visibility .25s ease;
+  }
+  .lightbox.open{opacity:1;visibility:visible;pointer-events:auto}
+  .lightbox .close{
+    position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;
+    background:var(--bg);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;cursor:pointer;z-index:10;font-family:var(--cond);border:none;
+    transition:background .15s,transform .15s;
+  }
+  .lightbox .close:hover{background:#fff;transform:rotate(90deg)}
+  .lightbox .nav-prev,.lightbox .nav-next{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:44px;height:44px;border:none;background:transparent;
+    color:rgba(244,241,235,.9);cursor:pointer;z-index:20;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:color .2s,transform .2s;user-select:none;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
+  }
+  .lightbox .nav-prev svg,.lightbox .nav-next svg{width:30px;height:30px;display:block}
+  .lightbox .nav-prev:hover,.lightbox .nav-next:hover{color:#f0c13b}
+  .lightbox .nav-prev:hover{transform:translateY(-50%) translateX(-3px)}
+  .lightbox .nav-next:hover{transform:translateY(-50%) translateX(3px)}
+  .lightbox .nav-prev{left:22px}
+  .lightbox .nav-next{right:22px}
+  .lightbox .player{
+    position:relative;background:#000;border-radius:4px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.45);
+    max-width:92vw;max-height:72vh;
+  }
+  .lightbox .player.horizontal{width:min(1100px,92vw);aspect-ratio:16/9}
+  .lightbox .player.vertical{height:72vh;aspect-ratio:9/16}
+  .lightbox video{width:100%;height:100%;display:block;background:#000}
+  .lightbox .info-bar{
+    width:min(1100px,92vw);
+    display:flex;align-items:center;justify-content:space-between;
+    color:var(--bg);font-family:var(--cond);gap:20px;
+  }
+  .lightbox .info-bar .left span{
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(244,241,235,.6);display:block;margin-bottom:4px;
+  }
+  .lightbox .info-bar .left h4{
+    font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;
+  }
+  .lightbox .info-bar .counter{
+    font-size:12px;letter-spacing:2px;text-transform:uppercase;
+    color:rgba(244,241,235,.6);
+  }
+  .lightbox .info-bar .counter strong{color:var(--bg);font-weight:800}
+  @media(max-width:720px){
+    .lightbox{padding:50px 14px 70px}
+    .lightbox .player.horizontal{width:96vw}
+    .lightbox .player.vertical{height:62vh}
+    .lightbox .info-bar{width:96vw}
+    .lightbox .info-bar .left h4{font-size:16px}
+    .lightbox .nav-prev,.lightbox .nav-next{width:40px;height:40px}
+    .lightbox .nav-prev svg,.lightbox .nav-next svg{width:24px;height:24px}
+    .lightbox .nav-prev{left:10px}
+    .lightbox .nav-next{right:10px}
+    .lightbox .close{top:14px;right:14px;width:34px;height:34px;font-size:17px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">eduardo bispo</a>
+  <a class="back" href="index.html#works">voltar</a>
+</nav>
+
+<!-- ───── HERO ───── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="title-wrapper" style="display:inline-block;margin-top:9px;">
+      <h1 style="margin:0;">AirBrush</h1>
+    </div>
+    <div class="meta">
+      <div class="item">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+        </span>
+        <strong>Atuação</strong>Edição · Motion · Sound design
+      </div>
+      <div class="item">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+        </span>
+        <strong>Formatos</strong>Reels / Shorts · Teasers · Branded content
+      </div>
+      <div class="item">
+        <span class="ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4"/><path d="M19.1 4.9a10 10 0 0 1 0 14.2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2"/></svg>
+        </span>
+        <strong>Canais</strong><a href="https://www.instagram.com/airbrushofficial/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-decoration-thickness:0.3px;text-underline-offset:3px;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.7'">Instagram</a>
+      </div>
+    </div>
+    <p class="lede">
+      No app chinês AirBrush, atuei em <em>edição</em> e <em>motion design</em> para uma <em>operação trilíngue</em> (PT/EN/ES) voltada à expansão da marca Meitu na América Latina. A produção envolvia <em>tutoriais</em>, <em>vídeos promocionais</em> e <em>reels</em> para o Instagram, com fluxo de trabalho que exigia rapidez e consistência visual e cultural entre diversos países. O resultado foi uma linha de conteúdo que sustentou o crescimento orgânico da marca em novos mercados, mantendo a identidade estética da AirBrush em cada peça publicada.
+    </p>
+    <div class="signature-hero">
+      <a href="https://www.linkedin.com/in/eduardorbispo/" target="_blank" rel="noopener">Mais no LinkedIn →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ───── CAROUSEL ───── -->
+<section class="showcase">
+  <div class="showcase-title">Projetos em destaque</div>
+  <div class="carousel">
+    <button class="arrow l" onclick="scrollTrack(-1)" aria-label="Anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+    </button>
+    <button class="arrow r" onclick="scrollTrack(1)" aria-label="Próximo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+    <div class="track" id="track">
+      <div class="card v" onclick="openLB(0)">
+        <img class="thumb" src="https://pub-e17c00b528da445eae71498d73949e56.r2.dev/airbrush/airbrush-1_thumb.jpg" alt="AirBrush 1" loading="lazy"/>
+        <div class="scrim"></div>
+        <div class="play">▶</div>
+        <div class="meta"><span>PROJETO · 2022</span><h4>AirBrush 1</h4></div>
+      </div>
+      <div class="card v" onclick="openLB(1)">
+        <img class="thumb" src="https://pub-e17c00b528da445eae71498d73949e56.r2.dev/airbrush/airbrush-2_thumb.jpg" alt="AirBrush 2" loading="lazy"/>
+        <div class="scrim"></div>
+        <div class="play">▶</div>
+        <div class="meta"><span>PROJETO · 2022</span><h4>AirBrush 2</h4></div>
+      </div>
+      <div class="card v" onclick="openLB(2)">
+        <img class="thumb" src="https://pub-e17c00b528da445eae71498d73949e56.r2.dev/airbrush/airbrush-3_thumb.jpg" alt="AirBrush 3" loading="lazy"/>
+        <div class="scrim"></div>
+        <div class="play">▶</div>
+        <div class="meta"><span>PROJETO · 2022</span><h4>AirBrush 3</h4></div>
+      </div>
+      <div class="card v" onclick="openLB(3)">
+        <img class="thumb" src="https://pub-e17c00b528da445eae71498d73949e56.r2.dev/airbrush/airbrush-4_thumb.jpg" alt="AirBrush 4" loading="lazy"/>
+        <div class="scrim"></div>
+        <div class="play">▶</div>
+        <div class="meta"><span>PROJETO · 2022</span><h4>AirBrush 4</h4></div>
+      </div>
+      <div class="card v" onclick="openLB(4)">
+        <img class="thumb" src="https://pub-e17c00b528da445eae71498d73949e56.r2.dev/airbrush/airbrush-5_thumb.jpg" alt="AirBrush 5" loading="lazy"/>
+        <div class="scrim"></div>
+        <div class="play">▶</div>
+        <div class="meta"><span>PROJETO · 2022</span><h4>AirBrush 5</h4></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a class="to-top" href="#">↑ Voltar ao topo</a>
+  <div class="social">
+    <a href="https://wa.me/5511998420733" target="_blank" rel="noopener" aria-label="WhatsApp" style="margin-right:-3px;">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413"/></svg>
+    </a>
+    <a href="https://instagram.com/du.bispo" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/eduardorbispo/" target="_blank" rel="noopener" aria-label="LinkedIn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    </a>
+    <a href="https://www.behance.net/eduardobispo" target="_blank" rel="noopener" aria-label="Behance">
+      <span class="be-box">Bē</span>
+    </a>
+  </div>
+  <p>Eduardo Bispo · Videomaker · São Paulo</p>
+</footer>
+
+<!-- ───── LIGHTBOX ───── -->
+<div class="lightbox" id="lb">
+  <button class="close" onclick="closeLB()" aria-label="Fechar">×</button>
+  <button class="nav-prev" onclick="navLB(-1)" aria-label="Vídeo anterior">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+  </button>
+  <button class="nav-next" onclick="navLB(1)" aria-label="Próximo vídeo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+  </button>
+
+  <div class="player" id="player">
+    <video id="video" controls playsinline preload="metadata"></video>
+  </div>
+
+  <div class="info-bar">
+    <div class="left">
+      <span id="lb-span"></span>
+      <h4 id="lb-title"></h4>
+    </div>
+    <div class="counter"><strong id="lb-idx">1</strong> / <span id="lb-tot">5</span></div>
+  </div>
+</div>
+
+<script>
+  const R2_BASE = 'https://pub-e17c00b528da445eae71498d73949e56.r2.dev/airbrush/';
+  const VIDEOS = [
+    { src: R2_BASE + 'airbrush-1.mp4', poster: R2_BASE + 'airbrush-1_thumb.jpg', title: 'AirBrush 1', eyebrow: 'PROJETO · 2022', orient: 'vertical' },
+    { src: R2_BASE + 'airbrush-2.mp4', poster: R2_BASE + 'airbrush-2_thumb.jpg', title: 'AirBrush 2', eyebrow: 'PROJETO · 2022', orient: 'vertical' },
+    { src: R2_BASE + 'airbrush-3.mp4', poster: R2_BASE + 'airbrush-3_thumb.jpg', title: 'AirBrush 3', eyebrow: 'PROJETO · 2022', orient: 'vertical' },
+    { src: R2_BASE + 'airbrush-4.mp4', poster: R2_BASE + 'airbrush-4_thumb.jpg', title: 'AirBrush 4', eyebrow: 'PROJETO · 2022', orient: 'vertical' },
+    { src: R2_BASE + 'airbrush-5.mp4', poster: R2_BASE + 'airbrush-5_thumb.jpg', title: 'AirBrush 5', eyebrow: 'PROJETO · 2022', orient: 'vertical' }
+  ];
+
+  let currentIdx = 0;
+  const lb = document.getElementById('lb');
+  const player = document.getElementById('player');
+  const video = document.getElementById('video');
+  const lbSpan = document.getElementById('lb-span');
+  const lbTitle = document.getElementById('lb-title');
+  const lbIdx = document.getElementById('lb-idx');
+  const lbTot = document.getElementById('lb-tot');
+  const track = document.getElementById('track');
+
+  lbTot.textContent = VIDEOS.length;
+
+  function showVideo(i){
+    const v = VIDEOS[i];
+    currentIdx = i;
+    player.classList.remove('horizontal','vertical');
+    player.classList.add(v.orient);
+    video.src = v.src;
+    if (v.poster) video.poster = v.poster;
+    video.load();
+    lbSpan.textContent = v.eyebrow;
+    lbTitle.textContent = v.title;
+    lbIdx.textContent = i + 1;
+    video.addEventListener('loadedmetadata', function onMeta(){
+      if(video.videoWidth && video.videoHeight){
+        const isV = video.videoHeight > video.videoWidth;
+        player.classList.remove('horizontal','vertical');
+        player.classList.add(isV ? 'vertical' : 'horizontal');
+      }
+      video.removeEventListener('loadedmetadata', onMeta);
+    });
+  }
+
+  function openLB(i){
+    showVideo(i);
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    video.play().catch(()=>{});
+  }
+
+  function closeLB(){
+    lb.classList.remove('open');
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    document.body.style.overflow = '';
+  }
+
+  function navLB(delta){
+    let n = currentIdx + delta;
+    if(n < 0) n = VIDEOS.length - 1;
+    if(n >= VIDEOS.length) n = 0;
+    showVideo(n);
+    video.play().catch(()=>{});
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(!lb.classList.contains('open')) return;
+    if(e.key === 'Escape')    closeLB();
+    if(e.key === 'ArrowLeft') navLB(-1);
+    if(e.key === 'ArrowRight')navLB(1);
+  });
+
+  lb.addEventListener('click', (e)=>{
+    if(e.target === lb) closeLB();
+  });
+
+  function scrollTrack(dir){
+    const amount = track.clientWidth * 0.7 * dir;
+    track.scrollBy({left: amount, behavior:'smooth'});
+  }
+</script>
+</body>
+</html>
