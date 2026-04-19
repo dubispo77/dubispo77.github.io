@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Portfolio Case · Universal</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#141820;--panel:#0f1822;--panel2:#0a1016;--line:#223043;
+    --text:#f4f1eb;--mute:#8a94a4;--accent:#f0c13b;--accent2:#9fe29f;
+  }
+  body{font-family:'Barlow','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);padding:28px;min-height:100vh;line-height:1.4}
+  h1{font-size:22px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+  h2{font-size:14px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:16px 0 10px}
+  .hint{color:var(--mute);font-size:13px;margin-bottom:22px;max-width:900px;line-height:1.5}
+  .note{color:var(--mute);font-size:11px;font-style:italic;margin:6px 0 8px}
+
+  section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;margin-bottom:20px}
+
+  label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:10px 0 4px;font-weight:600}
+  input[type=text],input[type=url],textarea{
+    width:100%;padding:10px 12px;border-radius:5px;border:1px solid var(--line);
+    background:#081019;color:var(--text);font-family:inherit;font-size:14px;
+  }
+  input[type=text]:focus,input[type=url]:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  textarea{resize:vertical;min-height:110px;line-height:1.55}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  .check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;margin:8px 0}
+  @media(max-width:900px){.check-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:500px){.check-grid{grid-template-columns:1fr}}
+  .check-grid label{display:flex;align-items:center;gap:8px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:400;margin:0;cursor:pointer}
+  .check-grid input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+
+  .logo-row{display:grid;grid-template-columns:24px 110px 1fr;gap:10px;align-items:center;margin-bottom:8px}
+  .logo-row input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+  .logo-row .logo-name{font-size:13px;color:var(--text)}
+
+  button{padding:10px 16px;border-radius:5px;border:1px solid #304257;background:#1a2c3e;color:var(--text);cursor:pointer;font-family:inherit;letter-spacing:1.5px;text-transform:uppercase;font-size:11px;font-weight:600}
+  button:hover{background:#263d55}
+  button.primary{background:var(--accent);color:#1a2c3e;border-color:var(--accent);font-weight:700;padding:12px 22px;font-size:12px}
+  button.primary:hover{background:#ffd155}
+  button.ghost{background:transparent;border-color:var(--line);color:var(--mute)}
+  button.refresh{background:#1f3b2e;border-color:#2d5942;color:#cfe9d7}
+  button.refresh:hover{background:#2a5440}
+
+  /* Opções de parágrafo */
+  .p-option{background:#081019;border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:10px;transition:border-color .1s}
+  .p-option.chosen{border-color:var(--accent);box-shadow:0 0 0 2px rgba(240,193,59,.18)}
+  .p-option .p-text{font-size:13.5px;line-height:1.6;color:#d6dbe3;margin-bottom:10px}
+  .p-option .p-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .p-option .p-num{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute)}
+  .p-option .p-num.chosen-tag{color:var(--accent);font-weight:700}
+
+  /* Destaques — palavras clicáveis no parágrafo */
+  .word{display:inline-block;padding:1px 3px;border-radius:3px;cursor:pointer;transition:all .1s}
+  .word:hover{background:#223}
+  .word.on{background:var(--accent);color:#1a2c3e;font-style:italic;font-weight:600}
+  #destaques_preview{background:#081019;border:1px solid var(--line);border-radius:5px;padding:14px;min-height:60px;line-height:1.7;font-size:14px}
+
+  /* Capa ajuste */
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:10px}
+  @media(max-width:1100px){.row{grid-template-columns:1fr}}
+  .stage-block{background:#081019;border:1px solid var(--line);border-radius:6px;padding:14px}
+  .stage-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+  .stage{position:relative;width:100%;height:380px;background:#000;border-radius:4px;overflow:hidden;cursor:grab;user-select:none;touch-action:none}
+  .stage:active{cursor:grabbing}
+  .img-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) translate(var(--x,0px),var(--y,0px)) scale(var(--s,1));transform-origin:center center;will-change:transform;pointer-events:none}
+  .img-wrap img{display:block;max-width:none;max-height:none;opacity:.45}
+  .frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:2px dashed var(--accent);pointer-events:none;z-index:3}
+  .frame.desktop{width:86%;aspect-ratio:1400/640}
+  .frame.mobile{width:62%;aspect-ratio:360/420}
+  .frame-inner{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2}
+  .frame-inner .img-wrap img{opacity:1}
+  .scrim{position:absolute;inset:0;pointer-events:none;z-index:1}
+  .scrim.desktop{background:linear-gradient(135deg,rgba(26,44,62,.94) 0%,rgba(26,44,62,.55) 55%,rgba(26,44,62,.15) 100%)}
+  .scrim.mobile{background:linear-gradient(160deg,rgba(26,44,62,.95) 0%,rgba(26,44,62,.7) 55%,rgba(26,44,62,.3) 100%)}
+  .controls{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .slider-row{display:grid;grid-template-columns:70px 1fr 60px;gap:10px;align-items:center}
+  .slider-row label{font-size:10px;margin:0}
+  .slider-row input[type=range]{width:100%}
+  .slider-row .val{font-family:ui-monospace,monospace;font-size:11px;color:var(--accent);text-align:right}
+
+  /* Thumbs picker */
+  .video-block{background:#081019;border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:14px}
+  .video-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+  .video-title{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+  .thumb-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  @media(max-width:900px){.thumb-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:500px){.thumb-grid{grid-template-columns:repeat(2,1fr)}}
+  .thumb{position:relative;border:3px solid transparent;border-radius:4px;overflow:hidden;cursor:pointer;background:#000}
+  .thumb.h{aspect-ratio:16/9}
+  .thumb.v{aspect-ratio:9/16}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(240,193,59,.25)}
+  .thumb.selected::after{content:'✓';position:absolute;top:4px;right:4px;background:var(--accent);color:#1a2c3e;font-weight:700;font-size:12px;padding:1px 6px;border-radius:3px}
+
+  /* Export box */
+  .export-actions{display:flex;gap:10px;margin:26px 0 18px;flex-wrap:wrap}
+  #output{margin-top:18px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:14px;font-family:ui-monospace,monospace;font-size:12px;color:#aaffee;white-space:pre-wrap;word-break:break-all;max-height:380px;overflow-y:auto;min-height:auto}
+  .success{color:var(--accent2);margin-bottom:8px}
+
+  /* Toggle switch */
+  .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .section-head h2{margin:0;padding:0;border:none}
+  .toggle{position:relative;width:42px;height:24px;flex-shrink:0;cursor:pointer}
+  .toggle input{opacity:0;width:0;height:0;position:absolute}
+  .toggle .track{position:absolute;inset:0;background:#1a2c3e;border:1px solid var(--line);border-radius:12px;transition:background .2s,border-color .2s}
+  .toggle input:checked+.track{background:var(--accent);border-color:var(--accent)}
+  .toggle .knob{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#8a94a4;border-radius:50%;transition:transform .2s,background .2s}
+  .toggle input:checked~.knob{transform:translateX(calc(100% - 2px));background:#1a2c3e}
+  section.off .section-body{opacity:.25;pointer-events:none;filter:grayscale(1)}
+  section.off .section-head h2{opacity:.4}
+  /* Topic table */
+  .topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  @media(max-width:600px){.topic-grid{grid-template-columns:1fr}}
+  .topic-chip{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#081019;border:1px solid var(--line);border-radius:6px}
+  .topic-chip .t-label{flex:1;font-size:13px;line-height:1.3}
+  .topic-btn{width:26px;height:26px;border-radius:5px;border:1.5px solid var(--line);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;transition:all .15s;flex-shrink:0;color:var(--mute)}
+  .topic-btn:hover{border-color:#556}
+  .topic-btn.enfatizar.on{background:#1a3a2a;border-color:#3a7a5a;color:#7eda9e}
+  .topic-btn.evitar.on{background:#3a1a1a;border-color:#7a3a3a;color:#da7e7e}
+
+  .stage-block.off .stage,.stage-block.off .controls{opacity:.25;pointer-events:none;filter:grayscale(1)}
+  .stage-block.off .stage-label{opacity:.4}
+</style>
+</head>
+<body>
+
+<h1>Universal · Case Form</h1>
+<p class="hint">Liga o toggle de cada seção que quiser alterar. Seções desligadas não vão no JSON — assim nada é mexido por engano. Depois clica em <b>Exportar</b>.</p>
+<div style="margin-bottom:18px;display:flex;align-items:center;gap:12px">
+  <label class="toggle" style="width:52px;height:28px">
+    <input type="checkbox" id="masterToggle" checked>
+    <span class="track" style="border-radius:14px"></span>
+    <span class="knob" style="width:22px;height:22px;top:3px;left:3px"></span>
+  </label>
+  <span id="masterLabel" style="font-size:13px;letter-spacing:1px;text-transform:uppercase;font-weight:600;color:var(--accent)">Todas ligadas</span>
+</div>
+
+<form id="caseForm">
+
+<section>
+  <h2>1. Básico</h2>
+  <div class="grid2">
+    <div>
+      <label>Título do case</label>
+      <input type="text" id="titulo" value="Stock Car">
+    </div>
+    <div>
+      <label>Slug (nome do arquivo .html)</label>
+      <input type="text" id="slug" value="stock-car">
+    </div>
+  </div>
+</section>
+
+<section data-key="logos">
+  <div class="section-head">
+    <h2>2. Canais com link (hyperlink na linha de Canais)</h2>
+    <label class="toggle"><input type="checkbox" data-toggle="logos"><span class="track"></span><span class="knob"></span></label>
+  </div>
+  <div class="section-body">
+    <p class="note">Marca quais redes têm URL — elas viram hyperlinks discretos (underline 0.3px) na linha de Canais do hero. Sem bloco de logos separado.</p>
+    <div id="logos-rows"></div>
+    <label>Outros (formato: Nome: URL, Nome2: URL2)</label>
+    <input type="text" id="logos_outros" placeholder="Site oficial: https://...">
+  </div>
+</section>
+
+<section data-key="atuacao">
+  <div class="section-head">
+    <h2>3. Atuação (funções exercidas)</h2>
+    <label class="toggle"><input type="checkbox" data-toggle="atuacao"><span class="track"></span><span class="knob"></span></label>
+  </div>
+  <div class="section-body">
+    <div class="check-grid" id="atuacao-grid"></div>
+    <label>Outros (vírgula separa)</label>
+    <input type="text" id="atuacao_outros">
+  </div>
+</section>
+
+<section data-key="formato">
+  <div class="section-head">
+    <h2>4. Formato do conteúdo</h2>
+    <label class="toggle"><input type="checkbox" data-toggle="formato"><span class="track"></span><span class="knob"></span></label>
+  </div>
+  <div class="section-body">
+    <div class="check-grid" id="formato-grid"></div>
+    <label>Outros</label>
+    <input type="text" id="formato_outros">
+  </div>
+</section>
+
+<section data-key="canais">
+  <div class="section-head">
+    <h2>5. Canais de distribuição</h2>
+    <label class="toggle"><input type="checkbox" data-toggle="canais"><span class="track"></span><span class="knob"></span></label>
+  </div>
+  <div class="section-body">
+    <div class="check-grid" id="canais-grid"></div>
+    <label>Outros</label>
+    <input type="text" id="canais_outros">
+    <label>Prévia</label>
+    <div id="canais_preview" style="background:#081019;border:1px solid var(--line);border-radius:5px;padding:10px 12px;font-size:13px;color:var(--accent2);font-family:ui-monospace,monospace">—</div>
+  </div>
+</section>
+
+<section data-key="paragrafo">
+  <div class="section-head">
+    <h2>6. Parágrafo do hero</h2>
+    <label class="toggle"><input type="checkbox" data-toggle="paragrafo"><span class="track"></span><span class="knob"></span></label>
+  </div>
+  <div class="section-body">
+
+    <h3>Direcionamento — o que enfatizar ou evitar</h3>
+    <p class="note">Marca cada assunto antes de gerar os parágrafos. O Claude vai respeitar essas escolhas.</p>
+    <div id="topic-table"></div>
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <label style="margin:0;font-size:11px">Adicionar assunto:</label>
+      <input type="text" id="topic_add" placeholder="Ex.: velocidade, adrenalina..." style="width:240px">
+      <button type="button" onclick="addCustomTopic()">+ Adicionar</button>
+    </div>
+
+    <div style="margin-top:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <button type="button" class="refresh" onclick="requestGenerate()" style="padding:10px 18px;font-size:12px">⟳ Gerar parágrafos com essas escolhas</button>
+      <span id="topicStatus" style="font-size:12px;color:var(--accent2);display:none">✓ Pronto — volta no Claude e diz <b>"gera"</b> para atualizar os parágrafos automaticamente</span>
+    </div>
+    <div id="topicSnapshot" style="display:none"></div>
+
+    <h3 style="margin-top:24px">Parágrafos sugeridos</h3>
+    <p class="note">Regras: sempre "para" (nunca "pra"), sempre "em uma/em um" (nunca "numa/num").</p>
+    <div id="paragrafo_options"></div>
+    <label style="margin-top:18px">Parágrafo escolhido (editável)</label>
+    <textarea id="paragrafo" rows="6" placeholder="Escolhe uma das opções acima, ou digite do zero aqui."></textarea>
+
+    <h3>Destaques (itálico)</h3>
+    <p class="note">Clica em qualquer palavra para ligar/desligar o destaque.</p>
+    <div id="destaques_preview">—</div>
+    <label>Trechos extras (vírgula separa)</label>
+    <input type="text" id="destaques_extra" value="storytelling esportivo, narrativa visual, ritmo e emoção">
+  </div>
+</section>
+
+<section data-key="capa">
+  <div class="section-head">
+    <h2>7. Capa (ajuste de escala/posição)</h2>
+    <label class="toggle"><input type="checkbox" data-toggle="capa"><span class="track"></span><span class="knob"></span></label>
+  </div>
+  <div class="section-body">
+    <p class="note">Arrasta a imagem · scroll para zoom · ou usa sliders. Retângulo tracejado = área visível no hero.</p>
+    <div class="row">
+      <div class="stage-block" id="blockDesk">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="stage-label" style="margin:0">Desktop — 1400×640</div>
+          <label class="toggle"><input type="checkbox" id="toggleDesk" checked><span class="track"></span><span class="knob"></span></label>
+        </div>
+        <div class="stage" id="stageDesk">
+          <div class="img-wrap" id="wrapDesk"></div>
+          <div class="frame desktop">
+            <div class="frame-inner"><div class="img-wrap" id="wrapDeskInner"></div></div>
+            <div class="scrim desktop"></div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="slider-row"><label>Escala</label><input type="range" id="sDesk" min="0.05" max="3" step="0.005" value="1"/><span class="val" id="vSDesk">1.00×</span></div>
+          <div class="slider-row"><label>Pos X</label><input type="range" id="xDesk" min="-1200" max="1200" step="1" value="0"/><span class="val" id="vXDesk">0px</span></div>
+          <div class="slider-row"><label>Pos Y</label><input type="range" id="yDesk" min="-1200" max="1200" step="1" value="0"/><span class="val" id="vYDesk">0px</span></div>
+        </div>
+      </div>
+      <div class="stage-block" id="blockMob">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="stage-label" style="margin:0">Mobile — 360×420</div>
+          <label class="toggle"><input type="checkbox" id="toggleMob" checked><span class="track"></span><span class="knob"></span></label>
+        </div>
+        <div class="stage" id="stageMob">
+          <div class="img-wrap" id="wrapMob"></div>
+          <div class="frame mobile">
+            <div class="frame-inner"><div class="img-wrap" id="wrapMobInner"></div></div>
+            <div class="scrim mobile"></div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="slider-row"><label>Escala</label><input type="range" id="sMob" min="0.05" max="3" step="0.005" value="1"/><span class="val" id="vSMob">1.00×</span></div>
+          <div class="slider-row"><label>Pos X</label><input type="range" id="xMob" min="-1200" max="1200" step="1" value="0"/><span class="val" id="vXMob">0px</span></div>
+          <div class="slider-row"><label>Pos Y</label><input type="range" id="yMob" min="-1200" max="1200" step="1" value="0"/><span class="val" id="vYMob">0px</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-key="thumbs">
+  <div class="section-head">
+    <h2>8. Thumbs dos vídeos</h2>
+    <label class="toggle"><input type="checkbox" data-toggle="thumbs"><span class="track"></span><span class="knob"></span></label>
+  </div>
+  <div class="section-body">
+    <p class="note">Cada vídeo tem sua thumb pré-selecionada. Clica para trocar.</p>
+    <div id="thumb-blocks"></div>
+  </div>
+</section>
+
+<div class="export-actions">
+  <button type="button" class="primary" onclick="exportAll()">Exportar JSON + HTML</button>
+  <button type="button" class="ghost" onclick="resetForm()">Resetar tudo</button>
+</div>
+<textarea id="output" readonly placeholder="Preenche os campos e clica em Exportar."></textarea>
+
+</form>
+
+<script>
+const BASE = 'https://dubispo77.github.io/assets/universal/';
+
+window.__CASE_DATA__ = {
+  slug: 'universal',
+  titulo: 'Universal',
+  capaUrl: BASE + 'capa.jpg',
+  topicos: [
+    'Parceria Universal Studios x Orientavida',
+    'Impacto social e ONG',
+    'Personagem E.T. — licenciamento de imagem',
+    'Produção audiovisual completa',
+    'Captação de imagens',
+    'Correção de cores e finalização',
+    'Campanha de divulgação',
+    'Mulheres em vulnerabilidade social',
+    'Costura e artesanato como renda',
+    'Conteúdo vertical (Stories)',
+    'Sensibilidade e narrativa emocional',
+    'Responsabilidade social corporativa'
+  ],
+  paragrafos_sugeridos: [
+    'Responsável pela produção, captação de imagens, edição, correção de cores e finalização das peças de divulgação da campanha que anunciou a parceria entre a Universal Studios e a Orientavida, ONG de Potim (SP) que capacita e emprega mulheres em situação de vulnerabilidade social. O projeto envolveu o licenciamento do personagem E.T. para a criação de roupas e bonecos artesanais.',
+    'Atuei em todas as etapas da produção audiovisual para a campanha Universal Studios x Orientavida, desde a captação até a finalização. O desafio era traduzir em vídeo a delicadeza de uma parceria que uniu entretenimento global e impacto social local, mostrando como o licenciamento de um personagem icônico gerou renda para mulheres em situação de vulnerabilidade.',
+    'Produzi e editei os vídeos da campanha que marcou a parceria entre a Universal Studios e a ONG Orientavida, com foco em comunicar o impacto social do projeto. O trabalho exigiu sensibilidade narrativa para equilibrar a força da marca Universal com a história das mulheres de Potim que transformam costura e artesanato em oportunidade.',
+    'Na campanha Universal Studios x Orientavida, fui responsável por toda a cadeia audiovisual: produção, captação, edição, color grading e finalização. As peças precisavam comunicar com clareza a essência do projeto social — o fornecimento dos direitos de imagem do E.T. para a criação de produtos artesanais cujos lucros sustentam ações da ONG.',
+    'Realizei a produção e edição completa das peças audiovisuais para a campanha de parceria entre Universal Studios e Orientavida. O projeto demandou domínio técnico em captação e pós-produção aliado a uma abordagem narrativa sensível, capaz de conectar uma marca global de entretenimento a uma causa social transformadora no interior de São Paulo.'
+  ],
+  destaques_sugeridos: ['impacto social', 'narrativa sensível', 'produção completa'],
+  videos: [
+    { slug:'universal-1', title:'Orientavida — Story (Vertical)', orient:'v',
+      frames: Array.from({length:50},(_,j)=>({url:BASE+`universal-1_thumb_${j}.jpg`,score:50-j,_idx:j})) },
+    { slug:'universal-2', title:'Universal x Orientavida (Horizontal)', orient:'h',
+      frames: Array.from({length:50},(_,j)=>({url:BASE+`universal-2_thumb_${j}.jpg`,score:50-j,_idx:j})) }
+  ]
+};
+
+const DATA = window.__CASE_DATA__;
+
+/* ───── Toggles ───── */
+function initToggles(){
+  document.querySelectorAll('[data-toggle]').forEach(cb=>{
+    const key = cb.dataset.toggle;
+    const sec = document.querySelector(`section[data-key="${key}"]`);
+    cb.addEventListener('change',()=>{
+      sec.classList.toggle('off', !cb.checked);
+    });
+    // Start ON
+    cb.checked = true;
+  });
+}
+function isOn(key){ const cb=document.querySelector(`[data-toggle="${key}"]`); return cb && cb.checked; }
+function toggleAll(on){
+  document.querySelectorAll('[data-toggle]').forEach(cb=>{
+    cb.checked = on;
+    const sec = document.querySelector(`section[data-key="${cb.dataset.toggle}"]`);
+    sec.classList.toggle('off', !on);
+  });
+  document.getElementById('masterLabel').textContent = on ? 'Todas ligadas' : 'Todas desligadas';
+  document.getElementById('masterLabel').style.color = on ? 'var(--accent)' : 'var(--mute)';
+}
+document.getElementById('masterToggle').addEventListener('change', function(){ toggleAll(this.checked); });
+
+/* Sub-toggles capa Desktop / Mobile */
+['Desk','Mob'].forEach(k=>{
+  const cb = document.getElementById('toggle'+k);
+  const block = document.getElementById('block'+k);
+  cb.addEventListener('change',()=>{ block.classList.toggle('off', !cb.checked); });
+});
+
+/* ───── Tópicos (enfatizar / evitar) ───── */
+const topicState = {}; // slug -> 'enfatizar' | 'evitar' | null
+const topicList = [...(DATA.topicos || [])];
+
+function topicSlug(t){ return t.toLowerCase().replace(/[^a-záàâãéêíóôõúç0-9]+/gi,'_').replace(/_+$/,''); }
+
+function buildTopics(){
+  topicList.forEach(t=>{ if(!(topicSlug(t) in topicState)) topicState[topicSlug(t)] = null; });
+  renderTopics();
+}
+
+function renderTopics(){
+  const root = document.getElementById('topic-table');
+  root.innerHTML = '';
+  const legend = document.createElement('div');
+  legend.style.cssText = 'display:flex;gap:14px;margin-bottom:8px;font-size:11px;color:var(--mute)';
+  legend.innerHTML = '<span>✓ = enfatizar</span><span>✗ = evitar</span>';
+  root.appendChild(legend);
+  const grid = document.createElement('div');
+  grid.className = 'topic-grid';
+  root.appendChild(grid);
+  topicList.forEach(t=>{
+    const s = topicSlug(t);
+    const st = topicState[s];
+    const chip = document.createElement('div');
+    chip.className = 'topic-chip';
+    chip.innerHTML = `
+      <button type="button" class="topic-btn enfatizar ${st==='enfatizar'?'on':''}" data-s="${s}" data-mode="enfatizar">✓</button>
+      <button type="button" class="topic-btn evitar ${st==='evitar'?'on':''}" data-s="${s}" data-mode="evitar">✗</button>
+      <div class="t-label">${t}</div>`;
+    chip.querySelectorAll('.topic-btn').forEach(btn=>{
+      btn.onclick = ()=>{
+        const slug = btn.dataset.s;
+        const mode = btn.dataset.mode;
+        topicState[slug] = topicState[slug] === mode ? null : mode;
+        renderTopics();
+      };
+    });
+    grid.appendChild(chip);
+  });
+}
+
+function requestGenerate(){
+  const enfatizar = [];
+  const evitar = [];
+  topicList.forEach(t=>{
+    const st = topicState[topicSlug(t)];
+    if(st === 'enfatizar') enfatizar.push(t);
+    if(st === 'evitar') evitar.push(t);
+  });
+  // Write snapshot as readable text for Claude to pick up
+  const snap = document.getElementById('topicSnapshot');
+  snap.setAttribute('data-enfatizar', enfatizar.join('|'));
+  snap.setAttribute('data-evitar', evitar.join('|'));
+  snap.setAttribute('data-slug', document.getElementById('slug').value.trim());
+  snap.setAttribute('data-titulo', document.getElementById('titulo').value.trim());
+  snap.setAttribute('data-ready', 'true');
+  // Also update page title so Claude can see it easily
+  document.title = `GERAR|${enfatizar.join(',')}|EVITAR|${evitar.join(',')}`;
+  const msg = document.getElementById('topicStatus');
+  msg.style.display = 'inline';
+}
+
+function addCustomTopic(){
+  const input = document.getElementById('topic_add');
+  const val = input.value.trim();
+  if(!val) return;
+  topicList.push(val);
+  topicState[topicSlug(val)] = null;
+  input.value = '';
+  renderTopics();
+}
+
+/* ───── Listas ───── */
+const LOGOS = [
+  {id:'yt', name:'YouTube'},
+  {id:'ig', name:'Instagram'},
+  {id:'tt', name:'TikTok'},
+  {id:'fb', name:'Facebook'},
+  {id:'x',  name:'X (Twitter)'},
+  {id:'kw', name:'Kwai'},
+  {id:'li', name:'LinkedIn'},
+  {id:'tw', name:'Twitch'},
+  {id:'sp', name:'Spotify'},
+  {id:'pod',name:'Podcast'},
+  {id:'st', name:'Streaming'},
+  {id:'web',name:'Site oficial'},
+];
+const ATUACAO = [
+  'Produção','Edição','Roteiro','Pós-produção','Motion','Sound design','Decupagem',
+  'Direção','Direção de fotografia','Captação','Color grading','Finalização',
+  'Locução','Narração','Comentário (esportes)','Legendagem','Thumbnail','Arte de capa',
+  'Cinegrafista','Coordenação editorial','Pauta','Reportagem','Pré-produção',
+  'Direção de arte','VFX','Mixagem','Trilha sonora','Apresentação'
+];
+const FORMATO = [
+  'Episódios','Série','Reels','Shorts','TikToks','Teasers','Trailers',
+  'VTs','Documentários','Minidocs','Reportagens especiais','Entrevistas',
+  'Making ofs','Bastidores','Vinhetas','Aberturas','Chamadas','Promos',
+  'Lives','Comerciais','Publicidade','Branded content','Gameshows','Quadros',
+  'Transmissões ao vivo','Pós-jogo','Pós-evento','Institucionais','Reportagens','Vídeos longos'
+];
+const CANAIS = [
+  'YouTube','Instagram','TikTok','TV','Digital','Facebook','X (Twitter)',
+  'Kwai','Twitch','Streaming','LinkedIn','Podcast','Spotify Video'
+];
+
+/* ───── Build UI ───── */
+function buildLogos(){
+  const root=document.getElementById('logos-rows');
+  root.innerHTML = LOGOS.map(l=>`
+    <div class="logo-row">
+      <input type="checkbox" id="logo_${l.id}">
+      <label class="logo-name" for="logo_${l.id}">${l.name}</label>
+      <input type="url" id="logo_${l.id}_url" placeholder="URL (ex: https://youtube.com/@...)">
+    </div>`).join('');
+}
+function buildChecks(gridId, opts, prefix){
+  document.getElementById(gridId).innerHTML =
+    opts.map((v,i)=>`<label><input type="checkbox" data-group="${prefix}" value="${v}"><span>${v}</span></label>`).join('');
+}
+buildLogos();
+buildChecks('atuacao-grid',ATUACAO,'atuacao');
+buildChecks('formato-grid',FORMATO,'formato');
+buildChecks('canais-grid', CANAIS, 'canais');
+
+/* ───── Parágrafos ───── */
+let paragrafoOpcoes = [...(DATA.paragrafos_sugeridos||[])];
+let paragrafoEscolhido = null;
+
+function buildParagrafos(){
+  const root = document.getElementById('paragrafo_options');
+  if(!paragrafoOpcoes.length){
+    root.innerHTML = '<div class="note">(Sem opções)</div>';
+    return;
+  }
+  root.innerHTML = paragrafoOpcoes.map((txt,i)=>`
+    <div class="p-option ${paragrafoEscolhido===i?'chosen':''}" data-i="${i}">
+      <div class="p-text">${escapeHtml(txt)}</div>
+      <div class="p-actions">
+        <span class="p-num ${paragrafoEscolhido===i?'chosen-tag':''}">${paragrafoEscolhido===i?'✓ escolhida':'Opção '+(i+1)}</span>
+        <button type="button" class="${paragrafoEscolhido===i?'primary':''}" data-pick="${i}">${paragrafoEscolhido===i?'Selecionada':'Escolher esta'}</button>
+      </div>
+    </div>
+  `).join('');
+  root.querySelectorAll('[data-pick]').forEach(btn=>{
+    btn.onclick=()=>{
+      const i = +btn.dataset.pick;
+      paragrafoEscolhido = i;
+      document.getElementById('paragrafo').value = paragrafoOpcoes[i];
+      destaqueSet.clear();
+      buildParagrafos();
+      refreshDestaques();
+    };
+  });
+}
+
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+document.getElementById('paragrafo').addEventListener('input', ()=>{
+  const txt = document.getElementById('paragrafo').value;
+  if(paragrafoEscolhido!=null && paragrafoOpcoes[paragrafoEscolhido] !== txt){
+    paragrafoEscolhido = null;
+    buildParagrafos();
+  }
+});
+
+/* ───── Canais ───── */
+function getCanais(){
+  const checked = [...document.querySelectorAll('[data-group=canais]:checked')].map(e=>e.value);
+  const extras  = (document.getElementById('canais_outros').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  return [...checked, ...extras];
+}
+function refreshCanaisPreview(){
+  const list = getCanais();
+  document.getElementById('canais_preview').textContent = list.length ? list.join(' · ') : '—';
+}
+document.getElementById('caseForm').addEventListener('change',e=>{
+  if(e.target.dataset.group==='canais' || e.target.id==='canais_outros') refreshCanaisPreview();
+});
+document.getElementById('canais_outros').addEventListener('input',refreshCanaisPreview);
+
+/* ───── Destaques ───── */
+let destaqueSet = new Set();
+document.getElementById('paragrafo').addEventListener('input', refreshDestaques);
+function refreshDestaques(){
+  const txt = document.getElementById('paragrafo').value || '';
+  const preview = document.getElementById('destaques_preview');
+  if(!txt.trim()){preview.textContent='—';return;}
+  const words = txt.split(/(\s+|[.,;:!?—()])/);
+  preview.innerHTML = words.map((w,i)=>{
+    if(/^\s+$/.test(w) || /^[.,;:!?—()]+$/.test(w)) return w;
+    const on = destaqueSet.has(w) ? ' on' : '';
+    return `<span class="word${on}" data-w="${w.replace(/"/g,'&quot;')}">${w}</span>`;
+  }).join('');
+  preview.querySelectorAll('.word').forEach(el=>{
+    el.onclick=()=>{
+      const w = el.dataset.w;
+      if(destaqueSet.has(w)) destaqueSet.delete(w); else destaqueSet.add(w);
+      el.classList.toggle('on');
+    };
+  });
+}
+
+/* ───── Capa ───── */
+function buildCapa(){
+  const imgEl = `<img src="${DATA.capaUrl}" draggable="false">`;
+  document.getElementById('wrapDesk').innerHTML = imgEl;
+  document.getElementById('wrapDeskInner').innerHTML = imgEl;
+  document.getElementById('wrapMob').innerHTML = imgEl;
+  document.getElementById('wrapMobInner').innerHTML = imgEl;
+  mountStage('Desk');
+  mountStage('Mob');
+}
+const stageState = {Desk:{s:1,x:0,y:0}, Mob:{s:1,x:0,y:0}};
+function mountStage(k){
+  const st = stageState[k];
+  const stage=document.getElementById('stage'+k);
+  const wrap=document.getElementById('wrap'+k);
+  const wrapI=document.getElementById('wrap'+k+'Inner');
+  const sEl=document.getElementById('s'+k), xEl=document.getElementById('x'+k), yEl=document.getElementById('y'+k);
+  const vS =document.getElementById('vS'+k),vX=document.getElementById('vX'+k),vY=document.getElementById('vY'+k);
+  function apply(){
+    [wrap,wrapI].forEach(el=>{
+      el.style.setProperty('--s',st.s);
+      el.style.setProperty('--x',st.x+'px');
+      el.style.setProperty('--y',st.y+'px');
+    });
+    vS.textContent = st.s.toFixed(2)+'×';
+    vX.textContent = Math.round(st.x)+'px';
+    vY.textContent = Math.round(st.y)+'px';
+    sEl.value=st.s; xEl.value=st.x; yEl.value=st.y;
+  }
+  sEl.oninput=e=>{st.s=+e.target.value;apply();};
+  xEl.oninput=e=>{st.x=+e.target.value;apply();};
+  yEl.oninput=e=>{st.y=+e.target.value;apply();};
+  let drag=false,sx,sy,bx,by;
+  stage.onpointerdown=e=>{drag=true;sx=e.clientX;sy=e.clientY;bx=st.x;by=st.y;stage.setPointerCapture(e.pointerId);};
+  stage.onpointermove=e=>{if(!drag)return;st.x=bx+(e.clientX-sx);st.y=by+(e.clientY-sy);apply();};
+  stage.onpointerup=e=>{drag=false;try{stage.releasePointerCapture(e.pointerId);}catch(_){}};
+  stage.onwheel=e=>{e.preventDefault();st.s=Math.max(0.05,Math.min(3,st.s+(-e.deltaY*0.001*st.s)));apply();};
+  apply();
+}
+
+/* ───── Thumbs picker ───── */
+const thumbState = {};
+const PAGE_SIZE = 10;
+function buildThumbs(){
+  const root=document.getElementById('thumb-blocks');
+  if(!DATA.videos || !DATA.videos.length){
+    root.innerHTML='<div class="note">(Sem vídeos)</div>';
+    return;
+  }
+  DATA.videos.forEach(v=>{thumbState[v.slug] ||= {chosen:0, page:0};});
+  renderThumbs();
+}
+function renderThumbs(){
+  const root=document.getElementById('thumb-blocks');
+  root.innerHTML='';
+  DATA.videos.forEach(v=>{
+    const st = thumbState[v.slug];
+    const allFrames = v.frames||[];
+    const totalPages = Math.ceil(allFrames.length / PAGE_SIZE);
+    const pageStart = st.page * PAGE_SIZE;
+    const pageFrames = allFrames.slice(pageStart, pageStart + PAGE_SIZE);
+    const orient = v.orient || 'h';
+    const block = document.createElement('div');
+    block.className='video-block';
+    block.innerHTML = `
+      <div class="video-head">
+        <div style="display:flex;align-items:center;gap:10px">
+          <label class="toggle"><input type="checkbox" class="thumb-toggle" data-vslug="${v.slug}" checked><span class="track"></span><span class="knob"></span></label>
+          <div class="video-title">${v.title||v.slug}</div>
+        </div>
+        <button type="button" class="refresh" data-slug="${v.slug}">⟳ Refresh</button>
+      </div>
+      <div class="thumb-body"><div class="thumb-grid"></div></div>`;
+    root.appendChild(block);
+    const thumbToggle = block.querySelector('.thumb-toggle');
+    const thumbBody = block.querySelector('.thumb-body');
+    thumbToggle.addEventListener('change',()=>{
+      thumbBody.style.opacity = thumbToggle.checked ? '' : '.25';
+      thumbBody.style.pointerEvents = thumbToggle.checked ? '' : 'none';
+      thumbBody.style.filter = thumbToggle.checked ? '' : 'grayscale(1)';
+    });
+    block.querySelector('.refresh').onclick = ()=>{
+      st.page = (st.page + 1) % totalPages;
+      renderThumbs();
+    };
+    const grid = block.querySelector('.thumb-grid');
+    pageFrames.forEach((fr,localIdx)=>{
+      const globalIdx = pageStart + localIdx;
+      const el = document.createElement('div');
+      el.className = 'thumb ' + orient + (st.chosen===globalIdx?' selected':'');
+      el.innerHTML = `<img src="${fr.url}" alt="${v.slug} opção ${globalIdx+1}"/>`;
+      el.onclick = ()=>{ st.chosen=globalIdx; renderThumbs(); };
+      grid.appendChild(el);
+    });
+    // Show selected thumb reminder if it's not visible in current batch
+    if(st.chosen < pageStart || st.chosen >= pageStart + PAGE_SIZE){
+      const chosenFrame = allFrames[st.chosen];
+      if(chosenFrame){
+        const reminder = document.createElement('div');
+        reminder.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px 10px;background:#0d1a12;border:1px solid #2d5942;border-radius:5px;';
+        reminder.innerHTML = `<div class="thumb ${orient} selected" style="width:${orient==='h'?'100px':'56px'};flex-shrink:0;pointer-events:none"><img src="${chosenFrame.url}"/></div><span style="font-size:11px;color:var(--accent)">✓ Selecionada</span>`;
+        block.appendChild(reminder);
+      }
+    }
+  });
+}
+
+/* ───── Collect ───── */
+function collectValues(){
+  const getChecked = g => [...document.querySelectorAll(`[data-group=${g}]:checked`)].map(e=>e.value);
+  const parseExtras = id => (document.getElementById(id).value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const logos = LOGOS
+    .filter(l=>document.getElementById('logo_'+l.id).checked)
+    .map(l=>({id:l.id, name:l.name, url:document.getElementById('logo_'+l.id+'_url').value.trim()}));
+  const logosOutros = (document.getElementById('logos_outros').value||'').split(',').map(p=>{
+    const m = p.split(':');
+    if(m.length<2) return null;
+    const n=m[0].trim(); const u=m.slice(1).join(':').trim();
+    return n && u ? {id:'custom_'+n.toLowerCase().replace(/\s+/g,'_'), name:n, url:u} : null;
+  }).filter(Boolean);
+
+  const result = {
+    slug: document.getElementById('slug').value.trim(),
+    titulo: document.getElementById('titulo').value.trim(),
+    _alterados: []
+  };
+
+  if(isOn('logos')){
+    result._alterados.push('logos');
+    result.logos = [...logos, ...logosOutros];
+  }
+  if(isOn('atuacao')){
+    result._alterados.push('atuacao');
+    result.atuacao = [...getChecked('atuacao'), ...parseExtras('atuacao_outros')];
+  }
+  if(isOn('formato')){
+    result._alterados.push('formato');
+    result.formato = [...getChecked('formato'), ...parseExtras('formato_outros')];
+  }
+  if(isOn('canais')){
+    result._alterados.push('canais');
+    result.canais = getCanais();
+  }
+  if(isOn('paragrafo')){
+    result._alterados.push('paragrafo');
+    const enfatizar = [];
+    const evitar = [];
+    topicList.forEach(t=>{
+      const st = topicState[topicSlug(t)];
+      if(st === 'enfatizar') enfatizar.push(t);
+      if(st === 'evitar') evitar.push(t);
+    });
+    result.topicos = { enfatizar, evitar };
+    result.paragrafo = document.getElementById('paragrafo').value.trim();
+    result.destaques = [...destaqueSet, ...parseExtras('destaques_extra')];
+  }
+  if(isOn('capa')){
+    const deskOn = document.getElementById('toggleDesk').checked;
+    const mobOn  = document.getElementById('toggleMob').checked;
+    if(deskOn || mobOn){
+      result._alterados.push('capa');
+      result.capa = { url: DATA.capaUrl };
+      if(deskOn) result.capa.desktop = {...stageState.Desk};
+      if(mobOn)  result.capa.mobile  = {...stageState.Mob};
+    }
+  }
+  if(isOn('thumbs')){
+    const activeThumbs = DATA.videos.filter(v=>{
+      const cb = document.querySelector(`.thumb-toggle[data-vslug="${v.slug}"]`);
+      return cb && cb.checked;
+    }).map(v=>{
+      const st = thumbState[v.slug];
+      const idx = st ? st.chosen : 0;
+      return {
+        video_slug: v.slug,
+        video_title: v.title,
+        orient: v.orient||'h',
+        frame_idx: idx,
+        frame_url: v.frames[idx] ? v.frames[idx].url : v.frames[0].url
+      };
+    });
+    if(activeThumbs.length){
+      result._alterados.push('thumbs');
+      result.thumbs = activeThumbs;
+    }
+  }
+
+  return result;
+}
+
+/* ───── Export ───── */
+function exportAll(){
+  const v = collectValues();
+  const json = JSON.stringify(v, null, 2);
+  const out = document.getElementById('output');
+  out.value = json;
+  out.scrollTop = 0;
+  navigator.clipboard?.writeText(json).catch(()=>{});
+  out.insertAdjacentHTML('beforebegin',
+    '<div class="success" id="exp-msg">✓ JSON copiado para clipboard. Cole no Claude para gerar o HTML final.</div>');
+  setTimeout(()=>document.getElementById('exp-msg')?.remove(), 5000);
+}
+
+function resetForm(){
+  if(!confirm('Resetar todos os campos?')) return;
+  document.getElementById('caseForm').reset();
+  destaqueSet.clear();
+  paragrafoOpcoes = [...(DATA.paragrafos_sugeridos||[])];
+  paragrafoEscolhido = null;
+  Object.keys(topicState).forEach(k=>topicState[k]=null);
+  buildTopics();
+  Object.keys(stageState).forEach(k=>{stageState[k]={s:1,x:0,y:0};});
+  refreshCanaisPreview();
+  refreshDestaques();
+  buildCapa();
+  buildThumbs();
+  buildParagrafos();
+}
+
+/* ───── Init ───── */
+initToggles();
+buildTopics();
+buildCapa();
+buildThumbs();
+buildParagrafos();
+refreshCanaisPreview();
+refreshDestaques();
+</script>
+</body>
+</html>
