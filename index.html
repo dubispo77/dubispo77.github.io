@@ -1707,38 +1707,5 @@
     #draw-canvas.active { display: block; }
   </style>
 
-<script>
-(function(){
-  function forcePlay(){
-    document.querySelectorAll('video.hero-video').forEach(function(v){
-      v.muted = true;
-      v.defaultMuted = true;
-      v.volume = 0;
-      v.setAttribute('muted','');
-      v.setAttribute('playsinline','');
-      v.setAttribute('webkit-playsinline','');
-      if(v.paused){
-        var p = v.play();
-        if(p !== undefined) p.catch(function(){});
-      }
-    });
-  }
-  // Try immediately
-  forcePlay();
-  // Retry after load
-  window.addEventListener('load', forcePlay);
-  // Retry after short delays (Safari sometimes needs time)
-  setTimeout(forcePlay, 100);
-  setTimeout(forcePlay, 500);
-  setTimeout(forcePlay, 1500);
-  // Retry on first user interaction
-  ['click','touchstart','scroll','mousemove','keydown'].forEach(function(evt){
-    document.addEventListener(evt, function once(){
-      forcePlay();
-      document.removeEventListener(evt, once);
-    }, {once:true, passive:true});
-  });
-})();
-</script>
 </body>
 </html>
