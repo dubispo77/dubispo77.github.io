@@ -1707,5 +1707,25 @@
     #draw-canvas.active { display: block; }
   </style>
 
+<script>
+// Force autoplay on Safari and all browsers
+document.querySelectorAll('video.hero-video').forEach(function(v){
+  v.muted = true;
+  v.setAttribute('muted','');
+  v.setAttribute('playsinline','');
+  var p = v.play();
+  if(p !== undefined) p.catch(function(){
+    // Retry on user interaction if blocked
+    document.addEventListener('click', function once(){
+      v.play();
+      document.removeEventListener('click', once);
+    });
+    document.addEventListener('scroll', function once(){
+      v.play();
+      document.removeEventListener('scroll', once);
+    });
+  });
+});
+</script>
 </body>
 </html>
