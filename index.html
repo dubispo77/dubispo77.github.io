@@ -1143,11 +1143,11 @@
   <!-- HERO -->
   <section id="hero">
     <!-- vídeo desktop (horizontal) -->
-    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto" poster="poster-horizontal.jpg">
+    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline webkit-playsinline disablepictureinpicture preload="auto" poster="poster-horizontal.jpg">
       <source src="video-horizontal.mp4" type="video/mp4">
     </video>
     <!-- vídeo mobile (vertical - fullscreen) -->
-    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto" poster="poster-vertical.jpg">
+    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline disablepictureinpicture preload="auto" poster="poster-vertical.jpg">
       <source src="video-vertical.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
@@ -1708,24 +1708,37 @@
   </style>
 
 <script>
-// Force autoplay on Safari and all browsers
-document.querySelectorAll('video.hero-video').forEach(function(v){
-  v.muted = true;
-  v.setAttribute('muted','');
-  v.setAttribute('playsinline','');
-  var p = v.play();
-  if(p !== undefined) p.catch(function(){
-    // Retry on user interaction if blocked
-    document.addEventListener('click', function once(){
-      v.play();
-      document.removeEventListener('click', once);
+(function(){
+  function forcePlay(){
+    document.querySelectorAll('video.hero-video').forEach(function(v){
+      v.muted = true;
+      v.defaultMuted = true;
+      v.volume = 0;
+      v.setAttribute('muted','');
+      v.setAttribute('playsinline','');
+      v.setAttribute('webkit-playsinline','');
+      if(v.paused){
+        var p = v.play();
+        if(p !== undefined) p.catch(function(){});
+      }
     });
-    document.addEventListener('scroll', function once(){
-      v.play();
-      document.removeEventListener('scroll', once);
-    });
+  }
+  // Try immediately
+  forcePlay();
+  // Retry after load
+  window.addEventListener('load', forcePlay);
+  // Retry after short delays (Safari sometimes needs time)
+  setTimeout(forcePlay, 100);
+  setTimeout(forcePlay, 500);
+  setTimeout(forcePlay, 1500);
+  // Retry on first user interaction
+  ['click','touchstart','scroll','mousemove','keydown'].forEach(function(evt){
+    document.addEventListener(evt, function once(){
+      forcePlay();
+      document.removeEventListener(evt, once);
+    }, {once:true, passive:true});
   });
-});
+})();
 </script>
 </body>
 </html>
