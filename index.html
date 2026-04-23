@@ -1143,13 +1143,35 @@
   <!-- HERO -->
   <section id="hero">
     <!-- vídeo desktop (horizontal) -->
-    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
-      <source src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero/hero-horizontal.mp4" type="video/mp4">
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
+      <source src="video-horizontal.mp4" type="video/mp4">
     </video>
     <!-- vídeo mobile (vertical - fullscreen) -->
-    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto">
-      <source src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero/hero-vertical.mp4" type="video/mp4">
+    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto">
+      <source src="video-vertical.mp4" type="video/mp4">
     </video>
+    <script>
+    (function(){
+      // Safari suporta HLS nativamente — usar stream m3u8 para carregamento instantâneo
+      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      if(!isSafari) return;
+      var R2 = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero/';
+      var desk = document.getElementById('heroDesktop');
+      var mob  = document.getElementById('heroMobile');
+      if(desk && desk.canPlayType('application/vnd.apple.mpegurl')){
+        desk.removeAttribute('src');
+        while(desk.firstChild && desk.firstChild.tagName==='SOURCE') desk.removeChild(desk.firstChild);
+        desk.src = R2 + 'horizontal/stream.m3u8';
+        desk.load();
+      }
+      if(mob && mob.canPlayType('application/vnd.apple.mpegurl')){
+        mob.removeAttribute('src');
+        while(mob.firstChild && mob.firstChild.tagName==='SOURCE') mob.removeChild(mob.firstChild);
+        mob.src = R2 + 'vertical/stream.m3u8';
+        mob.load();
+      }
+    })();
+    </script>
     <div class="hero-overlay"></div>
     <div class="hero-vignette"></div>
     <div class="hero-grain"></div>
