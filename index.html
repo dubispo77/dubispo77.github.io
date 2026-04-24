@@ -1143,22 +1143,51 @@
   <!-- HERO -->
   <section id="hero">
     <!-- vídeo desktop -->
-    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto"></video>
+    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline webkit-playsinline preload="auto">
+      <source src="video-horizontal.mp4" type="video/mp4">
+    </video>
     <!-- vídeo mobile -->
-    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto"></video>
+    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto">
+      <source src="video-vertical.mp4" type="video/mp4">
+    </video>
     <script>
     (function(){
       var ua = navigator.userAgent;
       var isSafari = ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1 && ua.indexOf('Chromium') === -1;
-      var R2 = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero/';
       var vids = document.querySelectorAll('.hero-video');
+
       vids.forEach(function(v){
-        var isDesktop = v.classList.contains('hero-video-desktop');
+        // Garantir muted via JS (Safari às vezes ignora o atributo HTML)
+        v.muted = true;
+        v.playsInline = true;
+
         if(isSafari){
-          v.src = R2 + (isDesktop ? 'horizontal' : 'vertical') + '/stream.m3u8';
-        } else {
-          v.src = isDesktop ? 'video-horizontal.mp4' : 'video-vertical.mp4';
+          // Safari: trocar para HLS (segmentos de 2s, carrega instantâneo)
+          var isDesktop = v.classList.contains('hero-video-desktop');
+          var hlsSrc = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero/'
+            + (isDesktop ? 'horizontal' : 'vertical') + '/stream.m3u8';
+          // Remover source mp4
+          var sources = v.querySelectorAll('source');
+          sources.forEach(function(s){ s.remove(); });
+          v.src = hlsSrc;
+          v.load();
         }
+
+        // Forçar play em qualquer browser assim que tiver dados
+        function tryPlay(){
+          v.muted = true;
+          var p = v.play();
+          if(p && p.catch) p.catch(function(){});
+        }
+        v.addEventListener('loadeddata', tryPlay);
+        v.addEventListener('canplay', tryPlay);
+        // Retry a cada segundo por 10 segundos
+        var attempts = 0;
+        var retry = setInterval(function(){
+          if(!v.paused || attempts > 10){ clearInterval(retry); return; }
+          tryPlay();
+          attempts++;
+        }, 1000);
       });
     })();
     </script>
