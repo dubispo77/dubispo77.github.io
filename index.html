@@ -635,7 +635,7 @@
     left: 65px;
     top: 16px;
     bottom: 16px;
-    width: 1px;
+    width: 2px;
     background: var(--line);
   }
 
@@ -645,7 +645,7 @@
     display: flex;
     align-items: center;
     gap: 19px;
-    margin-bottom: 26px;
+    margin-bottom: 16px;
   }
   .tl-item:last-child { margin-bottom: 0; }
 
@@ -663,15 +663,15 @@
   /* DOT — centro em 49px (44 + 5px do dot center) */
   .tl-dot {
     position: absolute;
-    left: 60px;         /* left edge do dot, centro em 44+5.5=49.5px ≈ linha */
+    left: 59px;         /* centralizado na linha de 2px */
     top: 50%;
     transform: translateY(-50%);
-    width: 11px;
-    height: 11px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--dot-bg);
-    border: 2px solid var(--bg);
-    box-shadow: 0 0 0 1px var(--dot-bg);
+    border: 2.5px solid var(--bg);
+    box-shadow: 0 0 0 1.5px var(--dot-bg);
     z-index: 2;
   }
 
