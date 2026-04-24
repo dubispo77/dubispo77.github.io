@@ -1156,35 +1156,54 @@
       var isSafari = ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1 && ua.indexOf('Chromium') === -1;
       var vids = document.querySelectorAll('.hero-video');
 
+      // DEBUG overlay temporário
+      var dbg = document.createElement('div');
+      dbg.id = 'heroDebug';
+      dbg.style.cssText = 'position:fixed;top:0;left:0;z-index:99999;background:rgba(0,0,0,.85);color:#0f0;font:12px monospace;padding:8px 12px;max-width:100vw;white-space:pre-wrap;pointer-events:none;';
+      document.body.appendChild(dbg);
+      var log = [];
+      function dlog(msg){ log.push(msg); dbg.textContent = log.join('\n'); }
+
+      dlog('Browser: ' + (isSafari ? 'SAFARI' : 'CHROME/OTHER'));
+
       vids.forEach(function(v){
-        // Garantir muted via JS (Safari às vezes ignora o atributo HTML)
+        var cls = v.classList.contains('hero-video-desktop') ? 'DESKTOP' : 'MOBILE';
         v.muted = true;
         v.playsInline = true;
 
         if(isSafari){
-          // Safari: trocar para HLS (segmentos de 2s, carrega instantâneo)
           var isDesktop = v.classList.contains('hero-video-desktop');
           var hlsSrc = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero/'
             + (isDesktop ? 'horizontal' : 'vertical') + '/stream.m3u8';
-          // Remover source mp4
           var sources = v.querySelectorAll('source');
           sources.forEach(function(s){ s.remove(); });
           v.src = hlsSrc;
           v.load();
+          dlog(cls + ' src → HLS: ' + hlsSrc.split('/hero/')[1]);
+        } else {
+          dlog(cls + ' src → MP4 (default)');
         }
 
-        // Forçar play em qualquer browser assim que tiver dados
+        v.addEventListener('loadeddata', function(){ dlog(cls + ' EVENT: loadeddata'); });
+        v.addEventListener('canplay', function(){ dlog(cls + ' EVENT: canplay'); });
+        v.addEventListener('playing', function(){ dlog(cls + ' EVENT: playing ✓'); });
+        v.addEventListener('error', function(){ dlog(cls + ' ERROR: ' + (v.error ? v.error.code + ' ' + v.error.message : '?')); });
+        v.addEventListener('stalled', function(){ dlog(cls + ' EVENT: stalled'); });
+
         function tryPlay(){
           v.muted = true;
           var p = v.play();
-          if(p && p.catch) p.catch(function(){});
+          if(p && p.then){
+            p.then(function(){ dlog(cls + ' play() → OK ✓'); })
+             .catch(function(e){ dlog(cls + ' play() → REJECTED: ' + e.name + ': ' + e.message); });
+          }
         }
         v.addEventListener('loadeddata', tryPlay);
         v.addEventListener('canplay', tryPlay);
-        // Retry a cada segundo por 10 segundos
         var attempts = 0;
         var retry = setInterval(function(){
-          if(!v.paused || attempts > 10){ clearInterval(retry); return; }
+          if(!v.paused || attempts > 15){ clearInterval(retry); return; }
+          dlog(cls + ' retry #' + (attempts+1) + ' rs=' + v.readyState + ' ns=' + v.networkState);
           tryPlay();
           attempts++;
         }, 1000);
