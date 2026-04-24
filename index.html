@@ -1148,12 +1148,13 @@
     <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto"></video>
     <script>
     (function(){
-      var hlsOK = document.createElement('video').canPlayType('application/vnd.apple.mpegurl');
+      var ua = navigator.userAgent;
+      var isSafari = ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1 && ua.indexOf('Chromium') === -1;
       var R2 = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero/';
       var vids = document.querySelectorAll('.hero-video');
       vids.forEach(function(v){
         var isDesktop = v.classList.contains('hero-video-desktop');
-        if(hlsOK){
+        if(isSafari){
           v.src = R2 + (isDesktop ? 'horizontal' : 'vertical') + '/stream.m3u8';
         } else {
           v.src = isDesktop ? 'video-horizontal.mp4' : 'video-vertical.mp4';
