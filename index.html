@@ -1142,70 +1142,14 @@
 
   <!-- HERO -->
   <section id="hero">
-    <!-- poster instantâneo (carrega em milissegundos) -->
-    <img class="hero-video hero-video-desktop hero-poster" src="poster-horizontal.jpg" alt="">
-    <img class="hero-video hero-video-mobile hero-poster" src="poster-vertical.jpg" alt="">
-    <!-- vídeo desktop -->
-    <video class="hero-video hero-video-desktop hero-vid" autoplay muted loop playsinline webkit-playsinline preload="auto" style="opacity:0">
-      <source src="video-horizontal.mp4" type="video/mp4">
+    <!-- vídeo desktop (720p leve, autoplay puro sem JS) -->
+    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline poster="poster-horizontal.jpg" preload="auto">
+      <source src="hero-720.mp4" type="video/mp4">
     </video>
     <!-- vídeo mobile -->
-    <video class="hero-video hero-video-mobile hero-vid" autoplay muted loop playsinline webkit-playsinline preload="auto" style="opacity:0">
-      <source src="video-vertical.mp4" type="video/mp4">
+    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline poster="poster-vertical.jpg" preload="auto">
+      <source src="hero-720-v.mp4" type="video/mp4">
     </video>
-    <script>
-    (function(){
-      var videos = document.querySelectorAll('.hero-vid');
-      var posters = document.querySelectorAll('.hero-poster');
-      var started = false;
-
-      function showVideo(v){
-        v.style.transition = 'opacity .6s';
-        v.style.opacity = '1';
-        // Esconder posters quando qualquer vídeo começa
-        posters.forEach(function(p){ p.style.transition = 'opacity .6s'; p.style.opacity = '0'; });
-        started = true;
-      }
-
-      function tryPlayAll(){
-        videos.forEach(function(v){
-          v.muted = true;
-          var p = v.play();
-          if(p && p.then){
-            p.then(function(){ showVideo(v); })
-             .catch(function(){});
-          }
-        });
-      }
-
-      // Tentativa 1: autoplay nativo (Chrome, Firefox)
-      videos.forEach(function(v){
-        v.addEventListener('playing', function(){ showVideo(v); });
-      });
-
-      // Tentativa 2: play() via JS após carregamento
-      videos.forEach(function(v){
-        v.addEventListener('canplay', function(){
-          v.muted = true;
-          var p = v.play();
-          if(p && p.then) p.then(function(){ showVideo(v); }).catch(function(){});
-        });
-      });
-
-      // Tentativa 3: no primeiro gesto do usuário (scroll, click, touch, mousemove)
-      var gestureEvents = ['scroll','click','touchstart','mousemove','keydown'];
-      function onGesture(){
-        if(started) return;
-        tryPlayAll();
-        gestureEvents.forEach(function(evt){
-          document.removeEventListener(evt, onGesture, {capture:true});
-        });
-      }
-      gestureEvents.forEach(function(evt){
-        document.addEventListener(evt, onGesture, {capture:true, passive:true});
-      });
-    })();
-    </script>
     <div class="hero-overlay"></div>
     <div class="hero-vignette"></div>
     <div class="hero-grain"></div>
