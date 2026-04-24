@@ -152,6 +152,14 @@
       filter: blur(1px);
       transform: scale(1.02);
     }
+    /* Esconder controles nativos do Safari (botão de play) */
+    .hero-video::-webkit-media-controls-panel,
+    .hero-video::-webkit-media-controls-start-playback-button,
+    .hero-video::-webkit-media-controls {
+      display: none !important;
+      -webkit-appearance: none !important;
+      opacity: 0 !important;
+    }
     .hero-video-mobile { display: none; }
 
     .hero-overlay {
@@ -1142,12 +1150,10 @@
 
   <!-- HERO -->
   <section id="hero">
-    <!-- vídeo desktop (720p leve, autoplay puro sem JS) -->
-    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline poster="poster-horizontal.jpg" preload="auto">
+    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
       <source src="hero-720.mp4" type="video/mp4">
     </video>
-    <!-- vídeo mobile -->
-    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline poster="poster-vertical.jpg" preload="auto">
+    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto">
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
