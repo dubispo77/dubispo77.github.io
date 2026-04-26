@@ -543,13 +543,13 @@
 
     /* ─── SOBRE ─── */
     #sobre {
-      padding: 0 40px 80px;
+      padding: 0 40px 40px;
     }
 
     .sobre-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 80px;
+      gap: 24px;
       align-items: start;
     }
 
@@ -560,14 +560,14 @@
       color: rgba(26,44,62,0.50);
       text-transform: lowercase;
       letter-spacing: -0.5px;
-      margin-bottom: 24px;
+      margin-bottom: 14px;
     }
 
     .sobre-text p {
       font-size: 17px;
-      line-height: 1.75;
+      line-height: 1.65;
       color: rgba(26,44,62,0.6);
-      margin-bottom: 20px;
+      margin-bottom: 12px;
     }
 
     .sobre-text strong { color: var(--accent); }
@@ -576,7 +576,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-top: 32px;
+      margin-top: 16px;
     }
 
     .skill-tag {
@@ -621,16 +621,16 @@
     font-size: 28px; font-weight: 700;
     color: rgba(26,44,62,0.50);
     text-transform: lowercase;
-    margin-bottom: 24px;
+    margin-bottom: 14px;
     letter-spacing: -0.5px;
   }
 
   .tl-wrap {
     background: rgba(26,44,62,0.02);
     border-radius: 0;
-    padding: 40px 0 28px 0;
+    padding: 24px 16px 20px 16px;
     margin-top: 8px;
-    margin-left: 0;
+    margin-left: -16px;
   }
 
   .tl-title {
@@ -638,7 +638,7 @@
     font-size: 28px; font-weight: 700;
     color: rgba(26,44,62,0.50);
     text-transform: lowercase;
-    margin-bottom: 24px;
+    margin-bottom: 14px;
     letter-spacing: -0.5px;
   }
 
@@ -672,7 +672,7 @@
     display: flex;
     align-items: center;
     gap: 19px;
-    margin-bottom: 28px;
+    margin-bottom: 14px;
   }
   .tl-item:last-child { margin-bottom: 0; }
 
@@ -683,9 +683,9 @@
     font-size: 15.5px;
     font-weight: 700;
     color: var(--year);
-    text-align: left;
+    text-align: right;
     letter-spacing: 0.02em;
-    margin-right: 10px;
+    margin-right: -10px;
   }
 
   /* DOT — centro em 49px (44 + 5px do dot center) */
@@ -1279,12 +1279,27 @@
 
   <!-- HERO -->
   <section id="hero">
-    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
       <source src="hero-720.mp4" type="video/mp4">
     </video>
     <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto">
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+    <script>
+    (function(){
+      var v = document.getElementById('heroDesktop');
+      var src = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero-hls/master.m3u8';
+      if(Hls.isSupported()){
+        var hls = new Hls({startLevel:0,capLevelToPlayerSize:true});
+        hls.loadSource(src);
+        hls.attachMedia(v);
+        hls.on(Hls.Events.MANIFEST_PARSED,function(){v.play();});
+      } else if(v.canPlayType('application/vnd.apple.mpegurl')){
+        v.src=src; v.play();
+      }
+    })();
+    </script>
     <div class="hero-overlay"></div>
     <div class="hero-vignette"></div>
     <div class="hero-grain"></div>
