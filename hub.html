@@ -1142,13 +1142,19 @@ function montarPathDoElemento(el) {
   return ids;
 }
 
-document.addEventListener('click', async (e) => {
+async function handleMilestoneClick(e) {
   const msEl = e.target.closest && e.target.closest('.rm-ms');
-  if (!msEl || !msEl.dataset.msId) return;
+  if (!msEl) return;
+  if (!msEl.dataset.msId) {
+    console.warn('[click ms] elemento sem msId — DOM antigo? recarregar com Cmd+Shift+R', msEl);
+    return;
+  }
+  // CAPTURA o click antes do row pai pegar (que abre/fecha)
   e.stopPropagation();
   e.preventDefault();
 
   const path = montarPathDoElemento(msEl);
+  console.log('[click ms] path:', path);
   if (path.length < 2) {
     console.warn('[click ms] path inválido:', path);
     return;
@@ -1184,7 +1190,10 @@ document.addEventListener('click', async (e) => {
     alert('Erro ao salvar: ' + e2.message);
   }
   // realtime já vai re-renderizar o roadmap
-});
+}
+
+// CAPTURE phase pra pegar o click antes dos handlers de toggle/open dos rows.
+document.addEventListener('click', handleMilestoneClick, true);
 
 // ── SUPABASE em segundo plano (só após auth)
 (async () => {
