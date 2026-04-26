@@ -882,6 +882,7 @@ function makeMilestone(ms, color) {
   const el = document.createElement('div');
   el.className = `rm-ms ${ms.status}`;
   el.style.left = pct(ms.m) + '%';
+  if (ms.id) el.dataset.msId = ms.id;
   const dc = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#cbd5e1';
   const bg = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#fff';
   const lc = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#94a3b8';
@@ -924,6 +925,7 @@ function makeBar(start, end, color, colorSoft, depth) {
 
 function makeLevel4Row(l4, color, isLast) {
   const row = document.createElement('div'); row.className = 'rm-row rm-row-level4';
+  if (l4.id) row.dataset.subId = l4.id;
   if (l4._bgColor) row.style.background = l4._bgColor;
   const left = document.createElement('div'); left.className = 'rm-left level4-left'+(isLast?' last':'');
   if (l4._bgColor) left.style.background = l4._bgColor;
@@ -959,6 +961,7 @@ function makeLevel4Row(l4, color, isLast) {
 
 function makeSubSubRow(ss, color, isLast) {
   const row = document.createElement('div'); row.className = 'rm-row rm-row-subsub';
+  if (ss.id) row.dataset.subId = ss.id;
   if (ss._bgColor) { row.style.background = ss._bgColor; }
   const left = document.createElement('div'); left.className = 'rm-left subsub-left'+(isLast?' last':'');
   if (ss._bgColor) left.style.background = ss._bgColor;
@@ -1000,6 +1003,7 @@ function makeSubSubRow(ss, color, isLast) {
 function makeSubRow(sub, color, isLast) {
   const hasSubs = sub.subs && sub.subs.length>0;
   const row = document.createElement('div'); row.className = 'rm-row rm-row-sub'+(hasSubs?' hassubs':'');
+  if (sub.id) row.dataset.subId = sub.id;
   if (sub._bgColor) row.style.background = sub._bgColor;
   const left = document.createElement('div'); left.className = 'rm-left sub-left'+(isLast&&!hasSubs?' last':'');
   if (sub._bgColor) left.style.background = sub._bgColor;
@@ -1046,6 +1050,7 @@ function buildRoadmap() {
     const areaLight    = lightColor(area.color, 0.09);
     const areaLightSub = lightColor(area.color, 0.05);
     const block = document.createElement('div'); block.className = 'rm-area-block';
+    if (area.id) block.dataset.areaId = area.id;
 
     // Header
     const header = document.createElement('div'); header.className = 'rm-area-header';
@@ -1123,6 +1128,63 @@ document.getElementById('rmZoomLabel') && (document.getElementById('rmZoomLabel'
 
 buildAxis();
 buildRoadmap();
+
+// ── CLICK NOS MILESTONES PRA TOGGLE STATUS (done ↔ planned)
+function montarPathDoElemento(el) {
+  const ids = [];
+  let cur = el.parentElement;
+  while (cur && cur !== document.body) {
+    if (cur.dataset && cur.dataset.subId) ids.unshift(cur.dataset.subId);
+    if (cur.dataset && cur.dataset.areaId) { ids.unshift(cur.dataset.areaId); break; }
+    cur = cur.parentElement;
+  }
+  if (el.dataset && el.dataset.msId) ids.push(el.dataset.msId);
+  return ids;
+}
+
+document.addEventListener('click', async (e) => {
+  const msEl = e.target.closest && e.target.closest('.rm-ms');
+  if (!msEl || !msEl.dataset.msId) return;
+  e.stopPropagation();
+  e.preventDefault();
+
+  const path = montarPathDoElemento(msEl);
+  if (path.length < 2) {
+    console.warn('[click ms] path inválido:', path);
+    return;
+  }
+
+  const sb = window.sbClient;
+  if (!sb) return;
+
+  // Feedback visual imediato (otimistic update)
+  msEl.style.opacity = '0.5';
+
+  const { data: row, error: e1 } = await sb.from('roadmap').select('data').eq('id', 'main').single();
+  if (e1 || !row?.data) { msEl.style.opacity = '1'; return; }
+
+  const data = row.data;
+  let cursor = (data.areas || []).find(a => a.id === path[0]);
+  if (!cursor) { msEl.style.opacity = '1'; return; }
+  for (let i = 1; i < path.length - 1; i++) {
+    const nextSub = (cursor.subs || []).find(s => s.id === path[i]);
+    if (!nextSub) { msEl.style.opacity = '1'; return; }
+    cursor = nextSub;
+  }
+  const lastId = path[path.length - 1];
+  const milestone = (cursor.milestones || []).find(m => m.id === lastId);
+  if (!milestone) { msEl.style.opacity = '1'; return; }
+
+  milestone.status = milestone.status === 'done' ? 'planned' : 'done';
+
+  const { error: e2 } = await sb.from('roadmap').update({ data, updated_by: 'click-ui' }).eq('id', 'main');
+  if (e2) {
+    msEl.style.opacity = '1';
+    console.error('[click ms] erro ao salvar:', e2);
+    alert('Erro ao salvar: ' + e2.message);
+  }
+  // realtime já vai re-renderizar o roadmap
+});
 
 // ── SUPABASE em segundo plano (só após auth)
 (async () => {
