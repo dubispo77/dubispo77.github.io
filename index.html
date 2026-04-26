@@ -758,26 +758,31 @@
   }
 
   /* ─── FORMAÇÃO (educação) ─── */
+  .edu-wrap {
+    width: 50%;
+    margin-left: auto;
+    padding-left: 40px;
+  }
   .edu-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    gap: 10px;
   }
   .edu-item {
     position: relative;
     border-left: 3px solid rgba(26,44,62,0.25);
-    padding: 18px 118px 18px 20px;
+    padding: 10px 70px 10px 14px;
     background: rgba(26,44,62,0.03);
     border-radius: 0 8px 8px 0;
-    min-height: 110px;
+    min-height: 80px;
   }
   .edu-logo-wrap {
     position: absolute;
-    right: 10px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    width: 100px;
-    height: 100px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background: rgba(26,44,62,0.06);
     display: flex;
@@ -786,51 +791,51 @@
     overflow: hidden;
   }
   .edu-logo {
-    width: 68px;
-    height: 68px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     mix-blend-mode: multiply;
   }
-  .edu-logo-oakland { width: 78px; height: 78px; }
-  .edu-logo-specs { width: 74px; height: 74px; }
-  .edu-logo-barco { width: 64px; height: 64px; }
-  .edu-logo-alura { width: 72px; height: 72px; }
+  .edu-logo-oakland { width: 40px; height: 40px; }
+  .edu-logo-specs { width: 38px; height: 38px; }
+  .edu-logo-barco { width: 34px; height: 34px; }
+  .edu-logo-alura { width: 38px; height: 38px; }
   .edu-meta {
-    font-size: 13px;
+    font-size: 11px;
     color: rgba(26,44,62,0.50);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
   }
   .edu-name {
-    font-size: 17px;
+    font-size: 14px;
     font-weight: 700;
     color: #1A2C3E;
     line-height: 1.3;
   }
   .edu-desc {
-    font-size: 14px;
+    font-size: 12px;
     color: rgba(26,44,62,0.58);
     font-weight: 600;
-    margin-top: 4px;
+    margin-top: 2px;
   }
   .edu-loc {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    margin-top: 8px;
+    gap: 4px;
+    margin-top: 4px;
     background: rgba(26,44,62,0.07);
-    padding: 3px 10px 3px 6px;
+    padding: 2px 8px 2px 5px;
     border-radius: 4px;
   }
   .edu-loc-pin {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     flex-shrink: 0;
   }
   .edu-loc-text {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: rgba(26,44,62,0.55);
     letter-spacing: 0.02em;
@@ -1111,17 +1116,20 @@
       }
 
       /* FORMAÇÃO mobile */
+      .edu-wrap {
+        width: 100% !important;
+        padding-left: 0 !important;
+      }
       .edu-grid {
         grid-template-columns: 1fr !important;
-        gap: 10px !important;
+        gap: 8px !important;
       }
-      .edu-item { padding: 12px 52px 12px 14px !important; min-height: 80px !important; }
-      .edu-logo-wrap { width: 36px !important; height: 36px !important; right: 10px !important; }
-      .edu-logo { width: 24px !important; height: 24px !important; }
-      .edu-name { font-size: 14px !important; }
-      .edu-desc { font-size: 12px !important; }
-      .edu-meta { font-size: 11px !important; }
-      .edu-loc { font-size: 11px !important; }
+      .edu-item { padding: 10px 56px 10px 12px !important; min-height: 70px !important; }
+      .edu-logo-wrap { width: 40px !important; height: 40px !important; right: 8px !important; }
+      .edu-logo { width: 28px !important; height: 28px !important; }
+      .edu-name { font-size: 13px !important; }
+      .edu-desc { font-size: 11px !important; }
+      .edu-meta { font-size: 10px !important; }
       #formacao { padding: 0 20px 40px !important; }
 
       /* CONTATO mobile */
@@ -1580,6 +1588,7 @@
   <!-- FORMAÇÃO -->
   <section id="formacao" class="reveal" style="padding:0 40px 60px;">
     <div class="sobre-timeline" style="max-width:1100px;margin:0 auto;">
+      <div class="edu-wrap">
       <h2>formação</h2>
       <div class="edu-grid">
         <div class="edu-item">
@@ -1630,6 +1639,7 @@
             <img src="assets/logos-claude/Alura" alt="Alura" class="edu-logo edu-logo-alura">
           </div>
         </div>
+      </div>
       </div>
     </div>
   </section>
