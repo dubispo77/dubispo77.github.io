@@ -656,6 +656,12 @@
   .tl-col {
     position: relative;
   }
+  .tl-col:first-child {
+    padding-left: 25px;
+  }
+  .tl-col:first-child::before {
+    left: 108px;
+  }
   .tl-col::before {
     content: '';
     position: absolute;
