@@ -982,6 +982,7 @@ function makeSubSubRow(ss, color, isLast) {
   // Renderiza filhos de nível 4
   if (ss.subs && ss.subs.length > 0) {
     const l4Container = document.createElement('div'); l4Container.className = 'rm-subsubs-container';
+    if (ss.id) l4Container.dataset.parentSubId = ss.id;
     ss.subs.forEach((l4, i) => {
       l4._bgColor  = ss._bgColor;
       l4._areaId   = ss._areaId;
@@ -1026,6 +1027,7 @@ function makeSubRow(sub, color, isLast) {
   let ssContainer = null;
   if (hasSubs) {
     ssContainer = document.createElement('div'); ssContainer.className = 'rm-subsubs-container';
+    if (sub.id) ssContainer.dataset.parentSubId = sub.id;
     sub.subs.forEach((ss,i) => {
       ss._bgColor   = sub._bgColor;
       ss._areaId    = sub._areaId;
@@ -1134,8 +1136,13 @@ function montarPathDoElemento(el) {
   const ids = [];
   let cur = el.parentElement;
   while (cur && cur !== document.body) {
-    if (cur.dataset && cur.dataset.subId) ids.unshift(cur.dataset.subId);
-    if (cur.dataset && cur.dataset.areaId) { ids.unshift(cur.dataset.areaId); break; }
+    if (cur.dataset) {
+      // Containers (.rm-subsubs-container) carregam o id do sub que os "abriu"
+      if (cur.dataset.parentSubId) ids.unshift(cur.dataset.parentSubId);
+      // Rows (.rm-row.rm-row-sub etc) carregam o id do próprio sub
+      if (cur.dataset.subId) ids.unshift(cur.dataset.subId);
+      if (cur.dataset.areaId) { ids.unshift(cur.dataset.areaId); break; }
+    }
     cur = cur.parentElement;
   }
   if (el.dataset && el.dataset.msId) ids.push(el.dataset.msId);
