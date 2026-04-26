@@ -253,9 +253,166 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-subs-container.open    { display: block; }
 .rm-subsubs-container { display: none; }
 .rm-subsubs-container.open { display: block; }
+
+/* ── CHAT ── */
+#chat.section.active { display: flex; flex-direction: column; height: 100%; }
+.chat-body { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 0 32px 18px; }
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 18px 0; display: flex; flex-direction: column; gap: 12px;
+}
+.chat-empty { text-align: center; padding-top: 60px; max-width: 420px; margin: 0 auto; }
+.chat-msg { display: flex; max-width: 78%; }
+.chat-msg.user { align-self: flex-end; }
+.chat-msg.assistant { align-self: flex-start; }
+.chat-bubble {
+  padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.5;
+  white-space: pre-wrap; word-wrap: break-word;
+}
+.chat-msg.user .chat-bubble {
+  background: var(--accent); color: white; border-bottom-right-radius: 4px;
+}
+.chat-msg.assistant .chat-bubble {
+  background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.assistant.thinking .chat-bubble { color: var(--text-faint); font-style: italic; }
+.chat-input-row {
+  display: flex; gap: 8px; padding: 10px 0 0; border-top: 1px solid var(--border-soft);
+}
+.chat-input {
+  flex: 1; min-height: 38px; max-height: 140px; resize: none;
+  padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--card); color: var(--text); font: inherit; font-size: 14px;
+  outline: none;
+}
+.chat-input:focus { border-color: var(--accent); }
+.chat-send {
+  padding: 0 16px; border-radius: 10px; border: none; background: var(--accent);
+  color: white; font-size: 13px; font-weight: 650; cursor: pointer; flex-shrink: 0;
+}
+.chat-send:hover { background: #4a3fb3; }
+.chat-send:disabled { opacity: .5; cursor: not-allowed; }
+.chat-status { font-size: 11px; color: var(--text-faint); padding: 4px 0 0; min-height: 16px; }
+.chat-status.error { color: #dc2626; }
+
+/* ── SOBRE MIM ── */
+.propostas-banner {
+  display: flex; align-items: center; gap: 12px;
+  background: #fef9c3; border: 1px solid #facc15; color: #854d0e;
+  padding: 10px 14px; border-radius: 10px; margin-bottom: 18px;
+  font-size: 13px; font-weight: 600;
+}
+.pb-text { flex: 1; }
+.pb-btn {
+  padding: 5px 12px; border-radius: 8px; border: 1px solid #ca8a04;
+  background: white; color: #854d0e; font-size: 12px; font-weight: 700;
+  cursor: pointer;
+}
+.proposta-card {
+  background: #fefce8; border: 1px solid #fde047; border-left: 3px solid #eab308;
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
+}
+.pc-meta { display: flex; gap: 8px; align-items: center; font-size: 10.5px; color: #713f12; margin-bottom: 6px; font-weight: 600; }
+.pc-pill { padding: 2px 8px; border-radius: 999px; background: white; font-weight: 700; font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; }
+.pc-titulo { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.pc-conteudo { font-size: 13px; line-height: 1.5; color: var(--text-dim); margin-bottom: 10px; white-space: pre-wrap; }
+.pc-acoes { display: flex; gap: 6px; }
+.pc-btn { padding: 6px 12px; border-radius: 7px; border: none; font-size: 12px; font-weight: 650; cursor: pointer; }
+.pc-btn.aprovar  { background: #16a34a; color: white; }
+.pc-btn.rejeitar { background: #fee2e2; color: #dc2626; }
+.pc-btn.editar   { background: var(--bg);  color: var(--text-dim); border: 1px solid var(--border); }
+
+.contexto-grupo { margin-bottom: 26px; }
+.cg-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border-soft);
+}
+.cg-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); }
+.cg-add { padding: 3px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text-dim); font-size: 11px; font-weight: 600; cursor: pointer; }
+.cg-add:hover { background: var(--card); color: var(--accent); border-color: var(--accent); }
+.contexto-item {
+  background: var(--card); border: 1px solid var(--border-soft); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.ci-titulo { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; }
+.ci-conteudo { font-size: 13px; line-height: 1.55; color: var(--text-dim); white-space: pre-wrap; }
+.ci-toolbar { display: flex; gap: 6px; margin-top: 10px; opacity: 0; transition: opacity .15s; }
+.contexto-item:hover .ci-toolbar { opacity: 1; }
+.ci-btn { padding: 4px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text-dim); font-size: 11px; font-weight: 600; cursor: pointer; }
+.ci-btn:hover { color: var(--accent); border-color: var(--accent); }
+.ci-btn.danger:hover { color: #dc2626; border-color: #dc2626; }
+.ci-edit { display: none; }
+.contexto-item.editing .ci-display { display: none; }
+.contexto-item.editing .ci-edit    { display: block; }
+.ci-edit input, .ci-edit textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+  font: inherit; font-size: 13px; background: var(--card); color: var(--text); outline: none;
+  resize: vertical; margin-bottom: 6px;
+}
+.ci-edit input:focus, .ci-edit textarea:focus { border-color: var(--accent); }
+.ci-edit-actions { display: flex; gap: 6px; }
+.ci-edit-save   { background: var(--accent); color: white; border: none; padding: 6px 14px; border-radius: 7px; font-weight: 650; font-size: 12px; cursor: pointer; }
+.ci-edit-cancel { background: var(--bg);     color: var(--text-dim); border: 1px solid var(--border); padding: 6px 14px; border-radius: 7px; font-size: 12px; cursor: pointer; }
+
+/* ── LOGIN OVERLAY ── */
+.login-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, #f5f4f9 0%, #e9e6f2 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  background: white; border-radius: 16px; padding: 40px 32px;
+  box-shadow: 0 12px 48px rgba(30,20,60,.12);
+  width: 100%; max-width: 380px; text-align: center;
+}
+.login-emoji { font-size: 40px; margin-bottom: 6px; }
+.login-title { font-size: 22px; font-weight: 750; margin-bottom: 6px; letter-spacing: -.02em; }
+.login-sub   { font-size: 13px; color: var(--text-dim); margin-bottom: 22px; }
+.login-form  { display: flex; flex-direction: column; gap: 8px; }
+.login-form input {
+  padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px;
+  font: inherit; font-size: 14px; outline: none;
+}
+.login-form input:focus { border-color: var(--accent); }
+.login-form button {
+  padding: 11px 14px; border: none; border-radius: 10px;
+  background: var(--accent); color: white; font-size: 14px; font-weight: 650; cursor: pointer;
+}
+.login-form button:hover  { background: #4a3fb3; }
+.login-form button:disabled { opacity: .5; cursor: not-allowed; }
+.login-status {
+  margin-top: 14px; font-size: 12px; min-height: 18px;
+  color: var(--text-dim);
+}
+.login-status.ok    { color: #16a34a; }
+.login-status.error { color: #dc2626; }
+
+/* Botão de logout no canto da sidebar */
+.logout-btn {
+  margin: 8px 14px 0; padding: 6px 8px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--sidebar-dim); border-radius: 7px;
+  font-size: 11px; font-weight: 600; cursor: pointer; text-align: center;
+  transition: color .12s;
+}
+.logout-btn:hover { color: #dc2626; border-color: #dc2626; }
 </style>
 </head>
 <body>
+
+<!-- LOGIN OVERLAY (mostrado se não autenticado) -->
+<div id="loginOverlay" class="login-overlay" style="display:none">
+  <div class="login-card">
+    <div class="login-emoji">🏠</div>
+    <h1 class="login-title">Hub do Eduardo</h1>
+    <p class="login-sub">Acesso restrito. Entra com seu email pra receber o link.</p>
+    <form id="loginForm" class="login-form">
+      <input id="loginEmail" type="email" required placeholder="seu email" autocomplete="email" />
+      <button type="submit" id="loginBtn">Enviar link</button>
+    </form>
+    <div id="loginStatus" class="login-status"></div>
+  </div>
+</div>
+
 <div class="layout">
 
   <!-- SIDEBAR -->
@@ -275,9 +432,11 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="sidebar-section-label">Ferramentas</div>
       <div class="nav-item" data-sec="fluxogramas"><span class="ni-icon">🔀</span><span class="ni-text">Fluxogramas</span></div>
       <div class="nav-item" data-sec="setup"><span class="ni-icon">🤖</span><span class="ni-text">Setup</span></div>
-      <div class="nav-item" data-sec="extras"><span class="ni-icon">✨</span><span class="ni-text">Em branco</span></div>
+      <div class="nav-item" data-sec="sobre"><span class="ni-icon">🪪</span><span class="ni-text">Sobre mim</span><span id="sobreBadge" class="ni-badge badge-yellow" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="chat"><span class="ni-icon">💬</span><span class="ni-text">Chat</span></div>
     </div>
     <div class="sidebar-footer">Atualizado pelo assistente<br>Refresh para ver mudanças</div>
+    <button class="logout-btn" onclick="window.sbClient && window.sbClient.auth.signOut()">Sair</button>
   </aside>
 
   <!-- MAIN -->
@@ -306,14 +465,17 @@ table.data-table tr:hover td { background: var(--bg); }
 
     <!-- AGENDA -->
     <section id="agenda" class="section">
-      <div class="section-header"><div class="section-title">📅 Agenda</div><div class="section-subtitle">Atualizado automaticamente às 8h</div></div>
+      <div class="section-header">
+        <div class="section-title">📅 Agenda</div>
+        <div class="section-subtitle">Domingo, 26 de abril de 2026</div>
+      </div>
       <div class="section-body">
         <div class="kpi-row">
           <div class="kpi"><div class="kpi-value" style="color:#7c3aed">0</div><div class="kpi-label">Eventos hoje</div></div>
-          <div class="kpi"><div class="kpi-value" style="color:#2563eb">0</div><div class="kpi-label">Esta semana</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#2563eb">8</div><div class="kpi-label">Esta semana</div></div>
           <div class="kpi"><div class="kpi-value" style="color:#d97706">2</div><div class="kpi-label">Vencimentos</div></div>
         </div>
-        <div class="empty-day"><div class="ei">📭</div>Me peça no Cowork:<br><strong>"monta minha agenda de hoje"</strong></div>
+        <div class="empty-day"><div class="ei">📭</div>Nenhum evento hoje<br><span style="font-size:11.5px;color:var(--text-faint);">Aproveita pra descansar — ou me pede pra encaixar algo</span></div>
       </div>
     </section>
 
@@ -383,12 +545,40 @@ table.data-table tr:hover td { background: var(--bg); }
       </div>
     </section>
 
-    <!-- EM BRANCO -->
-    <section id="extras" class="section">
-      <div class="section-header"><div class="section-title">✨ Em branco</div><div class="section-subtitle">Me diz o que vai aqui</div></div>
-      <div class="section-body" style="text-align:center;padding-top:80px;color:var(--text-faint);">
-        <div style="font-size:48px;margin-bottom:16px;">🌱</div>
-        <div style="font-size:15px;font-weight:650;color:var(--text-dim);margin-bottom:8px;">Seção em branco</div>
+    <!-- SOBRE MIM -->
+    <section id="sobre" class="section">
+      <div class="section-header">
+        <div class="section-title">🪪 Sobre mim</div>
+        <div class="section-subtitle">O que o Claude sabe de você — você é o editor-chefe</div>
+      </div>
+      <div class="section-body">
+        <div id="propostasBanner" class="propostas-banner" style="display:none;">
+          <div class="pb-text"><span id="propostasCount">0</span> proposta(s) pendente(s) de aprovação</div>
+          <button class="pb-btn" onclick="document.getElementById('propostasList').scrollIntoView({behavior:'smooth'})">Ver</button>
+        </div>
+        <div id="propostasList"></div>
+        <div id="contextoList"></div>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section id="chat" class="section">
+      <div class="section-header">
+        <div class="section-title">💬 Chat</div>
+        <div class="section-subtitle">Conversa com o Claude — modifica o roadmap em tempo real</div>
+      </div>
+      <div id="chatBody" class="chat-body">
+        <div id="chatMessages" class="chat-messages">
+          <div class="chat-empty">
+            <div style="font-size:32px;margin-bottom:8px;">👋</div>
+            <div style="font-size:14px;color:var(--text-dim);">Manda uma mensagem. Por enquanto é só conversa — nas próximas fases ele vai poder mexer no roadmap direto daqui.</div>
+          </div>
+        </div>
+        <form id="chatForm" class="chat-input-row">
+          <textarea id="chatInput" class="chat-input" rows="1" placeholder="Digite e Enter pra enviar (Shift+Enter pra quebrar linha)" autocomplete="off"></textarea>
+          <button type="submit" id="chatSend" class="chat-send">Enviar</button>
+        </form>
+        <div id="chatStatus" class="chat-status"></div>
       </div>
     </section>
 
@@ -397,6 +587,85 @@ table.data-table tr:hover td { background: var(--bg); }
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+// ── AUTH (Fase 3) ── Verifica login antes de renderizar o hub.
+const SUPABASE_URL  = 'https://bpyoaxdmejnnyixrjxel.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1';
+const ALLOWED_EMAIL = 'eduardo.romanobispo@gmail.com';
+
+window.sbClient = (typeof supabase !== 'undefined')
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } })
+  : null;
+
+(async function bootstrapAuth() {
+  const overlay = document.getElementById('loginOverlay');
+  const form    = document.getElementById('loginForm');
+  const emailIn = document.getElementById('loginEmail');
+  const btn     = document.getElementById('loginBtn');
+  const status  = document.getElementById('loginStatus');
+  if (!window.sbClient) {
+    overlay.style.display = 'flex';
+    status.textContent = 'Erro: Supabase não carregou.';
+    status.className = 'login-status error';
+    return;
+  }
+
+  function mostrarHub() {
+    overlay.style.display = 'none';
+    document.querySelector('.layout').style.display = '';
+  }
+  function mostrarLogin() {
+    overlay.style.display = 'flex';
+    document.querySelector('.layout').style.display = 'none';
+  }
+
+  // Detecta callback do magic link (Supabase coloca o token no hash da URL).
+  // O cliente JS já processa automaticamente.
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (session?.user?.email === ALLOWED_EMAIL) {
+    mostrarHub();
+  } else if (session) {
+    // Logado mas não é o Eduardo
+    await window.sbClient.auth.signOut();
+    mostrarLogin();
+    status.textContent = 'Acesso restrito a Eduardo Bispo.';
+    status.className = 'login-status error';
+  } else {
+    mostrarLogin();
+  }
+
+  // Reage a mudanças de auth (login feito, logout, etc.)
+  window.sbClient.auth.onAuthStateChange((event, sess) => {
+    if (event === 'SIGNED_IN' && sess?.user?.email === ALLOWED_EMAIL) {
+      mostrarHub();
+      // Recarrega pra inicializar tudo com a sessão válida.
+      location.reload();
+    } else if (event === 'SIGNED_OUT') {
+      location.reload();
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = emailIn.value.trim();
+    if (!email) return;
+    btn.disabled = true;
+    status.textContent = 'Enviando link...';
+    status.className = 'login-status';
+    const { error } = await window.sbClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href }
+    });
+    if (error) {
+      status.textContent = 'Erro: ' + error.message;
+      status.className = 'login-status error';
+      btn.disabled = false;
+    } else {
+      status.textContent = 'Link enviado! Confere seu email e clica no link pra entrar.';
+      status.className = 'login-status ok';
+    }
+  });
+})();
+
 // ── CALENDÁRIO
 // CALENDAR_EVENTS_START
 // Estrutura de um evento:
@@ -406,7 +675,7 @@ table.data-table tr:hover td { background: var(--bg); }
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-04-25 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-04-26 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'planned', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG',  m:1.03, pos:'bot', status:'planned', cal:'Tarefas pessoais' },
@@ -850,15 +1119,13 @@ document.getElementById('rmZoomLabel') && (document.getElementById('rmZoomLabel'
 buildAxis();
 buildRoadmap();
 
-// ── SUPABASE em segundo plano
+// ── SUPABASE em segundo plano (só após auth)
 (async () => {
   try {
-    if (typeof supabase === 'undefined') return;
-    const { createClient } = supabase;
-    const sb = createClient(
-      'https://bpyoaxdmejnnyixrjxel.supabase.co',
-      'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1'
-    );
+    if (!window.sbClient) return;
+    const sb = window.sbClient;
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return; // sem login, não tenta carregar — o overlay tá cobrindo.
     const { data: row, error } = await sb.from('roadmap').select('data').eq('id','main').single();
     if (error) return;
     if (!row.data || Object.keys(row.data).length === 0) {
@@ -874,6 +1141,343 @@ buildRoadmap();
       if (r?.data?.areas) { DATA = r.data.areas; CALENDAR_EVENTS = r.data.calendar_events||[]; document.getElementById('rmBody').innerHTML=''; buildAxis(); buildRoadmap(); }
     }).subscribe();
   } catch(e) { console.warn('Supabase:', e.message); }
+})();
+
+// ── SOBRE MIM (Fase 1.5: contexto compartilhado entre Cowork e hub)
+const SOBRE_CATEGORIAS = [
+  { id: 'perfil',      label: 'Perfil' },
+  { id: 'preferencia', label: 'Preferências' },
+  { id: 'projeto',     label: 'Projetos ativos' },
+  { id: 'decisao',     label: 'Decisões recentes' },
+  { id: 'referencia',  label: 'Referências' },
+  { id: 'outro',       label: 'Outros' },
+];
+
+(async function setupSobreMim() {
+  const list      = document.getElementById('contextoList');
+  const propList  = document.getElementById('propostasList');
+  const banner    = document.getElementById('propostasBanner');
+  const badge     = document.getElementById('sobreBadge');
+  const counter   = document.getElementById('propostasCount');
+  if (!list) return;
+  if (!window.sbClient) {
+    list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-faint)">Supabase não conectou.</div>';
+    return;
+  }
+
+  // Espera a auth resolver antes de tentar carregar dados (RLS exige JWT).
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (!session) return;
+
+  const sb = window.sbClient;
+
+  function escapeHtml(s) {
+    return (s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // ── Render dos itens aprovados ──
+  async function renderContexto() {
+    const { data, error } = await sb.from('contexto_pessoal').select('*').order('categoria').order('ordem');
+    if (error) {
+      list.innerHTML = '<div style="padding:20px;color:#dc2626">Erro ao carregar: ' + escapeHtml(error.message) + '</div>';
+      return;
+    }
+    const grupos = {};
+    (data || []).forEach(item => {
+      if (!grupos[item.categoria]) grupos[item.categoria] = [];
+      grupos[item.categoria].push(item);
+    });
+
+    let html = '';
+    for (const cat of SOBRE_CATEGORIAS) {
+      const itens = grupos[cat.id] || [];
+      if (itens.length === 0 && cat.id !== 'perfil' && cat.id !== 'preferencia' && cat.id !== 'projeto') continue;
+      html += `<div class="contexto-grupo" data-cat="${cat.id}">
+        <div class="cg-header">
+          <div class="cg-title">${cat.label}</div>
+          <button class="cg-add" data-cat="${cat.id}">+ adicionar</button>
+        </div>`;
+      itens.forEach(item => {
+        html += `<div class="contexto-item" data-id="${item.id}">
+          <div class="ci-display">
+            <div class="ci-titulo">${escapeHtml(item.titulo)}</div>
+            <div class="ci-conteudo">${escapeHtml(item.conteudo)}</div>
+            <div class="ci-toolbar">
+              <button class="ci-btn ci-edit-trigger">✏️ editar</button>
+              <button class="ci-btn danger ci-delete-trigger">🗑️ excluir</button>
+            </div>
+          </div>
+          <div class="ci-edit">
+            <input type="text" class="ci-titulo-input" value="${escapeHtml(item.titulo)}" />
+            <textarea class="ci-conteudo-input" rows="4">${escapeHtml(item.conteudo)}</textarea>
+            <div class="ci-edit-actions">
+              <button class="ci-edit-save">Salvar</button>
+              <button class="ci-edit-cancel">Cancelar</button>
+            </div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    list.innerHTML = html;
+    bindContextoActions();
+  }
+
+  function bindContextoActions() {
+    list.querySelectorAll('.ci-edit-trigger').forEach(btn => {
+      btn.onclick = () => btn.closest('.contexto-item').classList.add('editing');
+    });
+    list.querySelectorAll('.ci-edit-cancel').forEach(btn => {
+      btn.onclick = () => { btn.closest('.contexto-item').classList.remove('editing'); renderContexto(); };
+    });
+    list.querySelectorAll('.ci-edit-save').forEach(btn => {
+      btn.onclick = async () => {
+        const item = btn.closest('.contexto-item');
+        const id = item.dataset.id;
+        const titulo = item.querySelector('.ci-titulo-input').value.trim();
+        const conteudo = item.querySelector('.ci-conteudo-input').value.trim();
+        if (!titulo || !conteudo) return alert('Título e conteúdo são obrigatórios');
+        const { error } = await sb.from('contexto_pessoal').update({ titulo, conteudo, fonte: 'eduardo' }).eq('id', id);
+        if (error) return alert('Erro: ' + error.message);
+        await renderContexto();
+      };
+    });
+    list.querySelectorAll('.ci-delete-trigger').forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm('Excluir esta memória? Não dá pra desfazer.')) return;
+        const id = btn.closest('.contexto-item').dataset.id;
+        const { error } = await sb.from('contexto_pessoal').delete().eq('id', id);
+        if (error) return alert('Erro: ' + error.message);
+        await renderContexto();
+      };
+    });
+    list.querySelectorAll('.cg-add').forEach(btn => {
+      btn.onclick = async () => {
+        const cat = btn.dataset.cat;
+        const titulo = prompt('Título da memória:');
+        if (!titulo) return;
+        const conteudo = prompt('Conteúdo:');
+        if (!conteudo) return;
+        const { error } = await sb.from('contexto_pessoal').insert({ categoria: cat, titulo, conteudo, fonte: 'eduardo' });
+        if (error) return alert('Erro: ' + error.message);
+        await renderContexto();
+      };
+    });
+  }
+
+  // ── Render das propostas pendentes ──
+  async function renderPropostas() {
+    const { data, error } = await sb.from('contexto_propostas').select('*').eq('status', 'pendente').order('created_at', { ascending: false });
+    if (error) { console.warn('propostas:', error); return; }
+    const propostas = data || [];
+    counter.textContent = propostas.length;
+    if (propostas.length > 0) {
+      banner.style.display = 'flex';
+      badge.style.display = 'inline-block';
+      badge.textContent = propostas.length;
+    } else {
+      banner.style.display = 'none';
+      badge.style.display = 'none';
+    }
+
+    propList.innerHTML = propostas.map(p => `
+      <div class="proposta-card" data-id="${p.id}">
+        <div class="pc-meta">
+          <span class="pc-pill">${p.categoria}</span>
+          <span>via ${p.fonte}</span>
+          <span style="margin-left:auto">${new Date(p.created_at).toLocaleString('pt-BR')}</span>
+        </div>
+        <div class="pc-titulo">${escapeHtml(p.titulo)}</div>
+        <div class="pc-conteudo">${escapeHtml(p.conteudo)}</div>
+        <div class="pc-acoes">
+          <button class="pc-btn aprovar"  data-action="aprovar"  data-id="${p.id}">✓ Aprovar</button>
+          <button class="pc-btn rejeitar" data-action="rejeitar" data-id="${p.id}">✕ Rejeitar</button>
+        </div>
+      </div>`).join('');
+
+    propList.querySelectorAll('.pc-btn').forEach(btn => {
+      btn.onclick = () => decidirProposta(btn.dataset.id, btn.dataset.action);
+    });
+  }
+
+  async function decidirProposta(id, acao) {
+    const { data: prop, error: e1 } = await sb.from('contexto_propostas').select('*').eq('id', id).single();
+    if (e1) return alert('Erro: ' + e1.message);
+
+    if (acao === 'aprovar') {
+      const { error: e2 } = await sb.from('contexto_pessoal').insert({
+        categoria: prop.categoria, titulo: prop.titulo, conteudo: prop.conteudo, fonte: prop.fonte,
+      });
+      if (e2) return alert('Erro ao aprovar: ' + e2.message);
+    }
+    await sb.from('contexto_propostas').update({ status: acao === 'aprovar' ? 'aprovada' : 'rejeitada', decided_at: new Date().toISOString() }).eq('id', id);
+    await renderPropostas();
+    await renderContexto();
+  }
+
+  // ── Realtime ──
+  sb.channel('ctx-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'contexto_pessoal'   }, () => renderContexto())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'contexto_propostas' }, () => renderPropostas())
+    .subscribe();
+
+  await renderContexto();
+  await renderPropostas();
+})();
+
+// ── CHAT (Fase 1: sem streaming, sem tools)
+// Aponta para a Edge Function chat-claude no projeto Supabase.
+const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/chat-claude';
+
+(function setupChat() {
+  const form    = document.getElementById('chatForm');
+  const input   = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSend');
+  const list    = document.getElementById('chatMessages');
+  const status  = document.getElementById('chatStatus');
+  if (!form) return;
+
+  // Histórico em memória (vai pra Supabase em fases futuras).
+  const history = [];
+
+  function addBubble(role, text, opts = {}) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg ' + role + (opts.thinking ? ' thinking' : '');
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    // Remove o estado vazio na primeira mensagem.
+    const empty = list.querySelector('.chat-empty');
+    if (empty) empty.remove();
+    list.appendChild(wrap);
+    list.scrollTop = list.scrollHeight;
+    return bubble;
+  }
+
+  function setStatus(text, isError = false) {
+    status.textContent = text;
+    status.classList.toggle('error', !!isError);
+  }
+
+  // Auto-resize do textarea conforme digita.
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+  });
+
+  // Enter envia, Shift+Enter quebra linha.
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+
+    addBubble('user', text);
+    history.push({ role: 'user', content: text });
+    input.value = '';
+    input.style.height = 'auto';
+
+    sendBtn.disabled = true;
+    setStatus('Claude está pensando...');
+    const replyBubble = addBubble('assistant', '', { thinking: true });
+    let acumulado = '';
+
+    try {
+      const { data: { session } } = await window.sbClient.auth.getSession();
+      if (!session) throw new Error('Sessão expirou. Recarrega a página e faça login.');
+      const resp = await fetch(CHAT_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'accept': 'text/event-stream',
+          'authorization': 'Bearer ' + session.access_token,
+        },
+        body: JSON.stringify({ messages: history, stream: true }),
+      });
+
+      if (!resp.ok) {
+        let err = {};
+        try { err = await resp.json(); } catch {}
+        throw new Error(err.error || ('HTTP ' + resp.status));
+      }
+
+      // Lê o stream SSE — separando por evento completo (\n\n).
+      if (!resp.body) throw new Error('Sem body de resposta');
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let primeiroChunk = true;
+
+      function processarEvento(evento) {
+        // Um evento SSE pode ter linhas "event: X" e "data: Y".
+        // Só me interessa a linha de data.
+        const linhas = evento.split('\n');
+        let dataStr = '';
+        for (const l of linhas) {
+          if (l.startsWith('data:')) {
+            dataStr += l.slice(5).replace(/^ /, '');
+          }
+        }
+        if (!dataStr) return;
+        let evt;
+        try {
+          evt = JSON.parse(dataStr);
+        } catch (e) {
+          console.warn('[chat] payload não-JSON ignorado:', dataStr.slice(0, 100));
+          return;
+        }
+        if (evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
+          if (primeiroChunk) {
+            replyBubble.parentElement.classList.remove('thinking');
+            setStatus('');
+            primeiroChunk = false;
+          }
+          acumulado += evt.delta.text;
+          replyBubble.textContent = acumulado;
+          list.scrollTop = list.scrollHeight;
+        } else if (evt.type === 'error') {
+          const msg = (evt.error && evt.error.message) || 'Erro da Anthropic';
+          throw new Error(msg);
+        }
+        // outros tipos (message_start, ping, content_block_stop, message_stop, etc.) ignorados
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Eventos SSE são separados por linha em branco — pode ser \n\n ou \r\n\r\n.
+        const eventos = buffer.split(/\n\n|\r\n\r\n/);
+        buffer = eventos.pop() || '';
+        for (const ev of eventos) {
+          if (ev.trim()) processarEvento(ev);
+        }
+      }
+      // Processa qualquer evento residual no buffer.
+      if (buffer.trim()) processarEvento(buffer);
+
+      if (!acumulado) acumulado = '(resposta vazia)';
+      replyBubble.parentElement.classList.remove('thinking');
+      replyBubble.textContent = acumulado;
+      history.push({ role: 'assistant', content: acumulado });
+    } catch (err) {
+      replyBubble.parentElement.classList.remove('thinking');
+      replyBubble.textContent = 'Erro: ' + err.message;
+      setStatus('Falha ao chamar a Edge Function. Veja o console (F12).', true);
+      console.error('[chat] erro:', err);
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  });
 })();
 </script>
 <!-- hidden zoom controls for JS refs -->
