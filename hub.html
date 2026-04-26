@@ -1421,14 +1421,13 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       let primeiroChunk = true;
 
       function processarEvento(evento) {
-        // Um evento SSE pode ter linhas "event: X" e "data: Y".
-        // Só me interessa a linha de data.
+        // Cada evento SSE pode ter "event: X" e "data: Y".
         const linhas = evento.split('\n');
         let dataStr = '';
+        let evType = '';
         for (const l of linhas) {
-          if (l.startsWith('data:')) {
-            dataStr += l.slice(5).replace(/^ /, '');
-          }
+          if (l.startsWith('event:')) evType = l.slice(6).trim();
+          else if (l.startsWith('data:')) dataStr += l.slice(5).replace(/^ /, '');
         }
         if (!dataStr) return;
         let evt;
@@ -1438,6 +1437,18 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
           console.warn('[chat] payload não-JSON ignorado:', dataStr.slice(0, 100));
           return;
         }
+
+        // Eventos custom da Edge Function pra status de tools
+        if (evType === 'hub_tool_start' || evt.__hub === 'tool_start') {
+          mostrarToolStatus(evt);
+          return;
+        }
+        if (evType === 'hub_tool_done' || evt.__hub === 'tool_done') {
+          esconderToolStatus(evt);
+          return;
+        }
+        if (evType === 'hub_warning') return;
+
         if (evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
           if (primeiroChunk) {
             replyBubble.parentElement.classList.remove('thinking');
@@ -1447,11 +1458,34 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
           acumulado += evt.delta.text;
           replyBubble.textContent = acumulado;
           list.scrollTop = list.scrollHeight;
+        } else if (evt.type === 'message_start') {
+          // novo turno (pode ser depois de tool_use) — começa nova bolha se já tem texto
+          if (acumulado && evType !== 'message_start') {
+            // mantém bolha atual
+          }
         } else if (evt.type === 'error') {
           const msg = (evt.error && evt.error.message) || 'Erro da Anthropic';
           throw new Error(msg);
         }
-        // outros tipos (message_start, ping, content_block_stop, message_stop, etc.) ignorados
+        // outros tipos ignorados (ping, content_block_stop, message_stop)
+      }
+
+      function mostrarToolStatus(evt) {
+        const labels = {
+          update_roadmap_status: '⚙️ Modificando roadmap...',
+          propor_memoria: '💭 Propondo memória...',
+        };
+        setStatus(labels[evt.name] || ('Executando ' + evt.name + '...'));
+      }
+      function esconderToolStatus(evt) {
+        try {
+          const r = JSON.parse(evt.result || '{}');
+          if (r.error) setStatus('⚠️ Tool falhou: ' + r.error, true);
+          else setStatus('✓ Tool concluída');
+        } catch {
+          setStatus('');
+        }
+        setTimeout(() => setStatus(''), 2500);
       }
 
       while (true) {
