@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub — Eduardo</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --sidebar-w: 200px;
+  --sidebar-bg: #e9e6f2;
+  --sidebar-hover: #dddae8;
+  --sidebar-active: #d0cce4;
+  --sidebar-text: #3b3553;
+  --sidebar-dim: #7a738f;
+  --bg: #f5f4f9;
+  --card: #ffffff;
+  --border: #dddae8;
+  --border-soft: #ede9f5;
+  --text: #1a1828;
+  --text-dim: #6b637a;
+  --text-faint: #a89eb8;
+  --accent: #5b4fcf;
+  --now: #7c3aed;
+  --done: #16a34a;
+}
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif;
+  font-size: 22px;
+  background: var(--bg); color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LAYOUT ── */
+.layout { display: flex; height: 100vh; }
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--sidebar-bg);
+  display: flex; flex-direction: column;
+  overflow-y: auto; user-select: none; padding-bottom: 16px;
+}
+.main {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  background: var(--card);
+  box-shadow: -4px 0 24px rgba(30,20,60,.08);
+}
+
+/* ── SIDEBAR ── */
+.sidebar-header { padding: 20px 14px 10px; }
+.sidebar-app-name { font-size: 15px; font-weight: 750; color: var(--sidebar-text); letter-spacing: -.02em; margin-bottom: 2px; }
+.sidebar-app-sub  { font-size: 10.5px; color: var(--sidebar-dim); }
+.sidebar-section  { padding: 10px 8px 2px; }
+.sidebar-section-label { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: var(--sidebar-dim); padding: 0 8px; margin-bottom: 4px; opacity: .7; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 8px; cursor: pointer; transition: background .12s; margin-bottom: 1px; }
+.nav-item:hover { background: var(--sidebar-hover); }
+.nav-item.active { background: var(--sidebar-active); box-shadow: inset 0 1px 0 rgba(255,255,255,.3); }
+.nav-item .ni-icon { font-size: 15px; flex-shrink: 0; }
+.nav-item .ni-text { font-size: 13px; font-weight: 500; color: var(--sidebar-text); flex: 1; }
+.nav-item.active .ni-text { font-weight: 650; color: #2d2460; }
+.nav-item .ni-badge { font-size: 9px; font-weight: 800; padding: 1.5px 6px; border-radius: 999px; flex-shrink: 0; }
+.badge-red    { background: #fee2e2; color: #dc2626; }
+.badge-yellow { background: #fef9c3; color: #a16207; }
+.sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
+.sidebar-footer { margin-top: auto; padding: 12px 16px 0; font-size: 10px; color: var(--sidebar-dim); line-height: 1.6; opacity: .7; }
+
+/* ── SECTIONS ── */
+.section { display: none; }
+.section.active { display: block; }
+.section-header { padding: 28px 32px 18px; border-bottom: 1px solid var(--border-soft); }
+.section-title    { font-size: 24px; font-weight: 750; letter-spacing: -.03em; margin-bottom: 4px; }
+.section-subtitle { font-size: 12.5px; color: var(--text-dim); }
+.section-body { padding: 20px 32px 60px; }
+
+/* ── KPIs ── */
+.kpi-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.kpi { flex: 1; min-width: 120px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px; }
+.kpi-value { font-size: 24px; font-weight: 800; letter-spacing: -.04em; }
+.kpi-label { font-size: 10.5px; color: var(--text-dim); font-weight: 600; margin-top: 2px; }
+
+/* ── TABLES ── */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }
+table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data-table th { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); padding: 8px 10px; border-bottom: 1px solid var(--border); }
+table.data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+table.data-table tr:last-child td { border-bottom: none; }
+table.data-table tr:hover td { background: var(--bg); }
+.pill { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; padding: 2px 8px; border-radius: 999px; }
+
+/* ── AGENDA ── */
+.timeline { position: relative; padding-left: 56px; }
+.timeline::before { content: ''; position: absolute; left: 36px; top: 4px; bottom: 4px; width: 1px; background: var(--border); }
+.event-block { position: relative; margin-bottom: 10px; padding: 10px 14px; border-radius: 10px; border-left: 3px solid; background: var(--bg); }
+.event-block::before { content: ''; position: absolute; left: -23px; top: 50%; transform: translateY(-50%); width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.event-time { position: absolute; left: -54px; top: 50%; transform: translateY(-50%); font-size: 9.5px; font-weight: 700; color: var(--text-faint); width: 30px; text-align: right; }
+.event-title { font-size: 13px; font-weight: 600; }
+.event-cal   { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.empty-day   { text-align: center; padding: 56px 24px; color: var(--text-faint); font-size: 13px; }
+.empty-day .ei { font-size: 36px; margin-bottom: 12px; }
+
+/* ── FLUXOGRAMAS ── */
+.flow-placeholder { border: 1.5px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; color: var(--text-faint); margin-bottom: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+.flow-placeholder:hover { border-color: var(--accent); background: #faf9ff; }
+.flow-placeholder .fp-icon  { font-size: 28px; margin-bottom: 8px; }
+.flow-placeholder .fp-title { font-size: 13.5px; font-weight: 650; color: var(--text-dim); margin-bottom: 3px; }
+.flow-placeholder .fp-sub   { font-size: 11.5px; }
+
+/* ── SETUP ── */
+.setup-grid { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+.setup-group { flex: 1; min-width: 260px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.setup-group-header { padding: 9px 14px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: var(--text-dim); background: var(--border-soft); border-bottom: 1px solid var(--border); }
+.setup-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--border-soft); font-size: 12.5px; }
+.setup-row:last-child { border-bottom: none; }
+.setup-row .sr-icon   { font-size: 15px; flex-shrink: 0; }
+.setup-row .sr-name   { flex: 1; font-weight: 600; color: var(--text); }
+.setup-row .sr-status { font-size: 10px; font-weight: 700; flex-shrink: 0; }
+
+/* ── ROADMAP ── */
+.rm-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.rm-inner { position: relative; }
+
+.rm-axis-row {
+  height: 44px; margin-left: 220px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--card); z-index: 20;
+  position: relative;
+}
+.rm-axis-label {
+  position: absolute; top: 0; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  transform: translateX(-50%); pointer-events: none; white-space: nowrap;
+}
+.rm-axis-label .ax-main { font-size: 11px; font-weight: 700; color: var(--text-dim); line-height: 1; }
+.rm-axis-label .ax-sub  { font-size: 8px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: .06em; line-height: 1; }
+.rm-axis-label::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 1px; height: 6px; background: var(--border); }
+.rm-axis-label.now .ax-main { color: #fff; background: var(--now); border-radius: 6px; padding: 1px 6px; }
+.rm-axis-label.now .ax-sub  { color: var(--now); }
+.rm-axis-label.now::after   { background: var(--now); height: 8px; width: 2px; border-radius: 1px; }
+.rm-axis-label.weekend .ax-main { color: var(--text-faint); }
+
+/* linha de hoje */
+#rmTodayLine { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(124,58,237,0.35); pointer-events: none; z-index: 20; }
+
+/* corner shield */
+.rm-corner { position: sticky; left: 0; top: 0; width: 220px; height: 44px; background: var(--card); z-index: 26; border-right: 1px solid var(--border-soft); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 12px; gap: 8px; float: left; margin-bottom: -44px; }
+.rm-corner-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); flex: 1; }
+
+.rm-area-block { border-bottom: 1px solid var(--border-soft); position: relative; }
+.rm-area-block:last-child { border-bottom: none; }
+
+/* ÁREA header (sem barra) */
+.rm-area-header { display: flex; align-items: center; cursor: pointer; user-select: none; border-left: 3px solid transparent; transition: background .12s; }
+.rm-area-header:hover { background: var(--bg); }
+.rm-area-header .rmah-left { display: flex; align-items: center; gap: 9px; width: 220px; flex-shrink: 0; padding: 10px 12px 10px 26px; border-right: 1px solid var(--border-soft); position: sticky; left: 0; z-index: 25; box-shadow: 2px 0 6px rgba(30,20,60,.06); }
+.rm-area-header .rmah-chips { flex: 1; display: flex; gap: 7px; flex-wrap: wrap; align-items: center; padding: 8px 18px 8px 14px; position: relative; z-index: 4; }
+.rm-area-chip { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.rm-level-badge {
+  font-size: 9px; font-weight: 900;
+  width: 16px; height: 16px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: absolute; left: 5px; top: 50%; transform: translateY(-50%);
+}
+
+.rm-icon-area   { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
+.rm-icon-sub    { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
+.rm-icon-subsub { width: 17px; height: 17px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; border: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
+.rm-icon-level4 { width: 17px; height: 17px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; border: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
+.rm-level4-name { font-size: 10.5px; font-weight: 720; color: var(--text-dim); }
+.rm-level4-pct {
+  font-size: 9px; font-weight: 800;
+  padding: 1px 6px; border-radius: 999px;
+  display: inline-block; margin-top: 2px;
+}
+
+.rm-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.rm-area-name   { font-size: 13px; font-weight: 800; color: var(--text); }
+.rm-sub-name    { font-size: 12px; font-weight: 780; color: var(--text); }
+.rm-subsub-name { font-size: 11px; font-weight: 750; color: var(--text-dim); }
+.rm-badge { font-size: 8.5px; padding: 2px 6px; border-radius: 999px; font-weight: 750; letter-spacing: .03em; text-transform: uppercase; display: inline-block; width: fit-content; }
+.rm-chevron { font-size: 13px; color: var(--text-faint); flex-shrink: 0; transition: transform .25s cubic-bezier(.4,0,.2,1); margin-left: 2px; }
+.rm-area-header.open .rm-chevron, .rm-row.open > .rm-left .rm-chevron { transform: rotate(90deg); color: var(--accent); }
+
+.rm-row { display: flex; align-items: stretch; }
+.rm-row-sub    { min-height: 60px; border-bottom: 1px solid var(--border-soft); }
+.rm-row-subsub { min-height: 48px; border-bottom: 1px solid var(--border-soft); }
+.rm-row-level4 { min-height: 36px; border-bottom: 1px solid var(--border-soft); }
+.rm-row-sub.hassubs { cursor: pointer; transition: background .12s; }
+.rm-row-sub.hassubs:hover { background: var(--bg); }
+.rm-row-sub.hassubs:hover .rm-left { background: var(--bg); }
+
+.rm-left { flex-shrink: 0; width: 220px; display: flex; align-items: center; gap: 8px; border-right: 1px solid var(--border-soft); position: sticky; left: 0; z-index: 25; background: var(--card); box-shadow: 2px 0 6px rgba(30,20,60,.06); overflow: visible; }
+.rm-left.sub-left      { padding: 8px 10px 8px 40px; }
+.rm-left.subsub-left   { padding: 6px 10px 6px 64px; }
+.rm-left.level4-left   { padding: 5px 10px 5px 88px; }
+.sub-left::before      { content:''; position:absolute; left:24px; top:0; bottom:0; width:1px; background:var(--border); }
+.sub-left.last::before { bottom:50%; }
+.sub-left::after       { content:''; position:absolute; left:24px; top:50%; width:10px; height:1px; background:var(--border); }
+.subsub-left::before   { content:''; position:absolute; left:48px; top:0; bottom:0; width:1px; background:var(--border); }
+.subsub-left.last::before { bottom:50%; }
+.subsub-left::after    { content:''; position:absolute; left:48px; top:50%; width:10px; height:1px; background:var(--border); }
+.level4-left::before   { content:''; position:absolute; left:72px; top:0; bottom:0; width:1px; background:var(--border); }
+.level4-left.last::before { bottom:50%; }
+.level4-left::after    { content:''; position:absolute; left:72px; top:50%; width:10px; height:1px; background:var(--border); }
+
+.rm-track { flex: 1; position: relative; padding-right: 20px; display: flex; align-items: center; z-index: 4; }
+.rm-bar { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 999px; transition: filter .15s; }
+.rm-bar:hover { filter: brightness(1.06); }
+.rm-bar-area   { height: 22px; }
+.rm-bar-sub    { height: 14px; }
+.rm-bar-subsub { height: 9px; }
+
+.rm-ms { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 10; }
+.rm-ms-dot { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; transition: transform .15s; }
+.rm-ms:hover .rm-ms-dot { transform: scale(1.15); }
+.rm-ms.done .rm-ms-dot { background: #fff; }
+.rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
+.rm-ms-label {
+  white-space: nowrap;
+  position: absolute; left: 50%; transform: translateX(-50%);
+  pointer-events: none;
+  background: #1a1828;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  opacity: 0;
+  transition: opacity .15s;
+  z-index: 100;
+  min-width: 140px;
+}
+.rm-ms-label .tt-parent {
+  font-size: 9px; color: rgba(255,255,255,.45);
+  text-transform: uppercase; letter-spacing: .08em;
+  font-weight: 800; margin-bottom: 4px;
+}
+.rm-ms-label .tt-title {
+  font-size: 13px; font-weight: 700; color: #fff;
+  margin-bottom: 7px;
+}
+.rm-ms-label .tt-meta {
+  display: flex; align-items: center; gap: 6px;
+}
+.rm-ms-label .tt-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.rm-ms-label .tt-date {
+  font-size: 11px; color: rgba(255,255,255,.5);
+}
+.rm-ms-label.top { bottom: calc(100% + 10px); }
+.rm-ms-label.bot { bottom: calc(100% + 10px); top: auto; }
+.rm-ms:hover .rm-ms-label { opacity: 1; }
+
+.rm-subs-container    { display: none; }
+.rm-subs-container.open    { display: block; }
+.rm-subsubs-container { display: none; }
+.rm-subsubs-container.open { display: block; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-app-name">🏠 Eduardo</div>
+      <div class="sidebar-app-sub">Hub pessoal · 2026</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Principal</div>
+      <div class="nav-item active" data-sec="roadmap"><span class="ni-icon">🗺️</span><span class="ni-text">Roadmap</span><span class="ni-badge badge-red">Urgente</span></div>
+      <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span></div>
+      <div class="nav-item" data-sec="financas"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span class="ni-badge badge-red">!</span></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Ferramentas</div>
+      <div class="nav-item" data-sec="fluxogramas"><span class="ni-icon">🔀</span><span class="ni-text">Fluxogramas</span></div>
+      <div class="nav-item" data-sec="setup"><span class="ni-icon">🤖</span><span class="ni-text">Setup</span></div>
+      <div class="nav-item" data-sec="extras"><span class="ni-icon">✨</span><span class="ni-text">Em branco</span></div>
+    </div>
+    <div class="sidebar-footer">Atualizado pelo assistente<br>Refresh para ver mudanças</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ROADMAP -->
+    <section id="roadmap" class="section active">
+      <div class="section-header">
+        <div class="section-title">🗺️ Roadmap de Vida</div>
+        <div class="section-subtitle">5 áreas · Trabalho · Finanças · Saúde · Rotina · Pessoal</div>
+      </div>
+      <div style="padding-bottom:60px;">
+        <div class="rm-wrap" id="rmWrap">
+          <div class="rm-inner" id="rmInner">
+            <div class="rm-corner">
+              <span class="rm-corner-label">Mar 2026 →</span>
+              <button id="rmToggleAll" title="Abrir / colapsar tudo" style="flex-shrink:0;padding:2px 8px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--text-dim);font-size:10px;font-weight:700;cursor:pointer;line-height:1;">↕</button>
+            </div>
+            <div id="rmTodayLine"></div>
+            <div class="rm-axis-row" id="rmAxis" style="margin-left:220px;"></div>
+            <div id="rmBody"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AGENDA -->
+    <section id="agenda" class="section">
+      <div class="section-header"><div class="section-title">📅 Agenda</div><div class="section-subtitle">Atualizado automaticamente às 8h</div></div>
+      <div class="section-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" style="color:#7c3aed">0</div><div class="kpi-label">Eventos hoje</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#2563eb">0</div><div class="kpi-label">Esta semana</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#d97706">2</div><div class="kpi-label">Vencimentos</div></div>
+        </div>
+        <div class="empty-day"><div class="ei">📭</div>Me peça no Cowork:<br><strong>"monta minha agenda de hoje"</strong></div>
+      </div>
+    </section>
+
+    <!-- FINANÇAS -->
+    <section id="financas" class="section">
+      <div class="section-header"><div class="section-title">💰 Finanças</div><div class="section-subtitle">Status financeiro · Abril 2026</div></div>
+      <div class="section-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" style="color:#ef4444">2</div><div class="kpi-label">Urgências hoje</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#d97706">⚠️</div><div class="kpi-label">Reserva &lt; 3 meses</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#16a34a">✓</div><div class="kpi-label">Dívidas controláveis</div></div>
+        </div>
+        <div class="card" style="border-left:3px solid #ef4444;margin-bottom:18px;">
+          <div style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#ef4444;margin-bottom:6px;">🔴 Urgente — hoje</div>
+          <div style="font-size:13px;">Cabesp + MEI vencem hoje, 20/abr.</div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Item</th><th>Status</th><th>Prazo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Cabesp + MEI</strong></td><td><span class="pill" style="background:#fee2e2;color:#dc2626;">🔴 Urgente</span></td><td>20/abr</td></tr>
+            <tr><td><strong>Dívidas pequenas</strong></td><td><span class="pill" style="background:#dcfce7;color:#16a34a;">🟢 Controlável</span></td><td>Jul/26</td></tr>
+            <tr><td><strong>Reserva emergência</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Set/26</td></tr>
+            <tr><td><strong>Investir (6m+)</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Dez/26</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FLUXOGRAMAS -->
+    <section id="fluxogramas" class="section">
+      <div class="section-header"><div class="section-title">🔀 Fluxogramas</div><div class="section-subtitle">Processos de decisão</div></div>
+      <div class="section-body">
+        <div class="flow-placeholder"><div class="fp-icon">💼</div><div class="fp-title">Fluxo da Recolocação</div><div class="fp-sub">Mandei currículo → tive retorno? → entrevista ou follow-up</div></div>
+        <div class="flow-placeholder"><div class="fp-icon">💰</div><div class="fp-title">Fluxo Financeiro</div><div class="fp-sub">Recebi salário → pagar fixos → sobrou? → reserva</div></div>
+        <div class="flow-placeholder"><div class="fp-icon">☀️</div><div class="fp-title">Fluxo da Rotina</div><div class="fp-sub">Acordou → checklist → academia → trabalho → noite</div></div>
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section id="setup" class="section">
+      <div class="section-header"><div class="section-title">🤖 Setup</div><div class="section-subtitle">Claude Sonnet 4.6 · Cowork</div></div>
+      <div class="section-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" style="color:#7c3aed">9</div><div class="kpi-label">Skills</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#2563eb">6</div><div class="kpi-label">Conexões</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#16a34a">7</div><div class="kpi-label">Calendários</div></div>
+        </div>
+        <div class="setup-grid">
+          <div class="setup-group">
+            <div class="setup-group-header">⚡ Skills</div>
+            <div class="setup-row"><span class="sr-icon">📅</span><span class="sr-name">agenda-eduardo</span><span class="sr-status" style="color:#16a34a">✅</span></div>
+            <div class="setup-row"><span class="sr-icon">🧠</span><span class="sr-name">consolidate-memory</span><span class="sr-status" style="color:#16a34a">✅</span></div>
+            <div class="setup-row"><span class="sr-icon">📄</span><span class="sr-name">docx / pdf / pptx / xlsx</span><span class="sr-status" style="color:#16a34a">✅</span></div>
+          </div>
+          <div class="setup-group">
+            <div class="setup-group-header">🔌 Conexões</div>
+            <div class="setup-row"><span class="sr-icon">📒</span><span class="sr-name">Notion</span><span class="sr-status" style="color:#16a34a">✅</span></div>
+            <div class="setup-row"><span class="sr-icon">📅</span><span class="sr-name">Google Calendar (7)</span><span class="sr-status" style="color:#16a34a">✅</span></div>
+            <div class="setup-row"><span class="sr-icon">✉️</span><span class="sr-name">Gmail</span><span class="sr-status" style="color:#16a34a">✅</span></div>
+          </div>
+          <div class="setup-group">
+            <div class="setup-group-header">⏰ Tarefas agendadas</div>
+            <div class="setup-row"><span class="sr-icon">📅</span><span class="sr-name">agenda-hub-update (8h)</span><span class="sr-status" style="color:#16a34a">✅</span></div>
+            <div class="setup-row"><span class="sr-icon">📌</span><span class="sr-name">roadmap-calendar-sync (8h)</span><span class="sr-status" style="color:#16a34a">✅</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EM BRANCO -->
+    <section id="extras" class="section">
+      <div class="section-header"><div class="section-title">✨ Em branco</div><div class="section-subtitle">Me diz o que vai aqui</div></div>
+      <div class="section-body" style="text-align:center;padding-top:80px;color:var(--text-faint);">
+        <div style="font-size:48px;margin-bottom:16px;">🌱</div>
+        <div style="font-size:15px;font-weight:650;color:var(--text-dim);margin-bottom:8px;">Seção em branco</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ── CALENDÁRIO
+// CALENDAR_EVENTS_START
+// Estrutura de um evento:
+// { areaId, subId?, subsubId?, label, m, pos, status, cal }
+// areaId only          → ponto no header da área (nível 1)
+// areaId + subId       → ponto na barra nível 2 (ex: Recolocação)
+// areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
+// subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
+// Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
+// Última atualização: 2026-04-25 — sincronizado pelo roadmap-calendar-sync
+const CALENDAR_EVENTS = [
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'planned', cal:'Tarefas pessoais' },
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG',  m:1.03, pos:'bot', status:'planned', cal:'Tarefas pessoais' },
+];
+// CALENDAR_EVENTS_END
+
+// ── NAVEGAÇÃO
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById(item.dataset.sec).classList.add('active');
+  });
+});
+
+// ── ROADMAP: ZOOM / PAN
+const LEFT_W       = 220;
+const BASE_W       = 120;
+const PRE_MONTHS   = 0.25;
+const TOTAL_MONTHS = 15;
+const START_DATE   = new Date(2026, 2, 24);
+const END_DATE     = new Date(START_DATE.getFullYear(), START_DATE.getMonth() + Math.ceil(TOTAL_MONTHS + PRE_MONTHS), START_DATE.getDate());
+const TOTAL_MS     = END_DATE - START_DATE;
+const TODAY        = new Date();
+let zoom = 3;
+
+function trackWidth()  { return (TOTAL_MONTHS + PRE_MONTHS) * BASE_W * zoom; }
+function totalWidth()  { return LEFT_W + trackWidth(); }
+function pct(m)        { return ((m + PRE_MONTHS) / (TOTAL_MONTHS + PRE_MONTHS)) * 100; }
+function datePct(d)    { return ((d - START_DATE) / TOTAL_MS) * 100; }
+
+function setZoom(newZoom, anchorPct) {
+  const wrap = document.getElementById('rmWrap');
+  const oldTrack = trackWidth();
+  zoom = Math.max(1, Math.min(40, newZoom));
+  const newTrack = trackWidth();
+  if (anchorPct !== undefined) {
+    wrap.scrollLeft = wrap.scrollLeft + (anchorPct/100 * newTrack - anchorPct/100 * oldTrack);
+  }
+  document.getElementById('rmInner').style.width = totalWidth() + 'px';
+  positionTodayLine();
+  rebuildAxis();
+  updateZoomLabel();
+}
+
+function positionTodayLine() {
+  const el = document.getElementById('rmTodayLine');
+  if (el) el.style.left = (LEFT_W + datePct(TODAY)/100 * trackWidth()) + 'px';
+}
+
+function updateZoomLabel() {
+  const pxm = BASE_W * zoom;
+  document.getElementById('rmZoomLabel').textContent = pxm >= 900 ? 'Dias' : pxm >= 300 ? 'Semanas' : 'Meses';
+}
+
+// Pinch zoom
+document.getElementById('rmWrap').addEventListener('wheel', e => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  const wrap = document.getElementById('rmWrap');
+  const rect = wrap.getBoundingClientRect();
+  const anchor = Math.max(0, Math.min(100, (e.clientX - rect.left + wrap.scrollLeft - LEFT_W) / trackWidth() * 100));
+  setZoom(zoom * (e.deltaY < 0 ? 1.04 : 0.96), anchor);
+}, { passive: false });
+
+// Teclado
+document.addEventListener('keydown', e => {
+  if (e.key === '=' || e.key === '+') { e.preventDefault(); setZoom(zoom * 1.3); }
+  if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoom / 1.3); }
+  if (e.key === '0') { e.preventDefault(); setZoom(3); document.getElementById('rmWrap').scrollLeft = 0; }
+});
+
+// ── EIXO
+const MONTH_NAMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const DAY_NAMES   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function rebuildAxis() {
+  const axis = document.getElementById('rmAxis');
+  axis.innerHTML = '';
+  const pxm = BASE_W * zoom;
+
+  const addLabel = (pos, main, sub, isNow, isWeekend) => {
+    const el = document.createElement('div');
+    el.className = 'rm-axis-label' + (isNow ? ' now' : '') + (isWeekend ? ' weekend' : '');
+    el.style.left = pos + '%';
+    const m = document.createElement('span'); m.className = 'ax-main'; m.textContent = main;
+    el.appendChild(m);
+    if (sub) { const s = document.createElement('span'); s.className = 'ax-sub'; s.textContent = sub; el.appendChild(s); }
+    axis.appendChild(el);
+  };
+
+  // Marcador de hoje — sempre fixo
+  addLabel(datePct(TODAY), TODAY.getDate(), MONTH_NAMES[TODAY.getMonth()], true, false);
+
+  if (pxm < 300) {
+    let d = new Date(2026, 2, 1);
+    while (d <= END_DATE) {
+      const p = datePct(d);
+      if (p >= -1 && p <= 101) addLabel(p, MONTH_NAMES[d.getMonth()], d.getFullYear() > 2026 ? String(d.getFullYear()) : null, false, false);
+      d = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    }
+  } else if (pxm < 900) {
+    let d = new Date(2026, 3, 6);
+    while (d <= END_DATE) {
+      const p = datePct(d);
+      if (p >= -1 && p <= 101) addLabel(p, `${d.getDate()}`, MONTH_NAMES[d.getMonth()], false, false);
+      d = new Date(d); d.setDate(d.getDate() + 7);
+    }
+  } else {
+    const pxd = pxm / 30.44;
+    const skip = pxd < 14 ? 3 : pxd < 22 ? 2 : 1;
+    let d = new Date(2026, 2, 24), i = 0;
+    while (d <= END_DATE) {
+      if (i % skip === 0) {
+        const p = datePct(d);
+        const iw = d.getDay() === 0 || d.getDay() === 6;
+        addLabel(p, `${d.getDate()}`, pxd > 22 ? DAY_NAMES[d.getDay()] : null, false, iw);
+      }
+      d = new Date(d); d.setDate(d.getDate() + 1); i++;
+    }
+  }
+}
+
+// ── ROADMAP DATA
+const DATA = [
+  { id:'trabalho', emoji:'💼', name:'Trabalho', color:'#7c3aed', colorSoft:'#c4b5fd', badge:'', badgeColor:'#7c3aed',
+    milestones:[],
+    subs:[
+      { icon:'🔍', name:'Recolocação', start:0, end:2.97, statusLabel:'', statusColor:'#7c3aed',
+        milestones:[],
+        subs:[
+          { icon:'🎨', name:'Portfólio', start:0, end:2.97, statusLabel:'', statusColor:'#7c3aed',
+            milestones:[],
+            subs:[
+              { icon:'🏁', name:'Terminar Portfólio', start:0, end:1.13, milestones:[
+                { m:0.87, label:'Mudar favicon', pos:'top', status:'planned', _parent:'Terminar Portfólio', _date:'27 abr' },
+                { m:1.03, label:'Mudar capa OG', pos:'bot', status:'done', _parent:'Terminar Portfólio', _date:'2 mai' },
+              ]},
+              { icon:'🚀', name:'Divulgar Portfólio', start:1.13, end:1.30, milestones:[] },
+            ]
+          },
+        ]
+      },
+    ]
+  },
+  { id:'financas', emoji:'💰', name:'Finanças', color:'#d97706', colorSoft:'#fcd34d', badge:'URGENTE', badgeColor:'#ef4444',
+    milestones:[{m:0,label:'Cabesp+MEI hoje',pos:'top',status:'active'},{m:3,label:'Estabilizar',pos:'bot',status:'planned'},{m:6,label:'Reserva 6m',pos:'top',status:'planned'}],
+    subs:[
+      { icon:'⚠️', name:'Urgências', start:0, end:0.8, statusLabel:'Crítico', statusColor:'#ef4444', milestones:[{m:0,label:'Cabesp+MEI',pos:'top',status:'active'},{m:0.5,label:'Pagos',pos:'bot',status:'planned'}] },
+      { icon:'💳', name:'Dívidas', start:0, end:4, statusLabel:'Controlável', statusColor:'#22c55e', milestones:[{m:0,label:'Pequenas',pos:'top',status:'active'},{m:3.5,label:'Zeradas',pos:'bot',status:'planned'}] },
+      { icon:'🏦', name:'Reserva', start:1.5, end:8, statusLabel:'Construir', statusColor:'#f59e0b', milestones:[{m:1.5,label:'Começar',pos:'top',status:'planned'},{m:6,label:'6 meses',pos:'bot',status:'planned'}],
+        subs:[
+          { icon:'🛟', name:'Emergência (3 meses)', start:1.5, end:5, statusLabel:'Meta 1', statusColor:'#ef4444', milestones:[{m:1.5,label:'Começar',pos:'top',status:'planned'},{m:4.5,label:'3m prontos',pos:'bot',status:'planned'}] },
+          { icon:'📈', name:'Investir (6 meses+)', start:5, end:8, statusLabel:'Meta 2', statusColor:'#22c55e', milestones:[{m:5.5,label:'Abrir conta',pos:'top',status:'planned'},{m:7.5,label:'Aportes',pos:'bot',status:'planned'}] },
+        ]
+      },
+    ]
+  },
+  { id:'saude', emoji:'🏋️', name:'Saúde', color:'#db2777', colorSoft:'#f9a8d4', badge:'Em aberto', badgeColor:'#f59e0b',
+    milestones:[{m:0,label:'Vape parado',pos:'top',status:'done'},{m:0.3,label:'Academia volta',pos:'bot',status:'active'},{m:3,label:'Rotina física',pos:'top',status:'planned'},{m:6,label:'Hábitos OK',pos:'bot',status:'planned'}],
+    subs:[
+      { icon:'🏋️', name:'Academia', start:0.3, end:6, statusLabel:'Retomando', statusColor:'#f59e0b', milestones:[{m:0.3,label:'Amanhã',pos:'top',status:'active'},{m:3,label:'5x/sem',pos:'bot',status:'planned'}],
+        subs:[
+          { icon:'💪', name:'Treino A (superior)', start:0.3, end:6, statusLabel:'3x/sem', statusColor:'#db2777', milestones:[{m:0.3,label:'Começo',pos:'top',status:'active'},{m:3,label:'Progressão',pos:'bot',status:'planned'}] },
+          { icon:'🦵', name:'Treino B (inferior)', start:0.5, end:6, statusLabel:'2x/sem', statusColor:'#db2777', milestones:[{m:0.5,label:'Começo',pos:'top',status:'active'},{m:4,label:'Consistência',pos:'bot',status:'planned'}] },
+        ]
+      },
+      { icon:'🌿', name:'Maconha', start:0, end:5, statusLabel:'Reduzir', statusColor:'#f59e0b', milestones:[{m:0,label:'Uso atual',pos:'top',status:'active'},{m:2.5,label:'Redução',pos:'bot',status:'planned'},{m:5,label:'Controle',pos:'top',status:'planned'}] },
+      { icon:'😴', name:'Sono', start:0, end:5, statusLabel:'Irregular', statusColor:'#f59e0b', milestones:[{m:0,label:'Sem ritual',pos:'top',status:'active'},{m:2.5,label:'Ritual criado',pos:'bot',status:'planned'},{m:5,label:'Regulado',pos:'top',status:'planned'}] },
+      { icon:'🍽️', name:'Alimentação', start:1, end:5, statusLabel:'Delivery', statusColor:'#f59e0b', milestones:[{m:1,label:'Começar',pos:'top',status:'planned'},{m:4,label:'Melhor',pos:'bot',status:'planned'}] },
+    ]
+  },
+  { id:'rotina', emoji:'📅', name:'Rotina', color:'#2563eb', colorSoft:'#93c5fd', badge:'Instável', badgeColor:'#f59e0b',
+    milestones:[{m:0,label:'Mapa criado',pos:'top',status:'active'},{m:1.2,label:'Rotina base',pos:'bot',status:'planned'},{m:3.5,label:'30 dias',pos:'top',status:'planned'},{m:6.5,label:'Rotina sólida',pos:'bot',status:'planned'}],
+    subs:[
+      { icon:'🌅', name:'Manhã', start:0, end:4, statusLabel:'Caótica', statusColor:'#ef4444', milestones:[{m:0,label:'Celular 1º',pos:'top',status:'active'},{m:2,label:'Sem cel 1h',pos:'bot',status:'planned'},{m:3.5,label:'Produtiva',pos:'top',status:'planned'}] },
+      { icon:'📱', name:'Celular / TDAH', start:0, end:6, statusLabel:'20h+/sem', statusColor:'#ef4444', milestones:[{m:0,label:'20h perdidas',pos:'top',status:'active'},{m:2.5,label:'Redução',pos:'bot',status:'planned'},{m:5.5,label:'Controlado',pos:'top',status:'planned'}] },
+      { icon:'🌙', name:'Noite', start:1, end:4, statusLabel:'Sem ritual', statusColor:'#f59e0b', milestones:[{m:1,label:'Definir hora',pos:'top',status:'planned'},{m:3,label:'Ritual fixo',pos:'bot',status:'planned'}] },
+    ]
+  },
+  { id:'pessoal', emoji:'🌿', name:'Pessoal', color:'#16a34a', colorSoft:'#86efac', badge:'Processando', badgeColor:'#8b5cf6',
+    milestones:[{m:0,label:'Término',pos:'top',status:'active'},{m:0.3,label:'Chácara',pos:'bot',status:'active'},{m:2.5,label:'Estabilidade',pos:'top',status:'planned'},{m:6,label:'Proj. criativo',pos:'bot',status:'planned'}],
+    subs:[
+      { icon:'💔', name:'Término', start:0, end:4, statusLabel:'Processando', statusColor:'#ec4899', milestones:[{m:0,label:'Aconteceu',pos:'top',status:'active'},{m:1.5,label:'Aceitar',pos:'bot',status:'planned'},{m:3.5,label:'Seguir',pos:'top',status:'planned'}] },
+      { icon:'🧠', name:'Terapia', start:0, end:8, statusLabel:'Ativa', statusColor:'#16a34a', milestones:[{m:0,label:'Em sessões',pos:'top',status:'active'},{m:4.5,label:'Revisão',pos:'bot',status:'planned'}] },
+      { icon:'🎨', name:'Projeto criativo', start:4, end:8, statusLabel:'A começar', statusColor:'#8b5cf6', milestones:[{m:4.5,label:'Ideia',pos:'top',status:'planned'},{m:7.5,label:'Em curso',pos:'bot',status:'planned'}] },
+    ]
+  },
+];
+
+function lightColor(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.round(255*(1-alpha)+r*alpha)},${Math.round(255*(1-alpha)+g*alpha)},${Math.round(255*(1-alpha)+b*alpha)})`;
+}
+
+function makeMilestone(ms, color) {
+  const el = document.createElement('div');
+  el.className = `rm-ms ${ms.status}`;
+  el.style.left = pct(ms.m) + '%';
+  const dc = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#cbd5e1';
+  const bg = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#fff';
+  const lc = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#94a3b8';
+  const statusColor = ms.status==='done'?'#16a34a':ms.status==='active'?color:'#f59e0b';
+  const statusText  = ms.status==='done'?'concluído':ms.status==='active'?'em curso':'planejado';
+  const tooltipHtml = `<div class="rm-ms-label top">
+    ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
+    <div class="tt-title">${ms.label}</div>
+    <div class="tt-meta">
+      <div class="tt-dot" style="background:${statusColor}"></div>
+      <span class="tt-date">${ms._date ? ms._date + ' · ' : ''}${statusText}</span>
+    </div>
+  </div>`;
+  // ms.m em meses desde abril 2026; TODAY_M = dias passados em abril / 30
+  const TODAY_M = (TODAY.getFullYear() - 2026) * 12 + (TODAY.getMonth() - 3) + (TODAY.getDate() - 1) / 30;
+  const isOverdue = ms.status === 'planned' && ms.m < TODAY_M;
+  const centerFill = ms.status === 'done' ? color
+    : isOverdue ? '#ef4444'
+    : `rgba(168,158,184,0.3)`;
+  const inner = ms.status === 'done'
+    ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;">✓</span>`
+    : '';
+  const dotStyle = ms.status === 'done'
+    ? `background:${color};`
+    : `background: radial-gradient(circle, ${centerFill} 0%, ${centerFill} 32%, #fff 32%, #fff 100%);`;
+  el.innerHTML = `${tooltipHtml}<div class="rm-ms-dot" style="position:relative;${dotStyle}">${inner}</div>`;
+  return el;
+}
+
+function makeBar(start, end, color, colorSoft, depth) {
+  const bar = document.createElement('div');
+  bar.className = `rm-bar ${ depth===0?'rm-bar-area':depth===1?'rm-bar-sub':'rm-bar-subsub' }`;
+  bar.style.left = pct(start)+'%';
+  bar.style.width = (pct(end)-pct(start))+'%';
+  // Gradiente claro→escuro, mesmo tom em todos os níveis
+  bar.style.background = `linear-gradient(90deg, ${colorSoft}, ${color})`;
+  bar.style.boxShadow = `0 2px 8px ${color}28`;
+  return bar;
+}
+
+function makeLevel4Row(l4, color, isLast) {
+  const row = document.createElement('div'); row.className = 'rm-row rm-row-level4';
+  if (l4._bgColor) row.style.background = l4._bgColor;
+  const left = document.createElement('div'); left.className = 'rm-left level4-left'+(isLast?' last':'');
+  if (l4._bgColor) left.style.background = l4._bgColor;
+  const lvl4 = document.createElement('span'); lvl4.className = 'rm-level-badge';
+  lvl4.style.cssText = `background:${color}10;color:${color};`; lvl4.textContent = '4';
+  const icon = document.createElement('div'); icon.className = 'rm-icon-level4'; icon.textContent = l4.icon || '▸';
+
+  // Calcula % de conclusão baseado nos milestones
+  const allMs = l4.milestones || [];
+  const done  = allMs.filter(m => m.status === 'done').length;
+  const total = allMs.length;
+  const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+  const pctColor = pct === 100 ? '#16a34a' : pct > 0 ? color : '#94a3b8';
+
+  const text = document.createElement('div'); text.className = 'rm-text';
+  const nameSpan = document.createElement('span'); nameSpan.className = 'rm-level4-name'; nameSpan.textContent = l4.name;
+  const pctSpan  = document.createElement('span'); pctSpan.className = 'rm-level4-pct';
+  pctSpan.style.cssText = `background:${pctColor}18;color:${pctColor};`;
+  pctSpan.textContent = total > 0 ? `${pct}%` : '—';
+  // Tooltip no hover com detalhes
+  const tooltip = total > 0
+    ? `${done} de ${total} tarefa${total>1?'s':''} concluída${done!==1?'s':''}`
+    : 'Nenhuma tarefa ainda';
+  row.title = tooltip;
+  text.appendChild(nameSpan); text.appendChild(pctSpan);
+  left.appendChild(icon); left.appendChild(text); left.appendChild(lvl4);
+  const track = document.createElement('div'); track.className = 'rm-track';
+  if (l4.showBar !== false && l4.start !== undefined) track.appendChild(makeBar(l4.start, l4.end, color, color+'60', 2));
+  (l4.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms, color)));
+  row.appendChild(left); row.appendChild(track);
+  return row;
+}
+
+function makeSubSubRow(ss, color, isLast) {
+  const row = document.createElement('div'); row.className = 'rm-row rm-row-subsub';
+  if (ss._bgColor) { row.style.background = ss._bgColor; }
+  const left = document.createElement('div'); left.className = 'rm-left subsub-left'+(isLast?' last':'');
+  if (ss._bgColor) left.style.background = ss._bgColor;
+  const lvl3 = document.createElement('span'); lvl3.className = 'rm-level-badge';
+  lvl3.style.cssText = `background:${color}14;color:${color};`; lvl3.textContent = '3';
+  const icon = document.createElement('div'); icon.className = 'rm-icon-subsub'; icon.textContent = ss.icon;
+  const text = document.createElement('div'); text.className = 'rm-text';
+  text.innerHTML = `<span class="rm-subsub-name">${ss.name}</span>`;
+  left.appendChild(icon); left.appendChild(text); left.appendChild(lvl3);
+  const track = document.createElement('div'); track.className = 'rm-track';
+  if (ss.showBar!==false) track.appendChild(makeBar(ss.start,ss.end,color,color+'80',2));
+  (ss.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms,color)));
+  CALENDAR_EVENTS.filter(e=>e.areaId===ss._areaId && e.subId===ss._subId && e.subsubId===ss._subsubId && !e.level4).forEach(ev=>{
+    track.appendChild(makeMilestone({m:ev.m,label:'📌 '+ev.label,pos:ev.pos||'top',status:ev.status||'active'},color));
+  });
+  row.appendChild(left); row.appendChild(track);
+
+  // Renderiza filhos de nível 4
+  if (ss.subs && ss.subs.length > 0) {
+    const l4Container = document.createElement('div'); l4Container.className = 'rm-subsubs-container';
+    ss.subs.forEach((l4, i) => {
+      l4._bgColor  = ss._bgColor;
+      l4._areaId   = ss._areaId;
+      l4._subId    = ss._subId;
+      l4._subsubId = ss._subsubId;
+      l4Container.appendChild(makeLevel4Row(l4, color, i === ss.subs.length-1));
+    });
+    // Clique no subsub para expandir nível 4
+    const chev = document.createElement('span'); chev.className = 'rm-chevron'; chev.textContent = '›';
+    left.appendChild(chev);
+    row.classList.add('hassubs'); row.style.cursor = 'pointer';
+    row.addEventListener('click', () => { row.classList.toggle('open'); l4Container.classList.toggle('open'); });
+    return { row, extraContainer: l4Container };
+  }
+
+  return row;
+}
+
+function makeSubRow(sub, color, isLast) {
+  const hasSubs = sub.subs && sub.subs.length>0;
+  const row = document.createElement('div'); row.className = 'rm-row rm-row-sub'+(hasSubs?' hassubs':'');
+  if (sub._bgColor) row.style.background = sub._bgColor;
+  const left = document.createElement('div'); left.className = 'rm-left sub-left'+(isLast&&!hasSubs?' last':'');
+  if (sub._bgColor) left.style.background = sub._bgColor;
+  const lvl2 = document.createElement('span'); lvl2.className = 'rm-level-badge';
+  lvl2.style.cssText = `background:${color}18;color:${color};`; lvl2.textContent = '2';
+  const icon = document.createElement('div'); icon.className = 'rm-icon-sub'; icon.textContent = sub.icon;
+  const text = document.createElement('div'); text.className = 'rm-text';
+  const statusHtml = sub.statusLabel ? `<span class="rm-badge" style="background:${sub.statusColor}18;color:${sub.statusColor}">${sub.statusLabel}</span>` : '';
+  text.innerHTML = `<span class="rm-sub-name">${sub.name}</span>${statusHtml}`;
+  left.appendChild(icon); left.appendChild(text); left.appendChild(lvl2);
+  if (hasSubs) { const chev = document.createElement('span'); chev.className='rm-chevron'; chev.textContent='›'; left.appendChild(chev); }
+  const track = document.createElement('div'); track.className = 'rm-track';
+  if (sub.showBar!==false) track.appendChild(makeBar(sub.start,sub.end,color,color+'80',1));
+  (sub.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms,color)));
+  // Nível 2: tem subId, não tem subsubId
+  CALENDAR_EVENTS.filter(e=>e.areaId===sub._areaId && e.subId===sub._subId && !e.subsubId).forEach(ev=>{
+    track.appendChild(makeMilestone({m:ev.m,label:'📌 '+ev.label,pos:ev.pos||'top',status:ev.status||'active'},color));
+  });
+  row.appendChild(left); row.appendChild(track);
+  let ssContainer = null;
+  if (hasSubs) {
+    ssContainer = document.createElement('div'); ssContainer.className = 'rm-subsubs-container';
+    sub.subs.forEach((ss,i) => {
+      ss._bgColor   = sub._bgColor;
+      ss._areaId    = sub._areaId;
+      ss._subId     = sub._subId;
+      ss._subsubId  = ss.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+      const result = makeSubSubRow(ss, color, i === sub.subs.length-1);
+      if (result && result.row) {
+        ssContainer.appendChild(result.row);
+        if (result.extraContainer) ssContainer.appendChild(result.extraContainer);
+      } else {
+        ssContainer.appendChild(result);
+      }
+    });
+    row.addEventListener('click', () => { row.classList.toggle('open'); ssContainer.classList.toggle('open'); });
+  }
+  return { row, ssContainer };
+}
+
+function buildRoadmap() {
+  const body = document.getElementById('rmBody');
+  DATA.forEach(area => {
+    const areaLight    = lightColor(area.color, 0.09);
+    const areaLightSub = lightColor(area.color, 0.05);
+    const block = document.createElement('div'); block.className = 'rm-area-block';
+
+    // Header
+    const header = document.createElement('div'); header.className = 'rm-area-header';
+    header.style.borderLeftColor = area.color;
+    header.style.background = areaLight;
+
+    const left = document.createElement('div'); left.className = 'rmah-left';
+    left.style.background = areaLight;
+    const icon = document.createElement('div'); icon.className = 'rm-icon-area'; icon.textContent = area.emoji;
+    icon.style.borderColor = area.color+'35'; icon.style.background = area.color+'0e';
+    const text = document.createElement('div'); text.className = 'rm-text';
+    const lvl1 = document.createElement('span'); lvl1.className = 'rm-level-badge';
+    lvl1.style.cssText = `background:${area.color}22;color:${area.color};`;
+    lvl1.textContent = '1';
+    text.innerHTML = `<span class="rm-area-name">${area.name}</span><span class="rm-badge" style="background:${area.badgeColor}14;color:${area.badgeColor}">${area.badge}</span>`;
+    const chev = document.createElement('span'); chev.className = 'rm-chevron'; chev.textContent = '›';
+    left.appendChild(icon); left.appendChild(text); left.appendChild(chev); left.appendChild(lvl1);
+
+    const chips = document.createElement('div'); chips.className = 'rmah-chips';
+    chips.style.background = areaLight;
+    // Nível 1: eventos sem subId aparecem como chips no header da área
+    const allMilestones = [...area.milestones];
+    CALENDAR_EVENTS.filter(e=>e.areaId===area.id && !e.subId).forEach(ev=>{
+      allMilestones.push({m:ev.m, label:'📌 '+ev.label, pos:ev.pos||'top', status:ev.status||'active'});
+    });
+    allMilestones.forEach(ms => {
+      const c = document.createElement('span'); c.className = 'rm-area-chip';
+      const cc = ms.status==='done'?'#16a34a':ms.status==='active'?area.color:'#94a3b8';
+      c.style.background = lightColor(cc,0.18); c.style.color = cc;
+      c.textContent = (ms.status==='done'?'✓ ':ms.status==='active'?'● ':'○ ')+ms.label;
+      chips.appendChild(c);
+    });
+
+    header.appendChild(left); header.appendChild(chips);
+    block.appendChild(header);
+
+    // Subs
+    const subsContainer = document.createElement('div'); subsContainer.className = 'rm-subs-container';
+    area.subs.forEach((sub,i) => {
+      sub._areaId = area.id;
+      sub._subId = sub.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+      sub._bgColor = areaLightSub;
+      const { row, ssContainer } = makeSubRow(sub, area.color, i===area.subs.length-1);
+      subsContainer.appendChild(row);
+      if (ssContainer) subsContainer.appendChild(ssContainer);
+    });
+
+    header.addEventListener('click', () => { header.classList.toggle('open'); subsContainer.classList.toggle('open'); });
+    block.appendChild(subsContainer);
+    body.appendChild(block);
+  });
+}
+
+function buildAxis() {
+  const inner = document.getElementById('rmInner');
+  inner.style.width = totalWidth()+'px';
+  inner.style.position = 'relative';
+  positionTodayLine();
+  rebuildAxis();
+}
+
+// Toggle tudo
+{
+  let allOpen = false;
+  document.getElementById('rmToggleAll').addEventListener('click', () => {
+    allOpen = !allOpen;
+    document.querySelectorAll('.rm-subs-container,.rm-subsubs-container').forEach(el=>el.classList.toggle('open',allOpen));
+    document.querySelectorAll('.rm-area-header,.rm-row.hassubs').forEach(el=>el.classList.toggle('open',allOpen));
+    document.getElementById('rmToggleAll').textContent = allOpen ? '↑' : '↕';
+  });
+}
+
+// Zoom label (hidden)
+document.getElementById('rmZoomLabel') && (document.getElementById('rmZoomLabel').style.display='none');
+
+buildAxis();
+buildRoadmap();
+</script>
+<!-- hidden zoom controls for JS refs -->
+<span id="rmZoomLabel" style="display:none"></span>
+<button id="rmZoomOut" style="display:none"></button>
+<button id="rmZoomIn" style="display:none"></button>
+<button id="rmReset" style="display:none"></button>
+</body>
+</html>
