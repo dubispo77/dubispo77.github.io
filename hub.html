@@ -618,12 +618,14 @@ window.sbClient = (typeof supabase !== 'undefined')
     document.querySelector('.layout').style.display = 'none';
   }
 
-  // Detecta callback do magic link (Supabase coloca o token no hash da URL).
-  // O cliente JS já processa automaticamente.
-  const { data: { session } } = await window.sbClient.auth.getSession();
-  if (session?.user?.email === ALLOWED_EMAIL) {
+  // Detecta callback do magic link. O Supabase JS processa o hash automaticamente.
+  // Captura o estado INICIAL — se já tem sessão, não recarregamos nada.
+  const { data: { session: initialSession } } = await window.sbClient.auth.getSession();
+  const tinhaSessionInicial = !!initialSession;
+
+  if (initialSession?.user?.email === ALLOWED_EMAIL) {
     mostrarHub();
-  } else if (session) {
+  } else if (initialSession) {
     // Logado mas não é o Eduardo
     await window.sbClient.auth.signOut();
     mostrarLogin();
@@ -631,13 +633,16 @@ window.sbClient = (typeof supabase !== 'undefined')
     status.className = 'login-status error';
   } else {
     mostrarLogin();
+    // Limpa hash da URL (deixado pelo magic link callback) pra não confundir refreshs.
+    if (window.location.hash.includes('access_token') || window.location.hash.includes('error')) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
   }
 
-  // Reage a mudanças de auth (login feito, logout, etc.)
+  // Reage a mudanças de auth — só recarrega quando o estado MUDA de fato.
   window.sbClient.auth.onAuthStateChange((event, sess) => {
-    if (event === 'SIGNED_IN' && sess?.user?.email === ALLOWED_EMAIL) {
-      mostrarHub();
-      // Recarrega pra inicializar tudo com a sessão válida.
+    // SIGNED_IN dispara também no init com sessão pré-existente; ignora se já tinha.
+    if (event === 'SIGNED_IN' && !tinhaSessionInicial && sess?.user?.email === ALLOWED_EMAIL) {
       location.reload();
     } else if (event === 'SIGNED_OUT') {
       location.reload();
