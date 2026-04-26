@@ -1279,12 +1279,27 @@
 
   <!-- HERO -->
   <section id="hero">
-    <video class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
       <source src="hero-720.mp4" type="video/mp4">
     </video>
     <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto">
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+    <script>
+    (function(){
+      var v = document.getElementById('heroDesktop');
+      var src = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero-hls/master.m3u8';
+      if(Hls.isSupported()){
+        var hls = new Hls({startLevel:0,capLevelToPlayerSize:true});
+        hls.loadSource(src);
+        hls.attachMedia(v);
+        hls.on(Hls.Events.MANIFEST_PARSED,function(){v.play();});
+      } else if(v.canPlayType('application/vnd.apple.mpegurl')){
+        v.src=src; v.play();
+      }
+    })();
+    </script>
     <div class="hero-overlay"></div>
     <div class="hero-vignette"></div>
     <div class="hero-grain"></div>
