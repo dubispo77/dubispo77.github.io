@@ -645,7 +645,7 @@
     display: flex;
     align-items: center;
     gap: 19px;
-    margin-bottom: 16px;
+    margin-bottom: 28px;
   }
   .tl-item:last-child { margin-bottom: 0; }
 
@@ -753,8 +753,87 @@
     height: 67px !important;
   }
   .wrif-circle img {
-    width: 67px !important;
-    height: 67px !important;
+    width: 77px !important;
+    height: 77px !important;
+  }
+
+  /* ─── FORMAÇÃO (educação) ─── */
+  .edu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .edu-item {
+    position: relative;
+    border-left: 3px solid rgba(26,44,62,0.25);
+    padding: 18px 118px 18px 20px;
+    background: rgba(26,44,62,0.03);
+    border-radius: 0 8px 8px 0;
+    min-height: 110px;
+  }
+  .edu-logo-wrap {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(26,44,62,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .edu-logo {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+  .edu-logo-oakland { width: 78px; height: 78px; }
+  .edu-logo-specs { width: 74px; height: 74px; }
+  .edu-logo-barco { width: 64px; height: 64px; }
+  .edu-logo-alura { width: 72px; height: 72px; }
+  .edu-meta {
+    font-size: 13px;
+    color: rgba(26,44,62,0.50);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 5px;
+  }
+  .edu-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1A2C3E;
+    line-height: 1.3;
+  }
+  .edu-desc {
+    font-size: 14px;
+    color: rgba(26,44,62,0.58);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .edu-loc {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    background: rgba(26,44,62,0.07);
+    padding: 3px 10px 3px 6px;
+    border-radius: 4px;
+  }
+  .edu-loc-pin {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+  .edu-loc-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(26,44,62,0.55);
+    letter-spacing: 0.02em;
   }
 
   /* ─── CONTATO ─── */
@@ -1030,6 +1109,20 @@
         overflow-x: hidden !important;
         width: 100% !important;
       }
+
+      /* FORMAÇÃO mobile */
+      .edu-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+      .edu-item { padding: 12px 52px 12px 14px !important; min-height: 80px !important; }
+      .edu-logo-wrap { width: 36px !important; height: 36px !important; right: 10px !important; }
+      .edu-logo { width: 24px !important; height: 24px !important; }
+      .edu-name { font-size: 14px !important; }
+      .edu-desc { font-size: 12px !important; }
+      .edu-meta { font-size: 11px !important; }
+      .edu-loc { font-size: 11px !important; }
+      #formacao { padding: 0 20px 40px !important; }
 
       /* CONTATO mobile */
       #contato {
@@ -1481,6 +1574,63 @@
     </div>
     </div>
   </div>
+    </div>
+  </section>
+
+  <!-- FORMAÇÃO -->
+  <section id="formacao" class="reveal" style="padding:0 40px 60px;">
+    <div class="sobre-timeline" style="max-width:1100px;margin:0 auto;">
+      <h2>formação</h2>
+      <div class="edu-grid">
+        <div class="edu-item">
+          <div class="edu-meta">2009–2012</div>
+          <div class="edu-name">Oakland University</div>
+          <div class="edu-desc">Graduação em jornalismo</div>
+          <div class="edu-loc">
+            <svg class="edu-loc-pin" viewBox="0 0 24 24" fill="rgba(214,48,49,0.50)" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+            <span class="edu-loc-text">Rochester, Michigan</span>
+          </div>
+          <div class="edu-logo-wrap">
+            <img src="assets/logos-claude/Oakland_02.png" alt="Oakland University" class="edu-logo edu-logo-oakland">
+          </div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-meta">2011–2012</div>
+          <div class="edu-name">Specs Howard School</div>
+          <div class="edu-desc">Produção audiovisual</div>
+          <div class="edu-loc">
+            <svg class="edu-loc-pin" viewBox="0 0 24 24" fill="rgba(214,48,49,0.50)" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+            <span class="edu-loc-text">Detroit, Michigan</span>
+          </div>
+          <div class="edu-logo-wrap">
+            <img src="assets/logos-claude/Specs Howard_01.webp" alt="Specs Howard" class="edu-logo edu-logo-specs">
+          </div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-meta">2019</div>
+          <div class="edu-name">Instituto B_arco</div>
+          <div class="edu-desc">Direção de fotografia</div>
+          <div class="edu-loc">
+            <svg class="edu-loc-pin" viewBox="0 0 24 24" fill="rgba(214,48,49,0.50)" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+            <span class="edu-loc-text">São Paulo, SP</span>
+          </div>
+          <div class="edu-logo-wrap">
+            <img src="assets/logos-claude/B_arco_02.png" alt="Instituto B_arco" class="edu-logo edu-logo-barco">
+          </div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-meta">2026</div>
+          <div class="edu-name">Alura</div>
+          <div class="edu-desc">Otimização criativa com IA</div>
+          <div class="edu-loc">
+            <svg class="edu-loc-pin" viewBox="0 0 24 24" fill="rgba(214,48,49,0.50)" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+            <span class="edu-loc-text">Online</span>
+          </div>
+          <div class="edu-logo-wrap">
+            <img src="assets/logos-claude/Alura" alt="Alura" class="edu-logo edu-logo-alura">
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
