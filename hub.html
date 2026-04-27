@@ -933,7 +933,7 @@ function rebuildAxis() {
   };
 
   // Marcador de hoje — sempre fixo
-  addLabel(datePct(TODAY), TODAY.getDate(), MONTH_NAMES[TODAY.getMonth()], true, false);
+  addLabel(datePct(TODAY), '', null, true, false);
 
   if (pxm < 300) {
     let d = new Date(2026, 2, 1);
