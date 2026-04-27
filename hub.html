@@ -623,6 +623,7 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span></div>
       <div class="nav-item" data-sec="financas"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span class="ni-badge badge-red">!</span></div>
       <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span></div>
+      <div class="nav-item" data-sec="rotina"><span class="ni-icon">⏰</span><span class="ni-text">Rotina</span></div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">
@@ -742,6 +743,24 @@ table.data-table tr:hover td { background: var(--bg); }
         </div>
         <div class="agenda-add-wrap">
           <button class="agenda-add-btn" id="saudeAddBtn">＋ Adicionar item de saúde</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROTINA -->
+    <section id="rotina" class="section">
+      <div class="section-header"><div class="section-title">⏰ Rotina</div><div class="section-subtitle" id="rotinaSubtitle">Carregando...</div></div>
+      <div class="section-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" id="rotinaKpiHoje"   style="color:#0891b2">—</div><div class="kpi-label">Itens hoje</div></div>
+          <div class="kpi"><div class="kpi-value" id="rotinaKpiFeitos" style="color:#16a34a">—</div><div class="kpi-label">Feitos hoje</div></div>
+          <div class="kpi"><div class="kpi-value" id="rotinaKpiPct"    style="color:#d97706">—</div><div class="kpi-label">% do dia</div></div>
+        </div>
+        <div id="rotinaItemsWrap">
+          <div class="empty-day" style="padding:24px"><div class="ei">⏳</div><div>Carregando...</div></div>
+        </div>
+        <div class="agenda-add-wrap">
+          <button class="agenda-add-btn" id="rotinaAddBtn">＋ Adicionar item de rotina</button>
         </div>
       </div>
     </section>
@@ -2048,6 +2067,170 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       input.focus();
     }
   });
+})();
+
+// ── ROTINA DINÂMICA (puxado de public.items onde area='rotina')
+(async function setupRotina() {
+  if (!window.sbClient) return;
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (!session) return;
+  const sb = window.sbClient;
+
+  function parseDt(iso) { return new Date((iso || '').replace(' ', 'T')); }
+  function todayMid()   { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function localDate(iso) { if (!iso) return null; const d = parseDt(iso); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function esc(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  let itemsCache = [];
+
+  async function loadItems() {
+    const today = todayMid();
+    const in7   = new Date(today); in7.setDate(in7.getDate() + 7);
+    const { data } = await sb.from('items')
+      .select('id,title,type,date_start,has_time,status')
+      .eq('area', 'rotina')
+      .not('status', 'eq', 'cancelled')
+      .gte('date_start', new Date(today.getTime() - 86400000).toISOString())
+      .lt('date_start', in7.toISOString())
+      .order('date_start');
+    itemsCache = data || [];
+  }
+
+  function render() {
+    const today = todayMid();
+    const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const WEEK_DAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+    const deHoje  = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld.getTime() === today.getTime(); });
+    const feitos  = deHoje.filter(i => i.status === 'done').length;
+    const total   = deHoje.length;
+    const pct     = total > 0 ? Math.round((feitos / total) * 100) : 0;
+
+    const sub = document.getElementById('rotinaSubtitle');
+    if (sub) sub.textContent = `Hábitos diários · ${MESES[today.getMonth()]} ${today.getFullYear()}`;
+
+    const kH = document.getElementById('rotinaKpiHoje');
+    const kF = document.getElementById('rotinaKpiFeitos');
+    const kP = document.getElementById('rotinaKpiPct');
+    if (kH) kH.textContent = total;
+    if (kF) { kF.textContent = feitos; kF.style.color = feitos === total && total > 0 ? '#16a34a' : '#d97706'; }
+    if (kP) { kP.textContent = `${pct}%`; kP.style.color = pct >= 80 ? '#16a34a' : pct >= 40 ? '#d97706' : '#ef4444'; }
+
+    const wrap = document.getElementById('rotinaItemsWrap');
+    if (!wrap) return;
+
+    if (itemsCache.length === 0) {
+      wrap.innerHTML = '<div class="empty-day" style="padding:24px"><div class="ei">⏰</div><div>Nenhum hábito cadastrado</div></div>';
+      return;
+    }
+
+    const TYPE_ICON = { task:'✓', event:'📌', note:'📝' };
+
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      const d = localDate(iso);
+      const diff = Math.round((d - today) / 86400000);
+      if (diff === 0) return 'Hoje';
+      if (diff === 1) return 'Amanhã';
+      if (diff < 0) return `${Math.abs(diff)}d atrás`;
+      return `${WEEK_DAYS[d.getDay()]} ${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    // Agrupa por dia
+    const byDay = {};
+    itemsCache.forEach(i => {
+      const ld = localDate(i.date_start);
+      if (!ld) return;
+      const key = ld.getTime();
+      if (!byDay[key]) byDay[key] = [];
+      byDay[key].push(i);
+    });
+
+    const COLOR = '#0891b2';
+
+    function itemHtml(i) {
+      const done = i.status === 'done';
+      return `<div class="event-block" style="border-color:${COLOR};color:${COLOR}${done?';opacity:.5':''}" data-rotina-id="${i.id}" data-status="${i.status}">
+        <div class="event-time">${i.has_time && i.date_start ? parseDt(i.date_start).toTimeString().slice(0,5).replace(':','h') : '—'}</div>
+        <div class="event-title" style="${done?'text-decoration:line-through':''}${done?';color:var(--text-faint)':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
+        <div class="event-cal">${done ? '<span class="pill" style="background:#dcfce7;color:#16a34a;">✓ Feito</span>' : '<span class="pill" style="background:#e0f2fe;color:#0891b2;">⏳ Pendente</span>'}</div>
+        <div class="eb-actions"><button class="eb-btn eb-rotina-del" title="Apagar">✕</button></div>
+      </div>`;
+    }
+
+    const days = Object.keys(byDay).map(Number).sort();
+    wrap.innerHTML = days.map(ts => {
+      const d = new Date(ts);
+      const isHoje = ts === today.getTime();
+      const label = isHoje ? 'Hoje' : `${WEEK_DAYS[d.getDay()]}, ${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+      const itens = byDay[ts];
+      const fts   = itens.filter(i => i.status === 'done').length;
+      return `<div class="agenda-day-group">
+        <div class="agenda-day-header${isHoje?' hoje':''}">
+          ${label}
+          <span style="font-size:10px;font-weight:700;color:${fts===itens.length&&itens.length>0?'#16a34a':'var(--text-faint)'}">${fts}/${itens.length}</span>
+        </div>
+        ${itens.map(itemHtml).join('')}
+      </div>`;
+    }).join('');
+
+    wrap.querySelectorAll('.event-block[data-rotina-id]').forEach(block => {
+      block.addEventListener('click', async e => {
+        if (e.target.closest('.eb-rotina-del')) {
+          e.stopPropagation();
+          const id = block.dataset.rotinaId;
+          const acts = block.querySelector('.eb-actions');
+          acts.style.opacity = '1';
+          acts.innerHTML = `<span style="font-size:11px;color:var(--text-dim);font-weight:600;white-space:nowrap">Apagar?</span>
+            <button class="eb-btn" id="rY${id}" style="background:#dc2626;color:#fff;width:auto;padding:0 8px;font-size:11px;font-weight:700">Sim</button>
+            <button class="eb-btn" id="rN${id}" style="background:var(--card);border:1px solid var(--border);color:var(--text-dim);width:auto;padding:0 8px;font-size:11px">Não</button>`;
+          document.getElementById(`rY${id}`).onclick = async ev => {
+            ev.stopPropagation();
+            await sb.from('items').delete().eq('id', id);
+            await loadItems(); render();
+          };
+          document.getElementById(`rN${id}`).onclick = ev => { ev.stopPropagation(); render(); };
+          return;
+        }
+        const id = block.dataset.rotinaId;
+        const item = itemsCache.find(i => i.id === id);
+        if (!item) return;
+        const newStatus = item.status === 'done' ? 'planned' : 'done';
+        item.status = newStatus; render();
+        const { error } = await sb.from('items').update({
+          status: newStatus,
+          done_at: newStatus === 'done' ? new Date().toISOString() : null,
+        }).eq('id', id);
+        if (error) { item.status = newStatus === 'done' ? 'planned' : 'done'; render(); }
+      });
+    });
+
+    const addBtn = document.getElementById('rotinaAddBtn');
+    if (addBtn) {
+      addBtn.onclick = () => {
+        document.querySelector('[data-sec="agenda"]')?.click();
+        setTimeout(() => {
+          document.getElementById('agendaAddBtn')?.click();
+          setTimeout(() => {
+            const sel = document.getElementById('aafProject');
+            if (sel) {
+              const opt = Array.from(sel.options).find(o => o.text.toLowerCase().includes('rotina'));
+              if (opt) sel.value = opt.value;
+            }
+          }, 100);
+        }, 200);
+      };
+    }
+  }
+
+  await loadItems();
+  render();
+
+  sb.channel('rotina-items-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items', filter: 'area=eq.rotina' }, async () => {
+      await loadItems(); render();
+    })
+    .subscribe();
 })();
 
 // ── SAÚDE DINÂMICA (puxado de public.items onde area='saude')
