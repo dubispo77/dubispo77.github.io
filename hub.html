@@ -974,9 +974,6 @@ function makeSubSubRow(ss, color, isLast) {
   const track = document.createElement('div'); track.className = 'rm-track';
   if (ss.showBar!==false) track.appendChild(makeBar(ss.start,ss.end,color,color+'80',2));
   (ss.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms,color)));
-  CALENDAR_EVENTS.filter(e=>e.areaId===ss._areaId && e.subId===ss._subId && e.subsubId===ss._subsubId && !e.level4).forEach(ev=>{
-    track.appendChild(makeMilestone({m:ev.m,label:'📌 '+ev.label,pos:ev.pos||'top',status:ev.status||'active'},color));
-  });
   row.appendChild(left); row.appendChild(track);
 
   // Renderiza filhos de nível 4
@@ -1019,10 +1016,6 @@ function makeSubRow(sub, color, isLast) {
   const track = document.createElement('div'); track.className = 'rm-track';
   if (sub.showBar!==false) track.appendChild(makeBar(sub.start,sub.end,color,color+'80',1));
   (sub.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms,color)));
-  // Nível 2: tem subId, não tem subsubId
-  CALENDAR_EVENTS.filter(e=>e.areaId===sub._areaId && e.subId===sub._subId && !e.subsubId).forEach(ev=>{
-    track.appendChild(makeMilestone({m:ev.m,label:'📌 '+ev.label,pos:ev.pos||'top',status:ev.status||'active'},color));
-  });
   row.appendChild(left); row.appendChild(track);
   let ssContainer = null;
   if (hasSubs) {
