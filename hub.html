@@ -2,8 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Hub — Eduardo</title>
+<!-- PWA — permite "Adicionar à Tela de Início" no iPhone, em tela cheia -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hub">
+<meta name="theme-color" content="#5b4fcf">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20180%20180'%3E%3Crect%20width='180'%20height='180'%20fill='%235b4fcf'/%3E%3Ctext%20x='50%25'%20y='62%25'%20font-size='110'%20text-anchor='middle'%20dominant-baseline='middle'%3E🏠%3C/text%3E%3C/svg%3E">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -395,6 +402,115 @@ table.data-table tr:hover td { background: var(--bg); }
   transition: color .12s;
 }
 .logout-btn:hover { color: #dc2626; border-color: #dc2626; }
+
+/* ── MOBILE (≤ 768px) ── */
+@media (max-width: 768px) {
+  html, body { font-size: 16px; overflow-x: hidden; }
+  body { -webkit-tap-highlight-color: transparent; }
+
+  /* Layout: sidebar vira menu inferior fixo */
+  .layout { flex-direction: column; height: 100vh; height: 100dvh; }
+  .sidebar {
+    order: 2;
+    width: 100%; flex-shrink: 0;
+    flex-direction: row; overflow-x: auto; overflow-y: hidden;
+    padding: 6px 8px;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(30,20,60,.06);
+    background: var(--sidebar-bg);
+    position: sticky; bottom: 0; z-index: 100;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+  .sidebar-header, .sidebar-divider, .sidebar-footer, .sidebar-section-label, .logout-btn { display: none; }
+  .sidebar-section { padding: 0; display: flex; gap: 4px; }
+  .nav-item {
+    flex-direction: column; gap: 2px; padding: 6px 10px;
+    flex-shrink: 0; min-width: 60px; text-align: center;
+    border-radius: 10px;
+  }
+  .nav-item .ni-icon { font-size: 20px; }
+  .nav-item .ni-text { font-size: 10px; }
+  .nav-item .ni-badge { display: none; }
+
+  .main {
+    order: 1; flex: 1; box-shadow: none;
+    padding-bottom: 0;
+  }
+
+  /* Section header mais compacto */
+  .section-header { padding: 16px 16px 12px; }
+  .section-title    { font-size: 20px; }
+  .section-subtitle { font-size: 11px; }
+  .section-body { padding: 14px 16px 24px; }
+
+  /* KPIs em grid 2 colunas no celular */
+  .kpi-row { gap: 8px; }
+  .kpi { min-width: 0; flex: 1 1 calc(50% - 4px); padding: 10px 12px; }
+  .kpi-value { font-size: 20px; }
+  .kpi-label { font-size: 10px; }
+
+  /* Tabela simples */
+  .data-table { font-size: 12px; }
+  .data-table th, .data-table td { padding: 8px 6px; }
+
+  /* Cards de fluxograma */
+  .flow-placeholder { padding: 14px; }
+
+  /* Setup */
+  .setup-grid { grid-template-columns: 1fr; gap: 10px; }
+  .setup-row { font-size: 12px; }
+
+  /* Sobre mim — mais compacto */
+  .contexto-grupo { margin-bottom: 18px; }
+  .cg-title { font-size: 10px; }
+  .ci-titulo { font-size: 13px; }
+  .ci-conteudo { font-size: 12.5px; }
+  .ci-toolbar { opacity: 1; } /* hover não funciona no celular, mostra sempre */
+  .proposta-card { padding: 10px 12px; }
+  .pc-titulo { font-size: 13px; }
+  .pc-conteudo { font-size: 12px; }
+
+  /* Chat — full screen, input fixed embaixo */
+  #chat.section.active { display: flex; flex-direction: column; }
+  .chat-body { padding: 0 12px 12px; }
+  .chat-bubble { font-size: 13.5px; padding: 9px 12px; }
+  .chat-msg { max-width: 88%; }
+  .chat-input { font-size: 16px; } /* 16px evita zoom auto no iOS ao focar */
+  .chat-input-row { padding: 8px 0 0; }
+  .chat-send { padding: 0 14px; font-size: 13px; }
+
+  /* Login overlay */
+  .login-card { max-width: 92%; padding: 28px 22px; }
+  .login-title { font-size: 20px; }
+
+  /* Roadmap — versão simplificada no celular.
+     A timeline horizontal não funciona em tela pequena.
+     Aqui só esconde a parte da timeline, mostra só os labels (left).
+     Versão otimizada (cards verticais) virá em outra fase. */
+  .rm-wrap { overflow-x: auto; }
+  .rm-axis-row { display: none; }
+  #rmTodayLine { display: none; }
+  .rm-corner { display: none; }
+  .rm-area-block { font-size: 14px; }
+  .rm-area-header { padding: 10px 12px; }
+  .rm-area-name { font-size: 14px; }
+  .rmah-chips { display: none; } /* esconde chips no mobile pra não vazar */
+  .rm-row { padding: 8px 12px; min-height: auto; }
+  .rm-left { width: auto !important; min-width: 0; padding: 6px 0; }
+  .rm-track { display: none; } /* esconde a track horizontal no mobile */
+  .rm-bar  { display: none; }
+  /* Os milestones (bolinhas) — esconde por enquanto, vão pra cards verticais depois */
+  .rm-ms { position: static; transform: none; margin: 4px; }
+  .rm-ms-label { display: none; }
+  .level4-left, .subsub-left, .sub-left { padding-left: 8px; }
+}
+
+/* iPhone notch — respeita safe areas */
+@supports (padding: max(0px)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
 </style>
 </head>
 <body>

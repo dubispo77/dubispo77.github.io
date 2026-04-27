@@ -1,0 +1,19 @@
+{
+  "name": "Hub do Eduardo",
+  "short_name": "Hub",
+  "description": "Hub pessoal — roadmap, agenda, finanças, saúde, rotina",
+  "start_url": "/hub.html",
+  "display": "standalone",
+  "background_color": "#f5f4f9",
+  "theme_color": "#5b4fcf",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20fill='%235b4fcf'/%3E%3Ctext%20x='50%25'%20y='62%25'%20font-size='320'%20text-anchor='middle'%20dominant-baseline='middle'%3E🏠%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
