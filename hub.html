@@ -140,9 +140,21 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-axis-label .ax-main { font-size: 11px; font-weight: 700; color: var(--text-dim); line-height: 1; }
 .rm-axis-label .ax-sub  { font-size: 8px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: .06em; line-height: 1; }
 .rm-axis-label::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 1px; height: 6px; background: var(--border); }
-.rm-axis-label.now .ax-main { color: #fff; background: var(--now); border-radius: 6px; padding: 1px 6px; }
+.rm-axis-label.now .ax-main {
+  color: var(--now);
+  background: rgba(124, 58, 237, 0.16);
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+}
 .rm-axis-label.now .ax-sub  { color: var(--now); }
-.rm-axis-label.now::after   { background: var(--now); height: 8px; width: 2px; border-radius: 1px; }
+.rm-axis-label.now::after   { background: var(--now); height: 8px; width: 2px; border-radius: 1px; opacity: .5; }
 .rm-axis-label.weekend .ax-main { color: var(--text-faint); }
 
 /* linha de hoje */
@@ -684,12 +696,7 @@ table.data-table tr:hover td { background: var(--bg); }
         <div class="section-subtitle">Conversa com o Claude — modifica o roadmap em tempo real</div>
       </div>
       <div id="chatBody" class="chat-body">
-        <div id="chatMessages" class="chat-messages">
-          <div class="chat-empty">
-            <div style="font-size:32px;margin-bottom:8px;">👋</div>
-            <div style="font-size:14px;color:var(--text-dim);">Manda uma mensagem. Por enquanto é só conversa — nas próximas fases ele vai poder mexer no roadmap direto daqui.</div>
-          </div>
-        </div>
+        <div id="chatMessages" class="chat-messages"></div>
         <form id="chatForm" class="chat-input-row">
           <textarea id="chatInput" class="chat-input" rows="1" placeholder="Digite e Enter pra enviar (Shift+Enter pra quebrar linha)" autocomplete="off"></textarea>
           <button type="submit" id="chatSend" class="chat-send">Enviar</button>
