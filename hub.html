@@ -620,10 +620,10 @@ table.data-table tr:hover td { background: var(--bg); }
     <div class="sidebar-section">
       <div class="sidebar-section-label">Principal</div>
       <div class="nav-item active" data-sec="roadmap"><span class="ni-icon">🗺️</span><span class="ni-text">Roadmap</span><span class="ni-badge badge-red">Urgente</span></div>
-      <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span></div>
-      <div class="nav-item" data-sec="financas"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span class="ni-badge badge-red">!</span></div>
-      <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span></div>
-      <div class="nav-item" data-sec="rotina"><span class="ni-icon">⏰</span><span class="ni-text">Rotina</span></div>
+      <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span><span id="badgeAgenda" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="financas"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeFinancas" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span><span id="badgeSaude" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="rotina"><span class="ni-icon">⏰</span><span class="ni-text">Rotina</span><span id="badgeRotina" class="ni-badge badge-yellow" style="display:none">0</span></div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">
@@ -2067,6 +2067,86 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       input.focus();
     }
   });
+})();
+
+// ── BADGES DINÂMICOS DA SIDEBAR
+(async function setupSidebarBadges() {
+  if (!window.sbClient) return;
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (!session) return;
+  const sb = window.sbClient;
+
+  function todayMid() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function localDate(iso) { if (!iso) return null; const d = new Date((iso||'').replace(' ','T')); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+  function setBadge(id, count, threshold) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (count >= threshold) {
+      el.textContent = count;
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  async function updateBadges() {
+    const today = todayMid();
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const { data } = await sb.from('items')
+      .select('area,type,status,date_start')
+      .not('status', 'eq', 'done')
+      .not('status', 'eq', 'cancelled')
+      .gte('date_start', today.toISOString())
+      .lt('date_start', tomorrow.toISOString());
+
+    const items = data || [];
+
+    const byArea = { agenda: 0, financas: 0, saude: 0, rotina: 0 };
+
+    items.forEach(i => {
+      const ld = localDate(i.date_start);
+      if (!ld || ld.getTime() !== today.getTime()) return;
+      if (i.area === 'saude')    byArea.saude++;
+      else if (i.area === 'rotina')   byArea.rotina++;
+      else if (i.area === 'financas') byArea.financas++;
+      else byArea.agenda++;
+    });
+
+    // Bills vencendo em 7 dias pra Finanças
+    const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
+    const { data: bills } = await sb.from('items')
+      .select('id')
+      .eq('type', 'bill')
+      .not('status', 'eq', 'done')
+      .not('status', 'eq', 'cancelled')
+      .gte('date_start', today.toISOString())
+      .lt('date_start', in7.toISOString());
+    byArea.financas = (bills || []).length;
+
+    // Total agenda = todos os pendentes de hoje que não são saude/rotina/financas
+    const { data: agendaItems } = await sb.from('items')
+      .select('id,area')
+      .not('status', 'eq', 'done')
+      .not('status', 'eq', 'cancelled')
+      .gte('date_start', today.toISOString())
+      .lt('date_start', tomorrow.toISOString());
+    byArea.agenda = (agendaItems || []).filter(i => !['saude','rotina','financas'].includes(i.area)).length;
+
+    setBadge('badgeAgenda',  byArea.agenda,   1);
+    setBadge('badgeFinancas', byArea.financas, 1);
+    setBadge('badgeSaude',   byArea.saude,    1);
+    setBadge('badgeRotina',  byArea.rotina,   1);
+  }
+
+  await updateBadges();
+
+  sb.channel('sidebar-badges-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async () => {
+      await updateBadges();
+    })
+    .subscribe();
 })();
 
 // ── ROTINA DINÂMICA (puxado de public.items onde area='rotina')
