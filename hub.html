@@ -1273,6 +1273,8 @@ document.addEventListener('click', handleMilestoneClick, true);
       CALENDAR_EVENTS = row.data.calendar_events || CALENDAR_EVENTS;
       document.getElementById('rmBody').innerHTML = '';
       buildAxis(); buildRoadmap();
+      // Restaura o estado aberto/fechado do localStorage após o re-render do Supabase
+      if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
     }
     sb.channel('roadmap-rt').on('postgres_changes',{ event:'UPDATE', schema:'public', table:'roadmap', filter:'id=eq.main' }, async () => {
       const { data: r } = await sb.from('roadmap').select('data').eq('id','main').single();
