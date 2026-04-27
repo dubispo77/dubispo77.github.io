@@ -69,7 +69,9 @@ html, body {
 .badge-red    { background: #fee2e2; color: #dc2626; }
 .badge-yellow { background: #fef9c3; color: #a16207; }
 .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
-.sidebar-footer { margin-top: auto; padding: 12px 16px 0; font-size: 10px; color: var(--sidebar-dim); line-height: 1.6; opacity: .7; }
+.sidebar-footer { margin-top: auto; padding: 12px 16px 16px; font-size: 10px; color: var(--sidebar-dim); line-height: 1.6; opacity: .7; }
+.today-chip { display: inline-block; margin-top: 10px; background: var(--accent); color: #fff; border-radius: 8px; padding: 5px 10px 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .01em; opacity: 1; line-height: 1.4; white-space: nowrap; }
+.today-chip-mobile { display: none; position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; border-radius: 10px; padding: 6px 14px 5px; font-size: 11px; font-weight: 700; letter-spacing: .01em; z-index: 999; box-shadow: 0 2px 12px rgba(91,79,207,.3); pointer-events: none; white-space: nowrap; }
 
 /* ── SECTIONS ── */
 .section { display: none; }
@@ -502,6 +504,7 @@ table.data-table tr:hover td { background: var(--bg); }
     padding-bottom: max(6px, env(safe-area-inset-bottom));
   }
   .sidebar-header, .sidebar-divider, .sidebar-footer, .sidebar-section-label, .logout-btn { display: none; }
+  .today-chip-mobile { display: block; }
   .sidebar-section { padding: 0; display: flex; gap: 4px; }
   .nav-item {
     flex-direction: column; gap: 2px; padding: 6px 10px;
@@ -634,9 +637,12 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="nav-item" data-sec="sobre"><span class="ni-icon">🪪</span><span class="ni-text">Sobre mim</span><span id="sobreBadge" class="ni-badge badge-yellow" style="display:none">0</span></div>
       <div class="nav-item" data-sec="chat"><span class="ni-icon">💬</span><span class="ni-text">Chat</span></div>
     </div>
-    <div class="sidebar-footer">Atualizado pelo assistente<br>Refresh para ver mudanças</div>
+    <div class="sidebar-footer">
+      <div class="today-chip" id="todayChipSidebar"></div>
+    </div>
     <button class="logout-btn" onclick="window.sbClient && window.sbClient.auth.signOut()">Sair</button>
   </aside>
+  <div class="today-chip-mobile" id="todayChipMobile"></div>
 
   <!-- MAIN -->
   <main class="main">
@@ -2096,6 +2102,17 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 })();
 
 // ── BADGES DINÂMICOS DA SIDEBAR
+(function setupTodayChip() {
+  const DIAS  = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const d = new Date();
+  const txt = `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+  ['todayChipSidebar','todayChipMobile'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  });
+})();
+
 (async function setupSidebarBadges() {
   if (!window.sbClient) return;
   const { data: { session } } = await window.sbClient.auth.getSession();
