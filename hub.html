@@ -1193,13 +1193,26 @@ async function handleMilestoneClick(e) {
 
   milestone.status = milestone.status === 'done' ? 'planned' : 'done';
 
+  // ── Atualização OTIMISTA — só recria o milestone clicado, sem rebuildar tudo
+  // Cor da área pra reconstruir o dot
+  const areaTop = (data.areas || []).find(a => a.id === path[0]);
+  const corDaArea = areaTop?.color || '#7c3aed';
+  const novoEl = makeMilestone(milestone, corDaArea);
+  msEl.replaceWith(novoEl);
+
+  // Atualiza estado local pra realtime saber que já está sincronizado
+  DATA = data.areas;
+  CALENDAR_EVENTS = data.calendar_events || CALENDAR_EVENTS;
+
   const { error: e2 } = await sb.from('roadmap').update({ data, updated_by: 'click-ui' }).eq('id', 'main');
   if (e2) {
-    msEl.style.opacity = '1';
     console.error('[click ms] erro ao salvar:', e2);
     alert('Erro ao salvar: ' + e2.message);
+    // Reverte o status local em caso de erro
+    milestone.status = milestone.status === 'done' ? 'planned' : 'done';
+    const elRevert = makeMilestone(milestone, corDaArea);
+    novoEl.replaceWith(elRevert);
   }
-  // realtime já vai re-renderizar o roadmap
 }
 
 // CAPTURE phase pra pegar o click antes dos handlers de toggle/open dos rows.
@@ -1225,6 +1238,13 @@ document.addEventListener('click', handleMilestoneClick, true);
     sb.channel('roadmap-rt').on('postgres_changes',{ event:'UPDATE', schema:'public', table:'roadmap', filter:'id=eq.main' }, async () => {
       const { data: r } = await sb.from('roadmap').select('data').eq('id','main').single();
       if (r?.data?.areas) {
+        // Se o estado remoto bate com o local (ex: foi nosso próprio click),
+        // ignora — UI já tá sincronizada via atualização otimista.
+        try {
+          const remoto = JSON.stringify({ areas: r.data.areas, calendar_events: r.data.calendar_events || [] });
+          const local  = JSON.stringify({ areas: DATA, calendar_events: CALENDAR_EVENTS || [] });
+          if (remoto === local) return;
+        } catch (_) {}
         // Snapshot do que estava aberto + posição do scroll antes do rebuild
         const opensAreas = new Set();
         const opensSubs  = new Set();
