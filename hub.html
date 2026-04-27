@@ -314,6 +314,37 @@ table.data-table tr:hover td { background: var(--bg); }
 .chat-status { font-size: 11px; color: var(--text-faint); padding: 4px 0 0; min-height: 16px; }
 .chat-status.error { color: #dc2626; }
 
+/* ── Anexos no chat ── */
+.chat-attach {
+  flex-shrink: 0; width: 38px; min-height: 38px;
+  border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text-dim);
+  font-size: 18px; cursor: pointer;
+}
+.chat-attach:hover { color: var(--accent); border-color: var(--accent); }
+.chat-previews {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 8px 0 4px;
+  border-top: 1px solid var(--border-soft);
+}
+.chat-preview {
+  position: relative; width: 64px; height: 64px;
+  border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.chat-preview img { width: 100%; height: 100%; object-fit: cover; }
+.chat-preview .cp-remove {
+  position: absolute; top: 2px; right: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,0,0,.7); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; cursor: pointer; border: none;
+  line-height: 1;
+}
+.chat-msg-images { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.chat-msg-images img { max-width: 160px; max-height: 160px; border-radius: 8px; }
+.chat-body.dragging { outline: 2px dashed var(--accent); outline-offset: -8px; border-radius: 12px; }
+
 /* ── SOBRE MIM ── */
 .propostas-banner {
   display: flex; align-items: center; gap: 12px;
@@ -697,8 +728,11 @@ table.data-table tr:hover td { background: var(--bg); }
       </div>
       <div id="chatBody" class="chat-body">
         <div id="chatMessages" class="chat-messages"></div>
+        <div id="chatPreviews" class="chat-previews" style="display:none"></div>
         <form id="chatForm" class="chat-input-row">
-          <textarea id="chatInput" class="chat-input" rows="1" placeholder="Digite e Enter pra enviar (Shift+Enter pra quebrar linha)" autocomplete="off"></textarea>
+          <input type="file" id="chatFile" accept="image/*" multiple style="display:none">
+          <button type="button" id="chatAttach" class="chat-attach" title="Anexar imagem (ou cole/arraste)">📎</button>
+          <textarea id="chatInput" class="chat-input" rows="1" placeholder="Digite, cole imagem (Cmd+V) ou anexe (📎)" autocomplete="off"></textarea>
           <button type="submit" id="chatSend" class="chat-send">Enviar</button>
         </form>
         <div id="chatStatus" class="chat-status"></div>
@@ -1637,37 +1671,133 @@ const SOBRE_CATEGORIAS = [
 const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/chat-claude';
 
 (function setupChat() {
-  const form    = document.getElementById('chatForm');
-  const input   = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('chatSend');
-  const list    = document.getElementById('chatMessages');
-  const status  = document.getElementById('chatStatus');
+  const form     = document.getElementById('chatForm');
+  const input    = document.getElementById('chatInput');
+  const sendBtn  = document.getElementById('chatSend');
+  const list     = document.getElementById('chatMessages');
+  const status   = document.getElementById('chatStatus');
+  const fileIn   = document.getElementById('chatFile');
+  const attach   = document.getElementById('chatAttach');
+  const previews = document.getElementById('chatPreviews');
+  const body     = document.getElementById('chatBody');
   if (!form) return;
 
   // Histórico em memória (vai pra Supabase em fases futuras).
   const history = [];
-
-  function addBubble(role, text, opts = {}) {
-    const wrap = document.createElement('div');
-    wrap.className = 'chat-msg ' + role + (opts.thinking ? ' thinking' : '');
-    const bubble = document.createElement('div');
-    bubble.className = 'chat-bubble';
-    bubble.textContent = text;
-    wrap.appendChild(bubble);
-    // Remove o estado vazio na primeira mensagem.
-    const empty = list.querySelector('.chat-empty');
-    if (empty) empty.remove();
-    list.appendChild(wrap);
-    list.scrollTop = list.scrollHeight;
-    return bubble;
-  }
+  // Imagens anexadas pra próxima mensagem: [{ media_type, data: base64, dataUrl }]
+  let pendingImages = [];
 
   function setStatus(text, isError = false) {
     status.textContent = text;
     status.classList.toggle('error', !!isError);
   }
 
-  // Auto-resize do textarea conforme digita.
+  function addBubble(role, content, opts = {}) {
+    // content pode ser string OU array [{type:'image',...}, {type:'text', text:'...'}]
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg ' + role + (opts.thinking ? ' thinking' : '');
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+
+    if (typeof content === 'string') {
+      bubble.textContent = content;
+    } else if (Array.isArray(content)) {
+      const imgs = content.filter(b => b.type === 'image');
+      const txts = content.filter(b => b.type === 'text').map(b => b.text).join('');
+      if (imgs.length) {
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'chat-msg-images';
+        imgs.forEach(img => {
+          const el = document.createElement('img');
+          el.src = `data:${img.source.media_type};base64,${img.source.data}`;
+          imgWrap.appendChild(el);
+        });
+        bubble.appendChild(imgWrap);
+      }
+      if (txts) {
+        const t = document.createElement('div'); t.textContent = txts;
+        bubble.appendChild(t);
+      }
+    }
+    wrap.appendChild(bubble);
+    list.appendChild(wrap);
+    list.scrollTop = list.scrollHeight;
+    return bubble;
+  }
+
+  // ── Gerenciamento de previews de imagens anexadas ──
+  function renderPreviews() {
+    previews.innerHTML = '';
+    if (pendingImages.length === 0) { previews.style.display = 'none'; return; }
+    previews.style.display = 'flex';
+    pendingImages.forEach((img, idx) => {
+      const cell = document.createElement('div'); cell.className = 'chat-preview';
+      const im = document.createElement('img'); im.src = img.dataUrl;
+      const rm = document.createElement('button'); rm.className = 'cp-remove'; rm.type = 'button';
+      rm.textContent = '×';
+      rm.onclick = () => { pendingImages.splice(idx, 1); renderPreviews(); };
+      cell.appendChild(im); cell.appendChild(rm);
+      previews.appendChild(cell);
+    });
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function adicionarImagens(fileList) {
+    const arquivos = Array.from(fileList || []).filter(f => f.type.startsWith('image/'));
+    for (const f of arquivos) {
+      // Limita 5MB por imagem (pra não estourar payload)
+      if (f.size > 5 * 1024 * 1024) {
+        setStatus('Imagem ignorada (>5MB): ' + f.name, true);
+        continue;
+      }
+      const dataUrl = await fileToBase64(f);
+      const base64 = dataUrl.split(',')[1];
+      pendingImages.push({ media_type: f.type, data: base64, dataUrl });
+    }
+    renderPreviews();
+  }
+
+  // Botão 📎 abre file picker
+  attach.addEventListener('click', () => fileIn.click());
+  fileIn.addEventListener('change', e => { adicionarImagens(e.target.files); fileIn.value = ''; });
+
+  // Cola de imagem (Cmd+V / Ctrl+V no campo)
+  input.addEventListener('paste', async e => {
+    const items = e.clipboardData?.items || [];
+    const arquivos = [];
+    for (const it of items) {
+      if (it.kind === 'file' && it.type.startsWith('image/')) {
+        const f = it.getAsFile();
+        if (f) arquivos.push(f);
+      }
+    }
+    if (arquivos.length) {
+      e.preventDefault();
+      await adicionarImagens(arquivos);
+    }
+  });
+
+  // Drag & drop no chat body
+  ['dragenter', 'dragover'].forEach(ev => body.addEventListener(ev, e => {
+    e.preventDefault(); body.classList.add('dragging');
+  }));
+  ['dragleave', 'drop'].forEach(ev => body.addEventListener(ev, e => {
+    e.preventDefault(); body.classList.remove('dragging');
+  }));
+  body.addEventListener('drop', async e => {
+    e.preventDefault();
+    if (e.dataTransfer?.files?.length) await adicionarImagens(e.dataTransfer.files);
+  });
+
+  // Auto-resize do textarea
   input.addEventListener('input', () => {
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 140) + 'px';
@@ -1684,12 +1814,28 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = input.value.trim();
-    if (!text) return;
+    if (!text && pendingImages.length === 0) return;
 
-    addBubble('user', text);
-    history.push({ role: 'user', content: text });
+    // Monta content da mensagem (array se tem imagens, string se só texto)
+    let content;
+    if (pendingImages.length > 0) {
+      content = [
+        ...pendingImages.map(img => ({
+          type: 'image',
+          source: { type: 'base64', media_type: img.media_type, data: img.data }
+        })),
+        ...(text ? [{ type: 'text', text }] : [])
+      ];
+    } else {
+      content = text;
+    }
+
+    addBubble('user', content);
+    history.push({ role: 'user', content });
     input.value = '';
     input.style.height = 'auto';
+    pendingImages = [];
+    renderPreviews();
 
     sendBtn.disabled = true;
     setStatus('Claude está pensando...');
