@@ -104,6 +104,11 @@ table.data-table tr:hover td { background: var(--bg); }
 .event-cal   { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 .empty-day   { text-align: center; padding: 56px 24px; color: var(--text-faint); font-size: 13px; }
 .empty-day .ei { font-size: 36px; margin-bottom: 12px; }
+/* ── AGENDA SEMANA ── */
+.agenda-day-group { margin-bottom: 18px; }
+.agenda-day-header { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); padding: 0 0 7px 56px; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+.agenda-day-header.hoje { color: var(--accent); }
+.agenda-day-header::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
 /* ── AGENDA CRUD ── */
 .event-block { cursor: pointer; user-select: none; }
 .event-block:hover { filter: brightness(.97); }
@@ -684,26 +689,27 @@ table.data-table tr:hover td { background: var(--bg); }
 
     <!-- FINANÇAS -->
     <section id="financas" class="section">
-      <div class="section-header"><div class="section-title">💰 Finanças</div><div class="section-subtitle">Status financeiro · Abril 2026</div></div>
+      <div class="section-header"><div class="section-title">💰 Finanças</div><div class="section-subtitle" id="finSubtitle">Carregando...</div></div>
       <div class="section-body">
         <div class="kpi-row">
-          <div class="kpi"><div class="kpi-value" style="color:#ef4444">2</div><div class="kpi-label">Urgências hoje</div></div>
-          <div class="kpi"><div class="kpi-value" style="color:#d97706">⚠️</div><div class="kpi-label">Reserva &lt; 3 meses</div></div>
-          <div class="kpi"><div class="kpi-value" style="color:#16a34a">✓</div><div class="kpi-label">Dívidas controláveis</div></div>
+          <div class="kpi"><div class="kpi-value" id="finKpiVenc"  style="color:#ef4444">—</div><div class="kpi-label">Vencem em 7 dias</div></div>
+          <div class="kpi"><div class="kpi-value" id="finKpiTotal" style="color:#d97706">—</div><div class="kpi-label">Total pendente</div></div>
+          <div class="kpi"><div class="kpi-value" id="finKpiProx"  style="color:#2563eb">—</div><div class="kpi-label">Próximo em dias</div></div>
         </div>
-        <div class="card" style="border-left:3px solid #ef4444;margin-bottom:18px;">
-          <div style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#ef4444;margin-bottom:6px;">🔴 Urgente — hoje</div>
-          <div style="font-size:13px;">Cabesp + MEI vencem hoje, 20/abr.</div>
+        <div id="finBillsWrap">
+          <div class="empty-day" style="padding:24px"><div class="ei">⏳</div><div>Carregando contas...</div></div>
         </div>
-        <table class="data-table">
-          <thead><tr><th>Item</th><th>Status</th><th>Prazo</th></tr></thead>
-          <tbody>
-            <tr><td><strong>Cabesp + MEI</strong></td><td><span class="pill" style="background:#fee2e2;color:#dc2626;">🔴 Urgente</span></td><td>20/abr</td></tr>
-            <tr><td><strong>Dívidas pequenas</strong></td><td><span class="pill" style="background:#dcfce7;color:#16a34a;">🟢 Controlável</span></td><td>Jul/26</td></tr>
-            <tr><td><strong>Reserva emergência</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Set/26</td></tr>
-            <tr><td><strong>Investir (6m+)</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Dez/26</td></tr>
-          </tbody>
-        </table>
+        <div style="margin-top:20px;">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Metas financeiras</div>
+          <table class="data-table">
+            <thead><tr><th>Meta</th><th>Status</th><th>Horizonte</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Dívidas pequenas</strong></td><td><span class="pill" style="background:#dcfce7;color:#16a34a;">🟢 Controlável</span></td><td>Jul/26</td></tr>
+              <tr><td><strong>Reserva emergência</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Set/26</td></tr>
+              <tr><td><strong>Investir (6m+)</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Dez/26</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -2011,6 +2017,85 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   });
 })();
 
+// ── FINANÇAS DINÂMICA (Fase 3 — bills via public.items)
+(async function setupFinancas() {
+  if (!window.sbClient) return;
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (!session) return;
+  const sb = window.sbClient;
+
+  function parseDt(iso) { return new Date((iso || '').replace(' ', 'T')); }
+  function todayMid()   { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function localDate(iso) { if (!iso) return null; const d = parseDt(iso); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function esc(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  let billsCache = [];
+
+  async function loadBills() {
+    const { data } = await sb.from('items').select('id,title,date_start,status,amount,currency').eq('type','bill').not('status','eq','cancelled').order('date_start');
+    billsCache = data || [];
+  }
+
+  function render() {
+    const today = todayMid();
+    const in7   = new Date(today); in7.setDate(in7.getDate() + 7);
+    const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    const pending  = billsCache.filter(b => b.status !== 'done');
+    const venc7    = pending.filter(b => { const ld = localDate(b.date_start); return ld && ld <= in7; });
+    const total    = pending.reduce((s, b) => s + parseFloat(b.amount || 0), 0);
+    const proxBill = pending.filter(b => localDate(b.date_start)).sort((a, b) => parseDt(a.date_start) - parseDt(b.date_start))[0];
+    const proxDias = proxBill ? Math.max(0, Math.round((localDate(proxBill.date_start) - today) / 86400000)) : null;
+
+    const sub = document.getElementById('finSubtitle');
+    if (sub) sub.textContent = `Contas e vencimentos · ${MESES[today.getMonth()]} ${today.getFullYear()}`;
+
+    const kV = document.getElementById('finKpiVenc');
+    const kT = document.getElementById('finKpiTotal');
+    const kP = document.getElementById('finKpiProx');
+    if (kV) { kV.textContent = venc7.length; kV.style.color = venc7.length > 0 ? '#ef4444' : '#16a34a'; }
+    if (kT) kT.textContent = total > 0 ? `R$${Math.round(total).toLocaleString('pt-BR')}` : 'R$0';
+    if (kP) { kP.textContent = proxDias !== null ? `${proxDias}d` : '—'; kP.style.color = proxDias !== null && proxDias <= 7 ? '#ef4444' : '#2563eb'; }
+
+    const wrap = document.getElementById('finBillsWrap');
+    if (!wrap) return;
+
+    if (billsCache.length === 0) {
+      wrap.innerHTML = '<div class="empty-day" style="padding:24px"><div class="ei">✅</div><div>Nenhuma conta cadastrada</div></div>';
+      return;
+    }
+
+    const PILL = {
+      done:        `<span class="pill" style="background:#dcfce7;color:#16a34a;">✓ Pago</span>`,
+      planned:     `<span class="pill" style="background:#dbeafe;color:#2563eb;">⏳ Pendente</span>`,
+      in_progress: `<span class="pill" style="background:#fef9c3;color:#a16207;">⚠️ Em aberto</span>`,
+    };
+
+    function fmtDate(iso) { if (!iso) return '—'; const d = localDate(iso); return `${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`; }
+    function fmtVal(v) { return v ? `R$ ${parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2})}` : '—'; }
+    const vencida = b => { const ld = localDate(b.date_start); return ld && ld < today && b.status !== 'done'; };
+
+    wrap.innerHTML = `<table class="data-table">
+      <thead><tr><th>Conta</th><th>Valor</th><th>Status</th><th>Prazo</th></tr></thead>
+      <tbody>${billsCache.map(b => `<tr style="${vencida(b)?'background:#fff5f5':''}">
+        <td><strong>${esc(b.title)}</strong></td>
+        <td style="color:${b.status==='done'?'var(--text-faint)':'var(--text)'}">${fmtVal(b.amount)}</td>
+        <td>${PILL[b.status] || PILL['planned']}</td>
+        <td style="color:${vencida(b)?'#ef4444':'var(--text-dim)'}">${fmtDate(b.date_start)}${vencida(b)?' ⚠️':''}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }
+
+  await loadBills();
+  render();
+
+  sb.channel('financas-bills-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async () => {
+      await loadBills(); render();
+    })
+    .subscribe();
+})();
+
 // ── AGENDA DINÂMICA (Fase 2 — puxado de public.items)
 (async function setupAgenda() {
   if (!window.sbClient) return;
@@ -2137,27 +2222,24 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       kpiBills.style.color  = billCount > 0 ? '#d97706' : '#16a34a';
     }
 
-    // Timeline — itens de HOJE, timed primeiro
+    // Timeline — semana completa agrupada por dia
     const timelineEl = document.getElementById('agendaTimeline');
     if (!timelineEl) return;
 
-    const displayItems = itemsCache
-      .filter(i => { const ld = localDate(i.date_start); return ld && ld.getTime() === today.getTime(); })
-      .sort((a, b) => {
-        if (!a.has_time && !b.has_time) return 0;
-        if (!a.has_time) return 1;
-        if (!b.has_time) return -1;
-        return parseDt(a.date_start) - parseDt(b.date_start);
-      });
+    const TYPE_ICON = { task:'✓', event:'📅', milestone:'🏁', bill:'💸', note:'📝' };
+    const WEEK_DAYS = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 
-    if (displayItems.length === 0) {
-      timelineEl.innerHTML = `<div class="empty-day"><div class="ei">📭</div><div>Dia livre hoje — nada agendado</div></div>`;
-      return;
+    function dayLabel(dateObj) {
+      const diff = Math.round((dateObj - today) / 86400000);
+      if (diff === 0) return 'Hoje';
+      if (diff === 1) return 'Amanhã';
+      const wd  = WEEK_DAYS[dateObj.getDay()];
+      const dia = dateObj.getDate();
+      const mes = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][dateObj.getMonth()];
+      return wd.charAt(0).toUpperCase() + wd.slice(1) + `, ${dia} ${mes}`;
     }
 
-    const TYPE_ICON = { task:'✓', event:'📅', milestone:'🏁', bill:'💸', note:'📝' };
-
-    timelineEl.innerHTML = displayItems.map(item => {
+    function renderItem(item) {
       const proj    = projectsMap[item.project_id] || null;
       const color   = proj ? proj.color : areaColor(item.area);
       const label   = proj ? proj.name  : (item.area || '');
@@ -2169,6 +2251,44 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         <div class="event-title" style="${done ? 'text-decoration:line-through' : ''}">${icon} ${esc(item.title)}</div>
         <div class="event-cal">${esc(label)}</div>
         <div class="eb-actions"><button class="eb-btn eb-del" title="Apagar">✕</button></div>
+      </div>`;
+    }
+
+    // Agrupa items por dia (só items com data, excluindo bills fora da semana)
+    const byDay = {};
+    itemsCache
+      .filter(i => {
+        const ld = localDate(i.date_start);
+        return ld && ld >= today && ld < wkEnd;
+      })
+      .sort((a, b) => {
+        const da = parseDt(a.date_start), db = parseDt(b.date_start);
+        if (da - db !== 0) return da - db;
+        if (!a.has_time && b.has_time) return 1;
+        if (a.has_time && !b.has_time) return -1;
+        return 0;
+      })
+      .forEach(i => {
+        const key = localDate(i.date_start).getTime();
+        if (!byDay[key]) byDay[key] = [];
+        byDay[key].push(i);
+      });
+
+    const days = Object.keys(byDay).map(Number).sort();
+
+    if (days.length === 0) {
+      timelineEl.innerHTML = `<div class="empty-day"><div class="ei">📭</div><div>Semana livre — nada agendado</div></div>`;
+      return;
+    }
+
+    timelineEl.innerHTML = days.map(ts => {
+      const dateObj  = new Date(ts);
+      const isHoje   = ts === today.getTime();
+      const label    = dayLabel(dateObj);
+      const items    = byDay[ts];
+      return `<div class="agenda-day-group">
+        <div class="agenda-day-header${isHoje ? ' hoje' : ''}">${label}</div>
+        ${items.map(renderItem).join('')}
       </div>`;
     }).join('');
   }
