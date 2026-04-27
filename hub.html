@@ -1152,6 +1152,9 @@ function montarPathDoElemento(el) {
 async function handleMilestoneClick(e) {
   const msEl = e.target.closest && e.target.closest('.rm-ms');
   if (!msEl) return;
+  // Toggle só nos milestones do nível 4 (granular). Os de outros níveis
+  // são duplicações visuais do calendário, não devem ser clicáveis.
+  if (!msEl.closest('.rm-row-level4')) return;
   if (!msEl.dataset.msId) {
     console.warn('[click ms] elemento sem msId — DOM antigo? recarregar com Cmd+Shift+R', msEl);
     return;
@@ -1221,7 +1224,44 @@ document.addEventListener('click', handleMilestoneClick, true);
     }
     sb.channel('roadmap-rt').on('postgres_changes',{ event:'UPDATE', schema:'public', table:'roadmap', filter:'id=eq.main' }, async () => {
       const { data: r } = await sb.from('roadmap').select('data').eq('id','main').single();
-      if (r?.data?.areas) { DATA = r.data.areas; CALENDAR_EVENTS = r.data.calendar_events||[]; document.getElementById('rmBody').innerHTML=''; buildAxis(); buildRoadmap(); }
+      if (r?.data?.areas) {
+        // Snapshot do que estava aberto + posição do scroll antes do rebuild
+        const opensAreas = new Set();
+        const opensSubs  = new Set();
+        document.querySelectorAll('.rm-area-header.open').forEach(el => {
+          const block = el.closest('.rm-area-block');
+          if (block && block.dataset.areaId) opensAreas.add(block.dataset.areaId);
+        });
+        document.querySelectorAll('.rm-row.hassubs.open[data-sub-id]').forEach(el => {
+          opensSubs.add(el.dataset.subId);
+        });
+        const wrap = document.getElementById('rmWrap');
+        const scrollLeft = wrap ? wrap.scrollLeft : 0;
+        const scrollTop  = wrap ? wrap.scrollTop  : 0;
+
+        DATA = r.data.areas;
+        CALENDAR_EVENTS = r.data.calendar_events || [];
+        document.getElementById('rmBody').innerHTML = '';
+        buildAxis(); buildRoadmap();
+
+        // Restaura áreas abertas
+        opensAreas.forEach(areaId => {
+          const block = document.querySelector(`.rm-area-block[data-area-id="${areaId}"]`);
+          if (!block) return;
+          block.querySelector('.rm-area-header')?.classList.add('open');
+          block.querySelector('.rm-subs-container')?.classList.add('open');
+        });
+        // Restaura subs abertos (level2/3 com filhos)
+        opensSubs.forEach(subId => {
+          const row = document.querySelector(`.rm-row.hassubs[data-sub-id="${subId}"]`);
+          if (!row) return;
+          row.classList.add('open');
+          let next = row.nextElementSibling;
+          if (next && next.classList.contains('rm-subsubs-container')) next.classList.add('open');
+        });
+        // Restaura scroll
+        if (wrap) { wrap.scrollLeft = scrollLeft; wrap.scrollTop = scrollTop; }
+      }
     }).subscribe();
   } catch(e) { console.warn('Supabase:', e.message); }
 })();
