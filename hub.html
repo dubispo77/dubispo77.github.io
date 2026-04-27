@@ -626,15 +626,26 @@ table.data-table tr:hover td { background: var(--bg); }
     <section id="agenda" class="section">
       <div class="section-header">
         <div class="section-title">📅 Agenda</div>
-        <div class="section-subtitle">Domingo, 26 de abril de 2026</div>
+        <div class="section-subtitle">Segunda-feira, 27 de abril de 2026</div>
       </div>
       <div class="section-body">
         <div class="kpi-row">
-          <div class="kpi"><div class="kpi-value" style="color:#7c3aed">0</div><div class="kpi-label">Eventos hoje</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#7c3aed">2</div><div class="kpi-label">Eventos hoje</div></div>
           <div class="kpi"><div class="kpi-value" style="color:#2563eb">8</div><div class="kpi-label">Esta semana</div></div>
-          <div class="kpi"><div class="kpi-value" style="color:#d97706">2</div><div class="kpi-label">Vencimentos</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#d97706">0</div><div class="kpi-label">Vencimentos</div></div>
         </div>
-        <div class="empty-day"><div class="ei">📭</div>Nenhum evento hoje<br><span style="font-size:11.5px;color:var(--text-faint);">Aproveita pra descansar — ou me pede pra encaixar algo</span></div>
+        <div class="timeline">
+          <div class="event-block" style="border-color:#7c3aed;color:#7c3aed">
+            <div class="event-time">09h50</div>
+            <div class="event-title">🦷 Radiografia Odonto - Papaiz</div>
+            <div class="event-cal">Eventos</div>
+          </div>
+          <div class="event-block" style="border-color:#16a34a;color:#16a34a">
+            <div class="event-time">10h</div>
+            <div class="event-title">[T-rec-por] Mudar favicon</div>
+            <div class="event-cal">Tarefas pessoais</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -732,7 +743,7 @@ table.data-table tr:hover td { background: var(--bg); }
         <form id="chatForm" class="chat-input-row">
           <input type="file" id="chatFile" accept="image/*" multiple style="display:none">
           <button type="button" id="chatAttach" class="chat-attach" title="Anexar imagem (ou cole/arraste)">📎</button>
-          <textarea id="chatInput" class="chat-input" rows="1" placeholder="Digite, cole imagem (Cmd+V) ou anexe (📎)" autocomplete="off"></textarea>
+          <textarea id="chatInput" class="chat-input" rows="1" placeholder="Digite aqui" autocomplete="off"></textarea>
           <button type="submit" id="chatSend" class="chat-send">Enviar</button>
         </form>
         <div id="chatStatus" class="chat-status"></div>
@@ -837,9 +848,9 @@ window.sbClient = (typeof supabase !== 'undefined')
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-04-26 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-04-27 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
-  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'planned', cal:'Tarefas pessoais' },
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'active', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG',  m:1.03, pos:'bot', status:'planned', cal:'Tarefas pessoais' },
 ];
 // CALENDAR_EVENTS_END
