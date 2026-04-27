@@ -622,6 +622,7 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="nav-item active" data-sec="roadmap"><span class="ni-icon">🗺️</span><span class="ni-text">Roadmap</span><span class="ni-badge badge-red">Urgente</span></div>
       <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span></div>
       <div class="nav-item" data-sec="financas"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span class="ni-badge badge-red">!</span></div>
+      <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span></div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">
@@ -723,6 +724,24 @@ table.data-table tr:hover td { background: var(--bg); }
               <tr><td><strong>Investir (6m+)</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Dez/26</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SAÚDE -->
+    <section id="saude" class="section">
+      <div class="section-header"><div class="section-title">🏃 Saúde</div><div class="section-subtitle" id="saudeSubtitle">Carregando...</div></div>
+      <div class="section-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" id="saudeKpiPend"  style="color:#ef4444">—</div><div class="kpi-label">Pendentes hoje</div></div>
+          <div class="kpi"><div class="kpi-value" id="saudeKpiSemana" style="color:#16a34a">—</div><div class="kpi-label">Esta semana</div></div>
+          <div class="kpi"><div class="kpi-value" id="saudeKpiConsulta" style="color:#2563eb">—</div><div class="kpi-label">Próxima consulta</div></div>
+        </div>
+        <div id="saudeItemsWrap">
+          <div class="empty-day" style="padding:24px"><div class="ei">⏳</div><div>Carregando...</div></div>
+        </div>
+        <div class="agenda-add-wrap">
+          <button class="agenda-add-btn" id="saudeAddBtn">＋ Adicionar item de saúde</button>
         </div>
       </div>
     </section>
@@ -2029,6 +2048,192 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       input.focus();
     }
   });
+})();
+
+// ── SAÚDE DINÂMICA (puxado de public.items onde area='saude')
+(async function setupSaude() {
+  if (!window.sbClient) return;
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (!session) return;
+  const sb = window.sbClient;
+
+  function parseDt(iso) { return new Date((iso || '').replace(' ', 'T')); }
+  function todayMid()   { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function localDate(iso) { if (!iso) return null; const d = parseDt(iso); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function esc(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  let itemsCache = [];
+
+  async function loadItems() {
+    const today = todayMid();
+    const in60  = new Date(today); in60.setDate(in60.getDate() + 60);
+    const { data } = await sb.from('items')
+      .select('id,title,type,date_start,has_time,status,amount,currency')
+      .eq('area', 'saude')
+      .not('status', 'eq', 'cancelled')
+      .gte('date_start', new Date(today.getTime() - 7 * 86400000).toISOString())
+      .lt('date_start', in60.toISOString())
+      .order('date_start');
+    itemsCache = data || [];
+  }
+
+  function render() {
+    const today = todayMid();
+    const wkEnd = new Date(today); wkEnd.setDate(wkEnd.getDate() + 7);
+    const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const WEEK_DAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+    // KPIs
+    const pendHoje = itemsCache.filter(i => {
+      const ld = localDate(i.date_start);
+      return ld && ld.getTime() === today.getTime() && i.status !== 'done';
+    }).length;
+
+    const semana = itemsCache.filter(i => {
+      const ld = localDate(i.date_start);
+      return ld && ld >= today && ld < wkEnd && i.status !== 'done';
+    }).length;
+
+    const proxConsulta = itemsCache
+      .filter(i => i.type === 'event' && i.status !== 'done')
+      .filter(i => { const ld = localDate(i.date_start); return ld && ld >= today; })
+      .sort((a, b) => parseDt(a.date_start) - parseDt(b.date_start))[0];
+
+    const diasConsulta = proxConsulta
+      ? Math.max(0, Math.round((localDate(proxConsulta.date_start) - today) / 86400000))
+      : null;
+
+    const sub = document.getElementById('saudeSubtitle');
+    if (sub) sub.textContent = `Hábitos e consultas · ${MESES[today.getMonth()]} ${today.getFullYear()}`;
+
+    const kP = document.getElementById('saudeKpiPend');
+    const kS = document.getElementById('saudeKpiSemana');
+    const kC = document.getElementById('saudeKpiConsulta');
+    if (kP) { kP.textContent = pendHoje; kP.style.color = pendHoje > 0 ? '#ef4444' : '#16a34a'; }
+    if (kS) kS.textContent = semana;
+    if (kC) { kC.textContent = diasConsulta !== null ? `${diasConsulta}d` : '—'; kC.style.color = diasConsulta !== null && diasConsulta <= 7 ? '#ef4444' : '#2563eb'; }
+
+    const wrap = document.getElementById('saudeItemsWrap');
+    if (!wrap) return;
+
+    if (itemsCache.length === 0) {
+      wrap.innerHTML = '<div class="empty-day" style="padding:24px"><div class="ei">💪</div><div>Nenhum item de saúde cadastrado</div></div>';
+      return;
+    }
+
+    const TYPE_ICON = { task:'✓', event:'🩺', milestone:'🏁', note:'📝' };
+    const PILL_STATUS = {
+      done:        `<span class="pill" style="background:#dcfce7;color:#16a34a;">✓ Feito</span>`,
+      planned:     `<span class="pill" style="background:#dbeafe;color:#2563eb;">⏳ Pendente</span>`,
+      in_progress: `<span class="pill" style="background:#fef9c3;color:#a16207;">⚙️ Em curso</span>`,
+    };
+
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      const d = localDate(iso);
+      const diff = Math.round((d - today) / 86400000);
+      if (diff === 0) return 'Hoje';
+      if (diff === 1) return 'Amanhã';
+      if (diff < 0)  return `${Math.abs(diff)}d atrás`;
+      const wd = WEEK_DAYS[d.getDay()];
+      return `${wd} ${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    // Agrupa: atrasados, hoje, próximos
+    const atrasados = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld < today && i.status !== 'done'; });
+    const restantes = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld >= today; });
+
+    let html = '';
+
+    if (atrasados.length > 0) {
+      html += `<div class="agenda-day-header" style="color:#ef4444;margin-bottom:8px;">⚠️ Atrasados</div>`;
+      html += atrasados.map(i => {
+        const done = i.status === 'done';
+        return `<div class="event-block" style="border-color:#16a34a;color:#16a34a${done?';opacity:.45':''}" data-saude-id="${i.id}" data-status="${i.status}">
+          <div class="event-time">${fmtDate(i.date_start)}</div>
+          <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
+          <div class="event-cal">${PILL_STATUS[i.status] || PILL_STATUS['planned']}</div>
+          <div class="eb-actions"><button class="eb-btn eb-saude-del" title="Apagar">✕</button></div>
+        </div>`;
+      }).join('');
+    }
+
+    if (restantes.length > 0) {
+      if (atrasados.length > 0) html += '<div style="height:12px"></div>';
+      html += restantes.map(i => {
+        const done = i.status === 'done';
+        return `<div class="event-block" style="border-color:#16a34a;color:#16a34a${done?';opacity:.45':''}" data-saude-id="${i.id}" data-status="${i.status}">
+          <div class="event-time">${fmtDate(i.date_start)}</div>
+          <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
+          <div class="event-cal">${PILL_STATUS[i.status] || PILL_STATUS['planned']}</div>
+          <div class="eb-actions"><button class="eb-btn eb-saude-del" title="Apagar">✕</button></div>
+        </div>`;
+      }).join('');
+    }
+
+    wrap.innerHTML = html;
+
+    // Delegação de cliques
+    wrap.querySelectorAll('.event-block[data-saude-id]').forEach(block => {
+      block.addEventListener('click', async e => {
+        if (e.target.closest('.eb-saude-del')) {
+          e.stopPropagation();
+          const id = block.dataset.saudeId;
+          const acts = block.querySelector('.eb-actions');
+          acts.style.opacity = '1';
+          acts.innerHTML = `<span style="font-size:11px;color:var(--text-dim);font-weight:600;white-space:nowrap">Apagar?</span>
+            <button class="eb-btn" id="sYes${id}" style="background:#dc2626;color:#fff;width:auto;padding:0 8px;font-size:11px;font-weight:700">Sim</button>
+            <button class="eb-btn" id="sNo${id}" style="background:var(--card);border:1px solid var(--border);color:var(--text-dim);width:auto;padding:0 8px;font-size:11px">Não</button>`;
+          document.getElementById(`sYes${id}`).onclick = async ev => {
+            ev.stopPropagation();
+            await sb.from('items').delete().eq('id', id);
+            await loadItems(); render();
+          };
+          document.getElementById(`sNo${id}`).onclick = ev => { ev.stopPropagation(); render(); };
+          return;
+        }
+        // Toggle done
+        const id = block.dataset.saudeId;
+        const item = itemsCache.find(i => i.id === id);
+        if (!item) return;
+        const newStatus = item.status === 'done' ? 'planned' : 'done';
+        item.status = newStatus; render();
+        const { error } = await sb.from('items').update({
+          status: newStatus,
+          done_at: newStatus === 'done' ? new Date().toISOString() : null,
+        }).eq('id', id);
+        if (error) { item.status = newStatus === 'done' ? 'planned' : 'done'; render(); }
+      });
+    });
+
+    // Botão adicionar redireciona para Agenda com area=saude pré-selecionada
+    const addBtn = document.getElementById('saudeAddBtn');
+    if (addBtn) {
+      addBtn.onclick = () => {
+        document.querySelector('[data-sec="agenda"]')?.click();
+        setTimeout(() => {
+          document.getElementById('agendaAddBtn')?.click();
+          setTimeout(() => {
+            const sel = document.getElementById('aafProject');
+            if (sel) {
+              // Tenta selecionar projeto Saúde
+              const opt = Array.from(sel.options).find(o => o.text.toLowerCase().includes('saúde') || o.text.toLowerCase().includes('saude'));
+              if (opt) sel.value = opt.value;
+            }
+          }, 100);
+        }, 200);
+      };
+    }
+  }
+
+  await loadItems();
+  render();
+
+  sb.channel('saude-items-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items', filter: 'area=eq.saude' }, async () => {
+      await loadItems(); render();
+    })
+    .subscribe();
 })();
 
 // ── FINANÇAS DINÂMICA (Fase 3 — bills via public.items)
