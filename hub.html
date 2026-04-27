@@ -1124,6 +1124,52 @@ document.getElementById('rmZoomLabel') && (document.getElementById('rmZoomLabel'
 buildAxis();
 buildRoadmap();
 
+// ── PERSISTÊNCIA DO ESTADO ABERTO/FECHADO entre refreshs (localStorage)
+const HUB_OPEN_STATE_KEY = 'hub_open_state_v1';
+
+function salvarEstadoAberto() {
+  const areas = [];
+  const subs  = [];
+  document.querySelectorAll('.rm-area-header.open').forEach(el => {
+    const block = el.closest('.rm-area-block');
+    if (block && block.dataset.areaId) areas.push(block.dataset.areaId);
+  });
+  document.querySelectorAll('.rm-row.hassubs.open[data-sub-id]').forEach(el => {
+    subs.push(el.dataset.subId);
+  });
+  try { localStorage.setItem(HUB_OPEN_STATE_KEY, JSON.stringify({ areas, subs })); } catch (_) {}
+}
+
+function restaurarEstadoAberto() {
+  let estado;
+  try { estado = JSON.parse(localStorage.getItem(HUB_OPEN_STATE_KEY) || 'null'); } catch { estado = null; }
+  if (!estado) return;
+  (estado.areas || []).forEach(areaId => {
+    const block = document.querySelector(`.rm-area-block[data-area-id="${areaId}"]`);
+    if (!block) return;
+    block.querySelector('.rm-area-header')?.classList.add('open');
+    block.querySelector('.rm-subs-container')?.classList.add('open');
+  });
+  (estado.subs || []).forEach(subId => {
+    const row = document.querySelector(`.rm-row.hassubs[data-sub-id="${subId}"]`);
+    if (!row) return;
+    row.classList.add('open');
+    const next = row.nextElementSibling;
+    if (next && next.classList.contains('rm-subsubs-container')) next.classList.add('open');
+  });
+}
+
+// Restaura logo após o build inicial
+restaurarEstadoAberto();
+
+// Salva sempre que user clica em algo que muda o estado (área header ou row.hassubs)
+// Mas ignora clicks em milestones (que não afetam o open state).
+document.addEventListener('click', (e) => {
+  if (e.target.closest && e.target.closest('.rm-ms')) return;
+  const target = e.target.closest && (e.target.closest('.rm-area-header') || e.target.closest('.rm-row.hassubs'));
+  if (target) setTimeout(salvarEstadoAberto, 60);
+}, false);
+
 // ── CLICK NOS MILESTONES PRA TOGGLE STATUS (done ↔ planned)
 function montarPathDoElemento(el) {
   const ids = [];
