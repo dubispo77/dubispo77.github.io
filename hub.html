@@ -106,9 +106,22 @@ table.data-table tr:hover td { background: var(--bg); }
 .empty-day .ei { font-size: 36px; margin-bottom: 12px; }
 /* ── AGENDA SEMANA ── */
 .agenda-day-group { margin-bottom: 18px; }
-.agenda-day-header { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); padding: 0 0 7px 56px; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+.agenda-day-header { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); padding: 0 0 7px 0; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
 .agenda-day-header.hoje { color: var(--accent); }
 .agenda-day-header::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
+/* ── WEEK NAV ── */
+.week-nav { display: flex; gap: 2px; overflow-x: auto; padding: 2px 0 14px; scrollbar-width: none; }
+.week-nav::-webkit-scrollbar { display: none; }
+.wn-day { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 40px; cursor: pointer; padding: 8px 4px 6px; border-radius: 14px; transition: background .15s; flex-shrink: 0; border: none; background: transparent; font: inherit; }
+.wn-day:hover { background: var(--bg); }
+.wn-day.selected { background: var(--accent); }
+.wn-day.selected .wn-dow, .wn-day.selected .wn-num { color: white; }
+.wn-dow { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
+.wn-num { font-size: 20px; font-weight: 700; color: var(--text); line-height: 1; }
+.wn-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); visibility: hidden; }
+.wn-dot.has-items { visibility: visible; }
+.wn-day.selected .wn-dot { background: rgba(255,255,255,.7); }
+.wn-day.today-unsel .wn-num { color: var(--accent); font-weight: 800; }
 /* ── AGENDA CRUD ── */
 .event-block { cursor: pointer; user-select: none; }
 .event-block:hover { filter: brightness(.97); }
@@ -658,6 +671,7 @@ table.data-table tr:hover td { background: var(--bg); }
           <div class="kpi"><div class="kpi-value" id="agendaKpiWeek"  style="color:#2563eb">—</div><div class="kpi-label">Esta semana</div></div>
           <div class="kpi"><div class="kpi-value" id="agendaKpiBills" style="color:#16a34a">—</div><div class="kpi-label">Vencimentos</div></div>
         </div>
+        <div class="week-nav" id="agendaWeekNav"></div>
         <div class="timeline" id="agendaTimeline">
           <div class="empty-day"><div class="ei">⏳</div><div>Carregando agenda...</div></div>
         </div>
@@ -2103,8 +2117,9 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   if (!session) return;
 
   const sb = window.sbClient;
-  let projectsMap = {}; // id → { name, color, area }
-  let itemsCache  = [];
+  let projectsMap  = {}; // id → { name, color, area }
+  let itemsCache   = [];
+  let selectedDayTs = null; // timestamp do dia selecionado (midnight local)
 
   // ── Helpers de data ──
   function parseDt(iso) { return new Date((iso || '').replace(' ', 'T')); }
@@ -2182,10 +2197,51 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     itemsCache = Object.values(map);
   }
 
+  // ── Build week nav ──
+  function buildWeekNav() {
+    const navEl = document.getElementById('agendaWeekNav');
+    if (!navEl) return;
+    const today = todayMidnight();
+    const DOW   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    // Começa na segunda-feira da semana atual
+    const weekStart = new Date(today);
+    const dow = today.getDay(); // 0=Dom
+    weekStart.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(weekStart);
+      d.setDate(weekStart.getDate() + i);
+      return d;
+    });
+
+    navEl.innerHTML = days.map(d => {
+      const ts      = d.getTime();
+      const isToday = ts === today.getTime();
+      const isSel   = ts === selectedDayTs;
+      const hasIt   = itemsCache.some(i => { const ld = localDate(i.date_start); return ld && ld.getTime() === ts; });
+      const cls     = isSel ? 'selected' : (isToday ? 'today-unsel' : '');
+      return `<button class="wn-day ${cls}" data-day-ts="${ts}">
+        <span class="wn-dow">${DOW[d.getDay()]}</span>
+        <span class="wn-num">${d.getDate()}</span>
+        <span class="wn-dot${hasIt ? ' has-items' : ''}"></span>
+      </button>`;
+    }).join('');
+
+    navEl.querySelectorAll('.wn-day').forEach(el => {
+      el.addEventListener('click', () => {
+        selectedDayTs = parseInt(el.dataset.dayTs);
+        render();
+      });
+    });
+  }
+
   // ── Render principal ──
   function render() {
     const today = todayMidnight();
     const wkEnd = weekEnd(today);
+
+    // Garante selectedDay inicializado
+    if (selectedDayTs === null) selectedDayTs = today.getTime();
 
     // KPI: eventos hoje (não-done)
     const todayCount = itemsCache.filter(i => {
@@ -2207,7 +2263,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     // Header dinâmico
     const dateEl = document.getElementById('agendaDate');
     if (dateEl) {
-      const str = today.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      const selDate = new Date(selectedDayTs);
+      const str = selDate.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
       dateEl.textContent = str.charAt(0).toUpperCase() + str.slice(1);
     }
 
@@ -2218,26 +2275,18 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     if (kpiToday) kpiToday.textContent = todayCount;
     if (kpiWeek)  kpiWeek.textContent  = weekCount;
     if (kpiBills) {
-      kpiBills.textContent  = billCount;
-      kpiBills.style.color  = billCount > 0 ? '#d97706' : '#16a34a';
+      kpiBills.textContent = billCount;
+      kpiBills.style.color = billCount > 0 ? '#d97706' : '#16a34a';
     }
 
-    // Timeline — semana completa agrupada por dia
+    // Reconstrói week nav
+    buildWeekNav();
+
+    // Timeline — items do dia selecionado
     const timelineEl = document.getElementById('agendaTimeline');
     if (!timelineEl) return;
 
     const TYPE_ICON = { task:'✓', event:'📅', milestone:'🏁', bill:'💸', note:'📝' };
-    const WEEK_DAYS = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
-
-    function dayLabel(dateObj) {
-      const diff = Math.round((dateObj - today) / 86400000);
-      if (diff === 0) return 'Hoje';
-      if (diff === 1) return 'Amanhã';
-      const wd  = WEEK_DAYS[dateObj.getDay()];
-      const dia = dateObj.getDate();
-      const mes = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][dateObj.getMonth()];
-      return wd.charAt(0).toUpperCase() + wd.slice(1) + `, ${dia} ${mes}`;
-    }
 
     function renderItem(item) {
       const proj    = projectsMap[item.project_id] || null;
@@ -2254,43 +2303,22 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       </div>`;
     }
 
-    // Agrupa items por dia (só items com data, excluindo bills fora da semana)
-    const byDay = {};
-    itemsCache
-      .filter(i => {
-        const ld = localDate(i.date_start);
-        return ld && ld >= today && ld < wkEnd;
-      })
+    // Items do dia selecionado
+    const dayItems = itemsCache
+      .filter(i => { const ld = localDate(i.date_start); return ld && ld.getTime() === selectedDayTs; })
       .sort((a, b) => {
-        const da = parseDt(a.date_start), db = parseDt(b.date_start);
-        if (da - db !== 0) return da - db;
-        if (!a.has_time && b.has_time) return 1;
         if (a.has_time && !b.has_time) return -1;
-        return 0;
-      })
-      .forEach(i => {
-        const key = localDate(i.date_start).getTime();
-        if (!byDay[key]) byDay[key] = [];
-        byDay[key].push(i);
+        if (!a.has_time && b.has_time) return 1;
+        return parseDt(a.date_start) - parseDt(b.date_start);
       });
 
-    const days = Object.keys(byDay).map(Number).sort();
-
-    if (days.length === 0) {
-      timelineEl.innerHTML = `<div class="empty-day"><div class="ei">📭</div><div>Semana livre — nada agendado</div></div>`;
+    if (dayItems.length === 0) {
+      const isToday = selectedDayTs === today.getTime();
+      timelineEl.innerHTML = `<div class="empty-day"><div class="ei">${isToday ? '☀️' : '📭'}</div><div>${isToday ? 'Hoje está livre' : 'Nada agendado neste dia'}</div></div>`;
       return;
     }
 
-    timelineEl.innerHTML = days.map(ts => {
-      const dateObj  = new Date(ts);
-      const isHoje   = ts === today.getTime();
-      const label    = dayLabel(dateObj);
-      const items    = byDay[ts];
-      return `<div class="agenda-day-group">
-        <div class="agenda-day-header${isHoje ? ' hoje' : ''}">${label}</div>
-        ${items.map(renderItem).join('')}
-      </div>`;
-    }).join('');
+    timelineEl.innerHTML = dayItems.map(renderItem).join('');
   }
 
   // ── Popula select de projetos no formulário ──
@@ -2322,7 +2350,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       const open = addForm.style.display !== 'none';
       addForm.style.display = open ? 'none' : 'block';
       if (!open) {
-        aafDate.value = todayMidnight().toISOString().slice(0, 10);
+        aafDate.value = new Date(selectedDayTs || Date.now()).toISOString().slice(0, 10);
         setTimeout(() => aafTitle.focus(), 50);
       }
     });
