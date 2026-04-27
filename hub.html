@@ -624,6 +624,7 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="nav-item" data-sec="financas"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeFinancas" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span><span id="badgeSaude" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="rotina"><span class="ni-icon">⏰</span><span class="ni-text">Rotina</span><span id="badgeRotina" class="ni-badge badge-yellow" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="pessoal"><span class="ni-icon">🙋</span><span class="ni-text">Pessoal</span><span id="badgePessoal" class="ni-badge badge-red" style="display:none">0</span></div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">
@@ -761,6 +762,24 @@ table.data-table tr:hover td { background: var(--bg); }
         </div>
         <div class="agenda-add-wrap">
           <button class="agenda-add-btn" id="rotinaAddBtn">＋ Adicionar item de rotina</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESSOAL -->
+    <section id="pessoal" class="section">
+      <div class="section-header"><div class="section-title">🙋 Pessoal</div><div class="section-subtitle" id="pessoalSubtitle">Carregando...</div></div>
+      <div class="section-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" id="pessoalKpiHoje"   style="color:#7c3aed">—</div><div class="kpi-label">Hoje</div></div>
+          <div class="kpi"><div class="kpi-value" id="pessoalKpiSemana" style="color:#2563eb">—</div><div class="kpi-label">Esta semana</div></div>
+          <div class="kpi"><div class="kpi-value" id="pessoalKpiFeitos" style="color:#16a34a">—</div><div class="kpi-label">Feitos (30 dias)</div></div>
+        </div>
+        <div id="pessoalItemsWrap">
+          <div class="empty-day" style="padding:24px"><div class="ei">⏳</div><div>Carregando...</div></div>
+        </div>
+        <div class="agenda-add-wrap">
+          <button class="agenda-add-btn" id="pessoalAddBtn">＋ Adicionar item pessoal</button>
         </div>
       </div>
     </section>
@@ -2103,14 +2122,15 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     const items = data || [];
 
-    const byArea = { agenda: 0, financas: 0, saude: 0, rotina: 0 };
+    const byArea = { agenda: 0, financas: 0, saude: 0, rotina: 0, pessoal: 0 };
 
     items.forEach(i => {
       const ld = localDate(i.date_start);
       if (!ld || ld.getTime() !== today.getTime()) return;
-      if (i.area === 'saude')    byArea.saude++;
+      if (i.area === 'saude')         byArea.saude++;
       else if (i.area === 'rotina')   byArea.rotina++;
       else if (i.area === 'financas') byArea.financas++;
+      else if (i.area === 'pessoal')  byArea.pessoal++;
       else byArea.agenda++;
     });
 
@@ -2134,10 +2154,11 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       .lt('date_start', tomorrow.toISOString());
     byArea.agenda = (agendaItems || []).filter(i => !['saude','rotina','financas'].includes(i.area)).length;
 
-    setBadge('badgeAgenda',  byArea.agenda,   1);
+    setBadge('badgeAgenda',   byArea.agenda,   1);
     setBadge('badgeFinancas', byArea.financas, 1);
-    setBadge('badgeSaude',   byArea.saude,    1);
-    setBadge('badgeRotina',  byArea.rotina,   1);
+    setBadge('badgeSaude',    byArea.saude,    1);
+    setBadge('badgeRotina',   byArea.rotina,   1);
+    setBadge('badgePessoal',  byArea.pessoal,  1);
   }
 
   await updateBadges();
@@ -2145,6 +2166,157 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   sb.channel('sidebar-badges-rt')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async () => {
       await updateBadges();
+    })
+    .subscribe();
+})();
+
+// ── PESSOAL DINÂMICA (puxado de public.items onde area='pessoal')
+(async function setupPessoal() {
+  if (!window.sbClient) return;
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (!session) return;
+  const sb = window.sbClient;
+
+  function parseDt(iso) { return new Date((iso || '').replace(' ', 'T')); }
+  function todayMid()   { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function localDate(iso) { if (!iso) return null; const d = parseDt(iso); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function esc(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  let itemsCache = [];
+
+  async function loadItems() {
+    const today = todayMid();
+    const in30  = new Date(today); in30.setDate(in30.getDate() + 30);
+    const from30 = new Date(today); from30.setDate(from30.getDate() - 30);
+    const { data } = await sb.from('items')
+      .select('id,title,type,date_start,has_time,status')
+      .eq('area', 'pessoal')
+      .not('status', 'eq', 'cancelled')
+      .gte('date_start', from30.toISOString())
+      .lt('date_start', in30.toISOString())
+      .order('date_start');
+    itemsCache = data || [];
+  }
+
+  function render() {
+    const today = todayMid();
+    const wkEnd = new Date(today); wkEnd.setDate(wkEnd.getDate() + 7);
+    const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const WEEK_DAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const COLOR = '#7c3aed';
+
+    const deHoje  = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld.getTime() === today.getTime() && i.status !== 'done'; });
+    const semana  = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld >= today && ld < wkEnd && i.status !== 'done'; });
+    const feitos  = itemsCache.filter(i => i.status === 'done').length;
+
+    const sub = document.getElementById('pessoalSubtitle');
+    if (sub) sub.textContent = `Projetos e compromissos · ${MESES[today.getMonth()]} ${today.getFullYear()}`;
+
+    const kH = document.getElementById('pessoalKpiHoje');
+    const kS = document.getElementById('pessoalKpiSemana');
+    const kF = document.getElementById('pessoalKpiFeitos');
+    if (kH) { kH.textContent = deHoje.length; kH.style.color = deHoje.length > 0 ? '#7c3aed' : '#16a34a'; }
+    if (kS) kS.textContent = semana.length;
+    if (kF) kF.textContent = feitos;
+
+    const wrap = document.getElementById('pessoalItemsWrap');
+    if (!wrap) return;
+
+    const pending = itemsCache.filter(i => i.status !== 'done');
+    const done    = itemsCache.filter(i => i.status === 'done');
+
+    if (itemsCache.length === 0) {
+      wrap.innerHTML = '<div class="empty-day" style="padding:24px"><div class="ei">🙋</div><div>Nenhum item pessoal cadastrado</div></div>';
+      return;
+    }
+
+    const TYPE_ICON = { task:'✓', event:'📌', milestone:'🏁', note:'📝' };
+
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      const d = localDate(iso);
+      const diff = Math.round((d - today) / 86400000);
+      if (diff === 0) return 'Hoje';
+      if (diff === 1) return 'Amanhã';
+      if (diff < 0)  return `${Math.abs(diff)}d atrás`;
+      return `${WEEK_DAYS[d.getDay()]} ${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function itemHtml(i) {
+      const done = i.status === 'done';
+      return `<div class="event-block" style="border-color:${COLOR};color:${COLOR}${done?';opacity:.45':''}" data-pessoal-id="${i.id}" data-status="${i.status}">
+        <div class="event-time">${fmtDate(i.date_start)}</div>
+        <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
+        <div class="event-cal">${done ? '<span class="pill" style="background:#ede9fe;color:#7c3aed;">✓ Feito</span>' : '<span class="pill" style="background:#ede9fe;color:#7c3aed;">⏳ Pendente</span>'}</div>
+        <div class="eb-actions"><button class="eb-btn eb-pessoal-del" title="Apagar">✕</button></div>
+      </div>`;
+    }
+
+    let html = '';
+    if (pending.length > 0) {
+      html += pending.sort((a,b) => parseDt(a.date_start) - parseDt(b.date_start)).map(itemHtml).join('');
+    }
+    if (done.length > 0) {
+      html += `<div class="agenda-day-header" style="margin-top:16px;margin-bottom:8px;color:var(--text-faint);">✓ Concluídos</div>`;
+      html += done.slice(0, 5).map(itemHtml).join(''); // Mostra só os últimos 5 feitos
+    }
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll('.event-block[data-pessoal-id]').forEach(block => {
+      block.addEventListener('click', async e => {
+        if (e.target.closest('.eb-pessoal-del')) {
+          e.stopPropagation();
+          const id = block.dataset.pessoalId;
+          const acts = block.querySelector('.eb-actions');
+          acts.style.opacity = '1';
+          acts.innerHTML = `<span style="font-size:11px;color:var(--text-dim);font-weight:600;white-space:nowrap">Apagar?</span>
+            <button class="eb-btn" id="pY${id}" style="background:#dc2626;color:#fff;width:auto;padding:0 8px;font-size:11px;font-weight:700">Sim</button>
+            <button class="eb-btn" id="pN${id}" style="background:var(--card);border:1px solid var(--border);color:var(--text-dim);width:auto;padding:0 8px;font-size:11px">Não</button>`;
+          document.getElementById(`pY${id}`).onclick = async ev => {
+            ev.stopPropagation();
+            await sb.from('items').delete().eq('id', id);
+            await loadItems(); render();
+          };
+          document.getElementById(`pN${id}`).onclick = ev => { ev.stopPropagation(); render(); };
+          return;
+        }
+        const id = block.dataset.pessoalId;
+        const item = itemsCache.find(i => i.id === id);
+        if (!item) return;
+        const newStatus = item.status === 'done' ? 'planned' : 'done';
+        item.status = newStatus; render();
+        const { error } = await sb.from('items').update({
+          status: newStatus,
+          done_at: newStatus === 'done' ? new Date().toISOString() : null,
+        }).eq('id', id);
+        if (error) { item.status = newStatus === 'done' ? 'planned' : 'done'; render(); }
+      });
+    });
+
+    const addBtn = document.getElementById('pessoalAddBtn');
+    if (addBtn) {
+      addBtn.onclick = () => {
+        document.querySelector('[data-sec="agenda"]')?.click();
+        setTimeout(() => {
+          document.getElementById('agendaAddBtn')?.click();
+          setTimeout(() => {
+            const sel = document.getElementById('aafProject');
+            if (sel) {
+              const opt = Array.from(sel.options).find(o => o.text.toLowerCase().includes('pessoal'));
+              if (opt) sel.value = opt.value;
+            }
+          }, 100);
+        }, 200);
+      };
+    }
+  }
+
+  await loadItems();
+  render();
+
+  sb.channel('pessoal-items-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items', filter: 'area=eq.pessoal' }, async () => {
+      await loadItems(); render();
     })
     .subscribe();
 })();
