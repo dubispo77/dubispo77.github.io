@@ -1327,8 +1327,10 @@ function makeSubRow(sub, color, isLast) {
 }
 
 function countPending(node) {
-  let n = (node.milestones || []).filter(m => m.status !== 'done').length;
-  (node.subs || []).forEach(s => { n += countPending(s); });
+  if (!node || typeof node !== 'object') return 0;
+  let n = 0;
+  try { n += (node.milestones || []).filter(m => m && m.status !== 'done').length; } catch(_) {}
+  try { (node.subs || []).forEach(s => { n += countPending(s); }); } catch(_) {}
   return n;
 }
 
