@@ -104,6 +104,25 @@ table.data-table tr:hover td { background: var(--bg); }
 .event-cal   { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 .empty-day   { text-align: center; padding: 56px 24px; color: var(--text-faint); font-size: 13px; }
 .empty-day .ei { font-size: 36px; margin-bottom: 12px; }
+/* ── AGENDA CRUD ── */
+.event-block { cursor: pointer; user-select: none; }
+.event-block:hover { filter: brightness(.97); }
+.eb-actions { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity .15s; }
+.event-block:hover .eb-actions { opacity: 1; }
+.eb-btn { width: 22px; height: 22px; border-radius: 5px; border: none; background: transparent; color: var(--text-faint); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.eb-btn:hover { background: #fee2e2; color: #dc2626; }
+.agenda-add-wrap { margin-top: 12px; }
+.agenda-add-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: 1.5px dashed var(--border); background: transparent; color: var(--text-faint); font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color .15s, color .15s; }
+.agenda-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+.agenda-add-form { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-top: 8px; }
+.aaf-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.aaf-input, .aaf-select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 13px; background: var(--card); color: var(--text); outline: none; }
+.aaf-input:focus, .aaf-select:focus { border-color: var(--accent); }
+.aaf-actions { display: flex; gap: 8px; }
+.aaf-save { padding: 8px 18px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 650; cursor: pointer; }
+.aaf-save:hover { background: #4a3fb3; }
+.aaf-save:disabled { opacity: .5; cursor: not-allowed; }
+.aaf-cancel { padding: 8px 14px; background: transparent; color: var(--text-dim); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; cursor: pointer; }
 
 /* ── FLUXOGRAMAS ── */
 .flow-placeholder { border: 1.5px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; color: var(--text-faint); margin-bottom: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
@@ -636,6 +655,29 @@ table.data-table tr:hover td { background: var(--bg); }
         </div>
         <div class="timeline" id="agendaTimeline">
           <div class="empty-day"><div class="ei">⏳</div><div>Carregando agenda...</div></div>
+        </div>
+        <div class="agenda-add-wrap">
+          <button class="agenda-add-btn" id="agendaAddBtn">＋ Adicionar item</button>
+          <div class="agenda-add-form" id="agendaAddForm" style="display:none">
+            <div class="aaf-row">
+              <input class="aaf-input" id="aafTitle" placeholder="O que?" style="flex:1;min-width:140px">
+              <select class="aaf-select" id="aafType">
+                <option value="task">✓ Tarefa</option>
+                <option value="event">📅 Evento</option>
+                <option value="bill">💸 Conta</option>
+                <option value="note">📝 Nota</option>
+              </select>
+            </div>
+            <div class="aaf-row">
+              <select class="aaf-select" id="aafProject" style="flex:1"></select>
+              <input class="aaf-input" id="aafDate" type="date" style="flex:1">
+              <input class="aaf-input" id="aafTime" type="time" placeholder="Hora" style="flex:1">
+            </div>
+            <div class="aaf-actions">
+              <button class="aaf-save" id="aafSave">Salvar</button>
+              <button class="aaf-cancel" id="aafCancel">Cancelar</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -2122,18 +2164,128 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       const timeStr = item.has_time ? fmtTime(item.date_start) : '—';
       const done    = item.status === 'done';
       const icon    = TYPE_ICON[item.type] || '';
-      return `<div class="event-block" style="border-color:${color};color:${color}${done ? ';opacity:.45' : ''}" data-item-id="${item.id}">
+      return `<div class="event-block" style="border-color:${color};color:${color}${done ? ';opacity:.45' : ''};padding-right:36px" data-item-id="${item.id}" data-status="${item.status}">
         <div class="event-time">${timeStr}</div>
         <div class="event-title" style="${done ? 'text-decoration:line-through' : ''}">${icon} ${esc(item.title)}</div>
         <div class="event-cal">${esc(label)}</div>
+        <div class="eb-actions"><button class="eb-btn eb-del" title="Apagar">✕</button></div>
       </div>`;
     }).join('');
+  }
+
+  // ── Popula select de projetos no formulário ──
+  function populateProjectSelect() {
+    const sel = document.getElementById('aafProject');
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Sem projeto —</option>' +
+      Object.values(projectsMap).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    if (cur) sel.value = cur;
+  }
+
+  // ── CRUD ──
+  function setupCRUD() {
+    const timeline  = document.getElementById('agendaTimeline');
+    const addBtn    = document.getElementById('agendaAddBtn');
+    const addForm   = document.getElementById('agendaAddForm');
+    const aafTitle  = document.getElementById('aafTitle');
+    const aafDate   = document.getElementById('aafDate');
+    const aafTime   = document.getElementById('aafTime');
+    const aafSave   = document.getElementById('aafSave');
+    const aafCancel = document.getElementById('aafCancel');
+    if (!timeline || !addBtn) return;
+
+    populateProjectSelect();
+
+    // Toggle formulário
+    addBtn.addEventListener('click', () => {
+      const open = addForm.style.display !== 'none';
+      addForm.style.display = open ? 'none' : 'block';
+      if (!open) {
+        aafDate.value = todayMidnight().toISOString().slice(0, 10);
+        setTimeout(() => aafTitle.focus(), 50);
+      }
+    });
+
+    aafCancel.addEventListener('click', () => {
+      addForm.style.display = 'none';
+      aafTitle.value = ''; aafTime.value = '';
+    });
+
+    aafTitle.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); aafSave.click(); }
+    });
+
+    // Salvar novo item
+    aafSave.addEventListener('click', async () => {
+      const title = aafTitle.value.trim();
+      if (!title) { aafTitle.focus(); return; }
+      aafSave.disabled = true;
+      const projId   = document.getElementById('aafProject').value || null;
+      const area     = projId ? (projectsMap[projId]?.area || null) : null;
+      const hasTime  = !!aafTime.value;
+      const dateStr  = aafDate.value || todayMidnight().toISOString().slice(0, 10);
+      const date_start = hasTime
+        ? new Date(`${dateStr}T${aafTime.value}:00`).toISOString()
+        : new Date(`${dateStr}T00:00:00`).toISOString();
+      const { error } = await sb.from('items').insert({
+        title, type: document.getElementById('aafType').value,
+        project_id: projId, area, date_start, has_time: hasTime,
+        status: 'planned', currency: 'BRL',
+      });
+      if (error) { alert('Erro ao salvar: ' + error.message); }
+      else {
+        addForm.style.display = 'none';
+        aafTitle.value = ''; aafTime.value = '';
+        await loadItems(); render();
+      }
+      aafSave.disabled = false;
+    });
+
+    // Delegação de cliques na timeline
+    timeline.addEventListener('click', async e => {
+      // Botão apagar → confirm inline
+      if (e.target.closest('.eb-del')) {
+        e.stopPropagation();
+        const block = e.target.closest('.event-block');
+        if (!block) return;
+        const id      = block.dataset.itemId;
+        const actions = block.querySelector('.eb-actions');
+        actions.style.opacity = '1';
+        actions.innerHTML = `
+          <span style="font-size:11px;color:var(--text-dim);font-weight:600;white-space:nowrap">Apagar?</span>
+          <button class="eb-btn" id="ebY${id}" style="background:#dc2626;color:#fff;width:auto;padding:0 8px;font-size:11px;font-weight:700">Sim</button>
+          <button class="eb-btn" id="ebN${id}" style="background:var(--card);border:1px solid var(--border);color:var(--text-dim);width:auto;padding:0 8px;font-size:11px">Não</button>`;
+        document.getElementById(`ebY${id}`).onclick = async ev => {
+          ev.stopPropagation();
+          await sb.from('items').delete().eq('id', id);
+          await loadItems(); render();
+        };
+        document.getElementById(`ebN${id}`).onclick = ev => { ev.stopPropagation(); render(); };
+        return;
+      }
+
+      // Clique no bloco → toggle done ↔ planned (optimistic)
+      const block = e.target.closest('.event-block');
+      if (!block) return;
+      const id   = block.dataset.itemId;
+      const item = itemsCache.find(i => i.id === id);
+      if (!item) return;
+      const newStatus = item.status === 'done' ? 'planned' : 'done';
+      item.status = newStatus; render();
+      const { error } = await sb.from('items').update({
+        status: newStatus,
+        done_at: newStatus === 'done' ? new Date().toISOString() : null,
+      }).eq('id', id);
+      if (error) { item.status = newStatus === 'done' ? 'planned' : 'done'; render(); }
+    });
   }
 
   // ── Init ──
   await loadProjects();
   await loadItems();
   render();
+  setupCRUD();
 
   // ── Realtime — qualquer mudança em items ou projects re-renderiza ──
   sb.channel('agenda-items-rt')
@@ -2141,7 +2293,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       await loadItems(); render();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, async () => {
-      await loadProjects(); render();
+      await loadProjects(); populateProjectSelect(); render();
     })
     .subscribe();
 })();
