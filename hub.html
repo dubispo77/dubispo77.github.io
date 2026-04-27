@@ -626,25 +626,16 @@ table.data-table tr:hover td { background: var(--bg); }
     <section id="agenda" class="section">
       <div class="section-header">
         <div class="section-title">📅 Agenda</div>
-        <div class="section-subtitle">Segunda-feira, 27 de abril de 2026</div>
+        <div class="section-subtitle" id="agendaDate">Carregando...</div>
       </div>
       <div class="section-body">
         <div class="kpi-row">
-          <div class="kpi"><div class="kpi-value" style="color:#7c3aed">2</div><div class="kpi-label">Eventos hoje</div></div>
-          <div class="kpi"><div class="kpi-value" style="color:#2563eb">8</div><div class="kpi-label">Esta semana</div></div>
-          <div class="kpi"><div class="kpi-value" style="color:#d97706">0</div><div class="kpi-label">Vencimentos</div></div>
+          <div class="kpi"><div class="kpi-value" id="agendaKpiToday" style="color:#7c3aed">—</div><div class="kpi-label">Eventos hoje</div></div>
+          <div class="kpi"><div class="kpi-value" id="agendaKpiWeek"  style="color:#2563eb">—</div><div class="kpi-label">Esta semana</div></div>
+          <div class="kpi"><div class="kpi-value" id="agendaKpiBills" style="color:#16a34a">—</div><div class="kpi-label">Vencimentos</div></div>
         </div>
-        <div class="timeline">
-          <div class="event-block" style="border-color:#7c3aed;color:#7c3aed">
-            <div class="event-time">09h50</div>
-            <div class="event-title">🦷 Radiografia Odonto - Papaiz</div>
-            <div class="event-cal">Eventos</div>
-          </div>
-          <div class="event-block" style="border-color:#16a34a;color:#16a34a">
-            <div class="event-time">10h</div>
-            <div class="event-title">[T-rec-por] Mudar favicon</div>
-            <div class="event-cal">Tarefas pessoais</div>
-          </div>
+        <div class="timeline" id="agendaTimeline">
+          <div class="empty-day"><div class="ei">⏳</div><div>Carregando agenda...</div></div>
         </div>
       </div>
     </section>
@@ -1976,6 +1967,183 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       input.focus();
     }
   });
+})();
+
+// ── AGENDA DINÂMICA (Fase 2 — puxado de public.items)
+(async function setupAgenda() {
+  if (!window.sbClient) return;
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (!session) return;
+
+  const sb = window.sbClient;
+  let projectsMap = {}; // id → { name, color, area }
+  let itemsCache  = [];
+
+  // ── Helpers de data ──
+  function parseDt(iso) { return new Date((iso || '').replace(' ', 'T')); }
+
+  function todayMidnight() {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function localDate(iso) {
+    if (!iso) return null;
+    const d = parseDt(iso);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function weekEnd(base) {
+    // Próximo Domingo (exclusive) — semana termina na virada do Domingo
+    const d = new Date(base);
+    const day = d.getDay(); // 0=Dom,1=Seg,...
+    const toSunday = day === 0 ? 7 : 7 - day;
+    d.setDate(d.getDate() + toSunday);
+    return d;
+  }
+
+  function fmtTime(iso) {
+    const d = parseDt(iso);
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    return `${h}h${m}`;
+  }
+
+  function esc(s) {
+    return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function areaColor(area) {
+    return { saude:'#16a34a', trabalho:'#2563eb', financas:'#d97706', rotina:'#0891b2', pessoal:'#7c3aed' }[area] || '#6b637a';
+  }
+
+  // ── Carrega projetos (constrói mapa id → projeto) ──
+  async function loadProjects() {
+    const { data } = await sb.from('projects').select('id,name,color,area');
+    projectsMap = {};
+    (data || []).forEach(p => { projectsMap[p.id] = p; });
+  }
+
+  // ── Carrega items (semana atual + bills próximos 30 dias) ──
+  async function loadItems() {
+    const today = todayMidnight();
+    const wkEnd = weekEnd(today);
+    const in30  = new Date(today); in30.setDate(in30.getDate() + 30);
+
+    // Items da semana (de hoje até Domingo)
+    const { data: weekItems } = await sb
+      .from('items')
+      .select('id,title,area,type,project_id,date_start,has_time,status,amount,currency')
+      .gte('date_start', today.toISOString())
+      .lt('date_start', wkEnd.toISOString())
+      .not('status', 'eq', 'cancelled')
+      .order('date_start');
+
+    // Bills nos próximos 30 dias (mesmo os fora da semana)
+    const { data: billItems } = await sb
+      .from('items')
+      .select('id,title,area,type,project_id,date_start,has_time,status,amount,currency')
+      .eq('type', 'bill')
+      .gte('date_start', today.toISOString())
+      .lt('date_start', in30.toISOString())
+      .not('status', 'eq', 'done')
+      .not('status', 'eq', 'cancelled');
+
+    // Merge sem duplicatas (Map garante unicidade por id)
+    const map = {};
+    [...(weekItems || []), ...(billItems || [])].forEach(i => { map[i.id] = i; });
+    itemsCache = Object.values(map);
+  }
+
+  // ── Render principal ──
+  function render() {
+    const today = todayMidnight();
+    const wkEnd = weekEnd(today);
+
+    // KPI: eventos hoje (não-done)
+    const todayCount = itemsCache.filter(i => {
+      const ld = localDate(i.date_start);
+      return ld && ld.getTime() === today.getTime() && i.status !== 'done';
+    }).length;
+
+    // KPI: esta semana (não-done)
+    const weekCount = itemsCache.filter(i => {
+      const ld = localDate(i.date_start);
+      return ld && ld >= today && ld < wkEnd && i.status !== 'done';
+    }).length;
+
+    // KPI: vencimentos (bills não pagos nos próximos 30 dias)
+    const billCount = itemsCache.filter(i =>
+      i.type === 'bill' && i.status !== 'done' && i.status !== 'cancelled'
+    ).length;
+
+    // Header dinâmico
+    const dateEl = document.getElementById('agendaDate');
+    if (dateEl) {
+      const str = today.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      dateEl.textContent = str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // KPIs
+    const kpiToday = document.getElementById('agendaKpiToday');
+    const kpiWeek  = document.getElementById('agendaKpiWeek');
+    const kpiBills = document.getElementById('agendaKpiBills');
+    if (kpiToday) kpiToday.textContent = todayCount;
+    if (kpiWeek)  kpiWeek.textContent  = weekCount;
+    if (kpiBills) {
+      kpiBills.textContent  = billCount;
+      kpiBills.style.color  = billCount > 0 ? '#d97706' : '#16a34a';
+    }
+
+    // Timeline — itens de HOJE, timed primeiro
+    const timelineEl = document.getElementById('agendaTimeline');
+    if (!timelineEl) return;
+
+    const displayItems = itemsCache
+      .filter(i => { const ld = localDate(i.date_start); return ld && ld.getTime() === today.getTime(); })
+      .sort((a, b) => {
+        if (!a.has_time && !b.has_time) return 0;
+        if (!a.has_time) return 1;
+        if (!b.has_time) return -1;
+        return parseDt(a.date_start) - parseDt(b.date_start);
+      });
+
+    if (displayItems.length === 0) {
+      timelineEl.innerHTML = `<div class="empty-day"><div class="ei">📭</div><div>Dia livre hoje — nada agendado</div></div>`;
+      return;
+    }
+
+    const TYPE_ICON = { task:'✓', event:'📅', milestone:'🏁', bill:'💸', note:'📝' };
+
+    timelineEl.innerHTML = displayItems.map(item => {
+      const proj    = projectsMap[item.project_id] || null;
+      const color   = proj ? proj.color : areaColor(item.area);
+      const label   = proj ? proj.name  : (item.area || '');
+      const timeStr = item.has_time ? fmtTime(item.date_start) : '—';
+      const done    = item.status === 'done';
+      const icon    = TYPE_ICON[item.type] || '';
+      return `<div class="event-block" style="border-color:${color};color:${color}${done ? ';opacity:.45' : ''}" data-item-id="${item.id}">
+        <div class="event-time">${timeStr}</div>
+        <div class="event-title" style="${done ? 'text-decoration:line-through' : ''}">${icon} ${esc(item.title)}</div>
+        <div class="event-cal">${esc(label)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Init ──
+  await loadProjects();
+  await loadItems();
+  render();
+
+  // ── Realtime — qualquer mudança em items ou projects re-renderiza ──
+  sb.channel('agenda-items-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async () => {
+      await loadItems(); render();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, async () => {
+      await loadProjects(); render();
+    })
+    .subscribe();
 })();
 </script>
 <!-- hidden zoom controls for JS refs -->
