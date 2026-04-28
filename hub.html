@@ -284,6 +284,9 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-ms:hover .rm-ms-dot { transform: scale(1.15); }
 .rm-ms.done .rm-ms-dot { background: #fff; }
 .rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
+/* Atrasado: bolinha invisível, só o ⚠ vermelho grande com stroke branco */
+.rm-ms-dot.is-overdue { background: transparent !important; box-shadow: none !important; overflow: visible; }
+.rm-ms-dot.is-overdue::after { content: '⚠'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 20px; font-weight: 900; color: #dc2626; line-height: 1; -webkit-text-stroke: 1.5px #fff; text-shadow: 0 1px 3px rgba(0,0,0,.25); pointer-events: none; }
 .rm-ms-label {
   white-space: nowrap;
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -317,7 +320,9 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .rm-ms-label.top { bottom: calc(100% + 10px); }
 .rm-ms-label.bot { bottom: calc(100% + 10px); top: auto; }
-.rm-ms:hover .rm-ms-label { opacity: 1; }
+/* Tooltip da milestone: aparece só depois de 250ms parado em cima (evita flicker ao passar o mouse pela timeline) */
+.rm-ms-label { transition: opacity .15s; transition-delay: 0s; }
+.rm-ms:hover .rm-ms-label { opacity: 1; transition-delay: .25s; }
 
 .rm-subs-container    { display: none; }
 .rm-subs-container.open    { display: block; }
@@ -1308,19 +1313,17 @@ function makeMilestone(ms, color) {
   </div>`;
   // Regra única: window.isOverdue (planned + data passada). Centralizada no topo do hub.html.
   const isOverdue = window.isOverdue(_msMtoDate(ms.m), ms.status);
-  const centerFill = ms.status === 'done' ? color
-    : isOverdue ? '#dc2626'
-    : `rgba(168,158,184,0.3)`;
-  const outerFill = isOverdue ? '#fca5a5' : '#fff';
+  // Visual atrasado é controlado por CSS via classe .is-overdue (só ⚠ vermelho grande, sem círculo).
+  const dotClass = `rm-ms-dot${isOverdue && ms.status !== 'done' ? ' is-overdue' : ''}`;
   const inner = ms.status === 'done'
     ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;">✓</span>`
-    : isOverdue
-      ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;line-height:1;">⚠</span>`
-      : '';
+    : '';
   const dotStyle = ms.status === 'done'
     ? `background:${color};`
-    : `background: radial-gradient(circle, ${centerFill} 0%, ${centerFill} 32%, ${outerFill} 32%, ${outerFill} 100%);`;
-  el.innerHTML = `${tooltipHtml}<div class="rm-ms-dot" style="position:relative;${dotStyle}">${inner}</div>`;
+    : isOverdue
+      ? '' // .is-overdue cuida (background transparent + ⚠ ::after)
+      : `background: radial-gradient(circle, rgba(168,158,184,0.3) 0%, rgba(168,158,184,0.3) 32%, #fff 32%, #fff 100%);`;
+  el.innerHTML = `${tooltipHtml}<div class="${dotClass}" style="position:relative;${dotStyle}">${inner}</div>`;
 
   // ── DRAG DAY-BY-DAY
   el.addEventListener('mousedown', e => {
@@ -1336,19 +1339,15 @@ function makeMilestone(ms, color) {
     const _applyDotStyle = (m) => {
       if (!dot || ms.status === 'done') return;
       const overdue = window.isOverdue(_msMtoDate(m), ms.status);
-      const center  = overdue ? '#dc2626' : 'rgba(168,158,184,0.3)';
-      const outer   = overdue ? '#fca5a5' : '#fff';
-      dot.style.background = `radial-gradient(circle, ${center} 0%, ${center} 32%, ${outer} 32%, ${outer} 100%)`;
-      // ⚠ branco aparece/some conforme atrasado
-      let warn = dot.querySelector('[data-overdue-icon]');
-      if (overdue && !warn) {
-        warn = document.createElement('span');
-        warn.dataset.overdueIcon = '1';
-        warn.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;line-height:1;';
-        warn.textContent = '⚠';
-        dot.appendChild(warn);
-      } else if (!overdue && warn) {
-        warn.remove();
+      // Limpa qualquer ⚠ inline antigo (de versões anteriores do hub que usavam span)
+      const oldWarn = dot.querySelector('[data-overdue-icon]');
+      if (oldWarn) oldWarn.remove();
+      if (overdue) {
+        dot.classList.add('is-overdue');
+        dot.style.background = '';
+      } else {
+        dot.classList.remove('is-overdue');
+        dot.style.background = `radial-gradient(circle, rgba(168,158,184,0.3) 0%, rgba(168,158,184,0.3) 32%, #fff 32%, #fff 100%)`;
       }
     };
 
