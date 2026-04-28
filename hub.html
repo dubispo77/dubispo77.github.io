@@ -131,6 +131,12 @@ table.data-table tr:hover td { background: var(--bg); }
 .event-block:hover .eb-actions { opacity: 1; }
 .eb-btn { width: 22px; height: 22px; border-radius: 5px; border: none; background: transparent; color: var(--text-faint); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .eb-btn:hover { background: #fee2e2; color: #dc2626; }
+/* ── Atrasado (regra: planned + date_start < hoje) ──────────────────────── */
+/* Círculo vermelho com ⚠ branco no canto direito superior do bloco. */
+.overdue-badge { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; background: #dc2626; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(220,38,38,.35); z-index: 5; pointer-events: none; line-height: 1; }
+/* Toast "ID copiado" */
+.copy-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: #16a34a; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 16px rgba(22,163,74,.3); opacity: 0; transition: opacity .18s, transform .18s; pointer-events: none; z-index: 99999; }
+.copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .agenda-add-wrap { margin-top: 12px; }
 .agenda-add-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; border-radius: 10px; border: 1.5px dashed var(--border); background: transparent; color: var(--text-faint); font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color .15s, color .15s; }
 .agenda-add-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -879,6 +885,63 @@ window.sbClient = (typeof supabase !== 'undefined')
   ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } })
   : null;
 
+// ── isOverdue (regra única de "atrasado") ──────────────────────────────────
+// Usar em QUALQUER view do hub que renderize items (Agenda, Finanças, Saúde,
+// Rotina, Pessoal, Roadmap, e abas futuras). NÃO duplicar essa lógica em outro
+// lugar — sempre chamar `window.isOverdue` ou `window.isOverdueItem`.
+//
+// Regra: item está atrasado se status === 'planned' E date_start já passou.
+// "Status atrasado" não existe no banco — é estado calculado.
+window.isOverdue = function(dateOrIso, status) {
+  if (status !== 'planned') return false;
+  if (!dateOrIso) return false;
+  const d = (dateOrIso instanceof Date)
+    ? dateOrIso
+    : new Date(String(dateOrIso).replace(' ', 'T'));
+  if (isNaN(d.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d < today;
+};
+// Conveniência pra items da tabela `items`
+window.isOverdueItem = function(item) {
+  return item ? window.isOverdue(item.date_start, item.status) : false;
+};
+
+// ── Copiar ID + toast (usado por todas as abas) ─────────────────────────
+window.copyItemId = async function(id, btnEl) {
+  if (!id) return;
+  try {
+    await navigator.clipboard.writeText(id);
+  } catch (e) {
+    // fallback pra browsers sem clipboard API: cria textarea, seleciona, copia
+    const ta = document.createElement('textarea');
+    ta.value = id; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (_) {}
+    document.body.removeChild(ta);
+  }
+  // Feedback no botão (✓ verde por 1s)
+  if (btnEl) {
+    const old = btnEl.textContent;
+    btnEl.textContent = '✓';
+    btnEl.style.color = '#16a34a';
+    setTimeout(() => { btnEl.textContent = old; btnEl.style.color = ''; }, 1000);
+  }
+  // Toast no canto inferior
+  let toast = document.getElementById('copyToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'copyToast';
+    toast.className = 'copy-toast';
+    toast.textContent = 'ID copiado';
+    document.body.appendChild(toast);
+  }
+  toast.classList.add('show');
+  clearTimeout(window._copyToastT);
+  window._copyToastT = setTimeout(() => toast.classList.remove('show'), 1400);
+};
+
 (async function bootstrapAuth() {
   const overlay = document.getElementById('loginOverlay');
   const form    = document.getElementById('loginForm');
@@ -1195,6 +1258,12 @@ function _msDateStr(m) {
   d.setDate(d.getDate() + Math.round(m * 30.44));
   return `${d.getDate()} ${_MS_MESES[d.getMonth()]}`;
 }
+// Converte coordenada `m` do roadmap (meses fracionados desde START_DATE) em Date
+function _msMtoDate(m) {
+  const d = new Date(START_DATE);
+  d.setDate(d.getDate() + Math.round(m * 30.44));
+  return d;
+}
 
 function makeMilestone(ms, color) {
   const el = document.createElement('div');
@@ -1214,16 +1283,17 @@ function makeMilestone(ms, color) {
       <span class="tt-date">${ms._date ? ms._date + ' · ' : ''}${statusText}</span>
     </div>
   </div>`;
-  // ms.m em meses desde abril 2026; TODAY_M = dias passados em abril / 30
-  const TODAY_M = (TODAY.getFullYear() - 2026) * 12 + (TODAY.getMonth() - 3) + (TODAY.getDate() - 1) / 30;
-  const isOverdue = ms.status === 'planned' && ms.m < TODAY_M;
+  // Regra única: window.isOverdue (planned + data passada). Centralizada no topo do hub.html.
+  const isOverdue = window.isOverdue(_msMtoDate(ms.m), ms.status);
   const centerFill = ms.status === 'done' ? color
-    : isOverdue ? '#ef4444'
+    : isOverdue ? '#dc2626'
     : `rgba(168,158,184,0.3)`;
+  const outerFill = isOverdue ? '#fca5a5' : '#fff';
   const inner = ms.status === 'done'
     ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;">✓</span>`
-    : '';
-  const outerFill = isOverdue ? '#fca5a5' : '#fff';
+    : isOverdue
+      ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;line-height:1;">⚠</span>`
+      : '';
   const dotStyle = ms.status === 'done'
     ? `background:${color};`
     : `background: radial-gradient(circle, ${centerFill} 0%, ${centerFill} 32%, ${outerFill} 32%, ${outerFill} 100%);`;
@@ -1242,10 +1312,21 @@ function makeMilestone(ms, color) {
 
     const _applyDotStyle = (m) => {
       if (!dot || ms.status === 'done') return;
-      const overdue = ms.status === 'planned' && m < nowM;
-      const center  = overdue ? '#ef4444' : 'rgba(168,158,184,0.3)';
+      const overdue = window.isOverdue(_msMtoDate(m), ms.status);
+      const center  = overdue ? '#dc2626' : 'rgba(168,158,184,0.3)';
       const outer   = overdue ? '#fca5a5' : '#fff';
       dot.style.background = `radial-gradient(circle, ${center} 0%, ${center} 32%, ${outer} 32%, ${outer} 100%)`;
+      // ⚠ branco aparece/some conforme atrasado
+      let warn = dot.querySelector('[data-overdue-icon]');
+      if (overdue && !warn) {
+        warn = document.createElement('span');
+        warn.dataset.overdueIcon = '1';
+        warn.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;line-height:1;';
+        warn.textContent = '⚠';
+        dot.appendChild(warn);
+      } else if (!overdue && warn) {
+        warn.remove();
+      }
     };
 
     const onMove = ev => {
@@ -1281,6 +1362,10 @@ function makeMilestone(ms, color) {
         if (ttDate) ttDate.textContent = `${ms._date} · ${ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : 'planejado'}`;
       }
 
+      // Re-aplica cor com a regra centralizada (corrige bug em que a bolinha
+      // não despintava ao voltar pra futuro depois de ter passado por atrasado)
+      _applyDotStyle(ms.m);
+
       try {
         await window.sbClient.from('roadmap').update({
           data: { areas: DATA, calendar_events: CALENDAR_EVENTS },
@@ -1288,6 +1373,8 @@ function makeMilestone(ms, color) {
         }).eq('id', 'main');
       } catch(err) { console.error('[drag-ms] erro ao salvar:', err); }
 
+      // Garante consistência também pós-save (antes que qualquer realtime chegue)
+      _applyDotStyle(ms.m);
       setTimeout(() => { _msDragActive = false; }, 0);
     };
 
@@ -2369,11 +2456,17 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     function itemHtml(i) {
       const done = i.status === 'done';
-      return `<div class="event-block" style="border-color:${COLOR};color:${COLOR}${done?';opacity:.45':''}" data-pessoal-id="${i.id}" data-status="${i.status}">
+      const overdue = window.isOverdueItem(i);
+      const badge = overdue ? '<div class="overdue-badge" title="Atrasado">⚠</div>' : '';
+      return `<div class="event-block" style="border-color:${COLOR};color:${COLOR}${done?';opacity:.45':''};padding-right:60px" data-pessoal-id="${i.id}" data-status="${i.status}">
+        ${badge}
         <div class="event-time">${fmtDate(i.date_start)}</div>
         <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
         <div class="event-cal">${done ? '<span class="pill" style="background:#ede9fe;color:#7c3aed;">✓ Feito</span>' : '<span class="pill" style="background:#ede9fe;color:#7c3aed;">⏳ Pendente</span>'}</div>
-        <div class="eb-actions"><button class="eb-btn eb-pessoal-del" title="Apagar">✕</button></div>
+        <div class="eb-actions">
+          <button class="eb-btn eb-pessoal-copy" title="Copiar ID">🔗</button>
+          <button class="eb-btn eb-pessoal-del" title="Apagar">✕</button>
+        </div>
       </div>`;
     }
 
@@ -2389,6 +2482,11 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     wrap.querySelectorAll('.event-block[data-pessoal-id]').forEach(block => {
       block.addEventListener('click', async e => {
+        if (e.target.closest('.eb-pessoal-copy')) {
+          e.stopPropagation();
+          window.copyItemId(block.dataset.pessoalId, e.target.closest('.eb-pessoal-copy'));
+          return;
+        }
         if (e.target.closest('.eb-pessoal-del')) {
           e.stopPropagation();
           const id = block.dataset.pessoalId;
@@ -2527,11 +2625,17 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     function itemHtml(i) {
       const done = i.status === 'done';
-      return `<div class="event-block" style="border-color:${COLOR};color:${COLOR}${done?';opacity:.5':''}" data-rotina-id="${i.id}" data-status="${i.status}">
+      const overdue = window.isOverdueItem(i);
+      const badge = overdue ? '<div class="overdue-badge" title="Atrasado">⚠</div>' : '';
+      return `<div class="event-block" style="border-color:${COLOR};color:${COLOR}${done?';opacity:.5':''};padding-right:60px" data-rotina-id="${i.id}" data-status="${i.status}">
+        ${badge}
         <div class="event-time">${i.has_time && i.date_start ? parseDt(i.date_start).toTimeString().slice(0,5).replace(':','h') : '—'}</div>
         <div class="event-title" style="${done?'text-decoration:line-through':''}${done?';color:var(--text-faint)':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
         <div class="event-cal">${done ? '<span class="pill" style="background:#dcfce7;color:#16a34a;">✓ Feito</span>' : '<span class="pill" style="background:#e0f2fe;color:#0891b2;">⏳ Pendente</span>'}</div>
-        <div class="eb-actions"><button class="eb-btn eb-rotina-del" title="Apagar">✕</button></div>
+        <div class="eb-actions">
+          <button class="eb-btn eb-rotina-copy" title="Copiar ID">🔗</button>
+          <button class="eb-btn eb-rotina-del" title="Apagar">✕</button>
+        </div>
       </div>`;
     }
 
@@ -2553,6 +2657,11 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     wrap.querySelectorAll('.event-block[data-rotina-id]').forEach(block => {
       block.addEventListener('click', async e => {
+        if (e.target.closest('.eb-rotina-copy')) {
+          e.stopPropagation();
+          window.copyItemId(block.dataset.rotinaId, e.target.closest('.eb-rotina-copy'));
+          return;
+        }
         if (e.target.closest('.eb-rotina-del')) {
           e.stopPropagation();
           const id = block.dataset.rotinaId;
@@ -2703,32 +2812,30 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const atrasados = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld < today && i.status !== 'done'; });
     const restantes = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld >= today; });
 
-    let html = '';
-
-    if (atrasados.length > 0) {
-      html += `<div class="agenda-day-header" style="color:#ef4444;margin-bottom:8px;">⚠️ Atrasados</div>`;
-      html += atrasados.map(i => {
-        const done = i.status === 'done';
-        return `<div class="event-block" style="border-color:#16a34a;color:#16a34a${done?';opacity:.45':''}" data-saude-id="${i.id}" data-status="${i.status}">
-          <div class="event-time">${fmtDate(i.date_start)}</div>
-          <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
-          <div class="event-cal">${PILL_STATUS[i.status] || PILL_STATUS['planned']}</div>
-          <div class="eb-actions"><button class="eb-btn eb-saude-del" title="Apagar">✕</button></div>
-        </div>`;
-      }).join('');
+    function saudeItemHtml(i) {
+      const done = i.status === 'done';
+      const overdue = window.isOverdueItem(i);
+      const badge = overdue ? '<div class="overdue-badge" title="Atrasado">⚠</div>' : '';
+      return `<div class="event-block" style="border-color:#16a34a;color:#16a34a${done?';opacity:.45':''};padding-right:60px" data-saude-id="${i.id}" data-status="${i.status}">
+        ${badge}
+        <div class="event-time">${fmtDate(i.date_start)}</div>
+        <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
+        <div class="event-cal">${PILL_STATUS[i.status] || PILL_STATUS['planned']}</div>
+        <div class="eb-actions">
+          <button class="eb-btn eb-saude-copy" title="Copiar ID">🔗</button>
+          <button class="eb-btn eb-saude-del" title="Apagar">✕</button>
+        </div>
+      </div>`;
     }
 
+    let html = '';
+    if (atrasados.length > 0) {
+      html += `<div class="agenda-day-header" style="color:#ef4444;margin-bottom:8px;">⚠️ Atrasados</div>`;
+      html += atrasados.map(saudeItemHtml).join('');
+    }
     if (restantes.length > 0) {
       if (atrasados.length > 0) html += '<div style="height:12px"></div>';
-      html += restantes.map(i => {
-        const done = i.status === 'done';
-        return `<div class="event-block" style="border-color:#16a34a;color:#16a34a${done?';opacity:.45':''}" data-saude-id="${i.id}" data-status="${i.status}">
-          <div class="event-time">${fmtDate(i.date_start)}</div>
-          <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
-          <div class="event-cal">${PILL_STATUS[i.status] || PILL_STATUS['planned']}</div>
-          <div class="eb-actions"><button class="eb-btn eb-saude-del" title="Apagar">✕</button></div>
-        </div>`;
-      }).join('');
+      html += restantes.map(saudeItemHtml).join('');
     }
 
     wrap.innerHTML = html;
@@ -2736,6 +2843,11 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     // Delegação de cliques
     wrap.querySelectorAll('.event-block[data-saude-id]').forEach(block => {
       block.addEventListener('click', async e => {
+        if (e.target.closest('.eb-saude-copy')) {
+          e.stopPropagation();
+          window.copyItemId(block.dataset.saudeId, e.target.closest('.eb-saude-copy'));
+          return;
+        }
         if (e.target.closest('.eb-saude-del')) {
           e.stopPropagation();
           const id = block.dataset.saudeId;
@@ -2852,17 +2964,29 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     function fmtDate(iso) { if (!iso) return '—'; const d = localDate(iso); return `${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`; }
     function fmtVal(v) { return v ? `R$ ${parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2})}` : '—'; }
-    const vencida = b => { const ld = localDate(b.date_start); return ld && ld < today && b.status !== 'done'; };
+    // Usa a regra única (planned + date_start passada)
+    const vencida = b => window.isOverdueItem(b);
 
     wrap.innerHTML = `<table class="data-table">
-      <thead><tr><th>Conta</th><th>Valor</th><th>Status</th><th>Prazo</th></tr></thead>
-      <tbody>${billsCache.map(b => `<tr style="${vencida(b)?'background:#fff5f5':''}">
+      <thead><tr><th>Conta</th><th>Valor</th><th>Status</th><th>Prazo</th><th></th></tr></thead>
+      <tbody>${billsCache.map(b => `<tr data-bill-id="${b.id}" style="${vencida(b)?'background:#fff5f5':''}">
         <td><strong>${esc(b.title)}</strong></td>
         <td style="color:${b.status==='done'?'var(--text-faint)':'var(--text)'}">${fmtVal(b.amount)}</td>
         <td>${PILL[b.status] || PILL['planned']}</td>
         <td style="color:${vencida(b)?'#ef4444':'var(--text-dim)'}">${fmtDate(b.date_start)}${vencida(b)?' ⚠️':''}</td>
+        <td style="text-align:right"><button class="eb-btn eb-fin-copy" title="Copiar ID" style="opacity:.5">🔗</button></td>
       </tr>`).join('')}</tbody>
     </table>`;
+
+    // Handler de copy ID
+    wrap.querySelectorAll('.eb-fin-copy').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const tr = btn.closest('tr');
+        if (!tr) return;
+        window.copyItemId(tr.dataset.billId, btn);
+      });
+    });
   }
 
   await loadBills();
@@ -2885,6 +3009,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   let projectsMap  = {}; // id → { name, color, area }
   let itemsCache   = [];
   let selectedDayTs = null; // timestamp do dia selecionado (midnight local)
+  let editingItemId = null; // null = modo "criar"; string UUID = modo "editar"
 
   // ── Helpers de data ──
   function parseDt(iso) { return new Date((iso || '').replace(' ', 'T')); }
@@ -3059,12 +3184,19 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       const label   = proj ? proj.name  : (item.area || '');
       const timeStr = item.has_time ? fmtTime(item.date_start) : '—';
       const done    = item.status === 'done';
+      const overdue = window.isOverdueItem(item);
       const icon    = TYPE_ICON[item.type] || '';
-      return `<div class="event-block" style="border-color:${color};color:${color}${done ? ';opacity:.45' : ''};padding-right:36px" data-item-id="${item.id}" data-status="${item.status}">
+      const overdueBadge = overdue ? '<div class="overdue-badge" title="Atrasado">⚠</div>' : '';
+      return `<div class="event-block" style="border-color:${color};color:${color}${done ? ';opacity:.45' : ''};padding-right:80px" data-item-id="${item.id}" data-status="${item.status}">
+        ${overdueBadge}
         <div class="event-time">${timeStr}</div>
         <div class="event-title" style="${done ? 'text-decoration:line-through' : ''}">${icon} ${esc(item.title)}</div>
         <div class="event-cal">${esc(label)}</div>
-        <div class="eb-actions"><button class="eb-btn eb-del" title="Apagar">✕</button></div>
+        <div class="eb-actions">
+          <button class="eb-btn eb-copy" title="Copiar ID">🔗</button>
+          <button class="eb-btn eb-edit" title="Editar">✏️</button>
+          <button class="eb-btn eb-del" title="Apagar">✕</button>
+        </div>
       </div>`;
     }
 
@@ -3110,26 +3242,49 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     populateProjectSelect();
 
-    // Toggle formulário
+    // Helper — abre form em modo edição com dados de um item
+    function openEditForm(item) {
+      if (!item) return;
+      editingItemId = item.id;
+      aafTitle.value = item.title || '';
+      const d = item.date_start ? new Date(item.date_start) : new Date(selectedDayTs || Date.now());
+      aafDate.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      aafTime.value = item.has_time ? `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '';
+      const typeSel = document.getElementById('aafType');
+      const projSel = document.getElementById('aafProject');
+      if (typeSel) typeSel.value = item.type || 'task';
+      if (projSel) projSel.value = item.project_id || '';
+      aafSave.textContent = 'Salvar alterações';
+      addForm.style.display = 'block';
+      setTimeout(() => aafTitle.focus(), 50);
+    }
+
+    function resetForm() {
+      editingItemId = null;
+      aafTitle.value = ''; aafTime.value = '';
+      aafSave.textContent = 'Salvar';
+    }
+
+    // Toggle formulário (modo criar)
     addBtn.addEventListener('click', () => {
       const open = addForm.style.display !== 'none';
-      addForm.style.display = open ? 'none' : 'block';
-      if (!open) {
-        aafDate.value = new Date(selectedDayTs || Date.now()).toISOString().slice(0, 10);
-        setTimeout(() => aafTitle.focus(), 50);
-      }
+      if (open) { addForm.style.display = 'none'; resetForm(); return; }
+      resetForm();
+      addForm.style.display = 'block';
+      aafDate.value = new Date(selectedDayTs || Date.now()).toISOString().slice(0, 10);
+      setTimeout(() => aafTitle.focus(), 50);
     });
 
     aafCancel.addEventListener('click', () => {
       addForm.style.display = 'none';
-      aafTitle.value = ''; aafTime.value = '';
+      resetForm();
     });
 
     aafTitle.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); aafSave.click(); }
     });
 
-    // Salvar novo item
+    // Salvar (INSERT em modo criar, UPDATE em modo editar)
     aafSave.addEventListener('click', async () => {
       const title = aafTitle.value.trim();
       if (!title) { aafTitle.focus(); return; }
@@ -3141,22 +3296,76 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       const date_start = hasTime
         ? new Date(`${dateStr}T${aafTime.value}:00`).toISOString()
         : new Date(`${dateStr}T00:00:00`).toISOString();
-      const { error } = await sb.from('items').insert({
+      const payload = {
         title, type: document.getElementById('aafType').value,
         project_id: projId, area, date_start, has_time: hasTime,
-        status: 'planned', currency: 'BRL',
-      });
+      };
+      let error;
+      if (editingItemId) {
+        ({ error } = await sb.from('items').update(payload).eq('id', editingItemId));
+      } else {
+        payload.status = 'planned'; payload.currency = 'BRL';
+        ({ error } = await sb.from('items').insert(payload));
+      }
       if (error) { alert('Erro ao salvar: ' + error.message); }
       else {
         addForm.style.display = 'none';
-        aafTitle.value = ''; aafTime.value = '';
+        resetForm();
         await loadItems(); render();
       }
       aafSave.disabled = false;
     });
 
-    // Delegação de cliques na timeline
+    // ── Long press no mobile (500ms) → abre edição ──
+    let lpTimer = null, lpFired = false, lpStartXY = null;
+    timeline.addEventListener('touchstart', e => {
+      const block = e.target.closest('.event-block');
+      if (!block || e.target.closest('.eb-actions')) return;
+      lpFired = false;
+      const t = e.touches[0];
+      lpStartXY = { x: t.clientX, y: t.clientY };
+      lpTimer = setTimeout(() => {
+        lpFired = true;
+        const id   = block.dataset.itemId;
+        const item = itemsCache.find(i => i.id === id);
+        if (item) openEditForm(item);
+      }, 500);
+    }, { passive: true });
+    timeline.addEventListener('touchmove', e => {
+      if (!lpStartXY) return;
+      const t = e.touches[0];
+      if (Math.hypot(t.clientX - lpStartXY.x, t.clientY - lpStartXY.y) > 8) {
+        clearTimeout(lpTimer); lpTimer = null;
+      }
+    }, { passive: true });
+    timeline.addEventListener('touchend', () => {
+      clearTimeout(lpTimer); lpTimer = null; lpStartXY = null;
+    });
+
+    // ── Delegação de cliques ──
     timeline.addEventListener('click', async e => {
+      // Long press disparou? Engole o click subsequente
+      if (lpFired) { lpFired = false; e.stopPropagation(); return; }
+
+      // Botão copiar ID
+      if (e.target.closest('.eb-copy')) {
+        e.stopPropagation();
+        const block = e.target.closest('.event-block');
+        if (!block) return;
+        window.copyItemId(block.dataset.itemId, e.target.closest('.eb-copy'));
+        return;
+      }
+
+      // Botão editar
+      if (e.target.closest('.eb-edit')) {
+        e.stopPropagation();
+        const block = e.target.closest('.event-block');
+        if (!block) return;
+        const item = itemsCache.find(i => i.id === block.dataset.itemId);
+        if (item) openEditForm(item);
+        return;
+      }
+
       // Botão apagar → confirm inline
       if (e.target.closest('.eb-del')) {
         e.stopPropagation();
