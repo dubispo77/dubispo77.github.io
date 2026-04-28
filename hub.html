@@ -290,8 +290,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-ms-dot.is-overdue {
   background-color: #dc2626 !important;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>") !important;
-  background-position: center 42% !important;
-  background-size: 10px 10px !important;
+  background-position: center center !important;
+  background-size: 8px 8px !important;
   background-repeat: no-repeat !important;
   box-shadow: 0 1px 5px rgba(220,38,38,.4), 0 0 0 2.5px rgba(255,255,255,.5) !important;
 }
@@ -327,11 +327,16 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-ms-label .tt-date {
   font-size: 11px; color: rgba(255,255,255,.5);
 }
-/* Tooltip SEMPRE embaixo da bolinha (jamais em cima — cobriria a timeline). */
-.rm-ms-label, .rm-ms-label.top, .rm-ms-label.bot { top: calc(100% + 10px); bottom: auto; }
-/* Tooltip aparece só depois de 600ms parado em cima (evita flicker ao passar o mouse pela timeline). */
-.rm-ms-label { transition: opacity .15s; transition-delay: 0s; }
-.rm-ms:hover .rm-ms-label { opacity: 1; transition-delay: .2s; }
+/* Tooltip antigo dentro da .rm-ms — REMOVIDO via JS (portalizado pra body, não corta) */
+.rm-ms-label { display: none !important; }
+/* Tooltip flutuante — fica no body, position fixed, jamais cortado por overflow */
+#rmFloatingTooltip { position: fixed; pointer-events: none; background: #1a1828; border-radius: 10px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25); min-width: 140px; opacity: 0; transition: opacity .15s; z-index: 99999; white-space: nowrap; font-family: inherit; }
+#rmFloatingTooltip.show { opacity: 1; }
+#rmFloatingTooltip .tt-parent { font-size: 9px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .08em; font-weight: 800; margin-bottom: 4px; }
+#rmFloatingTooltip .tt-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 7px; }
+#rmFloatingTooltip .tt-meta { display: flex; align-items: center; gap: 6px; }
+#rmFloatingTooltip .tt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+#rmFloatingTooltip .tt-date { font-size: 11px; color: rgba(255,255,255,.5); }
 
 .rm-subs-container    { display: none; }
 .rm-subs-container.open    { display: block; }
@@ -1312,6 +1317,14 @@ function _isOverdueRoadmap(m, status) {
   return m < TODAY_M_NOW;
 }
 
+// Tooltip flutuante reutilizável (portalizado no body — não corta por overflow)
+function _rmGetFloatingTooltip() {
+  let tt = document.getElementById('rmFloatingTooltip');
+  if (!tt) { tt = document.createElement('div'); tt.id = 'rmFloatingTooltip'; document.body.appendChild(tt); }
+  return tt;
+}
+let _rmTooltipTimer = null;
+
 function makeMilestone(ms, color) {
   const el = document.createElement('div');
   el.className = `rm-ms ${ms.status}`;
@@ -1347,6 +1360,31 @@ function makeMilestone(ms, color) {
     el.innerHTML = `${tooltipHtml}<div class="${dotClass}" style="position:relative;${dotStyle}">${inner}</div>`;
   }
   _renderInner();
+
+  // ── Tooltip flutuante (portalizado pro body — jamais cortado) ──
+  el.addEventListener('mouseenter', () => {
+    clearTimeout(_rmTooltipTimer);
+    _rmTooltipTimer = setTimeout(() => {
+      const tt = _rmGetFloatingTooltip();
+      const isOverdue = _isOverdueRoadmap(ms.m, ms.status);
+      const statusColor = ms.status === 'done' ? '#16a34a' : ms.status === 'active' ? color : isOverdue ? '#dc2626' : '#f59e0b';
+      const statusText  = ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : isOverdue ? 'atrasado' : 'planejado';
+      tt.innerHTML = `${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
+        <div class="tt-title">${ms.label}</div>
+        <div class="tt-meta"><div class="tt-dot" style="background:${statusColor}"></div><span class="tt-date">${ms._date ? ms._date + ' · ' : ''}${statusText}</span></div>`;
+      const r = el.getBoundingClientRect();
+      // Posicionar EMBAIXO da bolinha, centralizado horizontalmente
+      tt.style.left = (r.left + r.width / 2) + 'px';
+      tt.style.top  = (r.bottom + 8) + 'px';
+      tt.style.transform = 'translateX(-50%)';
+      tt.classList.add('show');
+    }, 200);
+  });
+  el.addEventListener('mouseleave', () => {
+    clearTimeout(_rmTooltipTimer);
+    const tt = document.getElementById('rmFloatingTooltip');
+    if (tt) tt.classList.remove('show');
+  });
 
   // ── DRAG DAY-BY-DAY
   el.addEventListener('mousedown', e => {
