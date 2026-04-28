@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/x-icon" href="assets/favicon/fav-1777401837.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/fav-1777401837.png">
+  <link id="dynamic-favicon" rel="icon" type="image/png" href="data:image/png;base64,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">
   <meta property="og:title" content="Eduardo Bispo — Videomaker">
-  <meta property="og:description" content="Editor de vídeo e motion designer com 12 anos de experiência no Brasil.">
+  <meta property="og:description" content="Editor, produtor e roteirista | São Paulo">
   <meta property="og:image" content="https://dubispo77.github.io/assets/favicon/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -313,7 +312,7 @@
       justify-content: flex-start;
       align-items: baseline;
       gap: 16px;
-      padding: 30px 11% 16px;
+      padding: 30px 4.5% 16px;
       border-top: 1px solid rgba(0,0,0,0.1);
     }
 
@@ -332,7 +331,7 @@
 
     /* ─── DESTAQUE — GUILHERME CORTEZ ─── */
     #destaque {
-      padding: 0 11% 80px;
+      padding: 0 4.5% 80px;
     }
 
     .destaque-card {
@@ -455,7 +454,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 3px;
-      padding: 0 11%;
+      padding: 0 4.5%;
     }
 
     .work-card {
@@ -541,7 +540,7 @@
 
     /* ─── SOBRE ─── */
     #sobre {
-      padding: 0 11% 40px;
+      padding: 0 4.5% 40px;
     }
 
     .sobre-grid {
@@ -861,7 +860,7 @@
     #contato {
       background: var(--black);
       color: var(--white);
-      padding: 80px 11%;
+      padding: 80px 4.5%;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 80px;
@@ -1244,7 +1243,8 @@
       <!-- WhatsApp -->
       <a href="https://wa.me/5511998420733" target="_blank" rel="noopener" class="whatsapp" aria-label="WhatsApp">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9z"/>
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2z"/>
+          <path d="M16.56 14.15c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.86.84-.86 2.06 0 1.22.89 2.39 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.27z"/>
         </svg>
       </a>
       <!-- LinkedIn -->
@@ -1640,7 +1640,7 @@
   </section>
 
   <!-- FORMAÇÃO -->
-  <section id="formacao" class="reveal" style="padding:0 11% 60px;margin-top:-60px;">
+  <section id="formacao" class="reveal" style="padding:0 4.5% 60px;margin-top:-60px;">
     <div class="sobre-timeline">
       <div class="edu-wrap">
       <h2>formação</h2>
