@@ -127,8 +127,14 @@ table.data-table tr:hover td { background: var(--bg); }
 /* ── AGENDA CRUD ── */
 .event-block { cursor: pointer; user-select: none; }
 .event-block:hover { filter: brightness(.97); }
-.eb-actions { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity .15s; }
+/* Botões de ação: visíveis suaves por padrão (mobile precisa ver), destacados no hover. Pointer-events controlado pra não capturar clique acidental. */
+.eb-actions { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; opacity: .55; transition: opacity .15s; }
 .event-block:hover .eb-actions { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  /* Em desktop com hover real, só mostra os botões no hover */
+  .eb-actions { opacity: 0; pointer-events: none; }
+  .event-block:hover .eb-actions { opacity: 1; pointer-events: auto; }
+}
 .eb-btn { width: 22px; height: 22px; border-radius: 5px; border: none; background: transparent; color: var(--text-faint); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .eb-btn:hover { background: #fee2e2; color: #dc2626; }
 /* ── Atrasado (regra: planned + date_start < hoje) ──────────────────────── */
@@ -1033,15 +1039,32 @@ let CALENDAR_EVENTS = [
 ];
 // CALENDAR_EVENTS_END
 
-// ── NAVEGAÇÃO
+// ── NAVEGAÇÃO ──
+// Persiste a aba ativa em localStorage pra refresh manter onde o user estava.
+const HUB_ACTIVE_TAB_KEY = 'HUB_ACTIVE_TAB';
+
+function activateTab(sec) {
+  const item = document.querySelector(`.nav-item[data-sec="${sec}"]`);
+  const sectionEl = document.getElementById(sec);
+  if (!item || !sectionEl) return false;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  item.classList.add('active');
+  sectionEl.classList.add('active');
+  try { localStorage.setItem(HUB_ACTIVE_TAB_KEY, sec); } catch (_) {}
+  return true;
+}
+
 document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    item.classList.add('active');
-    document.getElementById(item.dataset.sec).classList.add('active');
-  });
+  item.addEventListener('click', () => activateTab(item.dataset.sec));
 });
+
+// Restaura aba salva ao carregar (default = roadmap)
+(function restoreActiveTab() {
+  let saved = null;
+  try { saved = localStorage.getItem(HUB_ACTIVE_TAB_KEY); } catch (_) {}
+  if (saved && saved !== 'roadmap') activateTab(saved);
+})();
 
 // ── ROADMAP: ZOOM / PAN
 const LEFT_W       = 220;
