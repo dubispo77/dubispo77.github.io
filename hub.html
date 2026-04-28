@@ -219,8 +219,9 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-area-block:last-child { border-bottom: none; }
 
 /* ÁREA header (sem barra) */
-.rm-area-header { display: flex; align-items: center; cursor: pointer; user-select: none; border-left: 3px solid transparent; transition: background .12s; }
-.rm-area-header:hover { background: var(--bg); }
+.rm-area-header { display: flex; align-items: center; cursor: pointer; user-select: none; border-left: 3px solid transparent; }
+/* Hover do área header também — não pinta toda a linha, só responde no rm-left */
+.rm-area-header:hover .rm-left { background: var(--bg); transition: background .12s; }
 .rm-area-header .rmah-left { display: flex; align-items: center; gap: 9px; width: 220px; flex-shrink: 0; padding: 10px 12px 10px 26px; border-right: 1px solid var(--border-soft); position: sticky; left: 0; z-index: 25; box-shadow: 2px 0 6px rgba(30,20,60,.06); }
 .rm-area-header .rmah-chips { flex: 1; display: flex; gap: 7px; flex-wrap: wrap; align-items: center; padding: 8px 18px 8px 14px; position: relative; z-index: 4; }
 .rm-area-chip { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
@@ -254,9 +255,9 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-row-sub    { min-height: 60px; border-bottom: 1px solid var(--border-soft); }
 .rm-row-subsub { min-height: 48px; border-bottom: 1px solid var(--border-soft); }
 .rm-row-level4 { min-height: 36px; border-bottom: 1px solid var(--border-soft); }
-.rm-row-sub.hassubs { cursor: pointer; transition: background .12s; }
-.rm-row-sub.hassubs:hover { background: var(--bg); }
-.rm-row-sub.hassubs:hover .rm-left { background: var(--bg); }
+.rm-row-sub.hassubs { cursor: pointer; }
+/* Hover só no sidebar esquerdo (labels) — antes pintava a row inteira e causava flicker visual na timeline ao passar o mouse */
+.rm-row-sub.hassubs:hover .rm-left { background: var(--bg); transition: background .12s; }
 
 .rm-left { flex-shrink: 0; width: 220px; display: flex; align-items: center; gap: 8px; border-right: 1px solid var(--border-soft); position: sticky; left: 0; z-index: 25; background: var(--card); box-shadow: 2px 0 6px rgba(30,20,60,.06); overflow: visible; }
 .rm-left.sub-left      { padding: 8px 10px 8px 40px; }
