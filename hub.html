@@ -701,8 +701,10 @@ table.data-table tr:hover td { background: var(--bg); }
         </div>
         <div class="agenda-add-wrap">
           <button class="agenda-add-btn" id="agendaAddBtn">＋ Adicionar item</button>
-          <div class="agenda-add-form" id="agendaAddForm" style="display:none">
-            <div class="aaf-row">
+          <div class="agenda-add-form" id="agendaAddForm" style="display:none;position:relative">
+            <button id="aafCloseX" type="button" title="Fechar" aria-label="Fechar"
+              style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:var(--bg);color:var(--text-faint);font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.08);z-index:5">✕</button>
+            <div class="aaf-row" style="padding-right:32px">
               <input class="aaf-input" id="aafTitle" placeholder="O que?" style="flex:1;min-width:140px">
               <select class="aaf-select" id="aafType">
                 <option value="task">✓ Tarefa</option>
@@ -3078,34 +3080,38 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     (data || []).forEach(p => { projectsMap[p.id] = p; });
   }
 
-  // ── Carrega items (semana atual + bills próximos 30 dias) ──
+  // ── Carrega items (semana + bills 30d + atrasados) ──
   async function loadItems() {
     const today = todayMidnight();
     const wkEnd = weekEnd(today);
     const in30  = new Date(today); in30.setDate(in30.getDate() + 30);
+    const COLS  = 'id,title,area,type,project_id,date_start,has_time,status,amount,currency';
 
     // Items da semana (de hoje até Domingo)
     const { data: weekItems } = await sb
-      .from('items')
-      .select('id,title,area,type,project_id,date_start,has_time,status,amount,currency')
+      .from('items').select(COLS)
       .gte('date_start', today.toISOString())
       .lt('date_start', wkEnd.toISOString())
-      .not('status', 'eq', 'cancelled')
       .order('date_start');
 
-    // Bills nos próximos 30 dias (mesmo os fora da semana)
+    // Bills nos próximos 30 dias
     const { data: billItems } = await sb
-      .from('items')
-      .select('id,title,area,type,project_id,date_start,has_time,status,amount,currency')
+      .from('items').select(COLS)
       .eq('type', 'bill')
       .gte('date_start', today.toISOString())
       .lt('date_start', in30.toISOString())
-      .not('status', 'eq', 'done')
-      .not('status', 'eq', 'cancelled');
+      .not('status', 'eq', 'done');
 
-    // Merge sem duplicatas (Map garante unicidade por id)
+    // Atrasados (planned com data antes de hoje) — pra não sumir do cache
+    const { data: overdueItems } = await sb
+      .from('items').select(COLS)
+      .eq('status', 'planned')
+      .lt('date_start', today.toISOString())
+      .order('date_start');
+
+    // Merge sem duplicatas
     const map = {};
-    [...(weekItems || []), ...(billItems || [])].forEach(i => { map[i.id] = i; });
+    [...(weekItems || []), ...(billItems || []), ...(overdueItems || [])].forEach(i => { map[i.id] = i; });
     itemsCache = Object.values(map);
   }
 
@@ -3231,13 +3237,29 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         return parseDt(a.date_start) - parseDt(b.date_start);
       });
 
-    if (dayItems.length === 0) {
-      const isToday = selectedDayTs === today.getTime();
-      timelineEl.innerHTML = `<div class="empty-day"><div class="ei">${isToday ? '☀️' : '📭'}</div><div>${isToday ? 'Hoje está livre' : 'Nada agendado neste dia'}</div></div>`;
-      return;
-    }
+    // Atrasados (planned + data passada). Aparecem só na visão de HOJE, agrupados no topo.
+    const isTodayView = selectedDayTs === today.getTime();
+    const overdueItems = isTodayView
+      ? itemsCache
+          .filter(i => window.isOverdueItem(i))
+          .sort((a, b) => parseDt(a.date_start) - parseDt(b.date_start))
+      : [];
 
-    timelineEl.innerHTML = dayItems.map(renderItem).join('');
+    let html = '';
+    if (overdueItems.length > 0) {
+      html += `<div class="agenda-day-header" style="color:#dc2626;margin-bottom:8px;font-weight:700">⚠ Atrasados</div>`;
+      html += overdueItems.map(renderItem).join('');
+      if (dayItems.length > 0) html += '<div style="height:14px"></div>';
+    }
+    if (dayItems.length > 0) {
+      if (overdueItems.length > 0) {
+        html += `<div class="agenda-day-header" style="margin-bottom:8px;color:var(--text-faint)">Hoje</div>`;
+      }
+      html += dayItems.map(renderItem).join('');
+    } else if (overdueItems.length === 0) {
+      html = `<div class="empty-day"><div class="ei">${isTodayView ? '☀️' : '📭'}</div><div>${isTodayView ? 'Hoje está livre' : 'Nada agendado neste dia'}</div></div>`;
+    }
+    timelineEl.innerHTML = html;
   }
 
   // ── Popula select de projetos no formulário ──
@@ -3302,6 +3324,13 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       resetForm();
     });
 
+    // X no canto superior direito — equivalente a Cancelar
+    const aafCloseX = document.getElementById('aafCloseX');
+    if (aafCloseX) aafCloseX.addEventListener('click', () => {
+      addForm.style.display = 'none';
+      resetForm();
+    });
+
     aafTitle.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); aafSave.click(); }
     });
@@ -3351,7 +3380,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         const id   = block.dataset.itemId;
         const item = itemsCache.find(i => i.id === id);
         if (item) openEditForm(item);
-      }, 500);
+      }, 800);
     }, { passive: true });
     timeline.addEventListener('touchmove', e => {
       if (!lpStartXY) return;
