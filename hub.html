@@ -684,6 +684,12 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.proj-financas { background: #d97706; border-color: #78350f; }
 .calM-ev.proj-rotina   { background: #0891b2; border-color: #164e63; }
 .calM-more { display: inline-block; margin-top: 4px; font-size: 9px; color: #4b5563; padding: 1px 5px; background: #fff; border-radius: 4px; font-weight: 600; }
+.calM-ev.is-done { opacity: .55; text-decoration: line-through; }
+.calM-ev.is-overdue { box-shadow: 0 0 0 1px #dc2626; }
+.calM-ev .bd { display: inline-block; margin-right: 3px; font-size: 9px; line-height: 1; }
+.calM-ev .bd.ov { color: #fecaca; }
+.calM-ev .bd.dn { color: #bbf7d0; }
+.calM-ev .bd.rc { opacity: .85; }
 /* SEMANA (S4 — cards grandes preenchidos) */
 .calW-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 4px; }
 .calW-day { min-height: 220px; }
@@ -706,6 +712,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .cal-day-popover .pop-ev .pop-ti { font-size: 13px; font-weight: 600; flex: 1; }
 .cal-day-popover .pop-close { position: absolute; top: 8px; right: 8px; background: transparent; border: none; color: #6b7280; font-size: 14px; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
 .cal-day-popover .pop-close:hover { background: #f3f4f6; color: #1f2937; }
+.cal-day-popover .pop-act { background: rgba(255,255,255,.22); border: none; color: #fff; width: 22px; height: 22px; font-size: 11px; border-radius: 5px; cursor: pointer; flex-shrink: 0; line-height: 1; display: flex; align-items: center; justify-content: center; transition: background .12s; padding: 0; margin-left: 2px; }
+.cal-day-popover .pop-act:hover { background: rgba(255,255,255,.36); }
 /* Mobile */
 @media (max-width: 600px) {
   .cal-header { gap: 8px; }
@@ -3901,6 +3909,9 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         }
       }
     }
+    const isDone = it.status === 'done';
+    const isOverdue = !isDone && (window.isOverdue ? window.isOverdue(it.date_start, it.status) : false);
+    const isRecurring = !!it.recurrence;
     return {
       id: it.id,
       date: ymd(d),
@@ -3909,6 +3920,9 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       title: it.title,
       project: it.area || 'pessoal',
       status: it.status,
+      is_done: isDone,
+      is_overdue: isOverdue,
+      is_recurring: isRecurring,
       raw: it,
     };
   }
@@ -3987,7 +4001,18 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       const items = isOut ? [] : itemsForDate(d);
       const visible = items.slice(0, 3);
       const extra = items.length - visible.length;
-      const evHtml = visible.map(it => `<div class="calM-ev proj-${it.project}">${it.has_time ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}<span class="ti">${escHtml(it.title)}</span></div>`).join('');
+      const evHtml = visible.map(it => {
+        const klass = `calM-ev proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}`;
+        const badges = [
+          it.is_overdue ? '<span class="bd ov">⚠</span>' : '',
+          it.is_done ? '<span class="bd dn">✓</span>' : '',
+          it.is_recurring ? '<span class="bd rc">♻</span>' : '',
+        ].join('');
+        return `<div class="${klass}" data-item-id="${it.id}">
+          ${it.has_time ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}
+          <span class="ti">${badges}${escHtml(it.title)}</span>
+        </div>`;
+      }).join('');
       const moreHtml = extra > 0 ? `<span class="calM-more">+ ${extra} mais</span>` : '';
       const classes = [
         isOut ? 'is-out' : '',
@@ -4056,6 +4081,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const old = document.querySelector('.cal-day-popover');
     if (old) old.remove();
   }
+  const PROJECT_COLORS = { pessoal:'#7c3aed', trabalho:'#2563eb', saude:'#16a34a', financas:'#d97706', rotina:'#0891b2' };
+
   function openPopoverFor(cellEl, dateStr) {
     closePopover();
     const items = itemsCache.filter(i => i.date === dateStr);
@@ -4066,19 +4093,68 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     pop.className = 'cal-day-popover';
     pop.innerHTML = `<button class="pop-close" aria-label="Fechar">✕</button>
       <h3>${titleStr}</h3>
-      ${items.map(it => `<div class="pop-ev proj-${it.project}" style="background:${ {pessoal:'#7c3aed',trabalho:'#2563eb',saude:'#16a34a',financas:'#d97706',rotina:'#0891b2'}[it.project] }"><span class="pop-hr">${it.has_time ? escHtml(it.hr) : '—'}</span><span class="pop-ti">${escHtml(it.title)}</span></div>`).join('')}
+      ${items.map(it => {
+        const bg = PROJECT_COLORS[it.project] || '#6b7280';
+        const opacity = it.is_done ? '.55' : '1';
+        const deco = it.is_done ? 'line-through' : 'none';
+        return `<div class="pop-ev" data-item-id="${it.id}" style="background:${bg};opacity:${opacity};text-decoration:${deco}">
+          <span class="pop-hr">${it.has_time ? escHtml(it.hr) : '—'}</span>
+          <span class="pop-ti">${escHtml(it.title)}</span>
+          <button class="pop-act pop-toggle" data-act="toggle" title="${it.is_done ? 'Desfazer' : 'Concluir'}">${it.is_done ? '↺' : '✓'}</button>
+          <button class="pop-act pop-copy"   data-act="copy"   title="Copiar ID">🔗</button>
+          <button class="pop-act pop-del"    data-act="del"    title="Apagar">✕</button>
+        </div>`;
+      }).join('')}
     `;
     document.body.appendChild(pop);
     // posiciona perto do cell, mas ajustando se sair da tela
     const r = cellEl.getBoundingClientRect();
-    let left = r.left + r.width / 2 - 130;
+    let left = r.left + r.width / 2 - 150;
     let top = r.bottom + 6;
     if (left < 8) left = 8;
-    if (left + 280 > window.innerWidth) left = window.innerWidth - 280 - 8;
+    if (left + 320 > window.innerWidth) left = window.innerWidth - 320 - 8;
     if (top + 200 > window.innerHeight) top = r.top - 200 - 6;
     pop.style.left = left + 'px';
     pop.style.top = top + 'px';
     pop.querySelector('.pop-close').onclick = closePopover;
+
+    // Handlers das ações
+    pop.querySelectorAll('.pop-act').forEach(btn => {
+      btn.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const evRow = btn.closest('.pop-ev');
+        const id = evRow.dataset.itemId;
+        const act = btn.dataset.act;
+        if (!sb || !session) {
+          // modo demo — não permite mexer no banco
+          return;
+        }
+        if (act === 'copy') {
+          if (window.copyItemId) window.copyItemId(id, btn);
+          return;
+        }
+        if (act === 'toggle') {
+          const item = itemsCache.find(i => i.id === id);
+          if (!item) return;
+          const newStatus = item.is_done ? 'planned' : 'done';
+          // Optimistic
+          item.status = newStatus; item.is_done = newStatus === 'done';
+          render();
+          await sb.from('items').update({ status: newStatus, done_at: newStatus === 'done' ? new Date().toISOString() : null }).eq('id', id);
+          // re-abre o popover atualizado
+          const updatedCell = document.querySelector(`.calM-cell[data-date="${dateStr}"]`);
+          if (updatedCell) openPopoverFor(updatedCell, dateStr);
+          return;
+        }
+        if (act === 'del') {
+          if (!confirm('Apagar este item?')) return;
+          await sb.from('items').delete().eq('id', id);
+          await reloadItemsForCursor(); render();
+          closePopover();
+          return;
+        }
+      });
+    });
   }
   document.addEventListener('click', e => {
     const cell = e.target.closest('.calM-cell:not(.is-out)');
