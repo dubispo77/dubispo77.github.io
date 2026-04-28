@@ -1204,7 +1204,7 @@ function makeMilestone(ms, color) {
     : '';
   const outerFill = isOverdue ? '#fecaca' : '#fff';
   const dotStyle = ms.status === 'done'
-    ? `background:${color};`
+    ? `background: radial-gradient(circle, ${color} 0%, ${color} 45%, ${color}55 45%, ${color}55 100%);`
     : `background: radial-gradient(circle, ${centerFill} 0%, ${centerFill} 32%, ${outerFill} 32%, ${outerFill} 100%);`;
   el.innerHTML = `${tooltipHtml}<div class="rm-ms-dot" style="position:relative;${dotStyle}">${inner}</div>`;
   return el;
