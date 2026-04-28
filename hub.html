@@ -990,6 +990,7 @@ const END_DATE     = new Date(START_DATE.getFullYear(), START_DATE.getMonth() + 
 const TOTAL_MS     = END_DATE - START_DATE;
 const TODAY        = new Date();
 let zoom = 12;
+let _msDragActive = false; // impede click handler durante drag
 
 function trackWidth()  { return (TOTAL_MONTHS + PRE_MONTHS) * BASE_W * zoom; }
 function totalWidth()  { return LEFT_W + trackWidth(); }
@@ -1175,6 +1176,26 @@ function badgeCss(color, atrasado) {
   return `background:${color}18;color:${color};`;
 }
 
+// ── DRAG LABEL (criado uma vez, reutilizado)
+const _msDragLabel = (() => {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;background:#1e1b4b;color:#e0e7ff;padding:5px 11px;border-radius:7px;font-size:11px;font-weight:700;pointer-events:none;z-index:99999;display:none;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.35);';
+  document.body.appendChild(d);
+  return d;
+})();
+const _MS_DIAS = ['dom','seg','ter','qua','qui','sex','sáb'];
+const _MS_MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function _msDayLabel(m) {
+  const d = new Date(START_DATE);
+  d.setDate(d.getDate() + Math.round(m * 30.44));
+  return `${_MS_DIAS[d.getDay()]} ${d.getDate()} ${_MS_MESES[d.getMonth()]}`;
+}
+function _msDateStr(m) {
+  const d = new Date(START_DATE);
+  d.setDate(d.getDate() + Math.round(m * 30.44));
+  return `${d.getDate()} ${_MS_MESES[d.getMonth()]}`;
+}
+
 function makeMilestone(ms, color) {
   const el = document.createElement('div');
   el.className = `rm-ms ${ms.status}`;
@@ -1207,6 +1228,62 @@ function makeMilestone(ms, color) {
     ? `background:${color};`
     : `background: radial-gradient(circle, ${centerFill} 0%, ${centerFill} 32%, ${outerFill} 32%, ${outerFill} 100%);`;
   el.innerHTML = `${tooltipHtml}<div class="rm-ms-dot" style="position:relative;${dotStyle}">${inner}</div>`;
+
+  // ── DRAG DAY-BY-DAY
+  el.addEventListener('mousedown', e => {
+    if (!e.target.closest('.rm-ms-dot')) return;
+    if (!window.sbClient) return;
+    e.preventDefault(); e.stopPropagation();
+    const startX  = e.clientX;
+    const startM  = ms.m;
+    let moved = false;
+
+    const onMove = ev => {
+      const deltaPx = ev.clientX - startX;
+      if (!moved && Math.abs(deltaPx) < 4) return;
+      moved = true; _msDragActive = true;
+      el.style.cursor = 'grabbing';
+
+      const deltaM  = deltaPx / trackWidth() * (TOTAL_MONTHS + PRE_MONTHS);
+      const snapped = Math.round((startM + deltaM) * 30.44) / 30.44;
+      const clamped = Math.max(0, Math.min(TOTAL_MONTHS, snapped));
+      ms.m = clamped;
+      el.style.left = pct(clamped) + '%';
+
+      _msDragLabel.textContent = _msDayLabel(clamped);
+      _msDragLabel.style.display = 'block';
+      _msDragLabel.style.left = (ev.clientX - 44) + 'px';
+      _msDragLabel.style.top  = (ev.clientY - 38) + 'px';
+    };
+
+    const onUp = async () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      _msDragLabel.style.display = 'none';
+      el.style.cursor = '';
+      if (!moved) { setTimeout(() => { _msDragActive = false; }, 0); return; }
+
+      // Atualiza _date no tooltip
+      if (ms._date !== undefined) {
+        ms._date = _msDateStr(ms.m);
+        const ttDate = el.querySelector('.tt-date');
+        if (ttDate) ttDate.textContent = `${ms._date} · ${ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : 'planejado'}`;
+      }
+
+      try {
+        await window.sbClient.from('roadmap').update({
+          data: { areas: DATA, calendar_events: CALENDAR_EVENTS },
+          updated_by: 'drag-ms'
+        }).eq('id', 'main');
+      } catch(err) { console.error('[drag-ms] erro ao salvar:', err); }
+
+      setTimeout(() => { _msDragActive = false; }, 0);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+
   return el;
 }
 
@@ -1488,6 +1565,7 @@ function montarPathDoElemento(el) {
 }
 
 async function handleMilestoneClick(e) {
+  if (_msDragActive) return; // ignorar click se foi drag
   const msEl = e.target.closest && e.target.closest('.rm-ms');
   if (!msEl) return;
   // Toggle só nos milestones do nível 4 (granular). Os de outros níveis
