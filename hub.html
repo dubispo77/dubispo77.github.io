@@ -1308,13 +1308,12 @@ function _msMtoDate(m) {
   d.setDate(d.getDate() + Math.round(m * 30.44));
   return d;
 }
-// "Atrasado" no roadmap: usa o MESMO cálculo que posiciona a linha vertical de hoje
-// (datePct), em meses fracionados desde START_DATE. Garante consistência 100% entre
-// o que o user vê visualmente (à esquerda da linha = atrasado) e o que a lógica calcula.
+// "Atrasado" no roadmap: compara EXATAMENTE as posições visuais. Se a bolinha está
+// à esquerda da linha vertical de hoje, está atrasada. Sem cálculos de "30.44 dias por mês"
+// que podem desalinhar com a fórmula visual (pct vs datePct usam denominadores diferentes).
 function _isOverdueRoadmap(m, status) {
   if (status !== 'planned') return false;
-  const TODAY_M_NOW = (TODAY - START_DATE) / (1000 * 60 * 60 * 24 * 30.44);
-  return m < TODAY_M_NOW;
+  return pct(m) < datePct(TODAY);
 }
 
 // Tooltip flutuante reutilizável (portalizado no body — não corta por overflow)
