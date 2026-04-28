@@ -284,9 +284,9 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-ms:hover .rm-ms-dot { transform: scale(1.15); }
 .rm-ms.done .rm-ms-dot { background: #fff; }
 .rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
-/* Atrasado: bolinha invisível, só o ⚠ vermelho grande com stroke branco */
-.rm-ms-dot.is-overdue { background: transparent !important; box-shadow: none !important; overflow: visible; }
-.rm-ms-dot.is-overdue::after { content: '⚠'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 20px; font-weight: 900; color: #dc2626; line-height: 1; -webkit-text-stroke: 1.5px #fff; text-shadow: 0 1px 3px rgba(0,0,0,.25); pointer-events: none; }
+/* Atrasado: bolinha vermelha do mesmo tamanho das outras, com ⚠ branco dentro (maior, com stroke) */
+.rm-ms-dot.is-overdue { background: #dc2626 !important; box-shadow: 0 1px 5px rgba(220,38,38,.4), 0 0 0 2.5px rgba(255,255,255,.5) !important; }
+.rm-ms-dot.is-overdue::after { content: '⚠'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 11px; font-weight: 900; color: #fff; line-height: 1; -webkit-text-stroke: 0.6px #fff; pointer-events: none; }
 .rm-ms-label {
   white-space: nowrap;
   position: absolute; left: 50%; transform: translateX(-50%);
