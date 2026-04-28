@@ -553,16 +553,24 @@
       align-items: start;
     }
 
-    .sobre-subtitle {
+    .sobre-subtitle, .tl-title, .sobre-timeline h2 {
       font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
       font-size: 28px;
       font-weight: 700;
       color: rgba(26,44,62,0.50);
       text-transform: lowercase;
       letter-spacing: -0.5px;
-      margin-top: -9px;
       margin-bottom: 11px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
+    .sobre-subtitle { margin-top: -9px; }
+    .tri-dots { display: inline-flex; gap: 4px; flex-shrink: 0; }
+    .tri-dots span { width: 5px; height: 5px; border-radius: 50%; }
+    .tri-dots span:nth-child(1) { background: rgba(26,44,62,0.40); }
+    .tri-dots span:nth-child(2) { background: rgba(26,44,62,0.28); }
+    .tri-dots span:nth-child(3) { background: rgba(26,44,62,0.16); }
 
     .sobre-text p {
       font-size: 17px;
@@ -617,15 +625,6 @@
     padding: 0;
   }
 
-  .sobre-timeline h2 {
-    font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
-    font-size: 28px; font-weight: 700;
-    color: rgba(26,44,62,0.50);
-    text-transform: lowercase;
-    margin-bottom: 11px;
-    letter-spacing: -0.5px;
-  }
-
   .tl-wrap {
     background: rgba(26,44,62,0.029);
     border-radius: 0;
@@ -634,14 +633,6 @@
     margin-left: 0;
   }
 
-  .tl-title {
-    font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
-    font-size: 28px; font-weight: 700;
-    color: rgba(26,44,62,0.50);
-    text-transform: lowercase;
-    margin-bottom: 11px;
-    letter-spacing: -0.5px;
-  }
 
   /* 2 COLUNAS */
   .tl-grid {
@@ -1488,7 +1479,7 @@
     <div class="sobre-grid">
 
       <div class="sobre-text">
-        <div class="sobre-subtitle">perfil</div>
+        <div class="sobre-subtitle"><span class="tri-dots"><span></span><span></span><span></span></span>perfil</div>
         <p>
           <strong>Videomaker e jornalista</strong> formado pela <strong>Oakland University</strong> (Michigan, EUA) com mais de <strong>15 anos de carreira</strong> — 12 deles construídos no Brasil, passando por telejornalismo, esporte ao vivo, automobilismo e comunicação política.
         </p>
@@ -1513,7 +1504,7 @@
       </div>
 
       <div class="tl-col-wrap">
-      <h2 class="tl-title">trajetória</h2>
+      <h2 class="tl-title"><span class="tri-dots"><span></span><span></span><span></span></span>trajetória</h2>
       <div class="tl-wrap">
       <div class="tl-grid">
     <div class="tl-col">
@@ -1640,7 +1631,7 @@
   <section id="formacao" class="reveal" style="padding:0 7% 60px;margin-top:-60px;">
     <div class="sobre-timeline">
       <div class="edu-wrap">
-      <h2>formação</h2>
+      <h2><span class="tri-dots"><span></span><span></span><span></span></span>formação</h2>
       <div class="edu-grid">
         <div class="edu-item">
           <div class="edu-meta">2009–2012</div>
