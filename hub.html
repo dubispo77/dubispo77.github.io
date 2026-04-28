@@ -281,8 +281,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-bar-subsub { height: 9px; }
 
 .rm-ms { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
-.rm-ms-dot { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; transition: transform .15s; }
-.rm-ms:hover .rm-ms-dot { transform: scale(1.15); }
+.rm-ms-dot { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; }
+/* sem hover scale na bolinha — antes era scale(1.15), causava sensação de "pulo" ao passar o mouse pela timeline */
 .rm-ms.done .rm-ms-dot { background: #fff; }
 .rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
 /* Atrasado: bolinha vermelha do mesmo tamanho das outras, com ⚠ branco dentro (maior, com stroke) */
