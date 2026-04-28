@@ -318,11 +318,11 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-ms-label .tt-date {
   font-size: 11px; color: rgba(255,255,255,.5);
 }
-.rm-ms-label.top { bottom: calc(100% + 10px); }
-.rm-ms-label.bot { bottom: calc(100% + 10px); top: auto; }
-/* Tooltip da milestone: aparece só depois de 250ms parado em cima (evita flicker ao passar o mouse pela timeline) */
+/* Tooltip SEMPRE embaixo da bolinha (jamais em cima — cobriria a timeline). */
+.rm-ms-label, .rm-ms-label.top, .rm-ms-label.bot { top: calc(100% + 10px); bottom: auto; }
+/* Tooltip aparece só depois de 600ms parado em cima (evita flicker ao passar o mouse pela timeline). */
 .rm-ms-label { transition: opacity .15s; transition-delay: 0s; }
-.rm-ms:hover .rm-ms-label { opacity: 1; transition-delay: .25s; }
+.rm-ms:hover .rm-ms-label { opacity: 1; transition-delay: .6s; }
 
 .rm-subs-container    { display: none; }
 .rm-subs-container.open    { display: block; }
