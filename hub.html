@@ -1418,13 +1418,15 @@ function makeMilestone(ms, color) {
       el.style.cursor = 'grabbing';
 
       const deltaM  = deltaPx / trackWidth() * (TOTAL_MONTHS + PRE_MONTHS);
-      const snapped = Math.round((startM + deltaM) * 30.44) / 30.44;
-      const clamped = Math.max(0, Math.min(TOTAL_MONTHS, snapped));
-      ms.m = clamped;
-      el.style.left = pct(clamped) + '%';
-      _applyDotStyle(clamped); // muda cor em tempo real ao cruzar hoje
+      // Visual CONTÍNUO durante drag (sem pulo de dia em dia)
+      const rawM = Math.max(0, Math.min(TOTAL_MONTHS, startM + deltaM));
+      // Snap pra dia inteiro só pra label e armazenamento
+      const snapped = Math.max(0, Math.min(TOTAL_MONTHS, Math.round((startM + deltaM) * 30.44) / 30.44));
+      ms.m = snapped; // dado salvo é discreto (dia)
+      el.style.left = pct(rawM) + '%'; // visual fluido
+      _applyDotStyle(rawM); // cor muda exatamente ao cruzar a linha de hoje
 
-      _msDragLabel.textContent = _msDayLabel(clamped);
+      _msDragLabel.textContent = _msDayLabel(snapped);
       _msDragLabel.style.display = 'block';
       _msDragLabel.style.left = (ev.clientX - 44) + 'px';
       _msDragLabel.style.top  = (ev.clientY - 38) + 'px';
@@ -1440,8 +1442,13 @@ function makeMilestone(ms, color) {
       // Atualiza _date pra refletir a nova posição
       if (ms._date !== undefined) ms._date = _msDateStr(ms.m);
 
-      // Solução definitiva: redesenhar o conteúdo INTEIRO do `el` baseado em
-      // `ms.m` final. Não há como ficar desincronizado.
+      // Anima a bolinha do `rawM` (onde o mouse soltou) pro `snapped` (dia exato).
+      // Transição suave de 120ms — sensação de "encaixe" no dia.
+      el.style.transition = 'left .12s cubic-bezier(.4,0,.2,1)';
+      el.style.left = pct(ms.m) + '%';
+      setTimeout(() => { el.style.transition = ''; }, 200);
+
+      // Redesenha o interior baseado no estado final
       _renderInner();
 
       try {
