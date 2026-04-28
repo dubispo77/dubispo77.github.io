@@ -3827,15 +3827,22 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   chip.textContent = `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}`;
 })();
 
-(function setupCalendar() {
+(async function setupCalendar() {
   const container = document.getElementById('calContainer');
   if (!container) return;
+
+  const sb = window.sbClient;
+  const session = sb ? (await sb.auth.getSession()).data.session : null;
 
   // Estado
   let view = 'month';
   let cursor = new Date(); // data ancorada na vista atual
+  let itemsCache = [];     // items normalizados {id, date, has_time, hr, title, project, status, raw}
+  let projectsMap = {};    // id → {area, color, name}
+  let loadedRange = null;  // {start, end} — janela de meses já carregada
 
   // Mock de items — semana 27/04/2026 a 03/05/2026 + alguns ao longo do mês
+  // Usado como fallback quando o user não está logado (modo demo)
   const CAL_MOCK_ITEMS = [
     { id:'m1',  date:'2026-04-01', has_time:true,  hr:'9h',           title:'Kickoff',         project:'trabalho' },
     { id:'m2',  date:'2026-04-03', has_time:true,  hr:'18h às 19h30', title:'Yoga',            project:'saude'    },
@@ -3868,9 +3875,69 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
   function isSameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
   function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-  function itemsForDate(d) { return CAL_MOCK_ITEMS.filter(i => i.date === ymd(d)); }
-
+  function itemsForDate(d) { const t = ymd(d); return itemsCache.filter(i => i.date === t); }
   function escHtml(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function fmtTime(d) {
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    return m === '00' ? `${h}h` : `${h}h${m}`;
+  }
+
+  function normalizeItem(it) {
+    const d = new Date(it.date_start);
+    let hr = '';
+    if (it.has_time) {
+      hr = fmtTime(d);
+      if (it.date_end) {
+        const de = new Date(it.date_end);
+        if (de.getDate() === d.getDate() && de.getMonth() === d.getMonth() && de.getFullYear() === d.getFullYear()) {
+          hr += ' às ' + fmtTime(de);
+        }
+      }
+    }
+    return {
+      id: it.id,
+      date: ymd(d),
+      has_time: it.has_time,
+      hr,
+      title: it.title,
+      project: it.area || 'pessoal',
+      status: it.status,
+      raw: it,
+    };
+  }
+
+  async function loadProjects() {
+    if (!sb || !session) return;
+    const { data } = await sb.from('projects').select('id,name,color,area');
+    projectsMap = {};
+    (data || []).forEach(p => { projectsMap[p.id] = p; });
+  }
+
+  async function reloadItemsForCursor() {
+    // Carrega itens cobrindo o mês do cursor + 1 mês antes e 1 mês depois
+    // (assim o calendário cobre os "out-of-month" sem precisar nova query toda vez)
+    const start = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
+    const end   = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1);
+    if (sb && session) {
+      const { data, error } = await sb.from('items')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency')
+        .gte('date_start', start.toISOString())
+        .lt('date_start', end.toISOString())
+        .order('date_start');
+      if (!error) itemsCache = (data || []).map(normalizeItem);
+    } else {
+      // Modo demo (sem login): usa mock
+      itemsCache = CAL_MOCK_ITEMS;
+    }
+    loadedRange = { start, end };
+  }
+
+  async function ensureRangeForCursor() {
+    if (!loadedRange) return reloadItemsForCursor();
+    if (cursor < loadedRange.start || cursor >= loadedRange.end) return reloadItemsForCursor();
+  }
 
   // ── Vista mês ──
   // Só renderiza dias do mês ativo; dias do mês anterior/seguinte ficam como células
@@ -3963,7 +4030,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   }
   function openPopoverFor(cellEl, dateStr) {
     closePopover();
-    const items = CAL_MOCK_ITEMS.filter(i => i.date === dateStr);
+    const items = itemsCache.filter(i => i.date === dateStr);
     if (items.length === 0) return;
     const d = new Date(dateStr + 'T12:00:00');
     const titleStr = `${DOW_SHORT[(d.getDay()+6)%7]}, ${d.getDate()} ${MESES_LONG[d.getMonth()].slice(0,3)} · ${items.length} ${items.length===1?'item':'itens'}`;
@@ -4002,22 +4069,42 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       render();
     });
   });
-  document.getElementById('calPrev').addEventListener('click', () => {
+  document.getElementById('calPrev').addEventListener('click', async () => {
     if (view === 'month') cursor.setMonth(cursor.getMonth() - 1);
     else                  cursor.setDate(cursor.getDate() - 7);
+    await ensureRangeForCursor();
     render();
   });
-  document.getElementById('calNext').addEventListener('click', () => {
+  document.getElementById('calNext').addEventListener('click', async () => {
     if (view === 'month') cursor.setMonth(cursor.getMonth() + 1);
     else                  cursor.setDate(cursor.getDate() + 7);
+    await ensureRangeForCursor();
     render();
   });
-  document.getElementById('calToday').addEventListener('click', () => {
+  document.getElementById('calToday').addEventListener('click', async () => {
     cursor = new Date();
+    await ensureRangeForCursor();
     render();
   });
 
+  // ── Init: carrega projetos e items, renderiza ──
+  await loadProjects();
+  await reloadItemsForCursor();
   render();
+
+  // ── Realtime: qualquer mudança em items ou projects re-carrega e re-renderiza ──
+  if (sb && session) {
+    sb.channel('calendar-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async () => {
+        await reloadItemsForCursor();
+        render();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, async () => {
+        await loadProjects();
+        render();
+      })
+      .subscribe();
+  }
 })();
 </script>
 <!-- hidden zoom controls for JS refs -->
