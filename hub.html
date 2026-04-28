@@ -174,7 +174,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .setup-row .sr-status { font-size: 10px; font-weight: 700; flex-shrink: 0; }
 
 /* ── ROADMAP ── */
-.rm-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.rm-wrap { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; }
 .rm-inner { position: relative; }
 
 .rm-axis-row {
@@ -287,7 +287,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
 /* Atrasado: bolinha vermelha do mesmo tamanho das outras, com ⚠ branco dentro (maior, com stroke) */
 .rm-ms-dot.is-overdue { background: #dc2626 !important; box-shadow: 0 1px 5px rgba(220,38,38,.4), 0 0 0 2.5px rgba(255,255,255,.5) !important; }
-.rm-ms-dot.is-overdue::after { content: '⚠'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; color: #fff; line-height: 1; pointer-events: none; }
+.rm-ms-dot.is-overdue { display: flex; align-items: center; justify-content: center; }
+.rm-ms-dot.is-overdue::after { content: '⚠'; font-size: 10px; font-weight: 700; color: #fff; line-height: 1; pointer-events: none; display: block; text-align: center; }
 .rm-ms-label {
   white-space: nowrap;
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -323,7 +324,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-ms-label, .rm-ms-label.top, .rm-ms-label.bot { top: calc(100% + 10px); bottom: auto; }
 /* Tooltip aparece só depois de 600ms parado em cima (evita flicker ao passar o mouse pela timeline). */
 .rm-ms-label { transition: opacity .15s; transition-delay: 0s; }
-.rm-ms:hover .rm-ms-label { opacity: 1; transition-delay: .6s; }
+.rm-ms:hover .rm-ms-label { opacity: 1; transition-delay: .2s; }
 
 .rm-subs-container    { display: none; }
 .rm-subs-container.open    { display: block; }
@@ -1295,6 +1296,14 @@ function _msMtoDate(m) {
   d.setDate(d.getDate() + Math.round(m * 30.44));
   return d;
 }
+// "Atrasado" no roadmap: usa TODAY_M (mesma referência visual da linha vertical de hoje).
+// É CRÍTICO usar isso e não `window.isOverdue` aqui — o cálculo deles diverge porque
+// o roadmap tem sistema de coordenadas próprio (m em meses fracionados desde START_DATE).
+function _isOverdueRoadmap(m, status) {
+  if (status !== 'planned') return false;
+  const TODAY_M_NOW = (TODAY.getFullYear() - 2026) * 12 + (TODAY.getMonth() - 3) + (TODAY.getDate() - 1) / 30;
+  return m < TODAY_M_NOW;
+}
 
 function makeMilestone(ms, color) {
   const el = document.createElement('div');
@@ -1308,7 +1317,7 @@ function makeMilestone(ms, color) {
   // Função única usada no init E depois de cada drop. Garante que NUNCA
   // fique desincronizado entre `ms.m` salvo e visual exibido.
   function _renderInner() {
-    const isOverdue = window.isOverdue(_msMtoDate(ms.m), ms.status);
+    const isOverdue = _isOverdueRoadmap(ms.m, ms.status);
     const statusColor = ms.status === 'done' ? '#16a34a' : ms.status === 'active' ? color : isOverdue ? '#dc2626' : '#f59e0b';
     const statusText  = ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : isOverdue ? 'atrasado' : 'planejado';
     const tooltipHtml = `<div class="rm-ms-label top">
@@ -1345,7 +1354,7 @@ function makeMilestone(ms, color) {
 
     const _applyDotStyle = (m) => {
       if (!dot || ms.status === 'done') return;
-      const overdue = window.isOverdue(_msMtoDate(m), ms.status);
+      const overdue = _isOverdueRoadmap(m, ms.status);
       // Limpa qualquer ⚠ inline antigo (de versões anteriores do hub que usavam span)
       const oldWarn = dot.querySelector('[data-overdue-icon]');
       if (oldWarn) oldWarn.remove();
@@ -1441,11 +1450,8 @@ function makeLevel4Row(l4, color, isLast) {
   const pctSpan  = document.createElement('span'); pctSpan.className = 'rm-level4-pct';
   pctSpan.style.cssText = `background:${pctColor}18;color:${pctColor};`;
   pctSpan.textContent = total > 0 ? `${pct}%` : '—';
-  // Tooltip no hover com detalhes
-  const tooltip = total > 0
-    ? `${done} de ${total} tarefa${total>1?'s':''} concluída${done!==1?'s':''}`
-    : 'Nenhuma tarefa ainda';
-  row.title = tooltip;
+  // (antes havia row.title nativo do browser, removido — sobrepunha o tooltip
+  //  do milestone e ficava feio. Info "% concluído" já é visível no pctSpan.)
   text.appendChild(nameSpan); text.appendChild(pctSpan);
   left.appendChild(icon); left.appendChild(text); left.appendChild(lvl4);
   const track = document.createElement('div'); track.className = 'rm-track';
