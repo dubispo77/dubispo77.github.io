@@ -665,20 +665,21 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell:nth-child(7n) { border-right: none; }
 .calM-cell:hover { background: #e6e6ea; }
 .calM-cell.is-out { background: #e0e0e4; opacity: .55; cursor: default; }
-/* Borda forte na transição entre meses (cinza médio — roxo é só pro dia atual) */
-.calM-cell.is-mes-start { border-left: 3px solid #6b7280; }
-.calM-cell.is-mes-end   { border-right: 3px solid #6b7280; }
+/* Borda na transição entre meses — gray-200 sutil */
+.calM-cell.is-mes-start { border-left: 3px solid #e5e7eb; }
+.calM-cell.is-mes-end   { border-right: 3px solid #e5e7eb; }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
 .calM-num { font-size: 12px; font-weight: 800; padding: 1px 5px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
 .calM-ev { margin-top: 3px; padding: 3px 6px; border-radius: 4px; border-left: 3px solid; color: #fff; }
 .calM-ev .hr { font-size: 8px; opacity: .8; line-height: 1.1; display: block; font-weight: 500; }
 .calM-ev .ti { font-size: 10px; font-weight: 600; line-height: 1.25; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.calM-ev.proj-pessoal  { background: #7c3aed; border-color: #5b21b6; }
-.calM-ev.proj-trabalho { background: #2563eb; border-color: #1e3a8a; }
-.calM-ev.proj-saude    { background: #16a34a; border-color: #14532d; }
-.calM-ev.proj-financas { background: #d97706; border-color: #78350f; }
-.calM-ev.proj-rotina   { background: #0891b2; border-color: #164e63; }
+/* Border-left (handler) é MAIS CLARO que o fundo do card pra contrastar */
+.calM-ev.proj-pessoal  { background: #7c3aed; border-color: #c4b5fd; }
+.calM-ev.proj-trabalho { background: #2563eb; border-color: #93c5fd; }
+.calM-ev.proj-saude    { background: #16a34a; border-color: #86efac; }
+.calM-ev.proj-financas { background: #d97706; border-color: #fcd34d; }
+.calM-ev.proj-rotina   { background: #0891b2; border-color: #67e8f9; }
 .calM-more { display: inline-block; margin-top: 4px; font-size: 9px; color: #4b5563; padding: 1px 5px; background: #fff; border-radius: 4px; font-weight: 600; }
 /* SEMANA (S4 — cards grandes preenchidos) */
 .calW-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 4px; }
