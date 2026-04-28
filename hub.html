@@ -57,6 +57,7 @@ html, body {
 .sidebar-header { padding: 20px 14px 10px; }
 .sidebar-app-name { font-size: 15px; font-weight: 750; color: var(--sidebar-text); letter-spacing: -.02em; margin-bottom: 2px; }
 .sidebar-app-sub  { font-size: 10.5px; color: var(--sidebar-dim); }
+.sidebar-today-chip { display: inline-block; margin-top: 7px; background: #ede9fe; color: #5b21b6; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.3; }
 .sidebar-section  { padding: 10px 8px 2px; }
 .sidebar-section-label { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: var(--sidebar-dim); padding: 0 8px; margin-bottom: 4px; opacity: .7; }
 .nav-item { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 8px; cursor: pointer; transition: background .12s; margin-bottom: 1px; }
@@ -664,17 +665,20 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell:nth-child(7n) { border-right: none; }
 .calM-cell:hover { background: #e6e6ea; }
 .calM-cell.is-out { background: #e0e0e4; opacity: .55; cursor: default; }
+/* Borda forte na transição entre meses (cinza médio — roxo é só pro dia atual) */
+.calM-cell.is-mes-start { border-left: 3px solid #6b7280; }
+.calM-cell.is-mes-end   { border-right: 3px solid #6b7280; }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
-.calM-num { font-size: 11px; font-weight: 700; padding: 1px 5px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #1f2937; }
+.calM-num { font-size: 12px; font-weight: 800; padding: 1px 5px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
 .calM-ev { margin-top: 3px; padding: 3px 6px; border-radius: 4px; border-left: 3px solid; color: #fff; }
 .calM-ev .hr { font-size: 8px; opacity: .8; line-height: 1.1; display: block; font-weight: 500; }
 .calM-ev .ti { font-size: 10px; font-weight: 600; line-height: 1.25; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.calM-ev.proj-pessoal  { background: #8b5cf6; border-color: #6d28d9; }
-.calM-ev.proj-trabalho { background: #3b82f6; border-color: #1d4ed8; }
-.calM-ev.proj-saude    { background: #22c55e; border-color: #15803d; }
-.calM-ev.proj-financas { background: #f59e0b; border-color: #b45309; }
-.calM-ev.proj-rotina   { background: #06b6d4; border-color: #0e7490; }
+.calM-ev.proj-pessoal  { background: #7c3aed; border-color: #5b21b6; }
+.calM-ev.proj-trabalho { background: #2563eb; border-color: #1e3a8a; }
+.calM-ev.proj-saude    { background: #16a34a; border-color: #14532d; }
+.calM-ev.proj-financas { background: #d97706; border-color: #78350f; }
+.calM-ev.proj-rotina   { background: #0891b2; border-color: #164e63; }
 .calM-more { display: inline-block; margin-top: 4px; font-size: 9px; color: #4b5563; padding: 1px 5px; background: #fff; border-radius: 4px; font-weight: 600; }
 /* SEMANA (S4 — cards grandes preenchidos) */
 .calW-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 4px; }
@@ -685,11 +689,11 @@ table.data-table tr:hover td { background: var(--bg); }
 .calW-card { padding: 8px 10px; border-radius: 6px; margin-bottom: 5px; color: #fff; }
 .calW-card .ti { font-size: 12px; font-weight: 600; line-height: 1.3; }
 .calW-card .hr { font-size: 10px; opacity: .8; margin-top: 2px; font-weight: 500; }
-.calW-card.proj-pessoal  { background: #8b5cf6; }
-.calW-card.proj-trabalho { background: #3b82f6; }
-.calW-card.proj-saude    { background: #22c55e; }
-.calW-card.proj-financas { background: #f59e0b; }
-.calW-card.proj-rotina   { background: #06b6d4; }
+.calW-card.proj-pessoal  { background: #7c3aed; }
+.calW-card.proj-trabalho { background: #2563eb; }
+.calW-card.proj-saude    { background: #16a34a; }
+.calW-card.proj-financas { background: #d97706; }
+.calW-card.proj-rotina   { background: #0891b2; }
 /* Dropdown ao clicar no dia */
 .cal-day-popover { position: fixed; background: #fff; border: 1px solid #d8d8db; border-radius: 10px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 9999; min-width: 260px; max-width: 320px; }
 .cal-day-popover h3 { font-size: 13px; font-weight: 700; color: #1f2937; margin: 0 0 10px; }
@@ -735,6 +739,7 @@ table.data-table tr:hover td { background: var(--bg); }
     <div class="sidebar-header">
       <div class="sidebar-app-name">🏠 Eduardo</div>
       <div class="sidebar-app-sub">Hub pessoal · 2026</div>
+      <div class="sidebar-today-chip" id="sidebarTodayChip">terça, 28 de abril</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Principal</div>
@@ -3811,6 +3816,16 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 // CALENDÁRIO VISUAL (Fase 3.1) — render mockado pra validação visual
 // Dados reais entram na Fase 3.2 substituindo CAL_MOCK_ITEMS por fetch do Supabase
 // ═════════════════════════════════════════════════════════════════
+// Atualiza o chip de data no sidebar (substitui o chip antigo do canto direito)
+(function updateSidebarDateChip() {
+  const chip = document.getElementById('sidebarTodayChip');
+  if (!chip) return;
+  const DIAS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const d = new Date();
+  chip.textContent = `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}`;
+})();
+
 (function setupCalendar() {
   const container = document.getElementById('calContainer');
   if (!container) return;
@@ -3857,27 +3872,43 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   function escHtml(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // ── Vista mês ──
+  // Só renderiza dias do mês ativo; dias do mês anterior/seguinte ficam como células
+  // VAZIAS (transparentes, sem borda) — ar visual em vez de números cinzas.
+  // Grid adaptativo: corta linhas que ficam 100% vazias no fim.
   function renderMonth() {
     const today = new Date(); today.setHours(0,0,0,0);
     const year = cursor.getFullYear(), month = cursor.getMonth();
-    // Primeiro dia da grade — segunda-feira que abre a primeira semana
     const firstOfMonth = new Date(year, month, 1);
-    const dayOfWeek = firstOfMonth.getDay(); // 0=dom
+    const dayOfWeek = firstOfMonth.getDay();
     const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     const gridStart = new Date(year, month, 1 - offset);
-    // 6 semanas (42 dias) cobre qualquer mês
+    const lastOfMonth = new Date(year, month + 1, 0);
+    // Calcula quantas linhas (4 a 6) bastam pra mostrar o mês completo
+    const totalDaysFromStart = offset + lastOfMonth.getDate();
+    const linesNeeded = Math.ceil(totalDaysFromStart / 7);
+    const totalCells = linesNeeded * 7;
+
     let cells = '';
-    for (let i = 0; i < 42; i++) {
+    for (let i = 0; i < totalCells; i++) {
       const d = new Date(gridStart);
       d.setDate(gridStart.getDate() + i);
       const isOut = d.getMonth() !== month;
       const isToday = isSameDay(d, today);
+      // Marcadores de transição: célula do dia 1 (start) ou último dia (end) do mês ativo
+      const isMesStart = !isOut && d.getDate() === 1;
+      const isMesEnd   = !isOut && d.getDate() === lastOfMonth.getDate();
       const items = itemsForDate(d);
       const visible = items.slice(0, 3);
       const extra = items.length - visible.length;
       const evHtml = visible.map(it => `<div class="calM-ev proj-${it.project}">${it.has_time ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}<span class="ti">${escHtml(it.title)}</span></div>`).join('');
       const moreHtml = extra > 0 ? `<span class="calM-more">+ ${extra} mais</span>` : '';
-      cells += `<div class="calM-cell ${isOut?'is-out':''} ${isToday?'is-today':''}" data-date="${ymd(d)}">
+      const classes = [
+        isOut ? 'is-out' : '',
+        isToday ? 'is-today' : '',
+        isMesStart ? 'is-mes-start' : '',
+        isMesEnd ? 'is-mes-end' : '',
+      ].filter(Boolean).join(' ');
+      cells += `<div class="calM-cell ${classes}" data-date="${ymd(d)}">
         <span class="calM-num">${d.getDate()}</span>
         ${evHtml}${moreHtml}
       </div>`;
@@ -3938,7 +3969,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     pop.className = 'cal-day-popover';
     pop.innerHTML = `<button class="pop-close" aria-label="Fechar">✕</button>
       <h3>${titleStr}</h3>
-      ${items.map(it => `<div class="pop-ev proj-${it.project}" style="background:${ {pessoal:'#8b5cf6',trabalho:'#3b82f6',saude:'#22c55e',financas:'#f59e0b',rotina:'#06b6d4'}[it.project] }"><span class="pop-hr">${it.has_time ? escHtml(it.hr) : '—'}</span><span class="pop-ti">${escHtml(it.title)}</span></div>`).join('')}
+      ${items.map(it => `<div class="pop-ev proj-${it.project}" style="background:${ {pessoal:'#7c3aed',trabalho:'#2563eb',saude:'#16a34a',financas:'#d97706',rotina:'#0891b2'}[it.project] }"><span class="pop-hr">${it.has_time ? escHtml(it.hr) : '—'}</span><span class="pop-ti">${escHtml(it.title)}</span></div>`).join('')}
     `;
     document.body.appendChild(pop);
     // posiciona perto do cell, mas ajustando se sair da tela
@@ -3992,7 +4023,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 <button id="rmZoomOut" style="display:none"></button>
 <button id="rmZoomIn" style="display:none"></button>
 <button id="rmReset" style="display:none"></button>
-<div id="todayChipFixed" style="position:fixed;top:20px;right:20px;z-index:99999;background:#5b4fcf;color:#fff;border-radius:11px;padding:7px 15px 6px;font-size:12px;font-weight:700;letter-spacing:.01em;box-shadow:0 4px 20px rgba(91,79,207,.4);pointer-events:none;white-space:nowrap;"></div>
+<div id="todayChipFixed" style="display:none"></div>
 <script>
 (function(){
   var DIAS=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
