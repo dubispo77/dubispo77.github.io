@@ -675,7 +675,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
 .calM-num { font-size: 12px; font-weight: 800; padding: 1px 5px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
-.calM-ev { margin-top: 3px; padding: 3px 6px; border-radius: 4px; border-left: 3px solid; color: #fff; cursor: grab; }
+.calM-ev { position: relative; margin-top: 3px; padding: 3px 6px; border-radius: 4px; border-left: 3px solid; color: #fff; cursor: grab; }
 .calM-ev:active { cursor: grabbing; }
 .calM-ev .hr { font-size: 8px; opacity: .8; line-height: 1.1; display: block; font-weight: 500; }
 .calM-ev .ti { font-size: 10px; font-weight: 600; line-height: 1.25; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -686,7 +686,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.proj-rotina   { background: #0891b2; border-color: #164e63; }
 .calM-more { display: inline-block; margin-top: 4px; font-size: 9px; color: #4b5563; padding: 1px 5px; background: #fff; border-radius: 4px; font-weight: 600; }
 .calM-ev.is-done { opacity: .55; text-decoration: line-through; }
-.calM-ev.is-overdue { box-shadow: 0 0 0 1px #dc2626; }
+.calM-ev.is-overdue { border-left-color: #dc2626 !important; border-left-width: 4px !important; }
+.calM-ev .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 1px 4px; border-radius: 3px; font-size: 7px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1.1; pointer-events: none; }
 .calM-ev.is-dragging { opacity: .35; transform: scale(.98); transition: opacity .12s, transform .12s; }
 .calM-ev { transition: transform .15s; }
 .calM-ev .bd { display: inline-block; margin-right: 3px; font-size: 9px; line-height: 1; }
@@ -4023,11 +4024,12 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       const evHtml = visible.map(it => {
         const klass = `calM-ev proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}`;
         const badges = [
-          it.is_overdue ? '<span class="bd ov">⚠</span>' : '',
           it.is_done ? '<span class="bd dn">✓</span>' : '',
           it.is_recurring ? '<span class="bd rc">♻</span>' : '',
         ].join('');
+        const overdueBadge = it.is_overdue ? '<span class="badge-overdue">atrasado</span>' : '';
         return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
+          ${overdueBadge}
           ${it.has_time ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}
           <span class="ti">${badges}${escHtml(it.title)}</span>
         </div>`;
