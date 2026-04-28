@@ -1218,12 +1218,12 @@ function makeMilestone(ms, color) {
   const TODAY_M = (TODAY.getFullYear() - 2026) * 12 + (TODAY.getMonth() - 3) + (TODAY.getDate() - 1) / 30;
   const isOverdue = ms.status === 'planned' && ms.m < TODAY_M;
   const centerFill = ms.status === 'done' ? color
-    : isOverdue ? '#ef4444'
+    : isOverdue ? '#f87171'
     : `rgba(168,158,184,0.3)`;
   const inner = ms.status === 'done'
     ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;">✓</span>`
     : '';
-  const outerFill = isOverdue ? '#fecaca' : '#fff';
+  const outerFill = isOverdue ? '#fff1f2' : '#fff';
   const dotStyle = ms.status === 'done'
     ? `background:${color};`
     : `background: radial-gradient(circle, ${centerFill} 0%, ${centerFill} 32%, ${outerFill} 32%, ${outerFill} 100%);`;
