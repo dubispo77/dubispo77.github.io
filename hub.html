@@ -330,8 +330,23 @@ table.data-table tr:hover td { background: var(--bg); }
 /* Tooltip antigo dentro da .rm-ms — REMOVIDO via JS (portalizado pra body, não corta) */
 .rm-ms-label { display: none !important; }
 /* Tooltip flutuante — fica no body, position fixed, jamais cortado por overflow */
-#rmFloatingTooltip { position: fixed; pointer-events: none; background: #1a1828; border-radius: 10px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25); min-width: 140px; opacity: 0; transition: opacity .15s; z-index: 99999; white-space: nowrap; font-family: inherit; }
-#rmFloatingTooltip.show { opacity: 1; }
+#rmFloatingTooltip { position: fixed; pointer-events: auto; background: #1a1828; border-radius: 10px; padding: 10px 14px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.25); min-width: 200px; opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; z-index: 99999; font-family: inherit; }
+#rmFloatingTooltip.show { opacity: 1; visibility: visible; }
+/* Botões 🔗 ✏️ ✕ do tooltip */
+#rmFloatingTooltip .tt-actions { position: absolute; top: 6px; right: 6px; display: flex; gap: 2px; }
+#rmFloatingTooltip .tt-btn { width: 22px; height: 22px; border: none; background: transparent; color: rgba(255,255,255,.6); font-size: 12px; cursor: pointer; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+#rmFloatingTooltip .tt-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+#rmFloatingTooltip .tt-confirm { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+#rmFloatingTooltip .tt-confirm-btn { padding: 3px 9px; border-radius: 5px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; }
+#rmFloatingTooltip .tt-confirm-yes { background: #dc2626; color: #fff; }
+#rmFloatingTooltip .tt-confirm-no  { background: rgba(255,255,255,.1); color: rgba(255,255,255,.7); }
+/* Modo edição: campos inline no tooltip */
+#rmFloatingTooltip .tt-edit-row { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+#rmFloatingTooltip .tt-edit-input, #rmFloatingTooltip .tt-edit-select { padding: 5px 8px; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; background: rgba(255,255,255,.06); color: #fff; font: inherit; font-size: 12px; outline: none; width: 100%; box-sizing: border-box; }
+#rmFloatingTooltip .tt-edit-input:focus, #rmFloatingTooltip .tt-edit-select:focus { border-color: #7c3aed; }
+#rmFloatingTooltip .tt-edit-actions { display: flex; gap: 6px; margin-top: 4px; }
+#rmFloatingTooltip .tt-save  { background: #7c3aed; color: #fff; padding: 4px 10px; border: none; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; }
+#rmFloatingTooltip .tt-cancel { background: rgba(255,255,255,.1); color: rgba(255,255,255,.7); padding: 4px 10px; border: none; border-radius: 5px; font-size: 11px; cursor: pointer; }
 #rmFloatingTooltip .tt-parent { font-size: 9px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .08em; font-weight: 800; margin-bottom: 4px; }
 #rmFloatingTooltip .tt-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 7px; }
 #rmFloatingTooltip .tt-meta { display: flex; align-items: center; gap: 6px; }
@@ -1319,13 +1334,192 @@ function _isOverdueRoadmap(m, status) {
   return pct(m) < datePct(TODAY);
 }
 
-// Tooltip flutuante reutilizável (portalizado no body — não corta por overflow)
+// ── Tooltip flutuante interativo do roadmap ─────────────────────────────────
+// Portalizado no body. Tem 3 botões (🔗 copiar ID, ✏️ editar, ✕ apagar).
+// Editar: campos inline pra title + date + status. Salvar atualiza JSONB e re-renderiza.
 function _rmGetFloatingTooltip() {
   let tt = document.getElementById('rmFloatingTooltip');
-  if (!tt) { tt = document.createElement('div'); tt.id = 'rmFloatingTooltip'; document.body.appendChild(tt); }
+  if (!tt) {
+    tt = document.createElement('div');
+    tt.id = 'rmFloatingTooltip';
+    document.body.appendChild(tt);
+    // Mantém aberto se o mouse entrar no tooltip (permite clicar nos botões)
+    tt.addEventListener('mouseenter', () => clearTimeout(_rmTooltipHideTimer));
+    tt.addEventListener('mouseleave', () => _rmHideTooltipSoon());
+  }
   return tt;
 }
 let _rmTooltipTimer = null;
+let _rmTooltipHideTimer = null;
+let _rmTtState = null; // { ms, el, color, path } enquanto tooltip ativo
+let _rmTtMode = 'view'; // 'view' | 'edit' | 'confirmDelete'
+
+function _rmHideTooltipSoon() {
+  clearTimeout(_rmTooltipHideTimer);
+  _rmTooltipHideTimer = setTimeout(() => {
+    const tt = document.getElementById('rmFloatingTooltip');
+    if (tt) tt.classList.remove('show');
+    _rmTtState = null;
+    _rmTtMode = 'view';
+  }, 180);
+}
+
+function _dateToM(d) {
+  return (d - START_DATE) / (1000 * 60 * 60 * 24 * 30.44);
+}
+
+// Renderiza o conteúdo do tooltip baseado no modo atual (view/edit/confirmDelete)
+function _rmRenderTooltip() {
+  const tt = _rmGetFloatingTooltip();
+  if (!_rmTtState) return;
+  const { ms, color } = _rmTtState;
+  const isOverdue = _isOverdueRoadmap(ms.m, ms.status);
+  const statusColor = ms.status === 'done' ? '#16a34a' : ms.status === 'active' ? color : isOverdue ? '#dc2626' : '#f59e0b';
+  const statusText  = ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : isOverdue ? 'atrasado' : 'planejado';
+
+  if (_rmTtMode === 'view') {
+    tt.innerHTML = `
+      <div class="tt-actions">
+        <button class="tt-btn" data-act="copy" title="Copiar ID">🔗</button>
+        <button class="tt-btn" data-act="edit" title="Editar">✏️</button>
+        <button class="tt-btn" data-act="del"  title="Apagar">✕</button>
+      </div>
+      ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
+      <div class="tt-title" style="padding-right:80px">${ms.label}</div>
+      <div class="tt-meta"><div class="tt-dot" style="background:${statusColor}"></div><span class="tt-date">${ms._date ? ms._date + ' · ' : ''}${statusText}</span></div>
+    `;
+  } else if (_rmTtMode === 'confirmDelete') {
+    tt.innerHTML = `
+      ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
+      <div class="tt-title">Apagar "${ms.label}"?</div>
+      <div class="tt-confirm">
+        <button class="tt-confirm-btn tt-confirm-yes" data-act="confirm-del">Sim, apagar</button>
+        <button class="tt-confirm-btn tt-confirm-no"  data-act="cancel-del">Cancelar</button>
+      </div>
+    `;
+  } else if (_rmTtMode === 'edit') {
+    const dateStr = ms._date ? new Date(START_DATE.getTime() + Math.round(ms.m * 30.44) * 86400000).toISOString().slice(0,10) : '';
+    tt.innerHTML = `
+      <div class="tt-actions">
+        <button class="tt-btn" data-act="cancel-edit" title="Cancelar">✕</button>
+      </div>
+      ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
+      <div class="tt-edit-row">
+        <input class="tt-edit-input" data-field="title" value="${(ms.label || '').replace(/"/g, '&quot;')}" placeholder="Título" />
+        <input class="tt-edit-input" data-field="date" type="date" value="${dateStr}" />
+        <select class="tt-edit-select" data-field="status">
+          <option value="planned" ${ms.status === 'planned' ? 'selected' : ''}>Planejado</option>
+          <option value="done"    ${ms.status === 'done'    ? 'selected' : ''}>Concluído</option>
+          <option value="active"  ${ms.status === 'active'  ? 'selected' : ''}>Em curso</option>
+        </select>
+        <div class="tt-edit-actions">
+          <button class="tt-save" data-act="save">Salvar</button>
+          <button class="tt-cancel" data-act="cancel-edit">Cancelar</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Bind dos botões
+  tt.querySelectorAll('[data-act]').forEach(btn => {
+    btn.onclick = (ev) => {
+      ev.stopPropagation();
+      const act = btn.dataset.act;
+      if (act === 'copy')   _rmHandleCopyId(btn);
+      if (act === 'edit')   { _rmTtMode = 'edit'; _rmRenderTooltip(); }
+      if (act === 'del')    { _rmTtMode = 'confirmDelete'; _rmRenderTooltip(); }
+      if (act === 'confirm-del') _rmHandleDelete();
+      if (act === 'cancel-del')  { _rmTtMode = 'view'; _rmRenderTooltip(); }
+      if (act === 'cancel-edit') { _rmTtMode = 'view'; _rmRenderTooltip(); }
+      if (act === 'save')   _rmHandleSaveEdit();
+    };
+  });
+}
+
+function _rmHandleCopyId(btn) {
+  if (!_rmTtState) return;
+  const id = _rmTtState.ms.id || '';
+  if (window.copyItemId) window.copyItemId(id, btn);
+}
+
+async function _rmHandleSaveEdit() {
+  if (!_rmTtState) return;
+  const tt = _rmGetFloatingTooltip();
+  const titleInput  = tt.querySelector('[data-field="title"]');
+  const dateInput   = tt.querySelector('[data-field="date"]');
+  const statusInput = tt.querySelector('[data-field="status"]');
+  if (!titleInput || !dateInput || !statusInput) return;
+
+  const newTitle  = titleInput.value.trim();
+  const newDate   = dateInput.value;
+  const newStatus = statusInput.value;
+  if (!newTitle || !newDate) { titleInput.focus(); return; }
+
+  const sb = window.sbClient;
+  if (!sb) return;
+  const { data: row } = await sb.from('roadmap').select('data').eq('id','main').single();
+  if (!row?.data) return;
+  const data = row.data;
+
+  // Navega no JSONB pelo path
+  const path = _rmTtState.path;
+  let cursor = (data.areas || []).find(a => a.id === path[0]);
+  if (!cursor) return;
+  for (let i = 1; i < path.length - 1; i++) {
+    cursor = (cursor.subs || []).find(s => s.id === path[i]);
+    if (!cursor) return;
+  }
+  const lastId = path[path.length - 1];
+  const milestone = (cursor.milestones || []).find(m => m.id === lastId);
+  if (!milestone) return;
+
+  // Atualiza
+  milestone.label = newTitle;
+  milestone.status = newStatus;
+  // Snap pra dia inteiro
+  const newM = _dateToM(new Date(newDate + 'T00:00:00'));
+  const snappedM = Math.round(newM * 30.44) / 30.44;
+  milestone.m = Math.max(0, Math.min(TOTAL_MONTHS, snappedM));
+  if (milestone._date !== undefined) milestone._date = _msDateStr(milestone.m);
+
+  await sb.from('roadmap').update({ data, updated_by: 'tooltip-edit' }).eq('id', 'main');
+  DATA = data.areas;
+  CALENDAR_EVENTS = data.calendar_events || [];
+  document.getElementById('rmBody').innerHTML = '';
+  if (typeof buildAxis === 'function') buildAxis();
+  if (typeof buildRoadmap === 'function') buildRoadmap();
+  if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
+
+  _rmTtMode = 'view';
+  _rmHideTooltipSoon();
+}
+
+async function _rmHandleDelete() {
+  if (!_rmTtState) return;
+  const sb = window.sbClient;
+  if (!sb) return;
+  const { data: row } = await sb.from('roadmap').select('data').eq('id','main').single();
+  if (!row?.data) return;
+  const data = row.data;
+  const path = _rmTtState.path;
+  let cursor = (data.areas || []).find(a => a.id === path[0]);
+  if (!cursor) return;
+  for (let i = 1; i < path.length - 1; i++) {
+    cursor = (cursor.subs || []).find(s => s.id === path[i]);
+    if (!cursor) return;
+  }
+  const lastId = path[path.length - 1];
+  cursor.milestones = (cursor.milestones || []).filter(m => m.id !== lastId);
+  await sb.from('roadmap').update({ data, updated_by: 'tooltip-delete' }).eq('id', 'main');
+  DATA = data.areas;
+  CALENDAR_EVENTS = data.calendar_events || [];
+  document.getElementById('rmBody').innerHTML = '';
+  if (typeof buildAxis === 'function') buildAxis();
+  if (typeof buildRoadmap === 'function') buildRoadmap();
+  if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
+  _rmTtMode = 'view';
+  _rmHideTooltipSoon();
+}
 
 function makeMilestone(ms, color) {
   const el = document.createElement('div');
@@ -1363,19 +1557,17 @@ function makeMilestone(ms, color) {
   }
   _renderInner();
 
-  // ── Tooltip flutuante (portalizado pro body — jamais cortado) ──
+  // ── Tooltip flutuante interativo (botões 🔗 ✏️ ✕) ──
   el.addEventListener('mouseenter', () => {
     clearTimeout(_rmTooltipTimer);
+    clearTimeout(_rmTooltipHideTimer);
     _rmTooltipTimer = setTimeout(() => {
+      const path = (typeof montarPathDoElemento === 'function') ? montarPathDoElemento(el) : [];
+      _rmTtState = { ms, el, color, path };
+      _rmTtMode = 'view';
+      _rmRenderTooltip();
       const tt = _rmGetFloatingTooltip();
-      const isOverdue = _isOverdueRoadmap(ms.m, ms.status);
-      const statusColor = ms.status === 'done' ? '#16a34a' : ms.status === 'active' ? color : isOverdue ? '#dc2626' : '#f59e0b';
-      const statusText  = ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : isOverdue ? 'atrasado' : 'planejado';
-      tt.innerHTML = `${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
-        <div class="tt-title">${ms.label}</div>
-        <div class="tt-meta"><div class="tt-dot" style="background:${statusColor}"></div><span class="tt-date">${ms._date ? ms._date + ' · ' : ''}${statusText}</span></div>`;
       const r = el.getBoundingClientRect();
-      // Posicionar EMBAIXO da bolinha, centralizado horizontalmente
       tt.style.left = (r.left + r.width / 2) + 'px';
       tt.style.top  = (r.bottom + 8) + 'px';
       tt.style.transform = 'translateX(-50%)';
@@ -1384,8 +1576,7 @@ function makeMilestone(ms, color) {
   });
   el.addEventListener('mouseleave', () => {
     clearTimeout(_rmTooltipTimer);
-    const tt = document.getElementById('rmFloatingTooltip');
-    if (tt) tt.classList.remove('show');
+    _rmHideTooltipSoon();
   });
 
   // ── DRAG DAY-BY-DAY
