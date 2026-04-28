@@ -1165,6 +1165,16 @@ function lightColor(hex, alpha) {
   return `rgb(${Math.round(255*(1-alpha)+r*alpha)},${Math.round(255*(1-alpha)+g*alpha)},${Math.round(255*(1-alpha)+b*alpha)})`;
 }
 
+// Retorna true se algum milestone da lista está atrasado (data já passou, status != done)
+function isAtrasado(milestones) {
+  const nowM = (TODAY - START_DATE) / (1000 * 60 * 60 * 24 * 30.44);
+  return (milestones || []).some(ms => ms.m < nowM && ms.status !== 'done');
+}
+function badgeCss(color, atrasado) {
+  if (atrasado) return 'background:#ef444420;color:#ef4444;';
+  return `background:${color}18;color:${color};`;
+}
+
 function makeMilestone(ms, color) {
   const el = document.createElement('div');
   el.className = `rm-ms ${ms.status}`;
@@ -1217,7 +1227,7 @@ function makeLevel4Row(l4, color, isLast) {
   const left = document.createElement('div'); left.className = 'rm-left level4-left'+(isLast?' last':'');
   if (l4._bgColor) left.style.background = l4._bgColor;
   const lvl4 = document.createElement('span'); lvl4.className = 'rm-level-badge';
-  lvl4.style.cssText = `background:${color}10;color:${color};`; lvl4.textContent = '4';
+  lvl4.style.cssText = isAtrasado(l4.milestones) ? 'background:#ef444420;color:#ef4444;' : `background:${color}10;color:${color};`; lvl4.textContent = '4';
   const icon = document.createElement('div'); icon.className = 'rm-icon-level4'; icon.textContent = l4.icon || '▸';
 
   // Calcula % de conclusão baseado nos milestones
@@ -1253,7 +1263,7 @@ function makeSubSubRow(ss, color, isLast) {
   const left = document.createElement('div'); left.className = 'rm-left subsub-left'+(isLast?' last':'');
   if (ss._bgColor) left.style.background = ss._bgColor;
   const lvl3 = document.createElement('span'); lvl3.className = 'rm-level-badge';
-  lvl3.style.cssText = `background:${color}14;color:${color};`; lvl3.textContent = '3';
+  lvl3.style.cssText = badgeCss(color, isAtrasado(ss.milestones)); lvl3.textContent = '3';
   const icon = document.createElement('div'); icon.className = 'rm-icon-subsub'; icon.textContent = ss.icon;
   const text = document.createElement('div'); text.className = 'rm-text';
   text.innerHTML = `<span class="rm-subsub-name">${ss.name}</span>`;
@@ -1293,7 +1303,7 @@ function makeSubRow(sub, color, isLast) {
   const left = document.createElement('div'); left.className = 'rm-left sub-left'+(isLast&&!hasSubs?' last':'');
   if (sub._bgColor) left.style.background = sub._bgColor;
   const lvl2 = document.createElement('span'); lvl2.className = 'rm-level-badge';
-  lvl2.style.cssText = `background:${color}18;color:${color};`; lvl2.textContent = '2';
+  lvl2.style.cssText = badgeCss(color, isAtrasado(sub.milestones)); lvl2.textContent = '2';
   const icon = document.createElement('div'); icon.className = 'rm-icon-sub'; icon.textContent = sub.icon;
   const text = document.createElement('div'); text.className = 'rm-text';
   const statusHtml = sub.statusLabel ? `<span class="rm-badge" style="background:${sub.statusColor}18;color:${sub.statusColor}">${sub.statusLabel}</span>` : '';
@@ -1345,7 +1355,7 @@ function buildRoadmap() {
     icon.style.borderColor = area.color+'35'; icon.style.background = area.color+'0e';
     const text = document.createElement('div'); text.className = 'rm-text';
     const lvl1 = document.createElement('span'); lvl1.className = 'rm-level-badge';
-    lvl1.style.cssText = `background:${area.color}22;color:${area.color};`;
+    lvl1.style.cssText = badgeCss(area.color, isAtrasado(area.milestones));
     lvl1.textContent = '1';
     text.innerHTML = `<span class="rm-area-name">${area.name}</span><span class="rm-badge" style="background:${area.badgeColor}14;color:${area.badgeColor}">${area.badge}</span>`;
     const chev = document.createElement('span'); chev.className = 'rm-chevron'; chev.textContent = '›';
