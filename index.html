@@ -1278,14 +1278,31 @@
     <script>
     (function(){
       var v = document.getElementById('heroDesktop');
-      var src = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero-hls/master.m3u8';
-      if(Hls.isSupported()){
+      var mp4 = 'hero-720.mp4';
+      var hls_src = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero-hls/master.m3u8';
+
+      function fallbackMp4(){
+        v.src = mp4;
+        v.load();
+        v.play().catch(function(){});
+      }
+
+      if(v.canPlayType('application/vnd.apple.mpegurl')){
+        // Safari: native HLS
+        v.src = hls_src;
+        v.addEventListener('error', fallbackMp4, {once:true});
+        v.play().catch(fallbackMp4);
+      } else if(typeof Hls !== 'undefined' && Hls.isSupported()){
+        // Chrome/Firefox: hls.js
         var hls = new Hls({startLevel:0,capLevelToPlayerSize:true});
-        hls.loadSource(src);
+        hls.loadSource(hls_src);
         hls.attachMedia(v);
-        hls.on(Hls.Events.MANIFEST_PARSED,function(){v.play();});
-      } else if(v.canPlayType('application/vnd.apple.mpegurl')){
-        v.src=src; v.play();
+        hls.on(Hls.Events.MANIFEST_PARSED,function(){v.play().catch(function(){});});
+        hls.on(Hls.Events.ERROR,function(e,data){
+          if(data.fatal){ hls.destroy(); fallbackMp4(); }
+        });
+      } else {
+        fallbackMp4();
       }
     })();
     </script>
