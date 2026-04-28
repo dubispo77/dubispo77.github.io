@@ -285,10 +285,17 @@ table.data-table tr:hover td { background: var(--bg); }
 /* sem hover scale na bolinha — antes era scale(1.15), causava sensação de "pulo" ao passar o mouse pela timeline */
 .rm-ms.done .rm-ms-dot { background: #fff; }
 .rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
-/* Atrasado: bolinha vermelha do mesmo tamanho das outras, com ⚠ branco dentro (maior, com stroke) */
-.rm-ms-dot.is-overdue { background: #dc2626 !important; box-shadow: 0 1px 5px rgba(220,38,38,.4), 0 0 0 2.5px rgba(255,255,255,.5) !important; }
-.rm-ms-dot.is-overdue { display: flex; align-items: center; justify-content: center; }
-.rm-ms-dot.is-overdue::after { content: '⚠'; font-size: 10px; font-weight: 700; color: #fff; line-height: 1; pointer-events: none; display: block; text-align: center; }
+/* Atrasado: bolinha vermelha sólida com triângulo SVG branco DENTRO, perfeitamente centralizado.
+   SVG no background-image porque caractere ⚠ tem whitespace interno desbalanceado e nunca centraliza bem. */
+.rm-ms-dot.is-overdue {
+  background-color: #dc2626 !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>") !important;
+  background-position: center center !important;
+  background-size: 11px 11px !important;
+  background-repeat: no-repeat !important;
+  box-shadow: 0 1px 5px rgba(220,38,38,.4), 0 0 0 2.5px rgba(255,255,255,.5) !important;
+}
+.rm-ms-dot.is-overdue::after { content: none; } /* anula ::after antigo se ainda houver cache de versão anterior */
 .rm-ms-label {
   white-space: nowrap;
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -1296,12 +1303,12 @@ function _msMtoDate(m) {
   d.setDate(d.getDate() + Math.round(m * 30.44));
   return d;
 }
-// "Atrasado" no roadmap: usa TODAY_M (mesma referência visual da linha vertical de hoje).
-// É CRÍTICO usar isso e não `window.isOverdue` aqui — o cálculo deles diverge porque
-// o roadmap tem sistema de coordenadas próprio (m em meses fracionados desde START_DATE).
+// "Atrasado" no roadmap: usa o MESMO cálculo que posiciona a linha vertical de hoje
+// (datePct), em meses fracionados desde START_DATE. Garante consistência 100% entre
+// o que o user vê visualmente (à esquerda da linha = atrasado) e o que a lógica calcula.
 function _isOverdueRoadmap(m, status) {
   if (status !== 'planned') return false;
-  const TODAY_M_NOW = (TODAY.getFullYear() - 2026) * 12 + (TODAY.getMonth() - 3) + (TODAY.getDate() - 1) / 30;
+  const TODAY_M_NOW = (TODAY - START_DATE) / (1000 * 60 * 60 * 24 * 30.44);
   return m < TODAY_M_NOW;
 }
 
