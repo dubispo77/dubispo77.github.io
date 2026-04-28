@@ -651,6 +651,9 @@ table.data-table tr:hover td { background: var(--bg); }
 .cv-btn { background: transparent; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #6b7280; cursor: pointer; transition: background .12s, color .12s; font-family: inherit; }
 .cv-btn:hover { color: #1f2937; }
 .cv-btn.active { background: #fff; color: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.cal-chrono-toggle { background: #eeeef1; border: none; padding: 5px 9px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background .12s; line-height: 1; font-family: inherit; }
+.cal-chrono-toggle:hover { background: #d8d8db; }
+.cal-chrono-toggle.active { background: #ddd6fe; color: #5b21b6; }
 .cal-nav { display: inline-flex; align-items: center; gap: 6px; }
 .cal-nav-btn { background: #fff; border: 1px solid #d8d8db; padding: 5px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #4b5563; cursor: pointer; min-width: 28px; transition: background .12s, border-color .12s; font-family: inherit; }
 .cal-nav-btn:hover { background: #f3f4f6; border-color: #b8b8be; }
@@ -799,6 +802,7 @@ table.data-table tr:hover td { background: var(--bg); }
               <button class="cv-btn active" data-view="month" type="button">Mês</button>
               <button class="cv-btn" data-view="week" type="button">Semana</button>
             </div>
+            <button class="cal-chrono-toggle" id="calChronoToggle" type="button" title="Modo cronológico — mostra a partir de hoje">📌</button>
           </div>
           <div class="cal-nav">
             <button class="cal-nav-btn" id="calPrev" type="button" aria-label="Anterior">‹</button>
@@ -3837,6 +3841,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   // Estado
   let view = 'month';
   let cursor = new Date(); // data ancorada na vista atual
+  let chronoMode = false;  // toggle "cronológico": grid começa em HOJE em vez de início do mês
   let itemsCache = [];     // items normalizados {id, date, has_time, hr, title, project, status, raw}
   let projectsMap = {};    // id → {area, color, name}
   let loadedRange = null;  // {start, end} — janela de meses já carregada
@@ -3949,23 +3954,36 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const firstOfMonth = new Date(year, month, 1);
     const dayOfWeek = firstOfMonth.getDay();
     const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const gridStart = new Date(year, month, 1 - offset);
-    const lastOfMonth = new Date(year, month + 1, 0);
-    // Calcula quantas linhas (4 a 6) bastam pra mostrar o mês completo
-    const totalDaysFromStart = offset + lastOfMonth.getDate();
-    const linesNeeded = Math.ceil(totalDaysFromStart / 7);
-    const totalCells = linesNeeded * 7;
+    let gridStart, totalCells, lastOfMonth;
+    if (chronoMode) {
+      // Modo cronológico: começa na segunda-feira da semana de HOJE, mostra 6 semanas pra frente.
+      const todayDow = today.getDay();
+      const todayOffset = todayDow === 0 ? 6 : todayDow - 1;
+      gridStart = new Date(today);
+      gridStart.setDate(today.getDate() - todayOffset);
+      totalCells = 42; // 6 semanas
+      lastOfMonth = new Date(year, month + 1, 0);
+    } else {
+      gridStart = new Date(year, month, 1 - offset);
+      lastOfMonth = new Date(year, month + 1, 0);
+      const totalDaysFromStart = offset + lastOfMonth.getDate();
+      const linesNeeded = Math.ceil(totalDaysFromStart / 7);
+      totalCells = linesNeeded * 7;
+    }
 
     let cells = '';
     for (let i = 0; i < totalCells; i++) {
       const d = new Date(gridStart);
       d.setDate(gridStart.getDate() + i);
-      const isOut = d.getMonth() !== month;
+      // Em modo cronológico, todos os dias são "in" (não há mês ativo único).
+      const isOut = chronoMode ? false : d.getMonth() !== month;
       const isToday = isSameDay(d, today);
-      // Marcadores de transição: célula do dia 1 (start) ou último dia (end) do mês ativo
+      // Marcadores de transição: célula do dia 1 de qualquer mês visível (chrono) ou só do mês ativo (normal)
       const isMesStart = !isOut && d.getDate() === 1;
-      const isMesEnd   = !isOut && d.getDate() === lastOfMonth.getDate();
-      // Items só aparecem em dias DO mês ativo. Out-of-month mostra só o número.
+      const isMesEnd   = !isOut && (chronoMode
+        ? d.getDate() === new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+        : d.getDate() === lastOfMonth.getDate());
+      // Items: todos os dias quando chrono, só do mês ativo quando normal.
       const items = isOut ? [] : itemsForDate(d);
       const visible = items.slice(0, 3);
       const extra = items.length - visible.length;
@@ -3988,7 +4006,17 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       </div>
       <div class="calM-grid">${cells}</div>
     `;
-    document.getElementById('calLabel').textContent = `${MESES_LONG[month]} ${year}`;
+    if (chronoMode) {
+      const lastDate = new Date(gridStart);
+      lastDate.setDate(gridStart.getDate() + totalCells - 1);
+      const sm = MESES_LONG[gridStart.getMonth()].slice(0,3);
+      const lm = MESES_LONG[lastDate.getMonth()].slice(0,3);
+      document.getElementById('calLabel').textContent = sm === lm
+        ? `${gridStart.getDate()}–${lastDate.getDate()} ${sm}`
+        : `${gridStart.getDate()} ${sm} – ${lastDate.getDate()} ${lm}`;
+    } else {
+      document.getElementById('calLabel').textContent = `${MESES_LONG[month]} ${year}`;
+    }
   }
 
   // ── Vista semana ──
@@ -4086,6 +4114,46 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     await ensureRangeForCursor();
     render();
   });
+
+  // ── Toggle Cronológico ──
+  const chronoBtn = document.getElementById('calChronoToggle');
+  if (chronoBtn) {
+    chronoBtn.addEventListener('click', async () => {
+      chronoMode = !chronoMode;
+      chronoBtn.classList.toggle('active', chronoMode);
+      // Quando entra em chrono, ancora o cursor em hoje
+      if (chronoMode) cursor = new Date();
+      await ensureRangeForCursor();
+      render();
+    });
+  }
+
+  // ── Swipe mobile (vertical = mês, horizontal = semana) ──
+  let _ts = { x: 0, y: 0, t: 0 };
+  container.addEventListener('touchstart', e => {
+    _ts = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+  }, { passive: true });
+  container.addEventListener('touchend', async e => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - _ts.x;
+    const dy = t.clientY - _ts.y;
+    const ax = Math.abs(dx), ay = Math.abs(dy);
+    const dt = Date.now() - _ts.t;
+    if (dt > 600) return; // gesto lento, ignora
+    if (view === 'month') {
+      // Swipe vertical de pelo menos 70px e mais vertical que horizontal
+      if (ay < 70 || ax > ay) return;
+      if (dy < 0) cursor.setMonth(cursor.getMonth() + 1);
+      else        cursor.setMonth(cursor.getMonth() - 1);
+    } else {
+      // Vista semana: swipe horizontal
+      if (ax < 60 || ay > ax) return;
+      if (dx < 0) cursor.setDate(cursor.getDate() + 7);
+      else        cursor.setDate(cursor.getDate() - 7);
+    }
+    await ensureRangeForCursor();
+    render();
+  }, { passive: true });
 
   // ── Init: carrega projetos e items, renderiza ──
   await loadProjects();
