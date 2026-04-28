@@ -9,11 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<link rel="icon" type="image/x-icon" href="assets/favicon/hub-favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/hub-favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/hub-favicon-16.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="assets/favicon/hub-apple-touch-icon.png">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20180%20180'%3E%3Crect%20width='180'%20height='180'%20fill='%235b4fcf'/%3E%3Ctext%20x='50%25'%20y='62%25'%20font-size='110'%20text-anchor='middle'%20dominant-baseline='middle'%3E🏠%3C/text%3E%3C/svg%3E">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -966,9 +963,9 @@ window.sbClient = (typeof supabase !== 'undefined')
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-04-27 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-04-28 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
-  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'active', cal:'Tarefas pessoais' },
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG',  m:1.03, pos:'bot', status:'planned', cal:'Tarefas pessoais' },
 ];
 // CALENDAR_EVENTS_END
@@ -1220,7 +1217,7 @@ function makeLevel4Row(l4, color, isLast) {
   const left = document.createElement('div'); left.className = 'rm-left level4-left'+(isLast?' last':'');
   if (l4._bgColor) left.style.background = l4._bgColor;
   const lvl4 = document.createElement('span'); lvl4.className = 'rm-level-badge';
-  lvl4.style.cssText = `background:${color}10;color:${color};`; lvl4.textContent = badgeText(total - done);
+  lvl4.style.cssText = `background:${color}10;color:${color};`; lvl4.textContent = '4';
   const icon = document.createElement('div'); icon.className = 'rm-icon-level4'; icon.textContent = l4.icon || '▸';
 
   // Calcula % de conclusão baseado nos milestones
@@ -1256,7 +1253,7 @@ function makeSubSubRow(ss, color, isLast) {
   const left = document.createElement('div'); left.className = 'rm-left subsub-left'+(isLast?' last':'');
   if (ss._bgColor) left.style.background = ss._bgColor;
   const lvl3 = document.createElement('span'); lvl3.className = 'rm-level-badge';
-  lvl3.style.cssText = `background:${color}14;color:${color};`; lvl3.textContent = badgeText(countPending(ss));
+  lvl3.style.cssText = `background:${color}14;color:${color};`; lvl3.textContent = '3';
   const icon = document.createElement('div'); icon.className = 'rm-icon-subsub'; icon.textContent = ss.icon;
   const text = document.createElement('div'); text.className = 'rm-text';
   text.innerHTML = `<span class="rm-subsub-name">${ss.name}</span>`;
@@ -1296,7 +1293,7 @@ function makeSubRow(sub, color, isLast) {
   const left = document.createElement('div'); left.className = 'rm-left sub-left'+(isLast&&!hasSubs?' last':'');
   if (sub._bgColor) left.style.background = sub._bgColor;
   const lvl2 = document.createElement('span'); lvl2.className = 'rm-level-badge';
-  lvl2.style.cssText = `background:${color}18;color:${color};`; lvl2.textContent = badgeText(countPending(sub));
+  lvl2.style.cssText = `background:${color}18;color:${color};`; lvl2.textContent = '2';
   const icon = document.createElement('div'); icon.className = 'rm-icon-sub'; icon.textContent = sub.icon;
   const text = document.createElement('div'); text.className = 'rm-text';
   const statusHtml = sub.statusLabel ? `<span class="rm-badge" style="background:${sub.statusColor}18;color:${sub.statusColor}">${sub.statusLabel}</span>` : '';
@@ -1329,16 +1326,6 @@ function makeSubRow(sub, color, isLast) {
   return { row, ssContainer };
 }
 
-function countPending(node) {
-  if (!node || typeof node !== 'object') return 0;
-  let n = 0;
-  try { n += (node.milestones || []).filter(m => m && m.status !== 'done').length; } catch(_) {}
-  try { (node.subs || []).forEach(s => { n += countPending(s); }); } catch(_) {}
-  return n;
-}
-
-function badgeText(n) { return n === 0 ? '✓' : String(n); }
-
 function buildRoadmap() {
   const body = document.getElementById('rmBody');
   DATA.forEach(area => {
@@ -1359,7 +1346,7 @@ function buildRoadmap() {
     const text = document.createElement('div'); text.className = 'rm-text';
     const lvl1 = document.createElement('span'); lvl1.className = 'rm-level-badge';
     lvl1.style.cssText = `background:${area.color}22;color:${area.color};`;
-    lvl1.textContent = badgeText(countPending(area));
+    lvl1.textContent = '1';
     text.innerHTML = `<span class="rm-area-name">${area.name}</span><span class="rm-badge" style="background:${area.badgeColor}14;color:${area.badgeColor}">${area.badge}</span>`;
     const chev = document.createElement('span'); chev.className = 'rm-chevron'; chev.textContent = '›';
     left.appendChild(icon); left.appendChild(text); left.appendChild(chev); left.appendChild(lvl1);
@@ -3134,5 +3121,64 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   document.getElementById('todayChipFixed').textContent=DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()]+' de '+d.getFullYear();
 })();
 </script>
+<!-- GCAL INJECT 2026-04-28 — atualizado automaticamente -->
+<script>
+(function() {
+  var GCAL_DATE = '2026-04-28';
+  var GCAL_EVENTS = [
+    { timeStr: '09h30', title: '⏸️ Pausar Adobe Portfolio', cal: 'Administração', color: '#f59e0b', allDay: false },
+    { timeStr: '19h00', title: 'SLZ x SAN', cal: 'Santos FC — Sudamericana', color: '#7c3aed', allDay: false }
+  ];
+  var KPI_TODAY = 2, KPI_WEEK = 8, KPI_BILLS = 0;
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function esc(s) {
+    return (s||'').replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+
+  function inject() {
+    if (todayStr() !== GCAL_DATE) return;
+    if (document.getElementById('gcal-inject-'+GCAL_DATE)) return;
+
+    var dateEl = document.getElementById('agendaDate');
+    if (dateEl && (dateEl.textContent === 'Carregando...' || dateEl.textContent === ''))
+      dateEl.textContent = 'Terça-feira, 28 de abril de 2026';
+
+    [['agendaKpiToday', KPI_TODAY],['agendaKpiWeek', KPI_WEEK],['agendaKpiBills', KPI_BILLS]].forEach(function(p) {
+      var el = document.getElementById(p[0]);
+      if (el && (el.textContent === '—' || el.textContent === '')) el.textContent = p[1];
+    });
+
+    var timeline = document.getElementById('agendaTimeline');
+    if (!timeline) return;
+
+    timeline.querySelectorAll('.empty-day').forEach(function(el) {
+      if (/Carregando|livre|Nada/.test(el.textContent)) el.remove();
+    });
+
+    var wrapper = document.createElement('div');
+    wrapper.id = 'gcal-inject-' + GCAL_DATE;
+    wrapper.innerHTML = GCAL_EVENTS.map(function(ev) {
+      return '<div class="event-block" data-gcal="1" style="border-color:'+ev.color+';color:'+ev.color+';padding-right:36px">' +
+        '<div class="event-time">'+(ev.allDay?'Dia todo':ev.timeStr)+'</div>' +
+        '<div class="event-title">📅 '+esc(ev.title)+'</div>' +
+        '<div class="event-cal">'+esc(ev.cal)+'</div>' +
+        '</div>';
+    }).join('');
+    timeline.appendChild(wrapper);
+
+    new MutationObserver(function() {
+      if (!document.getElementById('gcal-inject-'+GCAL_DATE)) inject();
+    }).observe(timeline, { childList: true });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(inject,300); });
+  setTimeout(inject, 1000);
+})();
+</script>
+<!-- END GCAL INJECT -->
 </body>
 </html>
