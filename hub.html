@@ -675,7 +675,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
 .calM-num { font-size: 12px; font-weight: 800; padding: 1px 5px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
-.calM-ev { margin-top: 3px; padding: 3px 6px; border-radius: 4px; border-left: 3px solid; color: #fff; }
+.calM-ev { margin-top: 3px; padding: 3px 6px; border-radius: 4px; border-left: 3px solid; color: #fff; cursor: grab; }
+.calM-ev:active { cursor: grabbing; }
 .calM-ev .hr { font-size: 8px; opacity: .8; line-height: 1.1; display: block; font-weight: 500; }
 .calM-ev .ti { font-size: 10px; font-weight: 600; line-height: 1.25; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calM-ev.proj-pessoal  { background: #7c3aed; border-color: #5b21b6; }
@@ -4008,7 +4009,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
           it.is_done ? '<span class="bd dn">✓</span>' : '',
           it.is_recurring ? '<span class="bd rc">♻</span>' : '',
         ].join('');
-        return `<div class="${klass}" data-item-id="${it.id}">
+        return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
           ${it.has_time ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}
           <span class="ti">${badges}${escHtml(it.title)}</span>
         </div>`;
@@ -4203,6 +4204,58 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       render();
     });
   }
+
+  // ── Drag & drop (Fase 4): arrastar card pra outro dia move o item ──
+  container.addEventListener('dragstart', e => {
+    const ev = e.target.closest('.calM-ev');
+    if (!ev) return;
+    e.dataTransfer.setData('text/plain', ev.dataset.itemId);
+    e.dataTransfer.effectAllowed = 'move';
+    ev.style.opacity = '0.4';
+  });
+  container.addEventListener('dragend', e => {
+    const ev = e.target.closest('.calM-ev');
+    if (ev) ev.style.opacity = '';
+  });
+  container.addEventListener('dragover', e => {
+    const cell = e.target.closest('.calM-cell:not(.is-out)');
+    if (!cell) return;
+    e.preventDefault();
+    cell.style.outline = '2px solid #7c3aed';
+    cell.style.outlineOffset = '-2px';
+  });
+  container.addEventListener('dragleave', e => {
+    const cell = e.target.closest('.calM-cell');
+    if (cell) cell.style.outline = '';
+  });
+  container.addEventListener('drop', async e => {
+    const cell = e.target.closest('.calM-cell:not(.is-out)');
+    if (!cell) return;
+    e.preventDefault();
+    document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
+    const id = e.dataTransfer.getData('text/plain');
+    const newDate = cell.dataset.date;
+    if (!id || !newDate) return;
+    const item = itemsCache.find(i => i.id === id);
+    if (!item || item.date === newDate || !item.raw) return;
+    // Preserva hora (se tinha) ou meia-noite
+    const oldDate = new Date(item.raw.date_start);
+    const newD = new Date(newDate + 'T00:00:00');
+    if (item.has_time) {
+      newD.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
+    }
+    if (sb && session) {
+      // Optimistic
+      item.date = newDate;
+      item.raw.date_start = newD.toISOString();
+      render();
+      const { error } = await sb.from('items').update({ date_start: newD.toISOString() }).eq('id', id);
+      if (error) {
+        await reloadItemsForCursor();
+        render();
+      }
+    }
+  });
 
   // ── Swipe mobile (vertical = mês, horizontal = semana) ──
   let _ts = { x: 0, y: 0, t: 0 };
