@@ -3889,7 +3889,23 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
   function isSameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
   function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-  function itemsForDate(d) { const t = ymd(d); return itemsCache.filter(i => i.date === t); }
+  // Ordem dentro do dia: order_manual (se houver) → timed primeiro → hora crescente
+  function sortItemsForDay(items) {
+    return items.slice().sort((a, b) => {
+      const aM = a.raw?.order_manual;
+      const bM = b.raw?.order_manual;
+      if (aM != null && bM != null) return aM - bM;
+      if (aM != null) return -1;
+      if (bM != null) return 1;
+      if (a.has_time && !b.has_time) return -1;
+      if (!a.has_time && b.has_time) return 1;
+      if (a.has_time && b.has_time) {
+        return new Date(a.raw.date_start) - new Date(b.raw.date_start);
+      }
+      return 0;
+    });
+  }
+  function itemsForDate(d) { const t = ymd(d); return sortItemsForDay(itemsCache.filter(i => i.date === t)); }
   function escHtml(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   function fmtTime(d) {
@@ -3942,7 +3958,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const end   = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1);
     if (sb && session) {
       const { data, error } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence')
         .gte('date_start', start.toISOString())
         .lt('date_start', end.toISOString())
         .order('date_start');
@@ -4237,23 +4253,54 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const newDate = cell.dataset.date;
     if (!id || !newDate) return;
     const item = itemsCache.find(i => i.id === id);
-    if (!item || item.date === newDate || !item.raw) return;
-    // Preserva hora (se tinha) ou meia-noite
+    if (!item || !item.raw) return;
+
+    // CASO 1: drop na MESMA célula → reordenar items do dia (order_manual)
+    if (item.date === newDate) {
+      const targetEv = e.target.closest('.calM-ev');
+      const cellEvents = Array.from(cell.querySelectorAll('.calM-ev'));
+      const sourceIdx = cellEvents.findIndex(el => el.dataset.itemId === id);
+      let newIndex;
+      if (!targetEv || targetEv.dataset.itemId === id) {
+        newIndex = cellEvents.length - 1; // soltou em espaço vazio
+      } else {
+        const rect = targetEv.getBoundingClientRect();
+        const before = e.clientY < rect.top + rect.height / 2;
+        const targetIdx = cellEvents.indexOf(targetEv);
+        newIndex = before ? targetIdx : targetIdx + 1;
+        if (sourceIdx >= 0 && sourceIdx < newIndex) newIndex--;
+      }
+      if (newIndex === sourceIdx) return; // nada mudou
+
+      // Reordena items do dia e atualiza order_manual
+      const dayItems = sortItemsForDay(itemsCache.filter(i => i.date === newDate));
+      const remaining = dayItems.filter(i => i.id !== id);
+      remaining.splice(Math.max(0, Math.min(newIndex, remaining.length)), 0, item);
+      // Optimistic local
+      remaining.forEach((it, idx) => { if (it.raw) it.raw.order_manual = idx; });
+      render();
+      if (sb && session) {
+        for (let idx = 0; idx < remaining.length; idx++) {
+          await sb.from('items').update({ order_manual: idx }).eq('id', remaining[idx].id);
+        }
+      }
+      return;
+    }
+
+    // CASO 2: drop em DIA DIFERENTE → mover (preserva hora)
     const oldDate = new Date(item.raw.date_start);
     const newD = new Date(newDate + 'T00:00:00');
     if (item.has_time) {
       newD.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
     }
     if (sb && session) {
-      // Optimistic
       item.date = newDate;
       item.raw.date_start = newD.toISOString();
+      // Limpa order_manual ao mudar de dia (pra cair na ordem natural do dia novo)
+      item.raw.order_manual = null;
       render();
-      const { error } = await sb.from('items').update({ date_start: newD.toISOString() }).eq('id', id);
-      if (error) {
-        await reloadItemsForCursor();
-        render();
-      }
+      const { error } = await sb.from('items').update({ date_start: newD.toISOString(), order_manual: null }).eq('id', id);
+      if (error) { await reloadItemsForCursor(); render(); }
     }
   });
 
