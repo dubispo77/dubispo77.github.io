@@ -1268,10 +1268,10 @@
 
   <!-- HERO -->
   <section id="hero">
-    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto">
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="metadata" poster="hero-poster.jpg">
       <source src="hero-720.mp4" type="video/mp4">
     </video>
-    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto">
+    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="metadata" poster="hero-poster.jpg">
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
@@ -1287,14 +1287,9 @@
         v.play().catch(function(){});
       }
 
-      if(v.canPlayType('application/vnd.apple.mpegurl')){
-        // Safari: native HLS
-        v.src = hls_src;
-        v.addEventListener('error', fallbackMp4, {once:true});
-        v.play().catch(fallbackMp4);
-      } else if(typeof Hls !== 'undefined' && Hls.isSupported()){
-        // Chrome/Firefox: hls.js
-        var hls = new Hls({startLevel:0,capLevelToPlayerSize:true});
+      if(typeof Hls !== 'undefined' && Hls.isSupported()){
+        // Chrome/Firefox: hls.js — starts fast, streams in chunks
+        var hls = new Hls({startLevel:0,capLevelToPlayerSize:true,maxBufferLength:10});
         hls.loadSource(hls_src);
         hls.attachMedia(v);
         hls.on(Hls.Events.MANIFEST_PARSED,function(){v.play().catch(function(){});});
