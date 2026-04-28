@@ -687,6 +687,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-more { display: inline-block; margin-top: 4px; font-size: 9px; color: #4b5563; padding: 1px 5px; background: #fff; border-radius: 4px; font-weight: 600; }
 .calM-ev.is-done { opacity: .55; text-decoration: line-through; }
 .calM-ev.is-overdue { box-shadow: 0 0 0 1px #dc2626; }
+.calM-ev.is-dragging { opacity: .35; transform: scale(.98); transition: opacity .12s, transform .12s; }
+.calM-ev { transition: transform .15s; }
 .calM-ev .bd { display: inline-block; margin-right: 3px; font-size: 9px; line-height: 1; }
 .calM-ev .bd.ov { color: #fecaca; }
 .calM-ev .bd.dn { color: #bbf7d0; }
@@ -4221,28 +4223,48 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     });
   }
 
-  // ── Drag & drop (Fase 4): arrastar card pra outro dia move o item ──
+  // ── Drag & drop (Fase 4) com feedback ao vivo ──
   container.addEventListener('dragstart', e => {
     const ev = e.target.closest('.calM-ev');
     if (!ev) return;
     e.dataTransfer.setData('text/plain', ev.dataset.itemId);
     e.dataTransfer.effectAllowed = 'move';
-    ev.style.opacity = '0.4';
+    ev.classList.add('is-dragging');
   });
   container.addEventListener('dragend', e => {
-    const ev = e.target.closest('.calM-ev');
-    if (ev) ev.style.opacity = '';
+    const ev = e.target.closest('.calM-ev.is-dragging');
+    if (ev) ev.classList.remove('is-dragging');
+    document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
   });
   container.addEventListener('dragover', e => {
     const cell = e.target.closest('.calM-cell:not(.is-out)');
     if (!cell) return;
     e.preventDefault();
+    document.querySelectorAll('.calM-cell').forEach(c => { if (c !== cell) c.style.outline = ''; });
     cell.style.outline = '2px solid #7c3aed';
     cell.style.outlineOffset = '-2px';
+
+    // Reordena DOM em tempo real pra mostrar onde o card vai cair
+    const dragged = document.querySelector('.calM-ev.is-dragging');
+    if (!dragged) return;
+    const siblings = Array.from(cell.querySelectorAll('.calM-ev:not(.is-dragging)'));
+    let inserted = false;
+    for (const sib of siblings) {
+      const rect = sib.getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) {
+        cell.insertBefore(dragged, sib);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) {
+      // Append no fim da célula
+      cell.appendChild(dragged);
+    }
   });
   container.addEventListener('dragleave', e => {
     const cell = e.target.closest('.calM-cell');
-    if (cell) cell.style.outline = '';
+    if (cell && !cell.contains(e.relatedTarget)) cell.style.outline = '';
   });
   container.addEventListener('drop', async e => {
     const cell = e.target.closest('.calM-cell:not(.is-out)');
@@ -4257,31 +4279,15 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     // CASO 1: drop na MESMA célula → reordenar items do dia (order_manual)
     if (item.date === newDate) {
-      const targetEv = e.target.closest('.calM-ev');
-      const cellEvents = Array.from(cell.querySelectorAll('.calM-ev'));
-      const sourceIdx = cellEvents.findIndex(el => el.dataset.itemId === id);
-      let newIndex;
-      if (!targetEv || targetEv.dataset.itemId === id) {
-        newIndex = cellEvents.length - 1; // soltou em espaço vazio
-      } else {
-        const rect = targetEv.getBoundingClientRect();
-        const before = e.clientY < rect.top + rect.height / 2;
-        const targetIdx = cellEvents.indexOf(targetEv);
-        newIndex = before ? targetIdx : targetIdx + 1;
-        if (sourceIdx >= 0 && sourceIdx < newIndex) newIndex--;
-      }
-      if (newIndex === sourceIdx) return; // nada mudou
-
-      // Reordena items do dia e atualiza order_manual
-      const dayItems = sortItemsForDay(itemsCache.filter(i => i.date === newDate));
-      const remaining = dayItems.filter(i => i.id !== id);
-      remaining.splice(Math.max(0, Math.min(newIndex, remaining.length)), 0, item);
+      // O DOM já foi reordenado durante o dragover; basta ler a ordem visual
+      const orderedIds = Array.from(cell.querySelectorAll('.calM-ev')).map(el => el.dataset.itemId);
+      const orderedItems = orderedIds.map(eid => itemsCache.find(i => i.id === eid)).filter(Boolean);
       // Optimistic local
-      remaining.forEach((it, idx) => { if (it.raw) it.raw.order_manual = idx; });
+      orderedItems.forEach((it, idx) => { if (it.raw) it.raw.order_manual = idx; });
       render();
       if (sb && session) {
-        for (let idx = 0; idx < remaining.length; idx++) {
-          await sb.from('items').update({ order_manual: idx }).eq('id', remaining[idx].id);
+        for (let idx = 0; idx < orderedItems.length; idx++) {
+          await sb.from('items').update({ order_manual: idx }).eq('id', orderedItems[idx].id);
         }
       }
       return;
