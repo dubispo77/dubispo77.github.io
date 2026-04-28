@@ -1171,7 +1171,7 @@ function isAtrasado(milestones) {
   return (milestones || []).some(ms => ms.m < nowM && ms.status !== 'done');
 }
 function badgeCss(color, atrasado) {
-  if (atrasado) return 'background:#ef444420;color:#ef4444;';
+  if (atrasado) return 'background:#ef444435;color:#ef4444;box-shadow:0 0 0 1px #ef444450;';
   return `background:${color}18;color:${color};`;
 }
 
@@ -1227,7 +1227,7 @@ function makeLevel4Row(l4, color, isLast) {
   const left = document.createElement('div'); left.className = 'rm-left level4-left'+(isLast?' last':'');
   if (l4._bgColor) left.style.background = l4._bgColor;
   const lvl4 = document.createElement('span'); lvl4.className = 'rm-level-badge';
-  lvl4.style.cssText = isAtrasado(l4.milestones) ? 'background:#ef444420;color:#ef4444;' : `background:${color}10;color:${color};`; lvl4.textContent = '4';
+  lvl4.style.cssText = isAtrasado(l4.milestones) ? 'background:#ef444435;color:#ef4444;box-shadow:0 0 0 1px #ef444450;' : `background:${color}10;color:${color};`; lvl4.textContent = '4';
   const icon = document.createElement('div'); icon.className = 'rm-icon-level4'; icon.textContent = l4.icon || '▸';
 
   // Calcula % de conclusão baseado nos milestones
