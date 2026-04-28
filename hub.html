@@ -1292,10 +1292,13 @@ const _msDragLabel = (() => {
 })();
 const _MS_DIAS = ['dom','seg','ter','qua','qui','sex','sáb'];
 const _MS_MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+// Nomes completos pra label do drag ("quinta, 16 de abril")
+const _MS_DIAS_LONG = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+const _MS_MESES_LONG = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 function _msDayLabel(m) {
   const d = new Date(START_DATE);
   d.setDate(d.getDate() + Math.round(m * 30.44));
-  return `${_MS_DIAS[d.getDay()]} ${d.getDate()} ${_MS_MESES[d.getMonth()]}`;
+  return `${_MS_DIAS_LONG[d.getDay()]}, ${d.getDate()} de ${_MS_MESES_LONG[d.getMonth()]}`;
 }
 function _msDateStr(m) {
   const d = new Date(START_DATE);
