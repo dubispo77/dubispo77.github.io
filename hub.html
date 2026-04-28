@@ -664,7 +664,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell { background: #eeeef1; border-right: 1.5px solid #c8c8cc; border-bottom: 1.5px solid #c8c8cc; min-height: 116px; padding: 6px 7px; cursor: pointer; transition: background .12s; position: relative; }
 .calM-cell:nth-child(7n) { border-right: none; }
 .calM-cell:hover { background: #e6e6ea; }
-.calM-cell.is-out { background: #e0e0e4; opacity: .55; cursor: default; }
+.calM-cell.is-out { background: #e0e0e4; cursor: default; }
+.calM-cell.is-out .calM-num { color: #9ca3af; }
 /* Borda forte na transição entre meses (cinza médio — roxo é só pro dia atual) */
 .calM-cell.is-mes-start { border-left: 3px solid #6b7280; }
 .calM-cell.is-mes-end   { border-right: 3px solid #6b7280; }
@@ -3897,7 +3898,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       // Marcadores de transição: célula do dia 1 (start) ou último dia (end) do mês ativo
       const isMesStart = !isOut && d.getDate() === 1;
       const isMesEnd   = !isOut && d.getDate() === lastOfMonth.getDate();
-      const items = itemsForDate(d);
+      // Items só aparecem em dias DO mês ativo. Out-of-month mostra só o número.
+      const items = isOut ? [] : itemsForDate(d);
       const visible = items.slice(0, 3);
       const extra = items.length - visible.length;
       const evHtml = visible.map(it => `<div class="calM-ev proj-${it.project}">${it.has_time ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}<span class="ti">${escHtml(it.title)}</span></div>`).join('');
