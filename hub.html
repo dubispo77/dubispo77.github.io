@@ -273,8 +273,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .level4-left::after    { content:''; position:absolute; left:72px; top:50%; width:10px; height:1px; background:var(--border); }
 
 .rm-track { flex: 1; position: relative; padding-right: 20px; display: flex; align-items: center; z-index: 4; }
-.rm-bar { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 999px; transition: opacity .15s; z-index: 1; }
-.rm-bar:hover { opacity: 0.82; }
+.rm-bar { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 999px; z-index: 1; }
+/* sem hover na barra — antes era opacity .82 mas causava "piscadinha" quando o mouse atravessava as bolinhas */
 .rm-bar-area   { height: 22px; }
 .rm-bar-sub    { height: 14px; }
 .rm-bar-subsub { height: 9px; }
@@ -286,7 +286,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
 /* Atrasado: bolinha vermelha do mesmo tamanho das outras, com ⚠ branco dentro (maior, com stroke) */
 .rm-ms-dot.is-overdue { background: #dc2626 !important; box-shadow: 0 1px 5px rgba(220,38,38,.4), 0 0 0 2.5px rgba(255,255,255,.5) !important; }
-.rm-ms-dot.is-overdue::after { content: '⚠'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 11px; font-weight: 800; color: #fff; line-height: 1; pointer-events: none; }
+.rm-ms-dot.is-overdue::after { content: '⚠'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; color: #fff; line-height: 1; pointer-events: none; }
 .rm-ms-label {
   white-space: nowrap;
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -1303,29 +1303,33 @@ function makeMilestone(ms, color) {
   const dc = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#cbd5e1';
   const bg = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#fff';
   const lc = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#94a3b8';
-  const statusColor = ms.status==='done'?'#16a34a':ms.status==='active'?color:'#f59e0b';
-  const statusText  = ms.status==='done'?'concluído':ms.status==='active'?'em curso':'planejado';
-  const tooltipHtml = `<div class="rm-ms-label top">
-    ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
-    <div class="tt-title">${ms.label}</div>
-    <div class="tt-meta">
-      <div class="tt-dot" style="background:${statusColor}"></div>
-      <span class="tt-date">${ms._date ? ms._date + ' · ' : ''}${statusText}</span>
-    </div>
-  </div>`;
-  // Regra única: window.isOverdue (planned + data passada). Centralizada no topo do hub.html.
-  const isOverdue = window.isOverdue(_msMtoDate(ms.m), ms.status);
-  // Visual atrasado é controlado por CSS via classe .is-overdue (só ⚠ vermelho grande, sem círculo).
-  const dotClass = `rm-ms-dot${isOverdue && ms.status !== 'done' ? ' is-overdue' : ''}`;
-  const inner = ms.status === 'done'
-    ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;">✓</span>`
-    : '';
-  const dotStyle = ms.status === 'done'
-    ? `background:${color};`
-    : isOverdue
-      ? '' // .is-overdue cuida (background transparent + ⚠ ::after)
-      : `background: radial-gradient(circle, rgba(168,158,184,0.3) 0%, rgba(168,158,184,0.3) 32%, #fff 32%, #fff 100%);`;
-  el.innerHTML = `${tooltipHtml}<div class="${dotClass}" style="position:relative;${dotStyle}">${inner}</div>`;
+  // ── Render do interior do `el` baseado no estado atual de `ms` ──
+  // Função única usada no init E depois de cada drop. Garante que NUNCA
+  // fique desincronizado entre `ms.m` salvo e visual exibido.
+  function _renderInner() {
+    const isOverdue = window.isOverdue(_msMtoDate(ms.m), ms.status);
+    const statusColor = ms.status === 'done' ? '#16a34a' : ms.status === 'active' ? color : isOverdue ? '#dc2626' : '#f59e0b';
+    const statusText  = ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : isOverdue ? 'atrasado' : 'planejado';
+    const tooltipHtml = `<div class="rm-ms-label top">
+      ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
+      <div class="tt-title">${ms.label}</div>
+      <div class="tt-meta">
+        <div class="tt-dot" style="background:${statusColor}"></div>
+        <span class="tt-date">${ms._date ? ms._date + ' · ' : ''}${statusText}</span>
+      </div>
+    </div>`;
+    const dotClass = `rm-ms-dot${isOverdue && ms.status !== 'done' ? ' is-overdue' : ''}`;
+    const inner = ms.status === 'done'
+      ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;">✓</span>`
+      : '';
+    const dotStyle = ms.status === 'done'
+      ? `background:${color};`
+      : isOverdue
+        ? '' // .is-overdue cuida (vermelho sólido + ⚠ ::after)
+        : `background: radial-gradient(circle, rgba(168,158,184,0.3) 0%, rgba(168,158,184,0.3) 32%, #fff 32%, #fff 100%);`;
+    el.innerHTML = `${tooltipHtml}<div class="${dotClass}" style="position:relative;${dotStyle}">${inner}</div>`;
+  }
+  _renderInner();
 
   // ── DRAG DAY-BY-DAY
   el.addEventListener('mousedown', e => {
@@ -1379,16 +1383,12 @@ function makeMilestone(ms, color) {
       el.style.cursor = '';
       if (!moved) { setTimeout(() => { _msDragActive = false; }, 0); return; }
 
-      // Atualiza _date no tooltip
-      if (ms._date !== undefined) {
-        ms._date = _msDateStr(ms.m);
-        const ttDate = el.querySelector('.tt-date');
-        if (ttDate) ttDate.textContent = `${ms._date} · ${ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : 'planejado'}`;
-      }
+      // Atualiza _date pra refletir a nova posição
+      if (ms._date !== undefined) ms._date = _msDateStr(ms.m);
 
-      // Re-aplica cor com a regra centralizada (corrige bug em que a bolinha
-      // não despintava ao voltar pra futuro depois de ter passado por atrasado)
-      _applyDotStyle(ms.m);
+      // Solução definitiva: redesenhar o conteúdo INTEIRO do `el` baseado em
+      // `ms.m` final. Não há como ficar desincronizado.
+      _renderInner();
 
       try {
         await window.sbClient.from('roadmap').update({
@@ -1397,8 +1397,6 @@ function makeMilestone(ms, color) {
         }).eq('id', 'main');
       } catch(err) { console.error('[drag-ms] erro ao salvar:', err); }
 
-      // Garante consistência também pós-save (antes que qualquer realtime chegue)
-      _applyDotStyle(ms.m);
       setTimeout(() => { _msDragActive = false; }, 0);
     };
 
