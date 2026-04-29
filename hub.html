@@ -2101,7 +2101,7 @@ async function loadRoadmapFromItems() {
   if (!sb) throw new Error('sbClient indisponível');
   const [pq, iq] = await Promise.all([
     sb.from('projects').select('*').order('ordem', { ascending: true }),
-    sb.from('items').select('*').filter('metadata->>is_roadmap', 'eq', 'true')
+    sb.from('items').select('*').eq('is_roadmap', true)
   ]);
   if (pq.error) throw pq.error;
   if (iq.error) throw iq.error;
@@ -2771,6 +2771,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     const { data } = await sb.from('items')
       .select('area,type,status,date_start')
+      .eq('is_roadmap', false)
       .not('status', 'eq', 'done')
       .not('status', 'eq', 'cancelled')
       .gte('date_start', today.toISOString())
@@ -2794,6 +2795,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
     const { data: bills } = await sb.from('items')
       .select('id')
+      .eq('is_roadmap', false)
       .eq('type', 'bill')
       .not('status', 'eq', 'done')
       .not('status', 'eq', 'cancelled')
@@ -2804,6 +2806,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     // Total agenda = todos os pendentes de hoje que não são saude/rotina/financas
     const { data: agendaItems } = await sb.from('items')
       .select('id,area')
+      .eq('is_roadmap', false)
       .not('status', 'eq', 'done')
       .not('status', 'eq', 'cancelled')
       .gte('date_start', today.toISOString())
@@ -2846,6 +2849,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const from30 = new Date(today); from30.setDate(from30.getDate() - 30);
     const { data } = await sb.from('items')
       .select('id,title,type,date_start,has_time,status')
+      .eq('is_roadmap', false)
       .eq('area', 'pessoal')
       .not('status', 'eq', 'cancelled')
       .gte('date_start', from30.toISOString())
@@ -3007,6 +3011,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const in7   = new Date(today); in7.setDate(in7.getDate() + 7);
     const { data } = await sb.from('items')
       .select('id,title,type,date_start,has_time,status')
+      .eq('is_roadmap', false)
       .eq('area', 'rotina')
       .not('status', 'eq', 'cancelled')
       .gte('date_start', new Date(today.getTime() - 86400000).toISOString())
@@ -3182,6 +3187,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const in60  = new Date(today); in60.setDate(in60.getDate() + 60);
     const { data } = await sb.from('items')
       .select('id,title,type,date_start,has_time,status,amount,currency')
+      .eq('is_roadmap', false)
       .eq('area', 'saude')
       .not('status', 'eq', 'cancelled')
       .gte('date_start', new Date(today.getTime() - 7 * 86400000).toISOString())
@@ -3367,7 +3373,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   let billsCache = [];
 
   async function loadBills() {
-    const { data } = await sb.from('items').select('id,title,date_start,status,amount,currency').eq('type','bill').not('status','eq','cancelled').order('date_start');
+    const { data } = await sb.from('items').select('id,title,date_start,status,amount,currency').eq('is_roadmap', false).eq('type','bill').not('status','eq','cancelled').order('date_start');
     billsCache = data || [];
   }
 
@@ -3513,6 +3519,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     // Items da semana (de hoje até Domingo)
     const { data: weekItems } = await sb
       .from('items').select(COLS)
+      .eq('is_roadmap', false)
       .gte('date_start', today.toISOString())
       .lt('date_start', wkEnd.toISOString())
       .order('date_start');
@@ -3520,6 +3527,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     // Bills nos próximos 30 dias
     const { data: billItems } = await sb
       .from('items').select(COLS)
+      .eq('is_roadmap', false)
       .eq('type', 'bill')
       .gte('date_start', today.toISOString())
       .lt('date_start', in30.toISOString())
@@ -3528,6 +3536,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     // Atrasados (planned com data antes de hoje) — pra não sumir do cache
     const { data: overdueItems } = await sb
       .from('items').select(COLS)
+      .eq('is_roadmap', false)
       .eq('status', 'planned')
       .lt('date_start', today.toISOString())
       .order('date_start');
@@ -4027,6 +4036,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     if (sb && session) {
       const { data, error } = await sb.from('items')
         .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence')
+        .eq('is_roadmap', false)
         .gte('date_start', start.toISOString())
         .lt('date_start', end.toISOString())
         .order('date_start');
