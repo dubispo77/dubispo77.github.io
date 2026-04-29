@@ -1222,7 +1222,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // ── ROADMAP: ZOOM / PAN
 const LEFT_W       = 220;
 const BASE_W       = 120;
-const PRE_MONTHS   = 0.25;
+const PRE_MONTHS   = 0.5; // margem antes do m=0 — bolinhas no começo não ficam cortadas
 const ROADMAP_TOTAL_MONTHS_KEY = 'roadmap_total_months_v1';
 let TOTAL_MONTHS   = parseFloat(localStorage.getItem(ROADMAP_TOTAL_MONTHS_KEY)) || 15;
 const START_DATE   = new Date(2026, 2, 24);
