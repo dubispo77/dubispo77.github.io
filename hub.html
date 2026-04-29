@@ -256,6 +256,8 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-row-sub    { min-height: 60px; border-bottom: 1px solid var(--border-soft); }
 .rm-row-subsub { min-height: 48px; border-bottom: 1px solid var(--border-soft); }
 .rm-row-level4 { min-height: 36px; border-bottom: 1px solid var(--border-soft); }
+.rm-row-level4.rm-drop-target { background: rgba(124, 58, 237, 0.08) !important; box-shadow: inset 0 0 0 2px #7c3aed; }
+.rm-row-level4.rm-drop-target .rm-left { background: rgba(124, 58, 237, 0.04); }
 .rm-row-sub.hassubs { cursor: pointer; }
 /* Hover só no sidebar esquerdo (labels) — antes pintava a row inteira e causava flicker visual na timeline ao passar o mouse */
 .rm-row-sub.hassubs:hover .rm-left { background: var(--bg); transition: background .12s; }
@@ -1663,7 +1665,7 @@ function makeMilestone(ms, color) {
     _rmHideTooltipSoon();
   });
 
-  // ── DRAG DAY-BY-DAY
+  // ── DRAG DAY-BY-DAY (horizontal) + DRAG ENTRE PARENTS (vertical, Fase 5.4)
   el.addEventListener('mousedown', e => {
     if (!e.target.closest('.rm-ms-dot')) return;
     if (!window.sbClient) return;
@@ -1674,10 +1676,14 @@ function makeMilestone(ms, color) {
     const _ttHide = document.getElementById('rmFloatingTooltip');
     if (_ttHide) _ttHide.classList.remove('show');
     const startX  = e.clientX;
+    const startY  = e.clientY;
     const startM  = ms.m;
     const nowM    = (TODAY - START_DATE) / (1000 * 60 * 60 * 24 * 30.44);
     const dot     = el.querySelector('.rm-ms-dot');
     let moved = false;
+    // Fase 5.4: rastreia parent row inicial e atual
+    const initialParentRow = el.closest('.rm-row-level4');
+    let currentParentRow   = initialParentRow;
 
     const _applyDotStyle = (m) => {
       if (!dot || ms.status === 'done') return;
@@ -1696,25 +1702,41 @@ function makeMilestone(ms, color) {
 
     const onMove = ev => {
       const deltaPx = ev.clientX - startX;
-      if (!moved && Math.abs(deltaPx) < 2) return;
+      const deltaY  = ev.clientY - startY;
+      if (!moved && Math.abs(deltaPx) < 2 && Math.abs(deltaY) < 2) return;
       moved = true; _msDragActive = true;
       el.style.cursor = 'grabbing';
-      // Garante que nenhuma transição interfira no acompanhamento do cursor
       if (el.style.transition !== 'none') el.style.transition = 'none';
 
       const deltaM  = deltaPx / trackWidth() * (TOTAL_MONTHS + PRE_MONTHS);
-      // Visual CONTÍNUO durante drag (sem pulo de dia em dia)
       const rawM = Math.max(0, Math.min(TOTAL_MONTHS, startM + deltaM));
-      // Snap pra dia inteiro só pra label e armazenamento
       const snapped = Math.max(0, Math.min(TOTAL_MONTHS, Math.round((startM + deltaM) * 30.44) / 30.44));
-      ms.m = snapped; // dado salvo é discreto (dia)
-      el.style.left = pct(rawM) + '%'; // visual fluido
-      _applyDotStyle(rawM); // cor muda exatamente ao cruzar a linha de hoje
+      ms.m = snapped;
+      el.style.left = pct(rawM) + '%';
+      _applyDotStyle(rawM);
 
       _msDragLabel.textContent = _msDayLabel(snapped);
       _msDragLabel.style.display = 'block';
       _msDragLabel.style.left = (ev.clientX - 44) + 'px';
       _msDragLabel.style.top  = (ev.clientY - 38) + 'px';
+
+      // ── Fase 5.4: drag vertical entre parents (reordenação ao vivo) ──
+      // Detecta level4 row sob o cursor. Esconde a bolinha temporariamente
+      // (display:none) pra elementFromPoint não pegar ela mesma.
+      const prevDisp = el.style.display;
+      el.style.display = 'none';
+      const elBelow = document.elementFromPoint(ev.clientX, ev.clientY);
+      el.style.display = prevDisp;
+      const targetRow = elBelow?.closest?.('.rm-row-level4');
+      if (targetRow && targetRow !== currentParentRow) {
+        const newTrack = targetRow.querySelector('.rm-track');
+        if (newTrack) {
+          newTrack.appendChild(el);  // re-anexa visualmente
+          currentParentRow?.classList.remove('rm-drop-target');
+          targetRow.classList.add('rm-drop-target');
+          currentParentRow = targetRow;
+        }
+      }
     };
 
     const onUp = async () => {
@@ -1736,14 +1758,20 @@ function makeMilestone(ms, color) {
       // Redesenha o interior baseado no estado final
       _renderInner();
 
-      // Fase 5: persist em items.date_start (m → date via ANCHOR + m*DAYS_PER_M)
+      // Limpa highlight do drop target
+      currentParentRow?.classList.remove('rm-drop-target');
+
+      // Fase 5: persist em items (date_start sempre; parent_id só se mudou de row)
       try {
         const itemId = ms._itemId || ms.id;
         if (itemId && window.ROADMAP_ANCHOR && window.ROADMAP_DAYS_PER_M) {
           const newDate = new Date(window.ROADMAP_ANCHOR.getTime() + ms.m * window.ROADMAP_DAYS_PER_M * 24 * 3600 * 1000);
-          await window.sbClient.from('items')
-            .update({ date_start: newDate.toISOString() })
-            .eq('id', itemId);
+          const update = { date_start: newDate.toISOString() };
+          // Fase 5.4: se o user moveu pra outra row, persiste parent_id novo (UUID)
+          if (currentParentRow && currentParentRow !== initialParentRow && currentParentRow.dataset.subId) {
+            update.parent_id = currentParentRow.dataset.subId;
+          }
+          await window.sbClient.from('items').update(update).eq('id', itemId);
         }
       } catch(err) { console.error('[drag-ms] erro ao salvar:', err); }
 
