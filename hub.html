@@ -2392,17 +2392,25 @@ async function loadRoadmapFromItems() {
     const subBars = kids.filter(k => k.metadata?.is_bar);
     const dots    = kids.filter(k => k.metadata?.is_dot && !k.metadata?.is_bar);
 
-    let start, end, subsArr;
-    if (subBars.length > 0) {
-      const childBars = subBars.map(itemToBar);
-      const allRanges = childBars.flatMap(c => [c.start, c.end]).filter(v => typeof v === 'number');
-      start = allRanges.length ? Math.min(...allRanges) : 0;
-      end   = allRanges.length ? Math.max(...allRanges) : 1;
-      subsArr = childBars;
+    // Decisão 1 (Fase 5): pai = envelope de TODOS os filhos (sub-barras + bolinhas).
+    // Sub-barras contribuem com [start, end]; bolinhas com [m].
+    const childBars  = subBars.map(itemToBar);
+    const childDots  = dots.map(d => itemToDot(d, it.title));
+    const allPoints = [
+      ...childBars.flatMap(c => [c.start, c.end]),
+      ...childDots.map(d => d.m)
+    ].filter(v => typeof v === 'number');
+
+    let start, end;
+    if (allPoints.length > 0) {
+      start = Math.min(...allPoints);
+      end   = Math.max(...allPoints);
+      // Se só tem 1 ponto (1 bolinha), dá um pequeno range visual
+      if (start === end) end = start + 0.1;
     } else {
+      // Sem filhos — usa date_start/end próprios (caso edge: barra vazia)
       start = _dateToMRoadmap(it.date_start) ?? 0;
       end   = _dateToMRoadmap(it.date_end) ?? (start + 0.5);
-      subsArr = [];
     }
 
     return {
@@ -2411,8 +2419,8 @@ async function loadRoadmapFromItems() {
       name: it.title,
       icon: it.metadata?.icon || '',
       start, end,
-      subs: subsArr,
-      milestones: dots.map(d => itemToDot(d, it.title)),
+      subs: childBars,
+      milestones: childDots,
       statusColor: it.metadata?.status_color || '',
       statusLabel: it.metadata?.status_label || ''
     };
