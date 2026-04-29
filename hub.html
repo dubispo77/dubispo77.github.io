@@ -261,16 +261,17 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .rm-indicator.done { box-shadow: 0 1px 3px rgba(0,0,0,.15); }
 
-/* Tooltip simples das bolinhas indicativas */
+/* Tooltip discreto das bolinhas indicativas — mostra só pai + tarefa + cor de status */
 #rmIndicatorTip {
   position: fixed; pointer-events: none; z-index: 99999;
   background: #1a1828; color: #fff;
-  padding: 7px 11px; border-radius: 8px;
-  font-family: inherit; white-space: nowrap;
+  padding: 8px 12px; border-radius: 8px;
+  font-family: inherit;
+  max-width: 240px; white-space: normal;
   opacity: 0; visibility: hidden;
   transform: translate(-50%, -100%);
   transition: opacity .12s, visibility .12s;
-  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+  box-shadow: 0 6px 18px rgba(0,0,0,.28);
 }
 #rmIndicatorTip.show { opacity: 1; visibility: visible; }
 
@@ -1842,20 +1843,22 @@ function makeMilestone(ms, color) {
     if (!e.target.closest('.rm-ms-dot')) return;
     if (!window.sbClient) return;
     e.preventDefault(); e.stopPropagation();
-    // Garante que nenhuma transição lingering atrase o drag (do drop anterior)
     el.style.transition = 'none';
-    // Esconde tooltip flutuante (poderia ficar "fantasma" enquanto a bolinha foge)
     const _ttHide = document.getElementById('rmFloatingTooltip');
     if (_ttHide) _ttHide.classList.remove('show');
     const startX  = e.clientX;
     const startY  = e.clientY;
     const startM  = ms.m;
-    const nowM    = (TODAY - START_DATE) / (1000 * 60 * 60 * 24 * 30.44);
+    const nowM    = (TODAY - START_DATE) / (1000 * 60 * 60 * 24 * 3600 * 1000 * 30.44);
     const dot     = el.querySelector('.rm-ms-dot');
     let moved = false;
-    // Fase 5.4: rastreia parent row inicial e atual
     const initialParentRow = el.closest('.rm-row-level4');
     let currentParentRow   = initialParentRow;
+    // Captura scrollLeft inicial pra compensar auto-scroll durante drag
+    const _wrap = document.getElementById('rmWrap');
+    const startScrollLeft = _wrap ? _wrap.scrollLeft : 0;
+    let lastClientX = e.clientX;
+    let lastClientY = e.clientY;
 
     const _applyDotStyle = (m) => {
       if (!dot || ms.status === 'done') return;
@@ -1872,16 +1875,17 @@ function makeMilestone(ms, color) {
       }
     };
 
-    const onMove = ev => {
-      const deltaPx = ev.clientX - startX;
-      const deltaY  = ev.clientY - startY;
-      if (!moved && Math.abs(deltaPx) < 2 && Math.abs(deltaY) < 2) return;
+    // Lógica que move a bolinha — chamada por mousemove E pelo interval do auto-scroll
+    const _moveTo = (clientX, clientY) => {
+      const scrollDelta = (_wrap ? _wrap.scrollLeft : 0) - startScrollLeft;
+      const deltaPx = (clientX - startX) + scrollDelta;
+      const deltaY  = clientY - startY;
+      if (!moved && Math.abs(clientX - startX) < 2 && Math.abs(deltaY) < 2) return;
       moved = true; _msDragActive = true;
       el.style.cursor = 'grabbing';
       if (el.style.transition !== 'none') el.style.transition = 'none';
 
       const deltaM  = deltaPx / trackWidth() * (TOTAL_MONTHS + PRE_MONTHS);
-      // Fase 5.6: permite arrastar PRA FORA do range (clamp só na esquerda em 0)
       const rawM = Math.max(0, startM + deltaM);
       const snapped = Math.max(0, Math.round((startM + deltaM) * 30.44) / 30.44);
       ms.m = snapped;
@@ -1890,30 +1894,48 @@ function makeMilestone(ms, color) {
 
       _msDragLabel.textContent = _msDayLabel(snapped);
       _msDragLabel.style.display = 'block';
-      _msDragLabel.style.left = (ev.clientX - 44) + 'px';
-      _msDragLabel.style.top  = (ev.clientY - 38) + 'px';
+      _msDragLabel.style.left = (clientX - 44) + 'px';
+      _msDragLabel.style.top  = (clientY - 38) + 'px';
 
-      // Auto-scroll horizontal se cursor perto do edge (permite arrastar pra fora do viewport)
-      _rmAutoScroll(ev.clientX);
-
-      // ── Fase 5.4: drag vertical entre parents (reordenação ao vivo) ──
-      // Detecta level4 row sob o cursor. Esconde a bolinha temporariamente
-      // (display:none) pra elementFromPoint não pegar ela mesma.
+      // Drag vertical entre parents (reordenação ao vivo)
       const prevDisp = el.style.display;
       el.style.display = 'none';
-      const elBelow = document.elementFromPoint(ev.clientX, ev.clientY);
+      const elBelow = document.elementFromPoint(clientX, clientY);
       el.style.display = prevDisp;
       const targetRow = elBelow?.closest?.('.rm-row-level4');
       if (targetRow && targetRow !== currentParentRow) {
         const newTrack = targetRow.querySelector('.rm-track');
         if (newTrack) {
-          newTrack.appendChild(el);  // re-anexa visualmente
+          newTrack.appendChild(el);
           currentParentRow?.classList.remove('rm-drop-target');
           targetRow.classList.add('rm-drop-target');
           currentParentRow = targetRow;
         }
       }
     };
+
+    const onMove = ev => {
+      lastClientX = ev.clientX;
+      lastClientY = ev.clientY;
+      _moveTo(ev.clientX, ev.clientY);
+      _rmAutoScroll(ev.clientX);
+    };
+
+    // Interval de auto-scroll: continua scrollando + movendo bolinha mesmo se
+    // mouse parar no edge (sem novo mousemove).
+    const _scrollIv = setInterval(() => {
+      if (!_wrap) return;
+      const rect = _wrap.getBoundingClientRect();
+      const margin = 80;
+      let near = false;
+      if (lastClientX > rect.right - margin) near = true;
+      else if (lastClientX < rect.left + margin) near = true;
+      if (near) {
+        const before = _wrap.scrollLeft;
+        _rmAutoScroll(lastClientX);
+        if (_wrap.scrollLeft !== before) _moveTo(lastClientX, lastClientY);
+      }
+    }, 30);
 
     const onUp = async () => {
       document.removeEventListener('mousemove', onMove);
@@ -2001,14 +2023,17 @@ function _getIndicatorTip() {
 }
 function _showIndicatorTip(el, ind) {
   const tip = _getIndicatorTip();
-  const statusColor = ind.status === 'done' ? '#16a34a' : '#94a3b8';
-  const statusText  = ind.status === 'done' ? '✓ concluído' : '○ planejado';
+  // Cor da bolinha de status: concluído verde, atrasado vermelho, planejado amber
+  const isOverdue = ind.status !== 'done' && _isOverdueRoadmap(ind.m, ind.status);
+  const dotColor = ind.status === 'done' ? '#16a34a' : isOverdue ? '#dc2626' : '#f59e0b';
   const parentLine = ind.parentName
-    ? `<div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">${ind.parentName}</div>`
+    ? `<div style="font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;font-weight:600;">${ind.parentName}</div>`
     : '';
   tip.innerHTML = `${parentLine}
-    <div style="font-size:13px;font-weight:600;margin-bottom:3px;">${ind.label || ''}</div>
-    <div style="font-size:11px;color:${statusColor};">${statusText}</div>`;
+    <div style="display:flex;align-items:center;gap:7px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>
+      <div style="font-size:13px;font-weight:500;color:#fff;">${ind.label || ''}</div>
+    </div>`;
   const rect = el.getBoundingClientRect();
   tip.style.left = (rect.left + rect.width / 2) + 'px';
   tip.style.top  = (rect.top - 8) + 'px';
@@ -2490,32 +2515,37 @@ async function handleMilestoneClick(e) {
 // CAPTURE phase pra pegar o click antes dos handlers de toggle/open dos rows.
 document.addEventListener('click', handleMilestoneClick, true);
 
-// ── Hover 700ms em .event-block (Agenda + outras abas) abre janelinha de ações
+// ── Hover 700ms em .event-block — abre janelinha de ações sem precisar clicar
 (function setupAgendaHoverActions() {
   let hoverTimer = null;
-  let activeBlock = null;
-  function clearActive() {
-    if (activeBlock) { activeBlock.classList.remove('show-actions'); activeBlock = null; }
-    if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
-  }
+  let trackingBlock = null; // bloco que estamos esperando 700ms
+  let activeBlock = null;   // bloco com janelinha aberta
+
   document.addEventListener('mouseover', e => {
     const block = e.target.closest && e.target.closest('.event-block');
     if (!block) return;
-    if (block === activeBlock) return;
-    if (e.target.closest('.eb-actions')) return; // hover no popover já aberto
-    clearActive();
+    if (block === trackingBlock) return; // já tracking esse mesmo bloco — não restarta timer
+    if (e.target.closest('.eb-actions')) return;
+    // Mouse entrou em um bloco novo
+    if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+    if (activeBlock && activeBlock !== block) {
+      activeBlock.classList.remove('show-actions');
+      activeBlock = null;
+    }
+    trackingBlock = block;
     hoverTimer = setTimeout(() => {
       block.classList.add('show-actions');
       activeBlock = block;
+      hoverTimer = null;
     }, 700);
   });
   document.addEventListener('mouseout', e => {
     const block = e.target.closest && e.target.closest('.event-block');
     if (!block) return;
-    // Se tá saindo do bloco (e não pra dentro do próprio bloco), limpa
     const goingTo = e.relatedTarget;
     if (goingTo && (block.contains(goingTo) || block === goingTo)) return;
     if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+    if (trackingBlock === block) trackingBlock = null;
     if (activeBlock === block) {
       block.classList.remove('show-actions');
       activeBlock = null;
