@@ -1692,10 +1692,9 @@ async function _rmHandleSaveEdit() {
   const dbStatus = newStatus === 'done' ? 'done' : 'planned';
   const newProgress = dbStatus === 'done' ? 100 : 0;
 
-  // Persistir legacy_status no metadata (mantém 'active' editável via tooltip)
-  // Pra isso, lê o metadata atual e atualiza só o campo.
-  const { data: existing } = await sb.from('items').select('metadata').eq('id', itemId).single();
-  const newMeta = { ...(existing?.metadata || {}), legacy_status: newStatus };
+  // Capturar estado completo pra undo
+  const _before = await _undoCapture(itemId);
+  const newMeta = { ...(_before?.metadata || {}), legacy_status: newStatus };
 
   const { error } = await sb.from('items').update({
     title: newTitle,
@@ -1710,6 +1709,7 @@ async function _rmHandleSaveEdit() {
     alert('Erro ao salvar: ' + error.message);
     return;
   }
+  if (_before) _pushUndo({ kind: 'update', before: _before });
   // Realtime re-renderiza
   _rmTtMode = 'view';
   _rmHideTooltipSoon();
@@ -1722,12 +1722,15 @@ async function _rmHandleDelete() {
   const path = _rmTtState.path;
   const itemId = path[path.length - 1];
   if (!itemId) return;
+  // Capturar registro completo antes de deletar (pra undo recriar)
+  const _before = await _undoCapture(itemId);
   const { error } = await sb.from('items').delete().eq('id', itemId);
   if (error) {
     console.error('[tooltip delete] erro:', error);
     alert('Erro ao deletar: ' + error.message);
     return;
   }
+  if (_before) _pushUndo({ kind: 'delete', before: _before });
   _rmTtMode = 'view';
   _rmHideTooltipSoon();
 }
@@ -1899,13 +1902,15 @@ function makeMilestone(ms, color) {
       try {
         const itemId = ms._itemId || ms.id;
         if (itemId && window.ROADMAP_ANCHOR && window.ROADMAP_DAYS_PER_M) {
+          // Capturar estado anterior pra undo
+          const _before = await _undoCapture(itemId);
           const newDate = new Date(window.ROADMAP_ANCHOR.getTime() + ms.m * window.ROADMAP_DAYS_PER_M * 24 * 3600 * 1000);
           const update = { date_start: newDate.toISOString() };
-          // Fase 5.4: se o user moveu pra outra row, persiste parent_id novo (UUID)
           if (currentParentRow && currentParentRow !== initialParentRow && currentParentRow.dataset.subId) {
             update.parent_id = currentParentRow.dataset.subId;
           }
           await window.sbClient.from('items').update(update).eq('id', itemId);
+          if (_before) _pushUndo({ kind: 'update', before: _before });
         }
       } catch(err) { console.error('[drag-ms] erro ao salvar:', err); }
 
@@ -2048,11 +2053,13 @@ function makeBar(start, end, color, colorSoft, depth, parentItem) {
         // Fase 5.6: se algum descendant passou do range, estende a timeline
         const maxM = Math.max(...snapshot.map(s => s.kind === 'dot' ? s.ref.m : s.ref.end));
         if (maxM > TOTAL_MONTHS) extendTimelineToFitM(maxM);
-        // Persist batch
+        // Persist batch + capturar estado anterior pra undo
         try {
           const sb = window.sbClient;
           const A = window.ROADMAP_ANCHOR.getTime();
           const D = window.ROADMAP_DAYS_PER_M * 24 * 3600 * 1000;
+          // Capturar todos os "before" antes do batch
+          const _befores = await Promise.all(snapshot.map(s => _undoCapture(s.itemId)));
           await Promise.all(snapshot.map(s => {
             if (s.kind === 'dot') {
               const newDate = new Date(A + s.ref.m * D);
@@ -2066,6 +2073,8 @@ function makeBar(start, end, color, colorSoft, depth, parentItem) {
               }).eq('id', s.itemId);
             }
           }));
+          const validBefores = _befores.filter(Boolean);
+          if (validBefores.length > 0) _pushUndo({ kind: 'batch_update', before: validBefores });
         } catch (err) { console.error('[shift bloco] erro:', err); }
         setTimeout(() => { _msDragActive = false; }, 0);
       };
@@ -2380,11 +2389,11 @@ async function handleMilestoneClick(e) {
   const itemId = msEl.dataset.msId;
   msEl.style.opacity = '0.5';
 
-  const { data: it, error: e1 } = await sb.from('items')
-    .select('status').eq('id', itemId).single();
-  if (e1 || !it) { msEl.style.opacity = '1'; return; }
+  // Capturar estado anterior pra undo
+  const _before = await _undoCapture(itemId);
+  if (!_before) { msEl.style.opacity = '1'; return; }
 
-  const newStatus   = it.status === 'done' ? 'planned' : 'done';
+  const newStatus   = _before.status === 'done' ? 'planned' : 'done';
   const newProgress = newStatus === 'done' ? 100 : 0;
 
   const { error: e2 } = await sb.from('items')
@@ -2395,6 +2404,8 @@ async function handleMilestoneClick(e) {
     console.error('[click ms] erro ao salvar:', e2);
     alert('Erro ao salvar: ' + e2.message);
     msEl.style.opacity = '1';
+  } else {
+    _pushUndo({ kind: 'update', before: _before });
   }
   // Realtime cuida do re-render do roadmap.
 }
