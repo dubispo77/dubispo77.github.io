@@ -247,6 +247,20 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .rm-level3-pct { font-size: 9.5px; }
 
+/* Bolinhas indicativas (read-only) nos níveis pais */
+.rm-indicator {
+  position: absolute;
+  top: 50%;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 3;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+.rm-indicator.done { box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+
 .rm-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .rm-area-name   { font-size: 13px; font-weight: 800; color: var(--text); }
 .rm-sub-name    { font-size: 12px; font-weight: 780; color: var(--text); }
@@ -1429,6 +1443,12 @@ function lightColor(hex, alpha) {
   const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
   return `rgb(${Math.round(255*(1-alpha)+r*alpha)},${Math.round(255*(1-alpha)+g*alpha)},${Math.round(255*(1-alpha)+b*alpha)})`;
 }
+// Versão "escurecida" da cor — multiplica RGB por (1-amount). Usado em bolinhas indicativas concluídas.
+function darkenColor(hex, amount) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  const f = 1 - amount;
+  return `rgb(${Math.round(r*f)},${Math.round(g*f)},${Math.round(b*f)})`;
+}
 
 // Retorna true se algum milestone da lista está atrasado (data já passou, status != done)
 function isAtrasado(milestones) {
@@ -1516,8 +1536,8 @@ function _rmRenderTooltip() {
   if (!_rmTtState) return;
   const { ms, color } = _rmTtState;
   const isOverdue = _isOverdueRoadmap(ms.m, ms.status);
-  const statusColor = ms.status === 'done' ? '#16a34a' : ms.status === 'active' ? color : isOverdue ? '#dc2626' : '#f59e0b';
-  const statusText  = ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : isOverdue ? 'atrasado' : 'planejado';
+  const statusColor = ms.status === 'done' ? '#16a34a' : isOverdue ? '#dc2626' : '#f59e0b';
+  const statusText  = ms.status === 'done' ? 'concluído' : isOverdue ? 'atrasado' : 'planejado';
 
   if (_rmTtMode === 'view') {
     tt.innerHTML = `
@@ -1552,7 +1572,6 @@ function _rmRenderTooltip() {
         <select class="tt-edit-select" data-field="status">
           <option value="planned" ${ms.status === 'planned' ? 'selected' : ''}>Planejado</option>
           <option value="done"    ${ms.status === 'done'    ? 'selected' : ''}>Concluído</option>
-          <option value="active"  ${ms.status === 'active'  ? 'selected' : ''}>Em curso</option>
         </select>
         <div class="tt-edit-actions">
           <button class="tt-save" data-act="save">Salvar</button>
@@ -1654,16 +1673,16 @@ function makeMilestone(ms, color) {
   el.className = `rm-ms ${ms.status}`;
   el.style.left = pct(ms.m) + '%';
   if (ms.id) el.dataset.msId = ms.id;
-  const dc = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#cbd5e1';
-  const bg = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#fff';
-  const lc = ms.status==='done'?'var(--done)':ms.status==='active'?color:'#94a3b8';
+  const dc = ms.status==='done'?'var(--done)':'#cbd5e1';
+  const bg = ms.status==='done'?'var(--done)':'#fff';
+  const lc = ms.status==='done'?'var(--done)':'#94a3b8';
   // ── Render do interior do `el` baseado no estado atual de `ms` ──
   // Função única usada no init E depois de cada drop. Garante que NUNCA
   // fique desincronizado entre `ms.m` salvo e visual exibido.
   function _renderInner() {
     const isOverdue = _isOverdueRoadmap(ms.m, ms.status);
-    const statusColor = ms.status === 'done' ? '#16a34a' : ms.status === 'active' ? color : isOverdue ? '#dc2626' : '#f59e0b';
-    const statusText  = ms.status === 'done' ? 'concluído' : ms.status === 'active' ? 'em curso' : isOverdue ? 'atrasado' : 'planejado';
+    const statusColor = ms.status === 'done' ? '#16a34a' : isOverdue ? '#dc2626' : '#f59e0b';
+    const statusText  = ms.status === 'done' ? 'concluído' : isOverdue ? 'atrasado' : 'planejado';
     const tooltipHtml = `<div class="rm-ms-label top">
       ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
       <div class="tt-title">${ms.label}</div>
@@ -1836,6 +1855,24 @@ function makeMilestone(ms, color) {
   return el;
 }
 
+// Bolinha INDICATIVA (read-only) — rollup visual no pai mostrando estado dos descendentes.
+// Concluída = cor da timeline mais escura. Planejada = branca com borda da cor.
+function makeIndicator(ind, color) {
+  const el = document.createElement('div');
+  el.className = 'rm-indicator';
+  el.style.left = pct(ind.m) + '%';
+  if (ind.status === 'done') {
+    el.classList.add('done');
+    el.style.background = darkenColor(color, 0.18);
+    el.style.borderColor = darkenColor(color, 0.30);
+  } else {
+    el.style.background = '#fff';
+    el.style.borderColor = color;
+  }
+  el.title = ind.label || '';
+  return el;
+}
+
 function makeBar(start, end, color, colorSoft, depth, parentItem) {
   const bar = document.createElement('div');
   bar.className = `rm-bar ${ depth===0?'rm-bar-area':depth===1?'rm-bar-sub':'rm-bar-subsub' }`;
@@ -2003,6 +2040,7 @@ function makeLevel4Row(l4, color, isLast) {
   left.appendChild(icon); left.appendChild(text); left.appendChild(lvl4);
   const track = document.createElement('div'); track.className = 'rm-track';
   if (l4.showBar !== false && l4.start !== undefined) track.appendChild(makeBar(l4.start, l4.end, color, color+'60', 2, l4));
+  (l4.indicators||[]).forEach(ind => track.appendChild(makeIndicator(ind, color)));
   (l4.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms, color)));
   row.appendChild(left); row.appendChild(track);
   return row;
@@ -2037,6 +2075,7 @@ function makeSubSubRow(ss, color, isLast) {
   left.appendChild(icon); left.appendChild(text); left.appendChild(lvl3);
   const track = document.createElement('div'); track.className = 'rm-track';
   if (ss.showBar!==false) track.appendChild(makeBar(ss.start,ss.end,color,color+'80',2,ss));
+  (ss.indicators||[]).forEach(ind => track.appendChild(makeIndicator(ind, color)));
   (ss.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms,color)));
   row.appendChild(left); row.appendChild(track);
 
@@ -2079,6 +2118,7 @@ function makeSubRow(sub, color, isLast) {
   if (hasSubs) { const chev = document.createElement('span'); chev.className='rm-chevron'; chev.textContent='›'; left.appendChild(chev); }
   const track = document.createElement('div'); track.className = 'rm-track';
   if (sub.showBar!==false) track.appendChild(makeBar(sub.start,sub.end,color,color+'80',1,sub));
+  (sub.indicators||[]).forEach(ind => track.appendChild(makeIndicator(ind, color)));
   (sub.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms,color)));
   row.appendChild(left); row.appendChild(track);
   let ssContainer = null;
@@ -2107,7 +2147,8 @@ function buildRoadmap() {
   const body = document.getElementById('rmBody');
   DATA.forEach(area => {
     const areaLight    = lightColor(area.color, 0.09);
-    const areaLightSub = lightColor(area.color, 0.05);
+    // Mesma cor da área propagada pra todas as linhas descendentes (subs, subsubs, level4)
+    const areaLightSub = areaLight;
     const block = document.createElement('div'); block.className = 'rm-area-block';
     if (area.id) block.dataset.areaId = area.id;
 
@@ -2133,13 +2174,13 @@ function buildRoadmap() {
     // Nível 1: eventos sem subId aparecem como chips no header da área
     const allMilestones = [...area.milestones];
     CALENDAR_EVENTS.filter(e=>e.areaId===area.id && !e.subId).forEach(ev=>{
-      allMilestones.push({m:ev.m, label:'📌 '+ev.label, pos:ev.pos||'top', status:ev.status||'active'});
+      allMilestones.push({m:ev.m, label:'📌 '+ev.label, pos:ev.pos||'top', status:ev.status||'planned'});
     });
     allMilestones.forEach(ms => {
       const c = document.createElement('span'); c.className = 'rm-area-chip';
-      const cc = ms.status==='done'?'#16a34a':ms.status==='active'?area.color:'#94a3b8';
+      const cc = ms.status==='done'?'#16a34a':'#94a3b8';
       c.style.background = lightColor(cc,0.18); c.style.color = cc;
-      c.textContent = (ms.status==='done'?'✓ ':ms.status==='active'?'● ':'○ ')+ms.label;
+      c.textContent = (ms.status==='done'?'✓ ':'○ ')+ms.label;
       chips.appendChild(c);
     });
 
@@ -2379,12 +2420,21 @@ async function loadRoadmapFromItems() {
       _itemId: it.id,
       label: it.title,
       m: _dateToMRoadmap(it.date_start) ?? 0,
-      status: it.status === 'done' ? 'done'
-            : (it.metadata?.legacy_status === 'active' ? 'active' : 'planned'),
+      status: it.status === 'done' ? 'done' : 'planned',
       pos: it.metadata?.legacy_pos || 'top',
       _parent: parentTitle || undefined,
       _date: it.date_start ? new Date(it.date_start).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : undefined
     };
+  }
+
+  // Coleta recursivamente todas as bolinhas (is_dot) dos descendentes
+  function _collectAllDescendantDots(parentId) {
+    const out = [];
+    for (const k of (childrenByParent.get(parentId) || [])) {
+      if (k.metadata?.is_dot) out.push(k);
+      if (k.metadata?.is_bar) out.push(..._collectAllDescendantDots(k.id));
+    }
+    return out;
   }
 
   function itemToBar(it) {
@@ -2393,7 +2443,6 @@ async function loadRoadmapFromItems() {
     const dots    = kids.filter(k => k.metadata?.is_dot && !k.metadata?.is_bar);
 
     // Decisão 1 (Fase 5): pai = envelope de TODOS os filhos (sub-barras + bolinhas).
-    // Sub-barras contribuem com [start, end]; bolinhas com [m].
     const childBars  = subBars.map(itemToBar);
     const childDots  = dots.map(d => itemToDot(d, it.title));
     const allPoints = [
@@ -2405,13 +2454,22 @@ async function loadRoadmapFromItems() {
     if (allPoints.length > 0) {
       start = Math.min(...allPoints);
       end   = Math.max(...allPoints);
-      // Se só tem 1 ponto (1 bolinha), dá um pequeno range visual
       if (start === end) end = start + 0.1;
     } else {
-      // Sem filhos — usa date_start/end próprios (caso edge: barra vazia)
       start = _dateToMRoadmap(it.date_start) ?? 0;
       end   = _dateToMRoadmap(it.date_end) ?? (start + 0.5);
     }
+
+    // Bolinhas indicativas: bolinhas de descendentes recursivos (não as próprias).
+    // Renderizadas read-only nos níveis pais como rollup visual.
+    const descendantDots = _collectAllDescendantDots(it.id)
+      .filter(d => !dots.some(p => p.id === d.id)) // exclui as próprias diretas
+      .map(d => ({
+        _itemId: d.id,
+        m: _dateToMRoadmap(d.date_start) ?? 0,
+        status: d.status === 'done' ? 'done' : 'planned',
+        label: d.title
+      }));
 
     return {
       id: it.id,
@@ -2421,6 +2479,7 @@ async function loadRoadmapFromItems() {
       start, end,
       subs: childBars,
       milestones: childDots,
+      indicators: descendantDots,
       statusColor: it.metadata?.status_color || '',
       statusLabel: it.metadata?.status_label || ''
     };
