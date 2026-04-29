@@ -1736,11 +1736,11 @@ function makeMilestone(ms, color) {
       // Redesenha o interior baseado no estado final
       _renderInner();
 
-      // Fase 5: persist em items.date_start (m → date via ANCHOR + m*30 dias)
+      // Fase 5: persist em items.date_start (m → date via ANCHOR + m*DAYS_PER_M)
       try {
         const itemId = ms._itemId || ms.id;
-        if (itemId && window.ROADMAP_ANCHOR) {
-          const newDate = new Date(window.ROADMAP_ANCHOR.getTime() + ms.m * 30 * 24 * 3600 * 1000);
+        if (itemId && window.ROADMAP_ANCHOR && window.ROADMAP_DAYS_PER_M) {
+          const newDate = new Date(window.ROADMAP_ANCHOR.getTime() + ms.m * window.ROADMAP_DAYS_PER_M * 24 * 3600 * 1000);
           await window.sbClient.from('items')
             .update({ date_start: newDate.toISOString() })
             .eq('id', itemId);
@@ -2076,9 +2076,10 @@ document.addEventListener('click', handleMilestoneClick, true);
 // ── ADAPTER Fase 5: carrega roadmap da tabela items (não mais do JSONB)
 // Constrói árvore via parent_id e calcula envelope dos pais. Mantém o shape
 // {areas, calendar_events} pra que buildRoadmap() existente continue funcionando.
-const ROADMAP_ANCHOR = new Date(2026, 3, 1); // 1º abril 2026 — m=0 (alinhado com migração SQL)
+const ROADMAP_ANCHOR = new Date(2026, 3, 1); // 1º abril 2026 — m=0
 window.ROADMAP_ANCHOR = ROADMAP_ANCHOR;
-const ROADMAP_DAYS_PER_M = 30;
+const ROADMAP_DAYS_PER_M = 30.44; // alinhado com snap do drag (mês médio)
+window.ROADMAP_DAYS_PER_M = ROADMAP_DAYS_PER_M;
 const _MS_PER_DAY = 24 * 3600 * 1000;
 
 function _dateToMRoadmap(d) {
