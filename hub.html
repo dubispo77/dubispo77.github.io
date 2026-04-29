@@ -1206,10 +1206,32 @@ document.querySelectorAll('.nav-item').forEach(item => {
 const LEFT_W       = 220;
 const BASE_W       = 120;
 const PRE_MONTHS   = 0.25;
-const TOTAL_MONTHS = 15;
+const ROADMAP_TOTAL_MONTHS_KEY = 'roadmap_total_months_v1';
+let TOTAL_MONTHS   = parseFloat(localStorage.getItem(ROADMAP_TOTAL_MONTHS_KEY)) || 15;
 const START_DATE   = new Date(2026, 2, 24);
-const END_DATE     = new Date(START_DATE.getFullYear(), START_DATE.getMonth() + Math.ceil(TOTAL_MONTHS + PRE_MONTHS), START_DATE.getDate());
-const TOTAL_MS     = END_DATE - START_DATE;
+let END_DATE       = new Date(START_DATE.getFullYear(), START_DATE.getMonth() + Math.ceil(TOTAL_MONTHS + PRE_MONTHS), START_DATE.getDate());
+let TOTAL_MS       = END_DATE - START_DATE;
+
+// Fase 5.6: auto-extend até fim do mês quando bolinha sai do range
+function extendTimelineToFitM(m) {
+  const MS_DAY = 24 * 3600 * 1000;
+  const date = new Date(START_DATE.getTime() + m * 30.44 * MS_DAY);
+  // Próximo dia 1 do mês seguinte (= fim do mês onde caiu)
+  const startOfNextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+  const newMaxM = (startOfNextMonth - START_DATE) / (30.44 * MS_DAY);
+  if (newMaxM > TOTAL_MONTHS) {
+    TOTAL_MONTHS = Math.ceil(newMaxM);
+    END_DATE = new Date(START_DATE.getFullYear(), START_DATE.getMonth() + Math.ceil(TOTAL_MONTHS + PRE_MONTHS), START_DATE.getDate());
+    TOTAL_MS = END_DATE - START_DATE;
+    try { localStorage.setItem(ROADMAP_TOTAL_MONTHS_KEY, String(TOTAL_MONTHS)); } catch(_) {}
+    // Re-render eixo + corpo
+    const inner = document.getElementById('rmInner');
+    if (inner) inner.style.width = totalWidth() + 'px';
+    if (typeof buildAxis === 'function') buildAxis();
+    if (typeof buildRoadmap === 'function') buildRoadmap();
+    if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
+  }
+}
 const TODAY        = new Date();
 let zoom = 12;
 let _msDragActive = false; // impede click handler durante drag
@@ -1709,8 +1731,9 @@ function makeMilestone(ms, color) {
       if (el.style.transition !== 'none') el.style.transition = 'none';
 
       const deltaM  = deltaPx / trackWidth() * (TOTAL_MONTHS + PRE_MONTHS);
-      const rawM = Math.max(0, Math.min(TOTAL_MONTHS, startM + deltaM));
-      const snapped = Math.max(0, Math.min(TOTAL_MONTHS, Math.round((startM + deltaM) * 30.44) / 30.44));
+      // Fase 5.6: permite arrastar PRA FORA do range (clamp só na esquerda em 0)
+      const rawM = Math.max(0, startM + deltaM);
+      const snapped = Math.max(0, Math.round((startM + deltaM) * 30.44) / 30.44);
       ms.m = snapped;
       el.style.left = pct(rawM) + '%';
       _applyDotStyle(rawM);
@@ -1761,6 +1784,11 @@ function makeMilestone(ms, color) {
       // Limpa highlight do drop target
       currentParentRow?.classList.remove('rm-drop-target');
 
+      // Fase 5.6: se a bolinha caiu fora do range, estende a timeline
+      if (ms.m > TOTAL_MONTHS) {
+        extendTimelineToFitM(ms.m);
+      }
+
       // Fase 5: persist em items (date_start sempre; parent_id só se mudou de row)
       try {
         const itemId = ms._itemId || ms.id;
@@ -1785,14 +1813,140 @@ function makeMilestone(ms, color) {
   return el;
 }
 
-function makeBar(start, end, color, colorSoft, depth) {
+function makeBar(start, end, color, colorSoft, depth, parentItem) {
   const bar = document.createElement('div');
   bar.className = `rm-bar ${ depth===0?'rm-bar-area':depth===1?'rm-bar-sub':'rm-bar-subsub' }`;
   bar.style.left = pct(start)+'%';
   bar.style.width = (pct(end)-pct(start))+'%';
-  // Gradiente claro→escuro, mesmo tom em todos os níveis
   bar.style.background = `linear-gradient(90deg, ${colorSoft}, ${color})`;
   bar.style.boxShadow = `0 2px 8px ${color}28`;
+
+  // ── Fase 5.5: drag horizontal em pai envelope = shift em bloco ──
+  // Só pais com subs (envelope) podem ser arrastados. Folhas com bolinhas
+  // não — nelas, drag das bolinhas é o que muda data.
+  const isEnvelope = parentItem && parentItem.subs && parentItem.subs.length > 0;
+  if (isEnvelope && parentItem._itemId) {
+    bar.dataset.itemId = parentItem._itemId;
+    bar.classList.add('rm-bar-draggable');
+    bar.style.cursor = 'grab';
+
+    bar.addEventListener('mousedown', e => {
+      if (!window.sbClient) return;
+      e.preventDefault(); e.stopPropagation();
+
+      // Coleta recursivamente todos os descendentes leaf (bolinhas + barras-folha com date)
+      const collectLeaves = (it) => {
+        const out = [];
+        if (it.subs?.length > 0) it.subs.forEach(s => out.push(...collectLeaves(s)));
+        if (it.milestones?.length > 0) {
+          it.milestones.forEach(m => out.push({ itemId: m._itemId || m.id, ref: m, kind: 'dot' }));
+        }
+        // Sub-barra leaf (sem subs próprios, com start/end) também shifta
+        if ((!it.subs || it.subs.length === 0) && typeof it.start === 'number' && typeof it.end === 'number') {
+          if (it._itemId && it !== parentItem) {
+            out.push({ itemId: it._itemId, ref: it, kind: 'bar', startVal: it.start, endVal: it.end });
+          }
+        }
+        return out;
+      };
+      const leaves = collectLeaves(parentItem);
+      if (leaves.length === 0) return;
+
+      // Snapshot inicial (m das bolinhas, start/end das barras-folha)
+      const snapshot = leaves.map(l => ({
+        ...l,
+        originalM: l.kind === 'dot' ? l.ref.m : null,
+        originalStart: l.kind === 'bar' ? l.startVal : null,
+        originalEnd:   l.kind === 'bar' ? l.endVal   : null
+      }));
+
+      // Cache DOM dos elementos visuais
+      const dotEls = {};
+      const barEls = {};
+      snapshot.forEach(s => {
+        if (s.kind === 'dot') {
+          const el = document.querySelector(`.rm-ms[data-ms-id="${s.itemId}"]`);
+          if (el) dotEls[s.itemId] = el;
+        } else if (s.kind === 'bar') {
+          const el = document.querySelector(`.rm-bar[data-item-id="${s.itemId}"]`);
+          if (el) barEls[s.itemId] = el;
+        }
+      });
+
+      const startX = e.clientX;
+      bar.style.cursor = 'grabbing';
+      _msDragActive = true;
+      let moved = false;
+
+      const onMove = ev => {
+        const deltaPx = ev.clientX - startX;
+        if (!moved && Math.abs(deltaPx) < 2) return;
+        moved = true;
+        const deltaM = deltaPx / trackWidth() * (TOTAL_MONTHS + PRE_MONTHS);
+
+        snapshot.forEach(s => {
+          if (s.kind === 'dot') {
+            const newM = Math.max(0, Math.min(TOTAL_MONTHS, Math.round((s.originalM + deltaM) * 30.44) / 30.44));
+            s.ref.m = newM;
+            const el = dotEls[s.itemId];
+            if (el) el.style.left = pct(newM) + '%';
+          } else if (s.kind === 'bar') {
+            const ns = Math.max(0, s.originalStart + deltaM);
+            const ne = Math.min(TOTAL_MONTHS, s.originalEnd + deltaM);
+            s.ref.start = ns; s.ref.end = ne;
+            const el = barEls[s.itemId];
+            if (el) {
+              el.style.left = pct(ns) + '%';
+              el.style.width = (pct(ne) - pct(ns)) + '%';
+            }
+          }
+        });
+
+        // Atualiza visual da barra envelope (recalcula bounds)
+        const allM = snapshot.flatMap(s =>
+          s.kind === 'dot' ? [s.ref.m] : [s.ref.start, s.ref.end]
+        );
+        const newStart = Math.min(...allM);
+        const newEnd = Math.max(...allM);
+        bar.style.left = pct(newStart) + '%';
+        bar.style.width = (pct(newEnd) - pct(newStart)) + '%';
+      };
+
+      const onUp = async () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        bar.style.cursor = 'grab';
+        if (!moved) { setTimeout(() => { _msDragActive = false; }, 0); return; }
+        // Fase 5.6: se algum descendant passou do range, estende a timeline
+        const maxM = Math.max(...snapshot.map(s => s.kind === 'dot' ? s.ref.m : s.ref.end));
+        if (maxM > TOTAL_MONTHS) extendTimelineToFitM(maxM);
+        // Persist batch
+        try {
+          const sb = window.sbClient;
+          const A = window.ROADMAP_ANCHOR.getTime();
+          const D = window.ROADMAP_DAYS_PER_M * 24 * 3600 * 1000;
+          await Promise.all(snapshot.map(s => {
+            if (s.kind === 'dot') {
+              const newDate = new Date(A + s.ref.m * D);
+              return sb.from('items').update({ date_start: newDate.toISOString() }).eq('id', s.itemId);
+            } else {
+              const newStart = new Date(A + s.ref.start * D);
+              const newEnd   = new Date(A + s.ref.end * D);
+              return sb.from('items').update({
+                date_start: newStart.toISOString(),
+                date_end:   newEnd.toISOString()
+              }).eq('id', s.itemId);
+            }
+          }));
+        } catch (err) { console.error('[shift bloco] erro:', err); }
+        setTimeout(() => { _msDragActive = false; }, 0);
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  }
+
   return bar;
 }
 
@@ -1823,7 +1977,7 @@ function makeLevel4Row(l4, color, isLast) {
   text.appendChild(nameSpan); text.appendChild(pctSpan);
   left.appendChild(icon); left.appendChild(text); left.appendChild(lvl4);
   const track = document.createElement('div'); track.className = 'rm-track';
-  if (l4.showBar !== false && l4.start !== undefined) track.appendChild(makeBar(l4.start, l4.end, color, color+'60', 2));
+  if (l4.showBar !== false && l4.start !== undefined) track.appendChild(makeBar(l4.start, l4.end, color, color+'60', 2, l4));
   (l4.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms, color)));
   row.appendChild(left); row.appendChild(track);
   return row;
@@ -1842,7 +1996,7 @@ function makeSubSubRow(ss, color, isLast) {
   text.innerHTML = `<span class="rm-subsub-name">${ss.name}</span>`;
   left.appendChild(icon); left.appendChild(text); left.appendChild(lvl3);
   const track = document.createElement('div'); track.className = 'rm-track';
-  if (ss.showBar!==false) track.appendChild(makeBar(ss.start,ss.end,color,color+'80',2));
+  if (ss.showBar!==false) track.appendChild(makeBar(ss.start,ss.end,color,color+'80',2,ss));
   (ss.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms,color)));
   row.appendChild(left); row.appendChild(track);
 
@@ -1884,7 +2038,7 @@ function makeSubRow(sub, color, isLast) {
   left.appendChild(icon); left.appendChild(text); left.appendChild(lvl2);
   if (hasSubs) { const chev = document.createElement('span'); chev.className='rm-chevron'; chev.textContent='›'; left.appendChild(chev); }
   const track = document.createElement('div'); track.className = 'rm-track';
-  if (sub.showBar!==false) track.appendChild(makeBar(sub.start,sub.end,color,color+'80',1));
+  if (sub.showBar!==false) track.appendChild(makeBar(sub.start,sub.end,color,color+'80',1,sub));
   (sub.milestones||[]).forEach(ms => track.appendChild(makeMilestone(ms,color)));
   row.appendChild(left); row.appendChild(track);
   let ssContainer = null;
@@ -2104,9 +2258,11 @@ document.addEventListener('click', handleMilestoneClick, true);
 // ── ADAPTER Fase 5: carrega roadmap da tabela items (não mais do JSONB)
 // Constrói árvore via parent_id e calcula envelope dos pais. Mantém o shape
 // {areas, calendar_events} pra que buildRoadmap() existente continue funcionando.
-const ROADMAP_ANCHOR = new Date(2026, 3, 1); // 1º abril 2026 — m=0
+// ROADMAP_ANCHOR = mesma data do START_DATE da UI (2026-03-24). Crítico:
+// se desalinhado, items aparecem deslocados ~N dias na timeline.
+const ROADMAP_ANCHOR = new Date(2026, 2, 24); // 24 mar 2026 — m=0
 window.ROADMAP_ANCHOR = ROADMAP_ANCHOR;
-const ROADMAP_DAYS_PER_M = 30.44; // alinhado com snap do drag (mês médio)
+const ROADMAP_DAYS_PER_M = 30.44; // mês médio
 window.ROADMAP_DAYS_PER_M = ROADMAP_DAYS_PER_M;
 const _MS_PER_DAY = 24 * 3600 * 1000;
 
