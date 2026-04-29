@@ -1555,39 +1555,35 @@ async function _rmHandleSaveEdit() {
 
   const sb = window.sbClient;
   if (!sb) return;
-  const { data: row } = await sb.from('roadmap').select('data').eq('id','main').single();
-  if (!row?.data) return;
-  const data = row.data;
 
-  // Navega no JSONB pelo path
+  // Fase 5: o último id do path é o UUID do item.
   const path = _rmTtState.path;
-  let cursor = (data.areas || []).find(a => a.id === path[0]);
-  if (!cursor) return;
-  for (let i = 1; i < path.length - 1; i++) {
-    cursor = (cursor.subs || []).find(s => s.id === path[i]);
-    if (!cursor) return;
+  const itemId = path[path.length - 1];
+  if (!itemId) return;
+
+  const dateIso = new Date(newDate + 'T12:00:00').toISOString();
+  const dbStatus = newStatus === 'done' ? 'done' : 'planned';
+  const newProgress = dbStatus === 'done' ? 100 : 0;
+
+  // Persistir legacy_status no metadata (mantém 'active' editável via tooltip)
+  // Pra isso, lê o metadata atual e atualiza só o campo.
+  const { data: existing } = await sb.from('items').select('metadata').eq('id', itemId).single();
+  const newMeta = { ...(existing?.metadata || {}), legacy_status: newStatus };
+
+  const { error } = await sb.from('items').update({
+    title: newTitle,
+    date_start: dateIso,
+    status: dbStatus,
+    progress: newProgress,
+    metadata: newMeta
+  }).eq('id', itemId);
+
+  if (error) {
+    console.error('[tooltip edit] erro:', error);
+    alert('Erro ao salvar: ' + error.message);
+    return;
   }
-  const lastId = path[path.length - 1];
-  const milestone = (cursor.milestones || []).find(m => m.id === lastId);
-  if (!milestone) return;
-
-  // Atualiza
-  milestone.label = newTitle;
-  milestone.status = newStatus;
-  // Snap pra dia inteiro
-  const newM = _dateToM(new Date(newDate + 'T00:00:00'));
-  const snappedM = Math.round(newM * 30.44) / 30.44;
-  milestone.m = Math.max(0, Math.min(TOTAL_MONTHS, snappedM));
-  if (milestone._date !== undefined) milestone._date = _msDateStr(milestone.m);
-
-  await sb.from('roadmap').update({ data, updated_by: 'tooltip-edit' }).eq('id', 'main');
-  DATA = data.areas;
-  CALENDAR_EVENTS = data.calendar_events || [];
-  document.getElementById('rmBody').innerHTML = '';
-  if (typeof buildAxis === 'function') buildAxis();
-  if (typeof buildRoadmap === 'function') buildRoadmap();
-  if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
-
+  // Realtime re-renderiza
   _rmTtMode = 'view';
   _rmHideTooltipSoon();
 }
@@ -1596,25 +1592,15 @@ async function _rmHandleDelete() {
   if (!_rmTtState) return;
   const sb = window.sbClient;
   if (!sb) return;
-  const { data: row } = await sb.from('roadmap').select('data').eq('id','main').single();
-  if (!row?.data) return;
-  const data = row.data;
   const path = _rmTtState.path;
-  let cursor = (data.areas || []).find(a => a.id === path[0]);
-  if (!cursor) return;
-  for (let i = 1; i < path.length - 1; i++) {
-    cursor = (cursor.subs || []).find(s => s.id === path[i]);
-    if (!cursor) return;
+  const itemId = path[path.length - 1];
+  if (!itemId) return;
+  const { error } = await sb.from('items').delete().eq('id', itemId);
+  if (error) {
+    console.error('[tooltip delete] erro:', error);
+    alert('Erro ao deletar: ' + error.message);
+    return;
   }
-  const lastId = path[path.length - 1];
-  cursor.milestones = (cursor.milestones || []).filter(m => m.id !== lastId);
-  await sb.from('roadmap').update({ data, updated_by: 'tooltip-delete' }).eq('id', 'main');
-  DATA = data.areas;
-  CALENDAR_EVENTS = data.calendar_events || [];
-  document.getElementById('rmBody').innerHTML = '';
-  if (typeof buildAxis === 'function') buildAxis();
-  if (typeof buildRoadmap === 'function') buildRoadmap();
-  if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
   _rmTtMode = 'view';
   _rmHideTooltipSoon();
 }
@@ -1750,11 +1736,15 @@ function makeMilestone(ms, color) {
       // Redesenha o interior baseado no estado final
       _renderInner();
 
+      // Fase 5: persist em items.date_start (m → date via ANCHOR + m*30 dias)
       try {
-        await window.sbClient.from('roadmap').update({
-          data: { areas: DATA, calendar_events: CALENDAR_EVENTS },
-          updated_by: 'drag-ms'
-        }).eq('id', 'main');
+        const itemId = ms._itemId || ms.id;
+        if (itemId && window.ROADMAP_ANCHOR) {
+          const newDate = new Date(window.ROADMAP_ANCHOR.getTime() + ms.m * 30 * 24 * 3600 * 1000);
+          await window.sbClient.from('items')
+            .update({ date_start: newDate.toISOString() })
+            .eq('id', itemId);
+        }
       } catch(err) { console.error('[drag-ms] erro ao salvar:', err); }
 
       setTimeout(() => { _msDragActive = false; }, 0);
@@ -2042,109 +2032,189 @@ function montarPathDoElemento(el) {
 }
 
 async function handleMilestoneClick(e) {
-  if (_msDragActive) return; // ignorar click se foi drag
+  if (_msDragActive) return;
   const msEl = e.target.closest && e.target.closest('.rm-ms');
   if (!msEl) return;
-  // Toggle só nos milestones do nível 4 (granular). Os de outros níveis
-  // são duplicações visuais do calendário, não devem ser clicáveis.
+  // Toggle só nos milestones do nível 4 (granular).
   if (!msEl.closest('.rm-row-level4')) return;
   if (!msEl.dataset.msId) {
-    console.warn('[click ms] elemento sem msId — DOM antigo? recarregar com Cmd+Shift+R', msEl);
+    console.warn('[click ms] elemento sem msId', msEl);
     return;
   }
-  // CAPTURA o click antes do row pai pegar (que abre/fecha)
   e.stopPropagation();
   e.preventDefault();
-
-  const path = montarPathDoElemento(msEl);
-  console.log('[click ms] path:', path);
-  if (path.length < 2) {
-    console.warn('[click ms] path inválido:', path);
-    return;
-  }
 
   const sb = window.sbClient;
   if (!sb) return;
 
-  // Feedback visual imediato (otimistic update)
+  // Fase 5: msId agora é UUID do item. Update direto na tabela items.
+  const itemId = msEl.dataset.msId;
   msEl.style.opacity = '0.5';
 
-  const { data: row, error: e1 } = await sb.from('roadmap').select('data').eq('id', 'main').single();
-  if (e1 || !row?.data) { msEl.style.opacity = '1'; return; }
+  const { data: it, error: e1 } = await sb.from('items')
+    .select('status').eq('id', itemId).single();
+  if (e1 || !it) { msEl.style.opacity = '1'; return; }
 
-  const data = row.data;
-  let cursor = (data.areas || []).find(a => a.id === path[0]);
-  if (!cursor) { msEl.style.opacity = '1'; return; }
-  for (let i = 1; i < path.length - 1; i++) {
-    const nextSub = (cursor.subs || []).find(s => s.id === path[i]);
-    if (!nextSub) { msEl.style.opacity = '1'; return; }
-    cursor = nextSub;
-  }
-  const lastId = path[path.length - 1];
-  const milestone = (cursor.milestones || []).find(m => m.id === lastId);
-  if (!milestone) { msEl.style.opacity = '1'; return; }
+  const newStatus   = it.status === 'done' ? 'planned' : 'done';
+  const newProgress = newStatus === 'done' ? 100 : 0;
 
-  milestone.status = milestone.status === 'done' ? 'planned' : 'done';
+  const { error: e2 } = await sb.from('items')
+    .update({ status: newStatus, progress: newProgress })
+    .eq('id', itemId);
 
-  // ── Atualização OTIMISTA — só recria o milestone clicado, sem rebuildar tudo
-  // Cor da área pra reconstruir o dot
-  const areaTop = (data.areas || []).find(a => a.id === path[0]);
-  const corDaArea = areaTop?.color || '#7c3aed';
-  const novoEl = makeMilestone(milestone, corDaArea);
-  msEl.replaceWith(novoEl);
-
-  // Atualiza estado local pra realtime saber que já está sincronizado
-  DATA = data.areas;
-  CALENDAR_EVENTS = data.calendar_events || CALENDAR_EVENTS;
-
-  const { error: e2 } = await sb.from('roadmap').update({ data, updated_by: 'click-ui' }).eq('id', 'main');
   if (e2) {
     console.error('[click ms] erro ao salvar:', e2);
     alert('Erro ao salvar: ' + e2.message);
-    // Reverte o status local em caso de erro
-    milestone.status = milestone.status === 'done' ? 'planned' : 'done';
-    const elRevert = makeMilestone(milestone, corDaArea);
-    novoEl.replaceWith(elRevert);
+    msEl.style.opacity = '1';
   }
+  // Realtime cuida do re-render do roadmap.
 }
 
 // CAPTURE phase pra pegar o click antes dos handlers de toggle/open dos rows.
 document.addEventListener('click', handleMilestoneClick, true);
 
-// ── SUPABASE em segundo plano (só após auth)
+// ── ADAPTER Fase 5: carrega roadmap da tabela items (não mais do JSONB)
+// Constrói árvore via parent_id e calcula envelope dos pais. Mantém o shape
+// {areas, calendar_events} pra que buildRoadmap() existente continue funcionando.
+const ROADMAP_ANCHOR = new Date(2026, 3, 1); // 1º abril 2026 — m=0 (alinhado com migração SQL)
+window.ROADMAP_ANCHOR = ROADMAP_ANCHOR;
+const ROADMAP_DAYS_PER_M = 30;
+const _MS_PER_DAY = 24 * 3600 * 1000;
+
+function _dateToMRoadmap(d) {
+  if (!d) return null;
+  const t = (d instanceof Date ? d : new Date(d)).getTime();
+  return (t - ROADMAP_ANCHOR.getTime()) / (ROADMAP_DAYS_PER_M * _MS_PER_DAY);
+}
+
+const AREA_DEFAULTS = {
+  trabalho: { emoji: '💼', colorSoft: '#c4b5fd', badgeColor: '#7c3aed', badge: '' },
+  financas: { emoji: '💰', colorSoft: '#fcd34d', badgeColor: '#ef4444', badge: 'URGENTE' },
+  saude:    { emoji: '🏋️', colorSoft: '#f9a8d4', badgeColor: '#f59e0b', badge: 'Em aberto' },
+  rotina:   { emoji: '📅', colorSoft: '#93c5fd', badgeColor: '#f59e0b', badge: 'Instável' },
+  pessoal:  { emoji: '🌿', colorSoft: '#86efac', badgeColor: '#8b5cf6', badge: 'Processando' }
+};
+
+async function loadRoadmapFromItems() {
+  const sb = window.sbClient;
+  if (!sb) throw new Error('sbClient indisponível');
+  const [pq, iq] = await Promise.all([
+    sb.from('projects').select('*').order('ordem', { ascending: true }),
+    sb.from('items').select('*').filter('metadata->>is_roadmap', 'eq', 'true')
+  ]);
+  if (pq.error) throw pq.error;
+  if (iq.error) throw iq.error;
+  const projects = pq.data || [];
+  const items    = iq.data || [];
+
+  const childrenByParent = new Map();
+  childrenByParent.set('__root__', []);
+  for (const it of items) {
+    const k = it.parent_id || '__root__';
+    if (!childrenByParent.has(k)) childrenByParent.set(k, []);
+    childrenByParent.get(k).push(it);
+  }
+
+  function itemToDot(it, parentTitle) {
+    return {
+      id: it.id,
+      _itemId: it.id,
+      label: it.title,
+      m: _dateToMRoadmap(it.date_start) ?? 0,
+      status: it.status === 'done' ? 'done'
+            : (it.metadata?.legacy_status === 'active' ? 'active' : 'planned'),
+      pos: it.metadata?.legacy_pos || 'top',
+      _parent: parentTitle || undefined,
+      _date: it.date_start ? new Date(it.date_start).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : undefined
+    };
+  }
+
+  function itemToBar(it) {
+    const kids = childrenByParent.get(it.id) || [];
+    const subBars = kids.filter(k => k.metadata?.is_bar);
+    const dots    = kids.filter(k => k.metadata?.is_dot && !k.metadata?.is_bar);
+
+    let start, end, subsArr;
+    if (subBars.length > 0) {
+      const childBars = subBars.map(itemToBar);
+      const allRanges = childBars.flatMap(c => [c.start, c.end]).filter(v => typeof v === 'number');
+      start = allRanges.length ? Math.min(...allRanges) : 0;
+      end   = allRanges.length ? Math.max(...allRanges) : 1;
+      subsArr = childBars;
+    } else {
+      start = _dateToMRoadmap(it.date_start) ?? 0;
+      end   = _dateToMRoadmap(it.date_end) ?? (start + 0.5);
+      subsArr = [];
+    }
+
+    return {
+      id: it.id,
+      _itemId: it.id,
+      name: it.title,
+      icon: it.metadata?.icon || '',
+      start, end,
+      subs: subsArr,
+      milestones: dots.map(d => itemToDot(d, it.title)),
+      statusColor: it.metadata?.status_color || '',
+      statusLabel: it.metadata?.status_label || ''
+    };
+  }
+
+  const areas = projects.map(proj => {
+    const topItems = (childrenByParent.get('__root__') || []).filter(i => i.area === proj.area);
+    const topBars  = topItems.filter(i => i.metadata?.is_bar).map(itemToBar);
+    const topDots  = topItems.filter(i => i.metadata?.is_area_marker).map(d => itemToDot(d, null));
+    const defs = AREA_DEFAULTS[proj.area] || { emoji: '📌', colorSoft: '#ddd', badgeColor: proj.color, badge: '' };
+    return {
+      id: proj.area,
+      _projectId: proj.id,
+      name: proj.name,
+      color: proj.color,
+      colorSoft: defs.colorSoft,
+      emoji: defs.emoji,
+      badge: defs.badge,
+      badgeColor: defs.badgeColor,
+      subs: topBars,
+      milestones: topDots
+    };
+  });
+
+  return { areas, calendar_events: [] };
+}
+
+// ── BOOTSTRAP roadmap (Fase 5: lê de items)
 (async () => {
   try {
     if (!window.sbClient) return;
     const sb = window.sbClient;
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) return; // sem login, não tenta carregar — o overlay tá cobrindo.
-    const { data: row, error } = await sb.from('roadmap').select('data').eq('id','main').single();
-    if (error) return;
-    if (!row.data || Object.keys(row.data).length === 0) {
-      await sb.from('roadmap').update({ data: { areas: INITIAL_DATA, calendar_events: CALENDAR_EVENTS }, updated_by: 'seed-inicial' }).eq('id','main');
-    } else {
-      DATA = row.data.areas || INITIAL_DATA;
-      CALENDAR_EVENTS = row.data.calendar_events || CALENDAR_EVENTS;
-      const rmBodyEl = document.getElementById('rmBody');
-      rmBodyEl.innerHTML = '';
-      try { buildAxis(); buildRoadmap(); } catch(buildErr) {
-        console.error('[buildRoadmap] erro:', buildErr);
-        rmBodyEl.innerHTML = `<div style="padding:40px;color:#ef4444;font-size:13px">⚠️ Erro ao renderizar roadmap: ${buildErr.message}<br><small>${buildErr.stack}</small></div>`;
+    if (!session) return;
+
+    const renderFromItems = async () => {
+      try {
+        const loaded = await loadRoadmapFromItems();
+        DATA = loaded.areas;
+        CALENDAR_EVENTS = loaded.calendar_events || [];
+        const rmBody = document.getElementById('rmBody');
+        if (rmBody) rmBody.innerHTML = '';
+        buildAxis();
+        buildRoadmap();
+        if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
+      } catch(err) {
+        console.error('[loadRoadmapFromItems] erro:', err);
+        const rmBody = document.getElementById('rmBody');
+        if (rmBody) rmBody.innerHTML = `<div style="padding:40px;color:#ef4444;font-size:13px">⚠️ Erro Fase 5: ${err.message}<br><small>${err.stack}</small></div>`;
       }
-      // Restaura o estado aberto/fechado do localStorage após o re-render do Supabase
-      if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
-    }
-    sb.channel('roadmap-rt').on('postgres_changes',{ event:'UPDATE', schema:'public', table:'roadmap', filter:'id=eq.main' }, async () => {
-      const { data: r } = await sb.from('roadmap').select('data').eq('id','main').single();
-      if (r?.data?.areas) {
-        // Se o estado remoto bate com o local (ex: foi nosso próprio click),
-        // ignora — UI já tá sincronizada via atualização otimista.
-        try {
-          const remoto = JSON.stringify({ areas: r.data.areas, calendar_events: r.data.calendar_events || [] });
-          const local  = JSON.stringify({ areas: DATA, calendar_events: CALENDAR_EVENTS || [] });
-          if (remoto === local) return;
-        } catch (_) {}
-        // Snapshot do que estava aberto + posição do scroll antes do rebuild
+    };
+
+    await renderFromItems();
+
+    // Realtime: qualquer mudança em items dispara re-render preservando estado aberto/scroll.
+    let _rmRtTimer = null;
+    sb.channel('items-rt-roadmap').on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, () => {
+      // Debounce 150ms — múltiplas mudanças em sequência não disparam N rerenders
+      clearTimeout(_rmRtTimer);
+      _rmRtTimer = setTimeout(async () => {
         const opensAreas = new Set();
         const opensSubs  = new Set();
         document.querySelectorAll('.rm-area-header.open').forEach(el => {
@@ -2158,19 +2228,14 @@ document.addEventListener('click', handleMilestoneClick, true);
         const scrollLeft = wrap ? wrap.scrollLeft : 0;
         const scrollTop  = wrap ? wrap.scrollTop  : 0;
 
-        DATA = r.data.areas;
-        CALENDAR_EVENTS = r.data.calendar_events || [];
-        document.getElementById('rmBody').innerHTML = '';
-        buildAxis(); buildRoadmap();
+        await renderFromItems();
 
-        // Restaura áreas abertas
         opensAreas.forEach(areaId => {
           const block = document.querySelector(`.rm-area-block[data-area-id="${areaId}"]`);
           if (!block) return;
           block.querySelector('.rm-area-header')?.classList.add('open');
           block.querySelector('.rm-subs-container')?.classList.add('open');
         });
-        // Restaura subs abertos (level2/3 com filhos)
         opensSubs.forEach(subId => {
           const row = document.querySelector(`.rm-row.hassubs[data-sub-id="${subId}"]`);
           if (!row) return;
@@ -2178,9 +2243,8 @@ document.addEventListener('click', handleMilestoneClick, true);
           let next = row.nextElementSibling;
           if (next && next.classList.contains('rm-subsubs-container')) next.classList.add('open');
         });
-        // Restaura scroll
         if (wrap) { wrap.scrollLeft = scrollLeft; wrap.scrollTop = scrollTop; }
-      }
+      }, 150);
     }).subscribe();
   } catch(e) { console.warn('Supabase:', e.message); }
 })();
