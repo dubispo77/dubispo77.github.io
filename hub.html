@@ -261,6 +261,19 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .rm-indicator.done { box-shadow: 0 1px 3px rgba(0,0,0,.15); }
 
+/* Tooltip simples das bolinhas indicativas */
+#rmIndicatorTip {
+  position: fixed; pointer-events: none; z-index: 99999;
+  background: #1a1828; color: #fff;
+  padding: 7px 11px; border-radius: 8px;
+  font-family: inherit; white-space: nowrap;
+  opacity: 0; visibility: hidden;
+  transform: translate(-50%, -100%);
+  transition: opacity .12s, visibility .12s;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+}
+#rmIndicatorTip.show { opacity: 1; visibility: visible; }
+
 .rm-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .rm-area-name   { font-size: 13px; font-weight: 800; color: var(--text); }
 .rm-sub-name    { font-size: 12px; font-weight: 780; color: var(--text); }
@@ -1926,6 +1939,7 @@ function makeMilestone(ms, color) {
 
 // Bolinha INDICATIVA (read-only) — rollup visual no pai mostrando estado dos descendentes.
 // Concluída = cor da timeline mais escura. Planejada = branca com borda da cor.
+// Hover mostra tooltip com: filho (sub-barra que contém), nome da tarefa, status.
 function makeIndicator(ind, color) {
   const el = document.createElement('div');
   el.className = 'rm-indicator';
@@ -1938,8 +1952,40 @@ function makeIndicator(ind, color) {
     el.style.background = '#fff';
     el.style.borderColor = color;
   }
-  el.title = ind.label || '';
+  el.style.pointerEvents = 'auto';
+  el.style.cursor = 'help';
+  el.addEventListener('mouseenter', () => _showIndicatorTip(el, ind));
+  el.addEventListener('mouseleave', _hideIndicatorTip);
   return el;
+}
+
+function _getIndicatorTip() {
+  let tip = document.getElementById('rmIndicatorTip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'rmIndicatorTip';
+    document.body.appendChild(tip);
+  }
+  return tip;
+}
+function _showIndicatorTip(el, ind) {
+  const tip = _getIndicatorTip();
+  const statusColor = ind.status === 'done' ? '#16a34a' : '#94a3b8';
+  const statusText  = ind.status === 'done' ? '✓ concluído' : '○ planejado';
+  const parentLine = ind.parentName
+    ? `<div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">${ind.parentName}</div>`
+    : '';
+  tip.innerHTML = `${parentLine}
+    <div style="font-size:13px;font-weight:600;margin-bottom:3px;">${ind.label || ''}</div>
+    <div style="font-size:11px;color:${statusColor};">${statusText}</div>`;
+  const rect = el.getBoundingClientRect();
+  tip.style.left = (rect.left + rect.width / 2) + 'px';
+  tip.style.top  = (rect.top - 8) + 'px';
+  tip.classList.add('show');
+}
+function _hideIndicatorTip() {
+  const tip = document.getElementById('rmIndicatorTip');
+  if (tip) tip.classList.remove('show');
 }
 
 function makeBar(start, end, color, colorSoft, depth, parentItem) {
@@ -2540,13 +2586,18 @@ async function loadRoadmapFromItems() {
     // Bolinhas indicativas: bolinhas de descendentes recursivos (não as próprias).
     // Renderizadas read-only nos níveis pais como rollup visual.
     const descendantDots = _collectAllDescendantDots(it.id)
-      .filter(d => !dots.some(p => p.id === d.id)) // exclui as próprias diretas
-      .map(d => ({
-        _itemId: d.id,
-        m: _dateToMRoadmap(d.date_start) ?? 0,
-        status: d.status === 'done' ? 'done' : 'planned',
-        label: d.title
-      }));
+      .filter(d => !dots.some(p => p.id === d.id))
+      .map(d => {
+        // Parent imediato (a sub-barra que contém essa bolinha)
+        const parent = items.find(i => i.id === d.parent_id);
+        return {
+          _itemId: d.id,
+          m: _dateToMRoadmap(d.date_start) ?? 0,
+          status: d.status === 'done' ? 'done' : 'planned',
+          label: d.title,
+          parentName: parent?.title || ''
+        };
+      });
 
     return {
       id: it.id,
