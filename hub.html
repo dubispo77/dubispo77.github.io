@@ -302,6 +302,14 @@ table.data-table tr:hover td { background: var(--bg); }
 
 .rm-ms { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
 .rm-ms-dot { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; }
+/* Bolinhas escalonadas conforme profundidade — barras mais finas, bolinhas menores */
+.rm-row-sub    .rm-ms-dot { width: 14px; height: 14px; box-shadow: 0 1px 4px rgba(30,20,60,.25), 0 0 0 2px rgba(255,255,255,.5); }
+.rm-row-subsub .rm-ms-dot { width: 12px; height: 12px; box-shadow: 0 1px 3px rgba(30,20,60,.22), 0 0 0 1.5px rgba(255,255,255,.5); }
+.rm-row-level4 .rm-ms-dot { width: 10px; height: 10px; box-shadow: 0 1px 3px rgba(30,20,60,.20), 0 0 0 1.5px rgba(255,255,255,.5); }
+/* Indicadores acompanham a mesma escala (ligeiramente menores) */
+.rm-row-sub    .rm-indicator { width: 8px;  height: 8px;  border-width: 1.3px; }
+.rm-row-subsub .rm-indicator { width: 7px;  height: 7px;  border-width: 1.2px; }
+.rm-row-level4 .rm-indicator { width: 6px;  height: 6px;  border-width: 1px; }
 /* sem hover scale na bolinha — antes era scale(1.15), causava sensação de "pulo" ao passar o mouse pela timeline */
 .rm-ms.done .rm-ms-dot { background: #fff; }
 .rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
@@ -814,6 +822,7 @@ table.data-table tr:hover td { background: var(--bg); }
             <div class="rm-corner">
               <span class="rm-corner-label">Mar 2026 →</span>
               <button id="rmToggleAll" title="Abrir / colapsar tudo" style="flex-shrink:0;padding:2px 8px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--text-dim);font-size:10px;font-weight:700;cursor:pointer;line-height:1;">↕</button>
+              <button id="rmUndoBtn" title="Nada pra desfazer" disabled style="flex-shrink:0;padding:2px 8px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--text-dim);font-size:10px;font-weight:700;cursor:pointer;line-height:1;margin-left:4px;">↶</button>
             </div>
             <div id="rmTodayLine"></div>
             <div class="rm-axis-row" id="rmAxis" style="margin-left:220px;"></div>
@@ -1228,6 +1237,61 @@ let TOTAL_MONTHS   = parseFloat(localStorage.getItem(ROADMAP_TOTAL_MONTHS_KEY)) 
 const START_DATE   = new Date(2026, 2, 24);
 let END_DATE       = new Date(START_DATE.getFullYear(), START_DATE.getMonth() + Math.ceil(TOTAL_MONTHS + PRE_MONTHS), START_DATE.getDate());
 let TOTAL_MS       = END_DATE - START_DATE;
+
+// ── UNDO STACK (Cmd+Z) — guarda até 30 mudanças em items pra reverter
+const _undoStack = [];
+const _UNDO_MAX = 30;
+async function _undoCapture(itemId) {
+  if (!window.sbClient) return null;
+  const { data } = await window.sbClient.from('items').select('*').eq('id', itemId).single();
+  return data;
+}
+function _pushUndo(action) {
+  _undoStack.push(action);
+  if (_undoStack.length > _UNDO_MAX) _undoStack.shift();
+  _updateUndoBtn();
+}
+function _updateUndoBtn() {
+  const btn = document.getElementById('rmUndoBtn');
+  if (!btn) return;
+  btn.disabled = _undoStack.length === 0;
+  btn.title = _undoStack.length > 0 ? `Desfazer (${_undoStack.length}) — Cmd+Z` : 'Nada pra desfazer';
+  btn.style.opacity = _undoStack.length > 0 ? '1' : '0.4';
+}
+async function _doUndo() {
+  if (_undoStack.length === 0) return;
+  const sb = window.sbClient;
+  if (!sb) return;
+  const action = _undoStack.pop();
+  try {
+    if (action.kind === 'update' && action.before) {
+      const { id, created_at, updated_at, user_id, ...rest } = action.before;
+      await sb.from('items').update(rest).eq('id', id);
+    } else if (action.kind === 'delete' && action.before) {
+      await sb.from('items').insert(action.before);
+    } else if (action.kind === 'batch_update' && Array.isArray(action.before)) {
+      await Promise.all(action.before.map(b => {
+        const { id, created_at, updated_at, user_id, ...rest } = b;
+        return sb.from('items').update(rest).eq('id', id);
+      }));
+    }
+  } catch (err) { console.error('[undo] erro:', err); }
+  _updateUndoBtn();
+}
+// Atalho Cmd+Z / Ctrl+Z
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    e.preventDefault();
+    _doUndo();
+  }
+});
+// Botão é wired após DOM ready
+queueMicrotask(() => {
+  const btn = document.getElementById('rmUndoBtn');
+  if (btn) { btn.addEventListener('click', _doUndo); _updateUndoBtn(); }
+});
 
 // Auto-scroll horizontal do .rm-wrap quando cursor chega perto do edge durante drag.
 // Usado por drag de bolinha (Fase 5.3) e drag de barra (Fase 5.5) pra permitir
@@ -1876,8 +1940,10 @@ function makeIndicator(ind, color) {
 function makeBar(start, end, color, colorSoft, depth, parentItem) {
   const bar = document.createElement('div');
   bar.className = `rm-bar ${ depth===0?'rm-bar-area':depth===1?'rm-bar-sub':'rm-bar-subsub' }`;
-  bar.style.left = pct(start)+'%';
-  bar.style.width = (pct(end)-pct(start))+'%';
+  // Estende a barra ~10px de cada lado pra que as bolinhas no começo/fim
+  // caibam DENTRO dela visualmente (raio típico 5-8px).
+  bar.style.left = `calc(${pct(start)}% - 10px)`;
+  bar.style.width = `calc(${pct(end)-pct(start)}% + 20px)`;
   bar.style.background = `linear-gradient(90deg, ${colorSoft}, ${color})`;
   bar.style.boxShadow = `0 2px 8px ${color}28`;
 
