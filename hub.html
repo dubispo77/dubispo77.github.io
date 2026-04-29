@@ -129,12 +129,14 @@ table.data-table tr:hover td { background: var(--bg); }
 .event-block { cursor: pointer; user-select: none; }
 .event-block:hover { filter: brightness(.97); }
 /* Botões de ação: visíveis suaves por padrão (mobile precisa ver), destacados no hover. Pointer-events controlado pra não capturar clique acidental. */
-.eb-actions { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; opacity: .55; transition: opacity .15s; }
-.event-block:hover .eb-actions { opacity: 1; }
+.eb-actions { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 3px; opacity: 0; pointer-events: none; transition: opacity .15s; background: #1a1828; padding: 4px 6px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+.event-block.show-actions .eb-actions { opacity: 1; pointer-events: auto; }
+.eb-actions .eb-btn { color: rgba(255,255,255,.65); }
+.eb-actions .eb-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
 @media (hover: hover) and (pointer: fine) {
   /* Em desktop com hover real, só mostra os botões no hover */
   .eb-actions { opacity: 0; pointer-events: none; }
-  .event-block:hover .eb-actions { opacity: 1; pointer-events: auto; }
+  .event-block.show-actions .eb-actions { opacity: 1; pointer-events: auto; }
 }
 .eb-btn { width: 22px; height: 22px; border-radius: 5px; border: none; background: transparent; color: var(--text-faint); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .eb-btn:hover { background: #fee2e2; color: #dc2626; }
@@ -238,11 +240,12 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-icon-subsub { width: 17px; height: 17px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; border: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
 .rm-icon-level4 { width: 17px; height: 17px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; border: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
 .rm-level4-name { font-size: 10.5px; font-weight: 720; color: var(--text-dim); }
-.rm-level4-pct {
+.rm-level4-pct, .rm-level3-pct {
   font-size: 9px; font-weight: 800;
   padding: 1px 6px; border-radius: 999px;
   display: inline-block; margin-top: 2px;
 }
+.rm-level3-pct { font-size: 9.5px; }
 
 .rm-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .rm-area-name   { font-size: 13px; font-weight: 800; color: var(--text); }
@@ -333,11 +336,11 @@ table.data-table tr:hover td { background: var(--bg); }
 /* Tooltip antigo dentro da .rm-ms — REMOVIDO via JS (portalizado pra body, não corta) */
 .rm-ms-label { display: none !important; }
 /* Tooltip flutuante — fica no body, position fixed, jamais cortado por overflow */
-#rmFloatingTooltip { position: fixed; pointer-events: auto; background: #1a1828; border-radius: 10px; padding: 10px 14px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.25); min-width: 200px; opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; z-index: 99999; font-family: inherit; }
+#rmFloatingTooltip { position: fixed; pointer-events: auto; background: #1a1828; border-radius: 10px; padding: 10px 14px 28px; box-shadow: 0 6px 20px rgba(0,0,0,.25); min-width: 200px; opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; z-index: 99999; font-family: inherit; }
 #rmFloatingTooltip.show { opacity: 1; visibility: visible; }
 /* Botões 🔗 ✏️ ✕ do tooltip */
-#rmFloatingTooltip .tt-actions { position: absolute; top: 6px; right: 6px; display: flex; gap: 2px; }
-#rmFloatingTooltip .tt-btn { width: 22px; height: 22px; border: none; background: transparent; color: rgba(255,255,255,.6); font-size: 12px; cursor: pointer; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+#rmFloatingTooltip .tt-actions { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 1px; }
+#rmFloatingTooltip .tt-btn { width: 18px; height: 18px; border: none; background: transparent; color: rgba(255,255,255,.55); font-size: 10px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
 #rmFloatingTooltip .tt-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
 #rmFloatingTooltip .tt-confirm { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
 #rmFloatingTooltip .tt-confirm-btn { padding: 3px 9px; border-radius: 5px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; }
@@ -1168,7 +1171,7 @@ window.copyItemId = async function(id, btnEl) {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-04-28 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-04-29 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG',  m:1.03, pos:'bot', status:'planned', cal:'Tarefas pessoais' },
@@ -1211,6 +1214,23 @@ let TOTAL_MONTHS   = parseFloat(localStorage.getItem(ROADMAP_TOTAL_MONTHS_KEY)) 
 const START_DATE   = new Date(2026, 2, 24);
 let END_DATE       = new Date(START_DATE.getFullYear(), START_DATE.getMonth() + Math.ceil(TOTAL_MONTHS + PRE_MONTHS), START_DATE.getDate());
 let TOTAL_MS       = END_DATE - START_DATE;
+
+// Auto-scroll horizontal do .rm-wrap quando cursor chega perto do edge durante drag.
+// Usado por drag de bolinha (Fase 5.3) e drag de barra (Fase 5.5) pra permitir
+// que o usuário arraste pra fora do viewport sem ter que soltar e dar scroll manual.
+function _rmAutoScroll(clientX) {
+  const wrap = document.getElementById('rmWrap');
+  if (!wrap) return;
+  const rect = wrap.getBoundingClientRect();
+  const margin = 80;
+  if (clientX > rect.right - margin) {
+    const speed = (clientX - (rect.right - margin)) / margin * 18;
+    wrap.scrollLeft += speed;
+  } else if (clientX < rect.left + margin) {
+    const speed = ((rect.left + margin) - clientX) / margin * 18;
+    wrap.scrollLeft -= speed;
+  }
+}
 
 // Fase 5.6: auto-extend até fim do mês quando bolinha sai do range
 function extendTimelineToFitM(m) {
@@ -1743,6 +1763,9 @@ function makeMilestone(ms, color) {
       _msDragLabel.style.left = (ev.clientX - 44) + 'px';
       _msDragLabel.style.top  = (ev.clientY - 38) + 'px';
 
+      // Auto-scroll horizontal se cursor perto do edge (permite arrastar pra fora do viewport)
+      _rmAutoScroll(ev.clientX);
+
       // ── Fase 5.4: drag vertical entre parents (reordenação ao vivo) ──
       // Detecta level4 row sob o cursor. Esconde a bolinha temporariamente
       // (display:none) pra elementFromPoint não pegar ela mesma.
@@ -1910,6 +1933,8 @@ function makeBar(start, end, color, colorSoft, depth, parentItem) {
         const newEnd = Math.max(...allM);
         bar.style.left = pct(newStart) + '%';
         bar.style.width = (pct(newEnd) - pct(newStart)) + '%';
+        // Auto-scroll perto do edge
+        _rmAutoScroll(ev.clientX);
       };
 
       const onUp = async () => {
@@ -1993,7 +2018,22 @@ function makeSubSubRow(ss, color, isLast) {
   lvl3.style.cssText = `background:${color}14;color:${color};`; lvl3.textContent = '3';
   const icon = document.createElement('div'); icon.className = 'rm-icon-subsub'; icon.textContent = ss.icon;
   const text = document.createElement('div'); text.className = 'rm-text';
-  text.innerHTML = `<span class="rm-subsub-name">${ss.name}</span>`;
+
+  // % de conclusão (recursivo — conta bolinhas próprias + de todos os descendants)
+  const _collectAllDots = (item) => {
+    let dots = [...(item.milestones || [])];
+    (item.subs || []).forEach(s => dots = dots.concat(_collectAllDots(s)));
+    return dots;
+  };
+  const _allMs = _collectAllDots(ss);
+  const _done  = _allMs.filter(m => m.status === 'done').length;
+  const _total = _allMs.length;
+  const _pctVal = _total > 0 ? Math.round(_done / _total * 100) : 0;
+  const _pctColor = _pctVal === 100 ? '#16a34a' : _pctVal > 0 ? color : '#94a3b8';
+  const _pctHtml = _total > 0
+    ? `<span class="rm-level3-pct" style="background:${_pctColor}18;color:${_pctColor}">${_pctVal}%</span>`
+    : '';
+  text.innerHTML = `<span class="rm-subsub-name">${ss.name}</span>${_pctHtml}`;
   left.appendChild(icon); left.appendChild(text); left.appendChild(lvl3);
   const track = document.createElement('div'); track.className = 'rm-track';
   if (ss.showBar!==false) track.appendChild(makeBar(ss.start,ss.end,color,color+'80',2,ss));
@@ -2254,6 +2294,39 @@ async function handleMilestoneClick(e) {
 
 // CAPTURE phase pra pegar o click antes dos handlers de toggle/open dos rows.
 document.addEventListener('click', handleMilestoneClick, true);
+
+// ── Hover 700ms em .event-block (Agenda + outras abas) abre janelinha de ações
+(function setupAgendaHoverActions() {
+  let hoverTimer = null;
+  let activeBlock = null;
+  function clearActive() {
+    if (activeBlock) { activeBlock.classList.remove('show-actions'); activeBlock = null; }
+    if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+  }
+  document.addEventListener('mouseover', e => {
+    const block = e.target.closest && e.target.closest('.event-block');
+    if (!block) return;
+    if (block === activeBlock) return;
+    if (e.target.closest('.eb-actions')) return; // hover no popover já aberto
+    clearActive();
+    hoverTimer = setTimeout(() => {
+      block.classList.add('show-actions');
+      activeBlock = block;
+    }, 700);
+  });
+  document.addEventListener('mouseout', e => {
+    const block = e.target.closest && e.target.closest('.event-block');
+    if (!block) return;
+    // Se tá saindo do bloco (e não pra dentro do próprio bloco), limpa
+    const goingTo = e.relatedTarget;
+    if (goingTo && (block.contains(goingTo) || block === goingTo)) return;
+    if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+    if (activeBlock === block) {
+      block.classList.remove('show-actions');
+      activeBlock = null;
+    }
+  });
+})();
 
 // ── ADAPTER Fase 5: carrega roadmap da tabela items (não mais do JSONB)
 // Constrói árvore via parent_id e calcula envelope dos pais. Mantém o shape
