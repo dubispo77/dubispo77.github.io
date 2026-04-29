@@ -252,7 +252,7 @@ table.data-table tr:hover td { background: var(--bg); }
   position: absolute;
   top: 50%;
   width: 9px; height: 9px;
-  border-radius: 50%;
+  border-radius: 2.5px;
   border: 1.5px solid;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -309,20 +309,20 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-track { flex: 1; position: relative; padding-right: 20px; display: flex; align-items: center; z-index: 4; }
 .rm-bar { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 999px; z-index: 1; }
 /* sem hover na barra — antes era opacity .82 mas causava "piscadinha" quando o mouse atravessava as bolinhas */
-.rm-bar-area   { height: 24px; } /* cobre bolinha 16px */
-.rm-bar-sub    { height: 20px; } /* cobre bolinha 14px */
-.rm-bar-subsub { height: 16px; } /* cobre bolinha 12px (subsub) e 10px (level4) */
+.rm-bar-area   { height: 20px; } /* cobre bolinha 16px com folga discreta */
+.rm-bar-sub    { height: 17px; } /* cobre bolinha 14px */
+.rm-bar-subsub { height: 13px; } /* cobre bolinha 12px / 10px */
 
 .rm-ms { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
-.rm-ms-dot { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; }
-/* Bolinhas escalonadas conforme profundidade — barras mais finas, bolinhas menores */
-.rm-row-sub    .rm-ms-dot { width: 14px; height: 14px; box-shadow: 0 1px 4px rgba(30,20,60,.25), 0 0 0 2px rgba(255,255,255,.5); }
-.rm-row-subsub .rm-ms-dot { width: 12px; height: 12px; box-shadow: 0 1px 3px rgba(30,20,60,.22), 0 0 0 1.5px rgba(255,255,255,.5); }
-.rm-row-level4 .rm-ms-dot { width: 10px; height: 10px; box-shadow: 0 1px 3px rgba(30,20,60,.20), 0 0 0 1.5px rgba(255,255,255,.5); }
-/* Indicadores acompanham a mesma escala (ligeiramente menores) */
-.rm-row-sub    .rm-indicator { width: 8px;  height: 8px;  border-width: 1.3px; }
-.rm-row-subsub .rm-indicator { width: 7px;  height: 7px;  border-width: 1.2px; }
-.rm-row-level4 .rm-indicator { width: 6px;  height: 6px;  border-width: 1px; }
+.rm-ms-dot { width: 16px; height: 16px; border-radius: 4px; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; }
+/* Quadradinhos escalonados conforme profundidade — barras mais finas, marcadores menores */
+.rm-row-sub    .rm-ms-dot { width: 14px; height: 14px; border-radius: 3.5px; box-shadow: 0 1px 4px rgba(30,20,60,.25), 0 0 0 2px rgba(255,255,255,.5); }
+.rm-row-subsub .rm-ms-dot { width: 12px; height: 12px; border-radius: 3px; box-shadow: 0 1px 3px rgba(30,20,60,.22), 0 0 0 1.5px rgba(255,255,255,.5); }
+.rm-row-level4 .rm-ms-dot { width: 10px; height: 10px; border-radius: 2.5px; box-shadow: 0 1px 3px rgba(30,20,60,.20), 0 0 0 1.5px rgba(255,255,255,.5); }
+/* Indicadores: também viram quadradinhos, ligeiramente menores */
+.rm-row-sub    .rm-indicator { width: 8px;  height: 8px;  border-width: 1.3px; border-radius: 2px; }
+.rm-row-subsub .rm-indicator { width: 7px;  height: 7px;  border-width: 1.2px; border-radius: 1.8px; }
+.rm-row-level4 .rm-indicator { width: 6px;  height: 6px;  border-width: 1px;   border-radius: 1.5px; }
 /* sem hover scale na bolinha — antes era scale(1.15), causava sensação de "pulo" ao passar o mouse pela timeline */
 .rm-ms.done .rm-ms-dot { background: #fff; }
 .rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
@@ -835,7 +835,8 @@ table.data-table tr:hover td { background: var(--bg); }
             <div class="rm-corner">
               <span class="rm-corner-label">Mar 2026 →</span>
               <button id="rmToggleAll" title="Abrir / colapsar tudo" style="flex-shrink:0;padding:2px 8px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--text-dim);font-size:10px;font-weight:700;cursor:pointer;line-height:1;">↕</button>
-              <button id="rmUndoBtn" title="Nada pra desfazer" disabled style="flex-shrink:0;padding:2px 8px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--text-dim);font-size:10px;font-weight:700;cursor:pointer;line-height:1;margin-left:4px;">↶</button>
+              <button id="rmUndoBtn" title="Desfazer (Cmd+Z)" disabled style="flex-shrink:0;padding:2px 8px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--text-dim);font-size:13px;font-weight:700;cursor:pointer;line-height:1;margin-left:4px;">↺</button>
+              <button id="rmRedoBtn" title="Refazer (Cmd+Shift+Z)" disabled style="flex-shrink:0;padding:2px 8px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--text-dim);font-size:13px;font-weight:700;cursor:pointer;line-height:1;margin-left:2px;">↻</button>
             </div>
             <div id="rmTodayLine"></div>
             <div class="rm-axis-row" id="rmAxis" style="margin-left:220px;"></div>
@@ -1251,8 +1252,9 @@ const START_DATE   = new Date(2026, 2, 24);
 let END_DATE       = new Date(START_DATE.getFullYear(), START_DATE.getMonth() + Math.ceil(TOTAL_MONTHS + PRE_MONTHS), START_DATE.getDate());
 let TOTAL_MS       = END_DATE - START_DATE;
 
-// ── UNDO STACK (Cmd+Z) — guarda até 30 mudanças em items pra reverter
+// ── UNDO/REDO STACK (Cmd+Z e Cmd+Shift+Z) — guarda até 30 ações
 const _undoStack = [];
+const _redoStack = [];
 const _UNDO_MAX = 30;
 async function _undoCapture(itemId) {
   if (!window.sbClient) return null;
@@ -1262,7 +1264,8 @@ async function _undoCapture(itemId) {
 function _pushUndo(action) {
   _undoStack.push(action);
   if (_undoStack.length > _UNDO_MAX) _undoStack.shift();
-  _updateUndoBtn();
+  _redoStack.length = 0; // nova ação cancela redo pendente
+  _updateUndoBtn(); _updateRedoBtn();
 }
 function _updateUndoBtn() {
   const btn = document.getElementById('rmUndoBtn');
@@ -1271,39 +1274,67 @@ function _updateUndoBtn() {
   btn.title = _undoStack.length > 0 ? `Desfazer (${_undoStack.length}) — Cmd+Z` : 'Nada pra desfazer';
   btn.style.opacity = _undoStack.length > 0 ? '1' : '0.4';
 }
+function _updateRedoBtn() {
+  const btn = document.getElementById('rmRedoBtn');
+  if (!btn) return;
+  btn.disabled = _redoStack.length === 0;
+  btn.title = _redoStack.length > 0 ? `Refazer (${_redoStack.length}) — Cmd+Shift+Z` : 'Nada pra refazer';
+  btn.style.opacity = _redoStack.length > 0 ? '1' : '0.4';
+}
+async function _applyRevert(rec) {
+  const sb = window.sbClient;
+  const { id, created_at, updated_at, user_id, ...rest } = rec;
+  await sb.from('items').update(rest).eq('id', id);
+}
 async function _doUndo() {
   if (_undoStack.length === 0) return;
   const sb = window.sbClient;
   if (!sb) return;
   const action = _undoStack.pop();
   try {
-    if (action.kind === 'update' && action.before) {
-      const { id, created_at, updated_at, user_id, ...rest } = action.before;
-      await sb.from('items').update(rest).eq('id', id);
-    } else if (action.kind === 'delete' && action.before) {
-      await sb.from('items').insert(action.before);
-    } else if (action.kind === 'batch_update' && Array.isArray(action.before)) {
-      await Promise.all(action.before.map(b => {
-        const { id, created_at, updated_at, user_id, ...rest } = b;
-        return sb.from('items').update(rest).eq('id', id);
-      }));
-    }
+    // Captura estado atual ANTES de reverter — vira o "redo"
+    let after = null;
+    if (action.kind === 'update') after = await _undoCapture(action.before.id);
+    if (action.kind === 'delete') after = null; // o item foi deletado, não tem estado atual
+    if (action.kind === 'batch_update') after = await Promise.all(action.before.map(b => _undoCapture(b.id)));
+
+    // Aplica o revert
+    if (action.kind === 'update' && action.before) await _applyRevert(action.before);
+    else if (action.kind === 'delete' && action.before) await sb.from('items').insert(action.before);
+    else if (action.kind === 'batch_update' && Array.isArray(action.before))
+      await Promise.all(action.before.map(_applyRevert));
+
+    _redoStack.push({ ...action, after });
   } catch (err) { console.error('[undo] erro:', err); }
-  _updateUndoBtn();
+  _updateUndoBtn(); _updateRedoBtn();
 }
-// Atalho Cmd+Z / Ctrl+Z
+async function _doRedo() {
+  if (_redoStack.length === 0) return;
+  const sb = window.sbClient;
+  if (!sb) return;
+  const action = _redoStack.pop();
+  try {
+    if (action.kind === 'update' && action.after) await _applyRevert(action.after);
+    else if (action.kind === 'delete' && action.before)
+      await sb.from('items').delete().eq('id', action.before.id);
+    else if (action.kind === 'batch_update' && Array.isArray(action.after))
+      await Promise.all(action.after.filter(Boolean).map(_applyRevert));
+
+    _undoStack.push(action);
+  } catch (err) { console.error('[redo] erro:', err); }
+  _updateUndoBtn(); _updateRedoBtn();
+}
+// Atalhos
 document.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
-    const tag = document.activeElement?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-    e.preventDefault();
-    _doUndo();
-  }
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); _doUndo(); }
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); _doRedo(); }
 });
-// Botão é wired após DOM ready
+// Wire dos botões após DOM ready
 queueMicrotask(() => {
-  const btn = document.getElementById('rmUndoBtn');
-  if (btn) { btn.addEventListener('click', _doUndo); _updateUndoBtn(); }
+  const u = document.getElementById('rmUndoBtn'); if (u) { u.addEventListener('click', _doUndo); _updateUndoBtn(); }
+  const r = document.getElementById('rmRedoBtn'); if (r) { r.addEventListener('click', _doRedo); _updateRedoBtn(); }
 });
 
 // Auto-scroll horizontal do .rm-wrap quando cursor chega perto do edge durante drag.
@@ -1776,10 +1807,10 @@ function makeMilestone(ms, color) {
       ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;">✓</span>`
       : '';
     const dotStyle = ms.status === 'done'
-      ? `background:${color};`
+      ? `background:${color};border:1.5px solid ${color};`
       : isOverdue
-        ? '' // .is-overdue cuida (vermelho sólido + ⚠ ::after)
-        : `background: radial-gradient(circle, rgba(168,158,184,0.3) 0%, rgba(168,158,184,0.3) 32%, #fff 32%, #fff 100%);`;
+        ? '' // .is-overdue cuida (vermelho sólido)
+        : `background:#fff;border:1.5px solid ${color};`;
     el.innerHTML = `${tooltipHtml}<div class="${dotClass}" style="position:relative;${dotStyle}">${inner}</div>`;
   }
   _renderInner();
@@ -1991,10 +2022,10 @@ function _hideIndicatorTip() {
 function makeBar(start, end, color, colorSoft, depth, parentItem) {
   const bar = document.createElement('div');
   bar.className = `rm-bar ${ depth===0?'rm-bar-area':depth===1?'rm-bar-sub':'rm-bar-subsub' }`;
-  // Estende a barra +14px de cada lado pra cobrir o centro inteiro da bolinha
-  // (bolinha maior tem 16px = raio 8, +6 de folga visual).
-  bar.style.left = `calc(${pct(start)}% - 14px)`;
-  bar.style.width = `calc(${pct(end)-pct(start)}% + 28px)`;
+  // Estende a barra ~9px de cada lado — apenas o suficiente pra que o centro
+  // da bolinha caia dentro da barra. Mais que isso fica com sobra visual.
+  bar.style.left = `calc(${pct(start)}% - 9px)`;
+  bar.style.width = `calc(${pct(end)-pct(start)}% + 18px)`;
   bar.style.background = `linear-gradient(90deg, ${colorSoft}, ${color})`;
   bar.style.boxShadow = `0 2px 8px ${color}28`;
 
