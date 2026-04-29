@@ -296,9 +296,9 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-track { flex: 1; position: relative; padding-right: 20px; display: flex; align-items: center; z-index: 4; }
 .rm-bar { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 999px; z-index: 1; }
 /* sem hover na barra — antes era opacity .82 mas causava "piscadinha" quando o mouse atravessava as bolinhas */
-.rm-bar-area   { height: 22px; }
-.rm-bar-sub    { height: 14px; }
-.rm-bar-subsub { height: 9px; }
+.rm-bar-area   { height: 24px; } /* cobre bolinha 16px */
+.rm-bar-sub    { height: 20px; } /* cobre bolinha 14px */
+.rm-bar-subsub { height: 16px; } /* cobre bolinha 12px (subsub) e 10px (level4) */
 
 .rm-ms { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
 .rm-ms-dot { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; }
@@ -1945,10 +1945,10 @@ function makeIndicator(ind, color) {
 function makeBar(start, end, color, colorSoft, depth, parentItem) {
   const bar = document.createElement('div');
   bar.className = `rm-bar ${ depth===0?'rm-bar-area':depth===1?'rm-bar-sub':'rm-bar-subsub' }`;
-  // Estende a barra ~10px de cada lado pra que as bolinhas no começo/fim
-  // caibam DENTRO dela visualmente (raio típico 5-8px).
-  bar.style.left = `calc(${pct(start)}% - 10px)`;
-  bar.style.width = `calc(${pct(end)-pct(start)}% + 20px)`;
+  // Estende a barra +14px de cada lado pra cobrir o centro inteiro da bolinha
+  // (bolinha maior tem 16px = raio 8, +6 de folga visual).
+  bar.style.left = `calc(${pct(start)}% - 14px)`;
+  bar.style.width = `calc(${pct(end)-pct(start)}% + 28px)`;
   bar.style.background = `linear-gradient(90deg, ${colorSoft}, ${color})`;
   bar.style.boxShadow = `0 2px 8px ${color}28`;
 
