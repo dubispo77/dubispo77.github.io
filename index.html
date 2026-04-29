@@ -1269,58 +1269,12 @@
 
   <!-- HERO -->
   <section id="hero">
-    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="metadata" poster="hero-poster.jpg">
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720.mp4" type="video/mp4">
     </video>
-    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="metadata" poster="hero-poster.jpg">
+    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
-    <script>
-    (function(){
-      var v = document.getElementById('heroDesktop');
-      var mp4 = 'hero-720.mp4';
-      var hls_src = 'https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/hero-hls/master.m3u8';
-      var started = false;
-
-      function fallbackMp4(){
-        if(started) return;
-        started = true;
-        v.src = mp4;
-        v.load();
-        v.play().catch(function(){});
-      }
-
-      // Safari: native HLS (no CORS needed, fastest path)
-      if(v.canPlayType('application/vnd.apple.mpegurl')){
-        v.src = hls_src;
-        v.load();
-        started = true;
-        // If HLS fails after 4s, fallback to mp4
-        var timeout = setTimeout(function(){
-          if(v.readyState < 2){ started = false; fallbackMp4(); }
-        }, 4000);
-        v.addEventListener('playing', function(){ clearTimeout(timeout); }, {once:true});
-        v.addEventListener('error', function(){ clearTimeout(timeout); started = false; fallbackMp4(); }, {once:true});
-        v.play().catch(function(){ clearTimeout(timeout); started = false; fallbackMp4(); });
-
-      // Chrome/Firefox: hls.js
-      } else if(typeof Hls !== 'undefined' && Hls.isSupported()){
-        started = true;
-        var hls = new Hls({startLevel:0,capLevelToPlayerSize:true,maxBufferLength:10});
-        hls.loadSource(hls_src);
-        hls.attachMedia(v);
-        hls.on(Hls.Events.MANIFEST_PARSED,function(){v.play().catch(function(){});});
-        hls.on(Hls.Events.ERROR,function(e,data){
-          if(data.fatal){ hls.destroy(); started = false; fallbackMp4(); }
-        });
-
-      // Fallback: mp4 direto
-      } else {
-        fallbackMp4();
-      }
-    })();
-    </script>
     <div class="hero-overlay"></div>
     <div class="hero-vignette"></div>
     <div class="hero-grain"></div>
