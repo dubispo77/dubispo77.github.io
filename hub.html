@@ -1940,6 +1940,7 @@ function makeMilestone(ms, color) {
     const onUp = async () => {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
+      clearInterval(_scrollIv); // para o auto-scroll do drag
       _msDragLabel.style.display = 'none';
       el.style.cursor = '';
       if (!moved) { setTimeout(() => { _msDragActive = false; }, 0); return; }
