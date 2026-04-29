@@ -313,19 +313,18 @@ table.data-table tr:hover td { background: var(--bg); }
 .rm-bar-sub    { height: 17px; } /* cobre bolinha 14px */
 .rm-bar-subsub { height: 13px; } /* cobre bolinha 12px / 10px */
 
-.rm-ms { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
-.rm-ms-dot { width: 16px; height: 16px; border-radius: 4px; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; }
-/* Quadradinhos escalonados conforme profundidade — barras mais finas, marcadores menores */
-.rm-row-sub    .rm-ms-dot { width: 14px; height: 14px; border-radius: 3.5px; box-shadow: 0 1px 4px rgba(30,20,60,.25), 0 0 0 2px rgba(255,255,255,.5); }
-.rm-row-subsub .rm-ms-dot { width: 12px; height: 12px; border-radius: 3px; box-shadow: 0 1px 3px rgba(30,20,60,.22), 0 0 0 1.5px rgba(255,255,255,.5); }
-.rm-row-level4 .rm-ms-dot { width: 10px; height: 10px; border-radius: 2.5px; box-shadow: 0 1px 3px rgba(30,20,60,.20), 0 0 0 1.5px rgba(255,255,255,.5); }
+.rm-ms { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; z-index: 20; line-height: 0; }
+.rm-ms-dot { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: none; box-shadow: 0 1px 5px rgba(30,20,60,.3), 0 0 0 2.5px rgba(255,255,255,.5); flex-shrink: 0; }
+/* Bolinhas clicáveis: SEMPRE circulares (estilo original), só escalonam tamanho */
+.rm-row-sub    .rm-ms-dot { width: 14px; height: 14px; box-shadow: 0 1px 4px rgba(30,20,60,.25), 0 0 0 2px rgba(255,255,255,.5); }
+.rm-row-subsub .rm-ms-dot { width: 12px; height: 12px; box-shadow: 0 1px 3px rgba(30,20,60,.22), 0 0 0 1.5px rgba(255,255,255,.5); }
+.rm-row-level4 .rm-ms-dot { width: 10px; height: 10px; box-shadow: 0 1px 3px rgba(30,20,60,.20), 0 0 0 1.5px rgba(255,255,255,.5); }
 /* Indicadores: também viram quadradinhos, ligeiramente menores */
 .rm-row-sub    .rm-indicator { width: 8px;  height: 8px;  border-width: 1.3px; border-radius: 2px; }
 .rm-row-subsub .rm-indicator { width: 7px;  height: 7px;  border-width: 1.2px; border-radius: 1.8px; }
 .rm-row-level4 .rm-indicator { width: 6px;  height: 6px;  border-width: 1px;   border-radius: 1.5px; }
 /* sem hover scale na bolinha — antes era scale(1.15), causava sensação de "pulo" ao passar o mouse pela timeline */
 .rm-ms.done .rm-ms-dot { background: #fff; }
-.rm-ms.done .rm-ms-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--done); font-weight: 900; }
 /* Atrasado: bolinha vermelha sólida com triângulo SVG branco DENTRO, perfeitamente centralizado.
    SVG no background-image porque caractere ⚠ tem whitespace interno desbalanceado e nunca centraliza bem. */
 .rm-ms-dot.is-overdue {
@@ -371,12 +370,13 @@ table.data-table tr:hover td { background: var(--bg); }
 /* Tooltip antigo dentro da .rm-ms — REMOVIDO via JS (portalizado pra body, não corta) */
 .rm-ms-label { display: none !important; }
 /* Tooltip flutuante — fica no body, position fixed, jamais cortado por overflow */
-#rmFloatingTooltip { position: fixed; pointer-events: auto; background: #1a1828; border-radius: 10px; padding: 10px 14px 28px; box-shadow: 0 6px 20px rgba(0,0,0,.25); min-width: 200px; opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; z-index: 99999; font-family: inherit; }
+#rmFloatingTooltip { position: fixed; pointer-events: auto; background: #1a1828; border-radius: 10px; padding: 10px 36px 12px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25); min-width: 200px; opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; z-index: 99999; font-family: inherit; }
 #rmFloatingTooltip.show { opacity: 1; visibility: visible; }
-/* Botões 🔗 ✏️ ✕ do tooltip */
-#rmFloatingTooltip .tt-actions { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 1px; }
-#rmFloatingTooltip .tt-btn { width: 18px; height: 18px; border: none; background: transparent; color: rgba(255,255,255,.55); font-size: 10px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+/* Botões do tooltip — ícones brancos empilhados no canto direito */
+#rmFloatingTooltip .tt-actions { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 3px; }
+#rmFloatingTooltip .tt-btn { width: 20px; height: 20px; border: none; background: transparent; color: rgba(255,255,255,.6); cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; padding: 0; }
 #rmFloatingTooltip .tt-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+#rmFloatingTooltip .tt-btn svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; display: block; }
 #rmFloatingTooltip .tt-confirm { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
 #rmFloatingTooltip .tt-confirm-btn { padding: 3px 9px; border-radius: 5px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; }
 #rmFloatingTooltip .tt-confirm-yes { background: #dc2626; color: #fff; }
@@ -1650,9 +1650,9 @@ function _rmRenderTooltip() {
   if (_rmTtMode === 'view') {
     tt.innerHTML = `
       <div class="tt-actions">
-        <button class="tt-btn" data-act="copy" title="Copiar ID">🔗</button>
-        <button class="tt-btn" data-act="edit" title="Editar">✏️</button>
-        <button class="tt-btn" data-act="del"  title="Apagar">✕</button>
+        <button class="tt-btn" data-act="copy" title="Copiar ID"><svg viewBox="0 0 16 16"><path d="M9.5 6.5 L 13 3 a 2.5 2.5 0 0 1 3.5 3.5 L 13 10"/><path d="M6.5 9.5 L 3 13 a 2.5 2.5 0 0 0 3.5 3.5 L 10 13"/><path d="M6.5 9.5 L 9.5 6.5"/></svg></button>
+        <button class="tt-btn" data-act="edit" title="Editar"><svg viewBox="0 0 16 16"><path d="M11 2 L 14 5 L 5 14 L 2 14 L 2 11 Z"/><path d="M9 4 L 12 7"/></svg></button>
+        <button class="tt-btn" data-act="del"  title="Apagar"><svg viewBox="0 0 16 16"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg></button>
       </div>
       ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
       <div class="tt-title" style="padding-right:80px">${ms.label}</div>
@@ -1671,7 +1671,7 @@ function _rmRenderTooltip() {
     const dateStr = ms._date ? new Date(START_DATE.getTime() + Math.round(ms.m * 30.44) * 86400000).toISOString().slice(0,10) : '';
     tt.innerHTML = `
       <div class="tt-actions">
-        <button class="tt-btn" data-act="cancel-edit" title="Cancelar">✕</button>
+        <button class="tt-btn" data-act="cancel-edit" title="Cancelar"><svg viewBox="0 0 16 16"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg></button>
       </div>
       ${ms._parent ? `<div class="tt-parent">${ms._parent}</div>` : ''}
       <div class="tt-edit-row">
@@ -1807,10 +1807,10 @@ function makeMilestone(ms, color) {
       ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;z-index:1;">✓</span>`
       : '';
     const dotStyle = ms.status === 'done'
-      ? `background:${color};border:1.5px solid ${color};`
+      ? `background:${color};`
       : isOverdue
         ? '' // .is-overdue cuida (vermelho sólido)
-        : `background:#fff;border:1.5px solid ${color};`;
+        : `background: radial-gradient(circle, rgba(168,158,184,0.3) 0%, rgba(168,158,184,0.3) 32%, #fff 32%, #fff 100%);`;
     el.innerHTML = `${tooltipHtml}<div class="${dotClass}" style="position:relative;${dotStyle}">${inner}</div>`;
   }
   _renderInner();
