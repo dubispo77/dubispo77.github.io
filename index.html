@@ -152,12 +152,18 @@
       transition: opacity 0.5s ease;
     }
     .hero-video.is-playing { opacity: 1; }
+    .hero-video { pointer-events: none !important; }
+    .hero-video::-webkit-media-controls,
     .hero-video::-webkit-media-controls-panel,
     .hero-video::-webkit-media-controls-start-playback-button,
-    .hero-video::-webkit-media-controls {
+    .hero-video::-webkit-media-controls-overlay-play-button,
+    .hero-video::-webkit-media-controls-overlay-enclosure,
+    .hero-video::-webkit-media-controls-enclosure,
+    .hero-video::-internal-media-controls-overlay-cast-button {
       display: none !important;
       -webkit-appearance: none !important;
       opacity: 0 !important;
+      pointer-events: none !important;
     }
     .hero-video-mobile { display: none; }
 
@@ -1279,11 +1285,11 @@
   <!-- HERO -->
   <section id="hero">
     <!-- VIDEO: mp4 para Chrome/Firefox, YouTube para Safari -->
-    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg" disableRemotePlayback>
-      <source src="hero-720.mp4" type="video/mp4">
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
+      <source src="hero-720.mp4#t=0.001" type="video/mp4">
     </video>
-    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg" disableRemotePlayback>
-      <source src="hero-720-v.mp4" type="video/mp4">
+    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
+      <source src="hero-720-v.mp4#t=0.001" type="video/mp4">
     </video>
     <script>
     (function(){
@@ -1293,21 +1299,27 @@
         v.muted = true;
         v.defaultMuted = true;
         v.controls = false;
-        v.setAttribute('muted','');
-        v.setAttribute('playsinline','');
+        v.removeAttribute('controls');
         function onPlaying(){
           v.controls = false;
-          v.style.pointerEvents = 'none';
+          v.removeAttribute('controls');
           v.classList.add('is-playing');
         }
+        function onPause(){
+          // Se Safari bloquear autoplay e mostrar overlay de play, esconde o vídeo
+          // e deixa só o poster do #hero aparecer (sem botão de play em cima).
+          v.classList.remove('is-playing');
+        }
         v.addEventListener('playing', onPlaying);
+        v.addEventListener('pause', onPause);
         var retries = 0;
         function tryPlay(){
-          if(retries++ > 30) return;
+          if(retries++ > 40) return;
           v.muted = true;
+          v.controls = false;
           var p = v.play();
           if(p && typeof p.then === 'function'){
-            p.then(onPlaying).catch(function(){ setTimeout(tryPlay, 200); });
+            p.then(onPlaying).catch(function(){ setTimeout(tryPlay, 250); });
           }
         }
         v.addEventListener('canplay', tryPlay);
@@ -1315,16 +1327,14 @@
         if(v.readyState >= 2) tryPlay();
         setTimeout(tryPlay, 100);
       });
-      // Safari/iOS às vezes só libera autoplay após primeira interação — já tenta no primeiro toque/scroll
+      // Safari/iOS às vezes só libera autoplay após primeira interação
       function kick(){
-        videos.forEach(function(v){ if(v){ v.muted = true; var p = v.play(); if(p && p.catch) p.catch(function(){}); } });
-        document.removeEventListener('touchstart', kick);
-        document.removeEventListener('click', kick);
-        document.removeEventListener('scroll', kick);
+        videos.forEach(function(v){ if(v){ v.muted = true; v.controls = false; var p = v.play(); if(p && p.catch) p.catch(function(){}); } });
       }
       document.addEventListener('touchstart', kick, { passive: true });
       document.addEventListener('click', kick);
-      document.addEventListener('scroll', kick, { passive: true });
+      document.addEventListener('scroll', kick, { passive: true, once: true });
+      document.addEventListener('mousemove', kick, { passive: true, once: true });
     })();
     </script>
     <div class="hero-overlay"></div>
