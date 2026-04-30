@@ -653,27 +653,32 @@ table.data-table tr:hover td { background: var(--bg); }
   .login-card { max-width: 92%; padding: 28px 22px; }
   .login-title { font-size: 20px; }
 
-  /* Roadmap — versão simplificada no celular.
-     A timeline horizontal não funciona em tela pequena.
-     Aqui só esconde a parte da timeline, mostra só os labels (left).
-     Versão otimizada (cards verticais) virá em outra fase. */
-  .rm-wrap { overflow-x: auto; }
+  /* Roadmap mobile: esconde estrutura desktop e mostra a lista vertical (#rmMobileList) */
+  #rmBody { display: none; }
   .rm-axis-row { display: none; }
   #rmTodayLine { display: none; }
   .rm-corner { display: none; }
-  .rm-area-block { font-size: 14px; }
-  .rm-area-header { padding: 10px 12px; }
-  .rm-area-name { font-size: 14px; }
-  .rmah-chips { display: none; } /* esconde chips no mobile pra não vazar */
-  .rm-row { padding: 8px 12px; min-height: auto; }
-  .rm-left { width: auto !important; min-width: 0; padding: 6px 0; }
-  .rm-track { display: none; } /* esconde a track horizontal no mobile */
-  .rm-bar  { display: none; }
-  /* Os milestones (bolinhas) — esconde por enquanto, vão pra cards verticais depois */
-  .rm-ms { position: static; transform: none; margin: 4px; }
-  .rm-ms-label { display: none; }
-  .level4-left, .subsub-left, .sub-left { padding-left: 8px; }
+  .rm-wrap { overflow-x: hidden; }
+  #rmMobileList { display: block; }
 }
+
+/* Roadmap mobile — lista vertical de milestones agrupados por área */
+.rm-mobile-list { display: none; padding: 8px; }
+.rmm-area { margin-bottom: 18px; }
+.rmm-area-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; cursor: pointer; user-select: none; }
+.rmm-area-emoji { font-size: 20px; }
+.rmm-area-name { font-size: 14px; font-weight: 700; color: #1f2937; flex: 1; }
+.rmm-area-count { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.06); color: #6b7280; }
+.rmm-cards { display: flex; flex-direction: column; gap: 6px; padding: 10px 4px 0; }
+.rmm-area:not(.open) .rmm-cards { display: none; }
+.rmm-card { background: var(--card); border: 0.5px solid var(--border); border-left: 3px solid; border-radius: 8px; padding: 10px 12px; position: relative; }
+.rmm-card.is-done { opacity: .6; }
+.rmm-card-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+.rmm-card-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.rmm-card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; line-height: 1.3; }
+.rmm-card-title.done { text-decoration: line-through; }
+.rmm-card-path { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .03em; line-height: 1.3; }
+.rmm-empty { padding: 16px 12px; font-size: 12px; color: var(--text-dim); text-align: center; }
 
 /* iPhone notch — respeita safe areas */
 @supports (padding: max(0px)) {
@@ -842,6 +847,7 @@ table.data-table tr:hover td { background: var(--bg); }
             <div id="rmTodayLine"></div>
             <div class="rm-axis-row" id="rmAxis" style="margin-left:220px;"></div>
             <div id="rmBody"></div>
+            <div id="rmMobileList" class="rm-mobile-list"></div>
           </div>
         </div>
       </div>
@@ -1372,6 +1378,7 @@ function extendTimelineToFitM(m) {
     if (inner) inner.style.width = totalWidth() + 'px';
     if (typeof buildAxis === 'function') buildAxis();
     if (typeof buildRoadmap === 'function') buildRoadmap();
+    if (typeof buildRoadmapMobile === 'function') buildRoadmapMobile();
     if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
   }
 }
@@ -2382,6 +2389,87 @@ function buildRoadmap() {
   });
 }
 
+// ── Versão mobile do roadmap: lista vertical de cards agrupados por área ──
+function buildRoadmapMobile() {
+  const body = document.getElementById('rmMobileList');
+  if (!body) return;
+  body.innerHTML = '';
+  const today = new Date();
+
+  function _msToDate(m) {
+    return new Date(START_DATE.getTime() + m * 30.44 * 24 * 3600 * 1000);
+  }
+  function _fmtDate(d) {
+    return `${String(d.getDate()).padStart(2,'0')}/${(d.toLocaleString('pt-BR',{month:'short'})).replace('.','')}`;
+  }
+  // Coleta todas as bolinhas leaf (clicáveis) com path completo
+  function _collectAll(items, area, pathArr) {
+    let out = [];
+    items.forEach(it => {
+      const newPath = [...pathArr, it.name];
+      (it.milestones || []).forEach(ms => {
+        out.push({ ms, area, path: newPath, color: area.color });
+      });
+      if (it.subs && it.subs.length) {
+        out = out.concat(_collectAll(it.subs, area, newPath));
+      }
+    });
+    return out;
+  }
+
+  (DATA || []).forEach(area => {
+    const allMs = _collectAll(area.subs || [], area, []);
+    allMs.sort((a, b) => (a.ms.m || 0) - (b.ms.m || 0));
+    const block = document.createElement('div');
+    block.className = 'rmm-area open';
+    const header = document.createElement('div');
+    header.className = 'rmm-area-header';
+    header.style.background = lightColor(area.color, 0.20);
+    header.style.borderLeft = `3px solid ${area.color}`;
+    header.innerHTML = `
+      <span class="rmm-area-emoji">${area.emoji || ''}</span>
+      <span class="rmm-area-name">${area.name}</span>
+      <span class="rmm-area-count">${allMs.length}</span>`;
+    header.addEventListener('click', () => block.classList.toggle('open'));
+    block.appendChild(header);
+
+    const cards = document.createElement('div');
+    cards.className = 'rmm-cards';
+    if (allMs.length === 0) {
+      cards.innerHTML = `<div class="rmm-empty">Sem itens</div>`;
+    } else {
+      allMs.forEach(({ ms, path, color }) => {
+        const card = document.createElement('div');
+        const isOverdue = ms.status !== 'done' && _msToDate(ms.m) < today;
+        const statusColor = ms.status === 'done' ? '#16a34a' : isOverdue ? '#dc2626' : '#f59e0b';
+        card.className = `rmm-card${ms.status === 'done' ? ' is-done' : ''}`;
+        card.style.borderLeftColor = color;
+        card.dataset.itemId = ms._itemId || ms.id;
+        card.innerHTML = `
+          <div class="rmm-card-meta">
+            <div class="rmm-card-status" style="background:${statusColor}"></div>
+            <span>${_fmtDate(_msToDate(ms.m))}</span>
+          </div>
+          <div class="rmm-card-title${ms.status === 'done' ? ' done' : ''}">${ms.label || ''}</div>
+          <div class="rmm-card-path">${path.join(' › ')}</div>`;
+        // Click: toggle status
+        card.addEventListener('click', async () => {
+          if (!window.sbClient) return;
+          const itemId = card.dataset.itemId;
+          if (!itemId) return;
+          const newStatus = ms.status === 'done' ? 'planned' : 'done';
+          await window.sbClient.from('items')
+            .update({ status: newStatus, progress: newStatus === 'done' ? 100 : 0 })
+            .eq('id', itemId);
+        });
+        cards.appendChild(card);
+      });
+    }
+    block.appendChild(cards);
+    body.appendChild(block);
+  });
+}
+
 function buildAxis() {
   const inner = document.getElementById('rmInner');
   inner.style.width = totalWidth()+'px';
@@ -2406,6 +2494,7 @@ document.getElementById('rmZoomLabel') && (document.getElementById('rmZoomLabel'
 
 buildAxis();
 buildRoadmap();
+buildRoadmapMobile();
 requestAnimationFrame(centerToday);
 
 // ── PERSISTÊNCIA DO ESTADO ABERTO/FECHADO entre refreshs (localStorage)
@@ -2714,6 +2803,7 @@ async function loadRoadmapFromItems() {
         if (rmBody) rmBody.innerHTML = '';
         buildAxis();
         buildRoadmap();
+        buildRoadmapMobile();
         if (typeof restaurarEstadoAberto === 'function') restaurarEstadoAberto();
       } catch(err) {
         console.error('[loadRoadmapFromItems] erro:', err);
