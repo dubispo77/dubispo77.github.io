@@ -1293,7 +1293,18 @@
     </video>
     <script>
     (function(){
+      var ua = navigator.userAgent;
+      var isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
       var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
+
+      if(isSafari){
+        // Safari bloqueia autoplay agressivamente e mostra um botão de play overlay
+        // que não dá pra esconder via CSS de forma confiável. Solução: remover o
+        // <video> do DOM. Fica só o poster do #hero (idêntico ao primeiro frame).
+        videos.forEach(function(v){ if(v && v.parentNode) v.parentNode.removeChild(v); });
+        return;
+      }
+
       videos.forEach(function(v){
         if(!v) return;
         v.muted = true;
@@ -1306,8 +1317,6 @@
           v.classList.add('is-playing');
         }
         function onPause(){
-          // Se Safari bloquear autoplay e mostrar overlay de play, esconde o vídeo
-          // e deixa só o poster do #hero aparecer (sem botão de play em cima).
           v.classList.remove('is-playing');
         }
         v.addEventListener('playing', onPlaying);
@@ -1327,14 +1336,6 @@
         if(v.readyState >= 2) tryPlay();
         setTimeout(tryPlay, 100);
       });
-      // Safari/iOS às vezes só libera autoplay após primeira interação
-      function kick(){
-        videos.forEach(function(v){ if(v){ v.muted = true; v.controls = false; var p = v.play(); if(p && p.catch) p.catch(function(){}); } });
-      }
-      document.addEventListener('touchstart', kick, { passive: true });
-      document.addEventListener('click', kick);
-      document.addEventListener('scroll', kick, { passive: true, once: true });
-      document.addEventListener('mousemove', kick, { passive: true, once: true });
     })();
     </script>
     <div class="hero-overlay"></div>
