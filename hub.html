@@ -656,12 +656,12 @@ table.data-table tr:hover td { background: var(--bg); }
   .login-title { font-size: 20px; }
 
   /* Roadmap mobile: esconde estrutura desktop e mostra a lista vertical (#rmMobileList) */
-  #rmBody { display: none !important; }
-  .rm-axis-row { display: none !important; }
-  #rmTodayLine { display: none !important; }
-  .rm-corner { display: none !important; }
+  #rmBody { display: none; }
+  .rm-axis-row { display: none; }
+  #rmTodayLine { display: none; }
+  .rm-corner { display: none; }
   .rm-wrap { overflow-x: hidden; }
-  .rm-mobile-list#rmMobileList { display: block !important; }
+  #rmMobileList { display: block; }
 }
 
 /* Roadmap mobile — lista vertical de milestones agrupados por área */
@@ -899,11 +899,7 @@ table.data-table tr:hover td { background: var(--bg); }
             <div id="rmTodayLine"></div>
             <div class="rm-axis-row" id="rmAxis" style="margin-left:220px;"></div>
             <div id="rmBody"></div>
-            <div id="rmMobileList" class="rm-mobile-list">
-              <div style="background:#fef3c7;color:#78350f;padding:14px 16px;border-radius:10px;font-family:-apple-system,system-ui,sans-serif;font-size:13px;font-weight:600;text-align:center;border:2px solid #d97706">
-                ⚠ Versão B-30/04-16h00 — se você está vendo essa caixa amarela, o cache atualizou. Se ela some, JS rodou. Se ela continua, JS não rodou.
-              </div>
-            </div>
+            <div id="rmMobileList" class="rm-mobile-list"></div>
           </div>
         </div>
       </div>
@@ -2660,17 +2656,6 @@ function _rmdOpenEstimPicker(itemId) {
 async function buildRoadmapMobile() {
   const body = document.getElementById('rmMobileList');
   if (!body) return;
-  try {
-    return await _buildRoadmapMobileInner(body);
-  } catch (err) {
-    console.error('[rmd] crash:', err);
-    body.innerHTML = `<div style="padding:24px 12px;background:#fef2f2;color:#991b1b;border-radius:10px;font-family:-apple-system,system-ui,sans-serif;font-size:12px;line-height:1.5">
-      <b>Erro ao montar dashboard:</b><br>${(err && err.message) || err}<br><br>
-      <small style="opacity:.7">${(err && err.stack ? String(err.stack).slice(0,400) : '')}</small>
-    </div>`;
-  }
-}
-async function _buildRoadmapMobileInner(body) {
   if (!_rmdSelectedDate) _rmdSelectedDate = new Date();
   if (!_rmdMonthCursor)  _rmdMonthCursor  = new Date();
 
