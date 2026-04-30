@@ -2353,8 +2353,8 @@ function makeSubRow(sub, color, isLast) {
 function buildRoadmap() {
   const body = document.getElementById('rmBody');
   DATA.forEach(area => {
-    // Tom mais saturado/vibrante (era 0.20, subiu pra 0.28)
-    const areaLight    = lightColor(area.color, 0.28);
+    // Tom mais saturado/vibrante
+    const areaLight    = lightColor(area.color, 0.35);
     const areaLightSub = areaLight;
     const block = document.createElement('div'); block.className = 'rm-area-block';
     if (area.id) block.dataset.areaId = area.id;
