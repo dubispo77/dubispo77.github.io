@@ -153,6 +153,18 @@
     }
     .hero-video.is-playing { opacity: 1; }
     .hero-video { pointer-events: none !important; }
+    .hero-img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      filter: blur(1px);
+      transform: scale(1.02);
+      pointer-events: none;
+      display: none;
+    }
+    .hero-img-mobile { display: none; }
     .hero-video::-webkit-media-controls,
     .hero-video::-webkit-media-controls-panel,
     .hero-video::-webkit-media-controls-start-playback-button,
@@ -1028,6 +1040,15 @@
         filter: none;
         transform: none;
       }
+      .hero-img-desktop { display: none !important; }
+      html.is-safari .hero-img-mobile {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        filter: none;
+        transform: none;
+      }
 
       /* Section headers mobile */
       .section-header {
@@ -1291,19 +1312,34 @@
     <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720-v.mp4#t=0.001" type="video/mp4">
     </video>
+    <img id="heroImgDesktop" class="hero-img hero-img-desktop" alt="" src="hero-loop.webp" decoding="async" fetchpriority="low">
+    <img id="heroImgMobile" class="hero-img hero-img-mobile" alt="" src="hero-loop-v.webp" decoding="async" fetchpriority="low">
     <script>
     (function(){
       var ua = navigator.userAgent;
       var isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
       var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
+      var imgs = [document.getElementById('heroImgDesktop'), document.getElementById('heroImgMobile')];
 
       if(isSafari){
-        // Safari bloqueia autoplay agressivamente e mostra um botão de play overlay
-        // que não dá pra esconder via CSS de forma confiável. Solução: remover o
-        // <video> do DOM. Fica só o poster do #hero (idêntico ao primeiro frame).
+        // Safari bloqueia autoplay agressivamente. Em vez de <video>, usamos
+        // WebP animado (anima sem botão de play, sem política de autoplay).
+        document.documentElement.classList.add('is-safari');
         videos.forEach(function(v){ if(v && v.parentNode) v.parentNode.removeChild(v); });
+        var isMobile = window.matchMedia('(max-width: 768px)').matches;
+        imgs.forEach(function(img){
+          if(!img) return;
+          var isDesktopImg = img.classList.contains('hero-img-desktop');
+          if(isMobile){
+            img.style.display = isDesktopImg ? 'none' : 'block';
+          } else {
+            img.style.display = isDesktopImg ? 'block' : 'none';
+          }
+        });
         return;
       }
+      // Não-Safari: remove os <img> de fallback
+      imgs.forEach(function(img){ if(img && img.parentNode) img.parentNode.removeChild(img); });
 
       videos.forEach(function(v){
         if(!v) return;
