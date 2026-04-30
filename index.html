@@ -1274,12 +1274,47 @@
 
   <!-- HERO -->
   <section id="hero">
-    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg">
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg" webkit-playsinline="true" x-webkit-airplay="deny" disableRemotePlayback>
       <source src="hero-720.mp4" type="video/mp4">
     </video>
-    <video class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg">
+    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg" webkit-playsinline="true" x-webkit-airplay="deny" disableRemotePlayback>
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
+    <script>
+    (function(){
+      var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
+      videos.forEach(function(v){
+        if(!v) return;
+        v.muted = true;
+        v.setAttribute('muted','');
+        v.playsInline = true;
+        function tryPlay(){
+          var p = v.play();
+          if(p && p.catch) p.catch(function(){
+            setTimeout(tryPlay, 500);
+          });
+        }
+        if(v.readyState >= 2){
+          tryPlay();
+        } else {
+          v.addEventListener('loadeddata', tryPlay, {once:true});
+          v.addEventListener('canplay', tryPlay, {once:true});
+        }
+        document.addEventListener('touchstart', function(){
+          v.muted = true;
+          tryPlay();
+        }, {once:true});
+        document.addEventListener('click', function(){
+          v.muted = true;
+          tryPlay();
+        }, {once:true});
+        document.addEventListener('scroll', function(){
+          v.muted = true;
+          tryPlay();
+        }, {once:true});
+      });
+    })();
+    </script>
     <div class="hero-overlay"></div>
     <div class="hero-vignette"></div>
     <div class="hero-grain"></div>
