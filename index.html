@@ -778,7 +778,7 @@
   .edu-wrap {
     width: calc(50% - 24px);
     margin-left: auto;
-    margin-top: 30px;
+    margin-top: 0;
   }
   .edu-grid {
     display: grid;
@@ -1271,44 +1271,52 @@
 
   <!-- HERO -->
   <section id="hero">
-    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg" webkit-playsinline="true" x-webkit-airplay="deny" disableRemotePlayback>
+    <video id="heroDesktop" class="hero-video hero-video-desktop" muted loop playsinline preload="auto" poster="hero-poster.jpg" webkit-playsinline="true" x-webkit-airplay="deny" disableRemotePlayback>
       <source src="hero-720.mp4" type="video/mp4">
     </video>
-    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg" webkit-playsinline="true" x-webkit-airplay="deny" disableRemotePlayback>
+    <video id="heroMobile" class="hero-video hero-video-mobile" muted loop playsinline preload="auto" poster="hero-poster.jpg" webkit-playsinline="true" x-webkit-airplay="deny" disableRemotePlayback>
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
     <script>
     (function(){
       var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
+      var maxRetries = 50;
       videos.forEach(function(v){
         if(!v) return;
+        v.defaultMuted = true;
         v.muted = true;
         v.setAttribute('muted','');
         v.playsInline = true;
+        v.controls = false;
+        var retries = 0;
         function tryPlay(){
+          if(retries++ > maxRetries) return;
+          v.muted = true;
           var p = v.play();
-          if(p && p.catch) p.catch(function(){
-            setTimeout(tryPlay, 300);
-          });
+          if(p !== undefined){
+            p.then(function(){
+              v.controls = false;
+              v.style.pointerEvents = 'none';
+            }).catch(function(){
+              setTimeout(tryPlay, 200);
+            });
+          }
         }
-        if(v.readyState >= 2){
-          tryPlay();
-        } else {
-          v.addEventListener('loadeddata', tryPlay, {once:true});
-          v.addEventListener('canplay', tryPlay, {once:true});
-        }
-        document.addEventListener('touchstart', function(){
-          v.muted = true;
-          tryPlay();
-        }, {once:true});
-        document.addEventListener('click', function(){
-          v.muted = true;
-          tryPlay();
-        }, {once:true});
-        document.addEventListener('scroll', function(){
-          v.muted = true;
-          tryPlay();
-        }, {once:true});
+        v.addEventListener('loadedmetadata', function(){ tryPlay(); });
+        v.addEventListener('loadeddata', function(){ tryPlay(); });
+        v.addEventListener('canplay', function(){ tryPlay(); });
+        v.addEventListener('canplaythrough', function(){ tryPlay(); });
+        if(v.readyState >= 1) tryPlay();
+        setTimeout(tryPlay, 100);
+        setTimeout(tryPlay, 500);
+        setTimeout(tryPlay, 1000);
+        setTimeout(tryPlay, 2000);
+        ['touchstart','click','scroll','mousemove','keydown'].forEach(function(evt){
+          document.addEventListener(evt, function(){
+            v.muted = true;
+            tryPlay();
+          }, {once:true, passive:true});
+        });
       });
     })();
     </script>
@@ -1658,7 +1666,7 @@
   </section>
 
   <!-- FORMAÇÃO -->
-  <section id="formacao" class="reveal" style="padding:0 4.5% 60px;margin-top:-30px;">
+  <section id="formacao" class="reveal" style="padding:0 4.5% 60px;margin-top:0;">
     <div class="sobre-timeline">
       <div class="edu-wrap">
       <h2>formação</h2>
