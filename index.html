@@ -153,19 +153,17 @@
     }
     .hero-video.is-playing { opacity: 1; }
     .hero-video { pointer-events: none !important; }
-    .hero-yt {
+    .hero-img {
       position: absolute;
-      top: 50%; left: 50%;
-      width: calc(100% + 200px);
-      height: calc(100% + 200px);
-      transform: translate(-50%, -50%);
-      pointer-events: none;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
       z-index: 0;
-      border: 0;
       filter: blur(1px);
+      transform: scale(1.02);
+      pointer-events: none;
       display: none;
     }
-    html.is-safari .hero-yt { display: block; }
     .hero-video::-webkit-media-controls,
     .hero-video::-webkit-media-controls-panel,
     .hero-video::-webkit-media-controls-start-playback-button,
@@ -1313,35 +1311,34 @@
     <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720-v.mp4#t=0.001" type="video/mp4">
     </video>
-    <iframe id="heroYT" class="hero-yt" title="" tabindex="-1" aria-hidden="true"
-      allow="autoplay; encrypted-media; picture-in-picture"
-      allowfullscreen
-      sandbox="allow-scripts allow-same-origin allow-presentation"
-      loading="eager"
-      src="about:blank"></iframe>
+    <img id="heroImgDesktop" class="hero-img hero-img-desktop" alt="" decoding="async">
+    <img id="heroImgMobile" class="hero-img hero-img-mobile" alt="" decoding="async">
     <script>
     (function(){
       var ua = navigator.userAgent;
       var isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
       var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
-      var ytFrame = document.getElementById('heroYT');
+      var imgs = [document.getElementById('heroImgDesktop'), document.getElementById('heroImgMobile')];
 
       if(isSafari){
-        // Safari bloqueia autoplay de <video> em alguns cenários. Cai no embed do
-        // YouTube (mesmo vídeo do hero) com allow=autoplay no iframe — autoplay
-        // muted+playsinline do YouTube funciona no Safari.
+        // Safari bloqueia autoplay de <video> e iframe cross-origin. WebP animado
+        // não conta como "mídia" pra política de autoplay — anima sempre.
         document.documentElement.classList.add('is-safari');
         videos.forEach(function(v){ if(v && v.parentNode) v.parentNode.removeChild(v); });
-        if(ytFrame){
-          var vid = '4k2yeaFZCtk';
-          ytFrame.src = 'https://www.youtube-nocookie.com/embed/' + vid +
-            '?autoplay=1&mute=1&controls=0&loop=1&playlist=' + vid +
-            '&playsinline=1&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0';
+        var isMobile = window.matchMedia('(max-width: 768px)').matches;
+        var dImg = document.getElementById('heroImgDesktop');
+        var mImg = document.getElementById('heroImgMobile');
+        if(isMobile){
+          if(dImg && dImg.parentNode) dImg.parentNode.removeChild(dImg);
+          if(mImg){ mImg.src = 'hero-loop-v.webp'; mImg.style.display = 'block'; }
+        } else {
+          if(mImg && mImg.parentNode) mImg.parentNode.removeChild(mImg);
+          if(dImg){ dImg.src = 'hero-loop.webp'; dImg.style.display = 'block'; }
         }
         return;
       }
-      // Não-Safari: remove o iframe do YT (não vai ser usado)
-      if(ytFrame && ytFrame.parentNode) ytFrame.parentNode.removeChild(ytFrame);
+      // Não-Safari: remove os <img> de fallback (Chrome/Firefox usam o <video>)
+      imgs.forEach(function(img){ if(img && img.parentNode) img.parentNode.removeChild(img); });
 
       videos.forEach(function(v){
         if(!v) return;
