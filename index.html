@@ -1279,83 +1279,52 @@
   <!-- HERO -->
   <section id="hero">
     <!-- VIDEO: mp4 para Chrome/Firefox, YouTube para Safari -->
-    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg">
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg" disableRemotePlayback>
       <source src="hero-720.mp4" type="video/mp4">
     </video>
-    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg">
+    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg" disableRemotePlayback>
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
-    <div id="ytPlayer" style="position:absolute;top:50%;left:50%;width:calc(100% + 200px);height:calc(100% + 200px);transform:translate(-50%,-50%);pointer-events:none;z-index:0;opacity:0;transition:opacity 0.5s ease;display:none;overflow:hidden;"></div>
     <script>
     (function(){
-      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
-
-      if(!isSafari){
-        videos.forEach(function(v){
-          if(!v) return;
-          v.muted = true;
-          v.defaultMuted = true;
+      videos.forEach(function(v){
+        if(!v) return;
+        v.muted = true;
+        v.defaultMuted = true;
+        v.controls = false;
+        v.setAttribute('muted','');
+        v.setAttribute('playsinline','');
+        function onPlaying(){
           v.controls = false;
-          function onPlaying(){
-            v.controls = false;
-            v.style.pointerEvents = 'none';
-            v.classList.add('is-playing');
+          v.style.pointerEvents = 'none';
+          v.classList.add('is-playing');
+        }
+        v.addEventListener('playing', onPlaying);
+        var retries = 0;
+        function tryPlay(){
+          if(retries++ > 30) return;
+          v.muted = true;
+          var p = v.play();
+          if(p && typeof p.then === 'function'){
+            p.then(onPlaying).catch(function(){ setTimeout(tryPlay, 200); });
           }
-          v.addEventListener('playing', onPlaying);
-          var retries = 0;
-          function tryPlay(){
-            if(retries++ > 30) return;
-            v.muted = true;
-            var p = v.play();
-            if(p) p.then(onPlaying).catch(function(){ setTimeout(tryPlay, 200); });
-          }
-          v.addEventListener('canplay', tryPlay);
-          if(v.readyState >= 3) tryPlay();
-          setTimeout(tryPlay, 100);
-        });
-      } else {
-        videos.forEach(function(v){ if(v) v.style.display = 'none'; });
-        var ytDiv = document.getElementById('ytPlayer');
-        ytDiv.style.display = 'block';
-        var tag = document.createElement('script');
-        tag.src = 'https://www.youtube.com/iframe_api';
-        document.head.appendChild(tag);
-        window.onYouTubeIframeAPIReady = function(){
-          new YT.Player('ytPlayer', {
-            videoId: '4k2yeaFZCtk',
-            playerVars: {
-              autoplay: 1,
-              mute: 1,
-              controls: 0,
-              showinfo: 0,
-              rel: 0,
-              loop: 1,
-              playlist: '4k2yeaFZCtk',
-              playsinline: 1,
-              modestbranding: 1,
-              disablekb: 1,
-              fs: 0,
-              iv_load_policy: 3,
-              origin: location.origin
-            },
-            events: {
-              onReady: function(e){
-                e.target.mute();
-                e.target.playVideo();
-              },
-              onStateChange: function(e){
-                if(e.data === YT.PlayerState.PLAYING){
-                  ytDiv.style.opacity = '1';
-                }
-                if(e.data === YT.PlayerState.ENDED){
-                  e.target.playVideo();
-                }
-              }
-            }
-          });
-        };
+        }
+        v.addEventListener('canplay', tryPlay);
+        v.addEventListener('loadeddata', tryPlay);
+        if(v.readyState >= 2) tryPlay();
+        setTimeout(tryPlay, 100);
+      });
+      // Safari/iOS às vezes só libera autoplay após primeira interação — já tenta no primeiro toque/scroll
+      function kick(){
+        videos.forEach(function(v){ if(v){ v.muted = true; var p = v.play(); if(p && p.catch) p.catch(function(){}); } });
+        document.removeEventListener('touchstart', kick);
+        document.removeEventListener('click', kick);
+        document.removeEventListener('scroll', kick);
       }
+      document.addEventListener('touchstart', kick, { passive: true });
+      document.addEventListener('click', kick);
+      document.addEventListener('scroll', kick, { passive: true });
     })();
     </script>
     <div class="hero-overlay"></div>
