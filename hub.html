@@ -10,7 +10,9 @@
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20180%20180'%3E%3Crect%20width='180'%20height='180'%20fill='%235b4fcf'/%3E%3Ctext%20x='50%25'%20y='62%25'%20font-size='110'%20text-anchor='middle'%20dominant-baseline='middle'%3E🏠%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon/icon-512.png">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -699,6 +701,31 @@ table.data-table tr:hover td { background: var(--bg); }
 .rmd-chip { padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; }
 .rmd-chip .rmd-emoji { font-size: 14px; }
 .rmd-empty-msg { padding: 16px 12px; font-size: 12px; color: #9ca3af; text-align: center; font-style: italic; }
+
+.rmd-cards-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.rmd-task-card { color: #fff; border-radius: 14px; overflow: visible; box-shadow: 0 2px 10px rgba(0,0,0,.08); position: relative; }
+.rmd-task-head { background: rgba(0,0,0,.18); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; border-radius: 14px 14px 0 0; }
+.rmd-task-head-left { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.rmd-task-head-emoji { font-size: 14px; }
+.rmd-task-head-right { display: flex; align-items: center; gap: 8px; }
+.rmd-task-counter { font-size: 9px; opacity: .85; font-weight: 500; }
+.rmd-task-arrows { display: flex; gap: 6px; color: rgba(255,255,255,.55); font-size: 14px; line-height: 1; }
+.rmd-task-arrow { cursor: pointer; padding: 2px 4px; user-select: none; }
+.rmd-task-arrow:active { color: #fff; }
+.rmd-task-body { padding: 12px 14px 12px; }
+.rmd-task-path { font-size: 9px; opacity: .8; line-height: 1.35; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+.rmd-task-time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 8px; letter-spacing: -.01em; color: rgba(255,255,255,.55); }
+.rmd-task-title { font-size: 16px; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 42px; }
+.rmd-task-foot { display: flex; align-items: center; padding-top: 10px; margin-top: 6px; border-top: 0.5px solid rgba(255,255,255,.18); }
+.rmd-task-status { display: flex; align-items: center; gap: 5px; font-size: 10px; opacity: .85; }
+.rmd-task-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; opacity: .85; }
+.rmd-task-card.is-done { opacity: .6; }
+.rmd-task-card.is-done .rmd-task-title { text-decoration: line-through; }
+.rmd-task-actions { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); display: flex; gap: 3px; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity .15s; background: #1a1828; padding: 4px 6px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+.rmd-task-card.show-actions .rmd-task-actions { opacity: 1; pointer-events: auto; }
+.rmd-task-actions .rmd-act-btn { width: 22px; height: 22px; border: none; background: transparent; color: rgba(255,255,255,.65); cursor: pointer; border-radius: 4px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.rmd-task-actions .rmd-act-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+.rmd-task-actions svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 /* iPhone notch — respeita safe areas */
 @supports (padding: max(0px)) {
@@ -2381,12 +2408,14 @@ function buildRoadmap() {
 
 // ── Mobile dashboard (Fase 5c): 7 dias + 4 stats + countdown próxima + chips por área ──
 const RMD_AREA_DEF = {
-  saude:    { emoji: '🏋️', color: '#16a34a', bg: 'rgba(239,68,68,.25)',  fg: '#991b1b' },
-  trabalho: { emoji: '💼', color: '#2563eb', bg: 'rgba(59,130,246,.25)', fg: '#1e3a8a' },
-  financas: { emoji: '💰', color: '#d97706', bg: 'rgba(249,115,22,.25)', fg: '#7c2d12' },
-  rotina:   { emoji: '📅', color: '#0891b2', bg: 'rgba(250,204,21,.32)', fg: '#713f12' },
-  pessoal:  { emoji: '🌿', color: '#7c3aed', bg: 'rgba(139,92,246,.25)', fg: '#5b21b6' }
+  saude:    { emoji: '🏋️', name: 'Saúde',    color: '#16a34a', bg: 'rgba(239,68,68,.25)',  fg: '#991b1b' },
+  trabalho: { emoji: '💼', name: 'Trabalho', color: '#2563eb', bg: 'rgba(59,130,246,.25)', fg: '#1e3a8a' },
+  financas: { emoji: '💰', name: 'Finanças', color: '#d97706', bg: 'rgba(249,115,22,.25)', fg: '#7c2d12' },
+  rotina:   { emoji: '📅', name: 'Rotina',   color: '#0891b2', bg: 'rgba(250,204,21,.32)', fg: '#713f12' },
+  pessoal:  { emoji: '🌿', name: 'Pessoal',  color: '#7c3aed', bg: 'rgba(139,92,246,.25)', fg: '#5b21b6' }
 };
+const _rmdCardIdx = {};
+let _rmdProjects = null;
 const RMD_DOW = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
 let _rmdSelectedDate = null; // hoje por default
 let _rmdMonthCursor  = null;
@@ -2412,6 +2441,143 @@ function _rmdFmtTime(iso) {
 }
 function _rmdEsc(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+// Long press 600ms num .rmd-task-card abre .rmd-task-actions; toque fora fecha
+(function setupRmdLongPress() {
+  let lpTimer = null;
+  let lpStartXY = null;
+  let lpCard = null;
+  function startTimer(card, x, y) {
+    lpStartXY = { x, y };
+    lpCard = card;
+    if (lpTimer) clearTimeout(lpTimer);
+    lpTimer = setTimeout(() => {
+      document.querySelectorAll('.rmd-task-card.show-actions').forEach(c => { if (c !== card) c.classList.remove('show-actions'); });
+      card.classList.add('show-actions');
+    }, 600);
+  }
+  function cancelTimer() {
+    if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+    lpStartXY = null; lpCard = null;
+  }
+  document.addEventListener('touchstart', e => {
+    const card = e.target.closest && e.target.closest('.rmd-task-card');
+    if (!card) return;
+    if (e.target.closest('.rmd-task-arrow') || e.target.closest('.rmd-task-actions')) return;
+    const t = e.touches[0]; startTimer(card, t.clientX, t.clientY);
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!lpStartXY) return;
+    const t = e.touches[0];
+    if (Math.hypot(t.clientX - lpStartXY.x, t.clientY - lpStartXY.y) > 8) cancelTimer();
+  }, { passive: true });
+  document.addEventListener('touchend', cancelTimer);
+  document.addEventListener('mousedown', e => {
+    const card = e.target.closest && e.target.closest('.rmd-task-card');
+    if (!card) return;
+    if (e.target.closest('.rmd-task-arrow') || e.target.closest('.rmd-task-actions')) return;
+    startTimer(card, e.clientX, e.clientY);
+  });
+  document.addEventListener('mouseup', cancelTimer);
+  document.addEventListener('mousemove', e => {
+    if (!lpStartXY) return;
+    if (Math.hypot(e.clientX - lpStartXY.x, e.clientY - lpStartXY.y) > 8) cancelTimer();
+  });
+  document.addEventListener('click', e => {
+    if (e.target.closest('.rmd-task-card')) return;
+    document.querySelectorAll('.rmd-task-card.show-actions').forEach(c => c.classList.remove('show-actions'));
+  });
+})();
+
+// Click nos botões de ação (toggle, copy, del) dentro de .rmd-task-actions
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('.rmd-act-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  const card = btn.closest('.rmd-task-card');
+  const id = card?.dataset.itemId;
+  const act = btn.dataset.act;
+  const sb = window.sbClient;
+  if (!sb || !id) return;
+  if (act === 'copy') {
+    if (window.copyItemId) window.copyItemId(id, btn);
+    return;
+  }
+  if (act === 'toggle') {
+    const isDone = card.classList.contains('is-done');
+    const newStatus = isDone ? 'planned' : 'done';
+    await sb.from('items').update({ status: newStatus, done_at: newStatus === 'done' ? new Date().toISOString() : null }).eq('id', id);
+    card.classList.remove('show-actions');
+    if (typeof buildRoadmapMobile === 'function') buildRoadmapMobile();
+    return;
+  }
+  if (act === 'del') {
+    if (!confirm('Apagar este item?')) return;
+    await sb.from('items').delete().eq('id', id);
+    card.classList.remove('show-actions');
+    if (typeof buildRoadmapMobile === 'function') buildRoadmapMobile();
+    return;
+  }
+});
+
+function _rmdRenderCards(items, byArea) {
+  if (!items || items.length === 0) {
+    return `<div class="rmd-empty-msg">Sem tarefas neste dia</div>`;
+  }
+  const itemsByArea = {};
+  items.forEach(it => {
+    if (!itemsByArea[it.area]) itemsByArea[it.area] = [];
+    itemsByArea[it.area].push(it);
+  });
+  Object.values(itemsByArea).forEach(list => list.sort((a, b) => {
+    const ta = a.has_time ? new Date(a.date_start).getTime() : Infinity;
+    const tb = b.has_time ? new Date(b.date_start).getTime() : Infinity;
+    return ta - tb;
+  }));
+  const order = ['saude', 'trabalho', 'financas', 'rotina', 'pessoal'];
+  return order.filter(area => (itemsByArea[area] || []).length > 0).map(area => {
+    const def = RMD_AREA_DEF[area];
+    const tasks = itemsByArea[area];
+    if (!_rmdCardIdx[area] || _rmdCardIdx[area] >= tasks.length) _rmdCardIdx[area] = 0;
+    const idx = _rmdCardIdx[area];
+    const t = tasks[idx];
+    const now = new Date();
+    const isOverdue = t.status === 'planned' && new Date(t.date_start) < now;
+    const statusText = t.status === 'done' ? 'concluída' : isOverdue ? 'atrasada' : 'planejada';
+    const projName = (_rmdProjects && _rmdProjects[t.project_id]) ? _rmdProjects[t.project_id].name : '';
+    const path = projName ? `${def.name} › ${projName}` : def.name;
+    const time = t.has_time ? _rmdFmtTime(t.date_start) : '—';
+    const doneCls = t.status === 'done' ? ' is-done' : '';
+    return `<div class="rmd-task-card${doneCls}" data-area="${area}" data-item-id="${t.id}" style="background:${def.color}">
+      <div class="rmd-task-head">
+        <div class="rmd-task-head-left"><span class="rmd-task-head-emoji">${def.emoji}</span>${def.name}</div>
+        <div class="rmd-task-head-right">
+          <span class="rmd-task-counter">${idx + 1}/${tasks.length}</span>
+          <div class="rmd-task-arrows">
+            <span class="rmd-task-arrow" data-act="prev-task" data-area="${area}" data-max="${tasks.length}">‹</span>
+            <span class="rmd-task-arrow" data-act="next-task" data-area="${area}" data-max="${tasks.length}">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="rmd-task-body">
+        <div class="rmd-task-path">${_rmdEsc(path)}</div>
+        <div class="rmd-task-time">${time}</div>
+        <div class="rmd-task-title">${_rmdEsc(t.title || '')}</div>
+        <div class="rmd-task-foot">
+          <div class="rmd-task-status">
+            <div class="rmd-task-status-dot"></div>
+            <span>${statusText}</span>
+          </div>
+        </div>
+      </div>
+      <div class="rmd-task-actions">
+        <button class="rmd-act-btn" data-act="toggle" title="${t.status === 'done' ? 'Desfazer' : 'Concluir'}"><svg viewBox="0 0 16 16"><path d="M3 8 L 7 12 L 13 4"/></svg></button>
+        <button class="rmd-act-btn" data-act="copy" title="Copiar ID"><svg viewBox="0 0 16 16"><path d="M9.5 6.5 L 13 3 a 2.5 2.5 0 0 1 3.5 3.5 L 13 10"/><path d="M6.5 9.5 L 3 13 a 2.5 2.5 0 0 0 3.5 3.5 L 10 13"/><path d="M6.5 9.5 L 9.5 6.5"/></svg></button>
+        <button class="rmd-act-btn" data-act="del" title="Apagar"><svg viewBox="0 0 16 16"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg></button>
+      </div>
+    </div>`;
+  }).join('') || `<div class="rmd-empty-msg">Sem tarefas neste dia</div>`;
+}
+
 async function buildRoadmapMobile() {
   const body = document.getElementById('rmMobileList');
   if (!body) return;
@@ -2429,13 +2595,19 @@ async function buildRoadmapMobile() {
     try {
       const ds = new Date(sel); ds.setHours(0,0,0,0);
       const de = new Date(sel); de.setHours(23,59,59,999);
-      const [iq, oq] = await Promise.all([
-        sb.from('items').select('id,title,area,date_start,has_time,status').eq('is_roadmap', false)
+      const queries = [
+        sb.from('items').select('id,title,area,project_id,date_start,has_time,status').eq('is_roadmap', false)
           .gte('date_start', ds.toISOString()).lt('date_start', de.toISOString()).order('date_start'),
         sb.from('items').select('id').eq('is_roadmap', false).eq('status', 'planned').lt('date_start', now.toISOString())
-      ]);
-      items = iq.data || [];
-      overdueItems = oq.data || [];
+      ];
+      if (!_rmdProjects) queries.push(sb.from('projects').select('id,name'));
+      const results = await Promise.all(queries);
+      items = results[0].data || [];
+      overdueItems = results[1].data || [];
+      if (results[2]) {
+        _rmdProjects = {};
+        (results[2].data || []).forEach(p => _rmdProjects[p.id] = p);
+      }
     } catch(err) { console.warn('[rmd] erro:', err); }
   }
 
@@ -2505,9 +2677,12 @@ async function buildRoadmapMobile() {
       <div class="rmd-chips">
         ${Object.entries(byArea).map(([area, count]) => {
           const def = RMD_AREA_DEF[area]; if (!def) return '';
-          return `<span class="rmd-chip" style="background:${def.bg};color:${def.fg}"><span class="rmd-emoji">${def.emoji}</span>${count}</span>`;
+          return `<span class="rmd-chip" data-chip-area="${area}" style="background:${def.bg};color:${def.fg}"><span class="rmd-emoji">${def.emoji}</span>${count}</span>`;
         }).join('')}
       </div>
+    </div>
+    <div class="rmd-cards-stack">
+      ${_rmdRenderCards(items, byArea)}
     </div>
   `;
 
@@ -2525,6 +2700,28 @@ async function buildRoadmapMobile() {
   body.querySelector('[data-act="next-month"]')?.addEventListener('click', () => {
     _rmdMonthCursor = new Date(_rmdMonthCursor.getFullYear(), _rmdMonthCursor.getMonth() + 1, 1);
     _rmdSelectedDate = new Date(_rmdMonthCursor); buildRoadmapMobile();
+  });
+
+  body.querySelectorAll('.rmd-chip').forEach(el => {
+    el.addEventListener('click', () => {
+      const area = el.dataset.chipArea;
+      const card = body.querySelector(`.rmd-task-card[data-area="${area}"]`);
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  body.querySelectorAll('.rmd-task-arrow').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const area = el.dataset.area;
+      const act = el.dataset.act;
+      const max = parseInt(el.dataset.max, 10) || 1;
+      if (!_rmdCardIdx[area]) _rmdCardIdx[area] = 0;
+      _rmdCardIdx[area] = act === 'next-task'
+        ? (_rmdCardIdx[area] + 1) % max
+        : (_rmdCardIdx[area] - 1 + max) % max;
+      buildRoadmapMobile();
+    });
   });
 
   if (_rmdCountdownTimer) clearInterval(_rmdCountdownTimer);
