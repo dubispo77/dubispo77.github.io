@@ -1291,7 +1291,7 @@
         function tryPlay(){
           var p = v.play();
           if(p && p.catch) p.catch(function(){
-            setTimeout(tryPlay, 500);
+            setTimeout(tryPlay, 300);
           });
         }
         if(v.readyState >= 2){
