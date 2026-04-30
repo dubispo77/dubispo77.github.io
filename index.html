@@ -1277,60 +1277,84 @@
 
   <!-- HERO -->
   <section id="hero">
-    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg" webkit-playsinline="true" x-webkit-airplay="deny" disableRemotePlayback>
+    <!-- VIDEO: mp4 para Chrome/Firefox, YouTube para Safari -->
+    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720.mp4" type="video/mp4">
     </video>
-    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg" webkit-playsinline="true" x-webkit-airplay="deny" disableRemotePlayback>
+    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720-v.mp4" type="video/mp4">
     </video>
+    <div id="ytPlayer" style="position:absolute;top:50%;left:50%;width:calc(100% + 200px);height:calc(100% + 200px);transform:translate(-50%,-50%);pointer-events:none;z-index:0;opacity:0;transition:opacity 0.5s ease;display:none;overflow:hidden;"></div>
     <script>
     (function(){
+      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
-      var maxRetries = 50;
-      videos.forEach(function(v){
-        if(!v) return;
-        v.defaultMuted = true;
-        v.muted = true;
-        v.setAttribute('muted','');
-        v.playsInline = true;
-        v.controls = false;
-        var retries = 0;
-        var playing = false;
-        function onPlaying(){
-          if(playing) return;
-          playing = true;
-          v.controls = false;
-          v.style.pointerEvents = 'none';
-          v.classList.add('is-playing');
-        }
-        v.addEventListener('playing', onPlaying);
-        function tryPlay(){
-          if(playing || retries++ > maxRetries) return;
+
+      if(!isSafari){
+        videos.forEach(function(v){
+          if(!v) return;
           v.muted = true;
+          v.defaultMuted = true;
           v.controls = false;
-          var p = v.play();
-          if(p !== undefined){
-            p.then(onPlaying).catch(function(){
-              setTimeout(tryPlay, 200);
-            });
+          function onPlaying(){
+            v.controls = false;
+            v.style.pointerEvents = 'none';
+            v.classList.add('is-playing');
           }
-        }
-        v.addEventListener('loadedmetadata', function(){ tryPlay(); });
-        v.addEventListener('loadeddata', function(){ tryPlay(); });
-        v.addEventListener('canplay', function(){ tryPlay(); });
-        v.addEventListener('canplaythrough', function(){ tryPlay(); });
-        if(v.readyState >= 1) tryPlay();
-        setTimeout(tryPlay, 100);
-        setTimeout(tryPlay, 500);
-        setTimeout(tryPlay, 1000);
-        setTimeout(tryPlay, 2000);
-        ['touchstart','click','scroll','mousemove','keydown'].forEach(function(evt){
-          document.addEventListener(evt, function(){
+          v.addEventListener('playing', onPlaying);
+          var retries = 0;
+          function tryPlay(){
+            if(retries++ > 30) return;
             v.muted = true;
-            tryPlay();
-          }, {once:true, passive:true});
+            var p = v.play();
+            if(p) p.then(onPlaying).catch(function(){ setTimeout(tryPlay, 200); });
+          }
+          v.addEventListener('canplay', tryPlay);
+          if(v.readyState >= 3) tryPlay();
+          setTimeout(tryPlay, 100);
         });
-      });
+      } else {
+        videos.forEach(function(v){ if(v) v.style.display = 'none'; });
+        var ytDiv = document.getElementById('ytPlayer');
+        ytDiv.style.display = 'block';
+        var tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+        window.onYouTubeIframeAPIReady = function(){
+          new YT.Player('ytPlayer', {
+            videoId: '4k2yeaFZCtk',
+            playerVars: {
+              autoplay: 1,
+              mute: 1,
+              controls: 0,
+              showinfo: 0,
+              rel: 0,
+              loop: 1,
+              playlist: '4k2yeaFZCtk',
+              playsinline: 1,
+              modestbranding: 1,
+              disablekb: 1,
+              fs: 0,
+              iv_load_policy: 3,
+              origin: location.origin
+            },
+            events: {
+              onReady: function(e){
+                e.target.mute();
+                e.target.playVideo();
+              },
+              onStateChange: function(e){
+                if(e.data === YT.PlayerState.PLAYING){
+                  ytDiv.style.opacity = '1';
+                }
+                if(e.data === YT.PlayerState.ENDED){
+                  e.target.playVideo();
+                }
+              }
+            }
+          });
+        };
+      }
     })();
     </script>
     <div class="hero-overlay"></div>
