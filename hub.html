@@ -656,12 +656,12 @@ table.data-table tr:hover td { background: var(--bg); }
   .login-title { font-size: 20px; }
 
   /* Roadmap mobile: esconde estrutura desktop e mostra a lista vertical (#rmMobileList) */
-  #rmBody { display: none; }
-  .rm-axis-row { display: none; }
-  #rmTodayLine { display: none; }
-  .rm-corner { display: none; }
+  #rmBody { display: none !important; }
+  .rm-axis-row { display: none !important; }
+  #rmTodayLine { display: none !important; }
+  .rm-corner { display: none !important; }
   .rm-wrap { overflow-x: hidden; }
-  #rmMobileList { display: block; }
+  .rm-mobile-list#rmMobileList { display: block !important; }
 }
 
 /* Roadmap mobile — lista vertical de milestones agrupados por área */
