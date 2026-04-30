@@ -768,7 +768,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-dow-row { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); }
 .calM-dow { font-size: 10px; color: #6b7280; text-align: center; padding: 4px 0 8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
 .calM-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); grid-auto-rows: 1fr; border: 1.5px solid #b8b8be; border-radius: 8px; overflow: hidden; flex: 1; min-height: calc(100vh - 180px); }
-.calM-cell { background: #eeeef1; border-right: 1.5px solid #c8c8cc; border-bottom: 1.5px solid #c8c8cc; min-height: 180px; padding: 8px 9px; cursor: pointer; transition: background .12s; position: relative; }
+.calM-cell { background: #eeeef1; border-right: 1.5px solid #c8c8cc; border-bottom: 1.5px solid #c8c8cc; min-height: 200px; padding: 10px 12px; cursor: pointer; transition: background .12s; position: relative; }
 .calM-cell:nth-child(7n) { border-right: none; }
 .calM-cell:hover { background: #e6e6ea; }
 .calM-cell.is-out { background: #e0e0e4; cursor: default; }
@@ -779,10 +779,10 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
 .calM-num { font-size: 14px; font-weight: 800; padding: 2px 7px; border-radius: 999px; display: inline-block; min-width: 22px; text-align: center; color: #111827; }
-.calM-ev { position: relative; margin-top: 4px; padding: 5px 8px; border-radius: 5px; border-left: 3px solid; color: #fff; cursor: grab; }
+.calM-ev { position: relative; margin-top: 6px; padding: 9px 11px; border-radius: 7px; border-left: 4px solid; color: #fff; cursor: grab; min-height: 38px; }
 .calM-ev:active { cursor: grabbing; }
-.calM-ev .hr { font-size: 10px; opacity: .85; line-height: 1.15; display: block; font-weight: 500; }
-.calM-ev .ti { font-size: 12px; font-weight: 600; line-height: 1.3; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calM-ev .hr { font-size: 11px; opacity: .9; line-height: 1.2; display: block; font-weight: 500; }
+.calM-ev .ti { font-size: 14px; font-weight: 600; line-height: 1.3; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calM-ev.proj-pessoal  { background: #7c3aed; border-color: #5b21b6; }
 .calM-ev.proj-trabalho { background: #2563eb; border-color: #1e3a8a; }
 .calM-ev.proj-saude    { background: #16a34a; border-color: #14532d; }
