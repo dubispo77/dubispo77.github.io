@@ -663,22 +663,42 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 
 /* Roadmap mobile — lista vertical de milestones agrupados por área */
-.rm-mobile-list { display: none; padding: 8px; }
-.rmm-area { margin-bottom: 18px; }
-.rmm-area-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; cursor: pointer; user-select: none; }
-.rmm-area-emoji { font-size: 20px; }
-.rmm-area-name { font-size: 14px; font-weight: 700; color: #1f2937; flex: 1; }
-.rmm-area-count { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.06); color: #6b7280; }
-.rmm-cards { display: flex; flex-direction: column; gap: 6px; padding: 10px 4px 0; }
-.rmm-area:not(.open) .rmm-cards { display: none; }
-.rmm-card { background: var(--card); border: 0.5px solid var(--border); border-left: 3px solid; border-radius: 8px; padding: 10px 12px; position: relative; }
-.rmm-card.is-done { opacity: .6; }
-.rmm-card-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
-.rmm-card-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.rmm-card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; line-height: 1.3; }
-.rmm-card-title.done { text-decoration: line-through; }
-.rmm-card-path { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .03em; line-height: 1.3; }
-.rmm-empty { padding: 16px 12px; font-size: 12px; color: var(--text-dim); text-align: center; }
+.rm-mobile-list { display: none; padding: 12px 8px; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; }
+.rmd-frame { background: #fff; border-radius: 14px; padding: 14px 12px; box-shadow: 0 2px 12px rgba(0,0,0,.06); color: #1f2937; }
+.rmd-month-row { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 4px 10px; }
+.rmd-mbtn { width: 26px; height: 26px; border-radius: 50%; border: none; background: #f3f4f6; color: #1f2937; font-size: 14px; cursor: pointer; line-height: 1; padding: 0; }
+.rmd-mbtn:hover { background: #e5e7eb; }
+.rmd-mname { background: #f3f4f6; color: #1f2937; padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: capitalize; cursor: pointer; }
+.rmd-days-row { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 2px; margin-bottom: 14px; }
+.rmd-days-row::-webkit-scrollbar { display: none; }
+.rmd-day { text-align: center; padding: 4px 0; border-radius: 6px; flex: 1; min-width: 38px; cursor: pointer; user-select: none; transition: background .12s; }
+.rmd-day:hover { background: #f9fafb; }
+.rmd-day .rmd-dn { font-size: 8px; font-weight: 600; color: #9ca3af; text-transform: uppercase; }
+.rmd-day .rmd-dt { font-size: 11px; font-weight: 700; color: #9ca3af; }
+.rmd-day.is-today.is-selected { background: #7c3aed; }
+.rmd-day.is-today.is-selected .rmd-dn,
+.rmd-day.is-today.is-selected .rmd-dt { color: #fff; }
+.rmd-day.is-selected:not(.is-today) { background: #1f2937; }
+.rmd-day.is-selected:not(.is-today) .rmd-dn,
+.rmd-day.is-selected:not(.is-today) .rmd-dt { color: #fff; }
+.rmd-day.is-today:not(.is-selected) { border: 1.5px solid #7c3aed; padding: 2.5px 0; }
+.rmd-day.is-today:not(.is-selected) .rmd-dn,
+.rmd-day.is-today:not(.is-selected) .rmd-dt { color: #7c3aed; }
+.rmd-stats { display: grid; grid-template-columns: .85fr .85fr .85fr 1.6fr; gap: 4px; text-align: center; padding: 14px 0; border-top: 0.5px solid #e5e7eb; border-bottom: 0.5px solid #e5e7eb; }
+.rmd-stat { padding: 0 2px; }
+.rmd-num { font-size: 24px; font-weight: 700; line-height: 1; }
+.rmd-lbl { font-size: 9px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
+.rmd-next { border-left: 0.5px solid #e5e7eb; padding-left: 8px; text-align: left; }
+.rmd-cd { font-size: 20px; font-weight: 700; line-height: 1; color: #7c3aed; font-variant-numeric: tabular-nums; }
+.rmd-next-row { display: flex; align-items: flex-start; gap: 5px; margin-top: 5px; }
+.rmd-next-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.rmd-next-title { font-size: 11px; color: #1f2937; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rmd-next-time { font-size: 9px; color: #9ca3af; margin-top: 2px; padding-left: 11px; }
+.rmd-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding: 14px 0 4px; justify-content: center; }
+.rmd-chips::-webkit-scrollbar { display: none; }
+.rmd-chip { padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; }
+.rmd-chip .rmd-emoji { font-size: 14px; }
+.rmd-empty-msg { padding: 16px 12px; font-size: 12px; color: #9ca3af; text-align: center; font-style: italic; }
 
 /* iPhone notch — respeita safe areas */
 @supports (padding: max(0px)) {
@@ -856,49 +876,19 @@ table.data-table tr:hover td { background: var(--bg); }
     <!-- AGENDA -->
     <section id="agenda" class="section">
       <div class="section-header">
-        <div class="cal-header">
-          <div class="cal-header-left">
-            <div class="section-title">📅 Agenda</div>
-            <div class="cal-view-toggle">
-              <button class="cv-btn active" data-view="month" type="button">Mês</button>
-              <button class="cv-btn" data-view="week" type="button">Semana</button>
-            </div>
-            <button class="cal-chrono-toggle" id="calChronoToggle" type="button" title="Modo cronológico — mostra a partir de hoje">📌</button>
-          </div>
-          <div class="cal-nav">
-            <button class="cal-nav-btn" id="calPrev" type="button" aria-label="Anterior">‹</button>
-            <button class="cal-nav-btn cal-today-btn" id="calToday" type="button">Hoje</button>
-            <button class="cal-nav-btn" id="calNext" type="button" aria-label="Próximo">›</button>
-            <span class="cal-label" id="calLabel">abril 2026</span>
-          </div>
-        </div>
+        <div class="section-title">📅 Agenda</div>
+        <div class="section-subtitle">quinta-feira, 30 de abril de 2026</div>
       </div>
       <div class="section-body">
-        <div id="calContainer" class="cal-container"></div>
-        <div class="agenda-add-wrap">
-          <button class="agenda-add-btn" id="agendaAddBtn">＋ Adicionar item</button>
-          <div class="agenda-add-form" id="agendaAddForm" style="display:none;position:relative">
-            <button id="aafCloseX" type="button" title="Fechar" aria-label="Fechar"
-              style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:var(--bg);color:var(--text-faint);font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.08);z-index:5">✕</button>
-            <div class="aaf-row" style="padding-right:32px">
-              <input class="aaf-input" id="aafTitle" placeholder="O que?" style="flex:1;min-width:140px">
-              <select class="aaf-select" id="aafType">
-                <option value="task">✓ Tarefa</option>
-                <option value="event">📅 Evento</option>
-                <option value="bill">💸 Conta</option>
-                <option value="note">📝 Nota</option>
-              </select>
-            </div>
-            <div class="aaf-row">
-              <select class="aaf-select" id="aafProject" style="flex:1"></select>
-              <input class="aaf-input" id="aafDate" type="date" style="flex:1">
-              <input class="aaf-input" id="aafTime" type="time" placeholder="Hora" style="flex:1">
-            </div>
-            <div class="aaf-actions">
-              <button class="aaf-save" id="aafSave">Salvar</button>
-              <button class="aaf-cancel" id="aafCancel">Cancelar</button>
-            </div>
-          </div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" style="color:#7c3aed">1</div><div class="kpi-label">Hoje</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#2563eb">3</div><div class="kpi-label">Esta semana</div></div>
+          <div class="kpi"><div class="kpi-value" style="color:#ef4444">0</div><div class="kpi-label">Vencimentos</div></div>
+        </div>
+        <div class="event-block" style="border-left-color:#7c3aed;color:#7c3aed">
+          <div class="event-time">16h</div>
+          <div class="event-title" style="color:var(--text)">🦷 Doutora Glenda</div>
+          <div class="event-cal">Eventos</div>
         </div>
       </div>
     </section>
@@ -1215,9 +1205,9 @@ window.copyItemId = async function(id, btnEl) {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-04-29 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-04-30 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
-  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done',    cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG',  m:1.03, pos:'bot', status:'planned', cal:'Tarefas pessoais' },
 ];
 // CALENDAR_EVENTS_END
@@ -2389,85 +2379,163 @@ function buildRoadmap() {
   });
 }
 
-// ── Versão mobile do roadmap: lista vertical de cards agrupados por área ──
-function buildRoadmapMobile() {
+// ── Mobile dashboard (Fase 5c): 7 dias + 4 stats + countdown próxima + chips por área ──
+const RMD_AREA_DEF = {
+  saude:    { emoji: '🏋️', color: '#16a34a', bg: 'rgba(239,68,68,.25)',  fg: '#991b1b' },
+  trabalho: { emoji: '💼', color: '#2563eb', bg: 'rgba(59,130,246,.25)', fg: '#1e3a8a' },
+  financas: { emoji: '💰', color: '#d97706', bg: 'rgba(249,115,22,.25)', fg: '#7c2d12' },
+  rotina:   { emoji: '📅', color: '#0891b2', bg: 'rgba(250,204,21,.32)', fg: '#713f12' },
+  pessoal:  { emoji: '🌿', color: '#7c3aed', bg: 'rgba(139,92,246,.25)', fg: '#5b21b6' }
+};
+const RMD_DOW = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+let _rmdSelectedDate = null; // hoje por default
+let _rmdMonthCursor  = null;
+let _rmdCountdownTimer = null;
+
+function _rmdSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function _rmdFmtCountdown(diffMs) {
+  if (diffMs <= 0) return 'agora';
+  const totalMin = Math.floor(diffMs / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h >= 24) {
+    const d = Math.floor(h / 24);
+    return d === 1 ? '1 dia' : `${d} dias`;
+  }
+  return h > 0 ? `${h}h${String(m).padStart(2,'0')}` : `${m}min`;
+}
+function _rmdFmtTime(iso) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2,'0')}h${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function _rmdEsc(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function buildRoadmapMobile() {
   const body = document.getElementById('rmMobileList');
   if (!body) return;
-  body.innerHTML = '';
-  const today = new Date();
+  if (!_rmdSelectedDate) _rmdSelectedDate = new Date();
+  if (!_rmdMonthCursor)  _rmdMonthCursor  = new Date();
 
-  function _msToDate(m) {
-    return new Date(START_DATE.getTime() + m * 30.44 * 24 * 3600 * 1000);
-  }
-  function _fmtDate(d) {
-    return `${String(d.getDate()).padStart(2,'0')}/${(d.toLocaleString('pt-BR',{month:'short'})).replace('.','')}`;
-  }
-  // Coleta todas as bolinhas leaf (clicáveis) com path completo
-  function _collectAll(items, area, pathArr) {
-    let out = [];
-    items.forEach(it => {
-      const newPath = [...pathArr, it.name];
-      (it.milestones || []).forEach(ms => {
-        out.push({ ms, area, path: newPath, color: area.color });
-      });
-      if (it.subs && it.subs.length) {
-        out = out.concat(_collectAll(it.subs, area, newPath));
-      }
-    });
-    return out;
+  const sel = _rmdSelectedDate;
+  const mon = _rmdMonthCursor;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const now = new Date();
+
+  let items = [], overdueItems = [];
+  const sb = window.sbClient;
+  if (sb) {
+    try {
+      const ds = new Date(sel); ds.setHours(0,0,0,0);
+      const de = new Date(sel); de.setHours(23,59,59,999);
+      const [iq, oq] = await Promise.all([
+        sb.from('items').select('id,title,area,date_start,has_time,status').eq('is_roadmap', false)
+          .gte('date_start', ds.toISOString()).lt('date_start', de.toISOString()).order('date_start'),
+        sb.from('items').select('id').eq('is_roadmap', false).eq('status', 'planned').lt('date_start', now.toISOString())
+      ]);
+      items = iq.data || [];
+      overdueItems = oq.data || [];
+    } catch(err) { console.warn('[rmd] erro:', err); }
   }
 
-  (DATA || []).forEach(area => {
-    const allMs = _collectAll(area.subs || [], area, []);
-    allMs.sort((a, b) => (a.ms.m || 0) - (b.ms.m || 0));
-    const block = document.createElement('div');
-    block.className = 'rmm-area open';
-    const header = document.createElement('div');
-    header.className = 'rmm-area-header';
-    header.style.background = lightColor(area.color, 0.20);
-    header.style.borderLeft = `3px solid ${area.color}`;
-    header.innerHTML = `
-      <span class="rmm-area-emoji">${area.emoji || ''}</span>
-      <span class="rmm-area-name">${area.name}</span>
-      <span class="rmm-area-count">${allMs.length}</span>`;
-    header.addEventListener('click', () => block.classList.toggle('open'));
-    block.appendChild(header);
+  const feitas    = items.filter(i => i.status === 'done').length;
+  const pendentes = items.filter(i => i.status === 'planned').length;
+  const atrasadas = overdueItems.length;
+  const proxima   = items.find(i => i.status === 'planned' && new Date(i.date_start) >= now)
+                 || items.find(i => i.status === 'planned');
+  let countdownStr = '—', proximaCor = '#9ca3af', proximaTitle = 'sem próxima', proximaTime = '';
+  if (proxima) {
+    countdownStr = _rmdFmtCountdown(new Date(proxima.date_start) - now);
+    proximaCor = (RMD_AREA_DEF[proxima.area] || {}).color || '#7c3aed';
+    proximaTitle = proxima.title || '';
+    proximaTime = proxima.has_time ? _rmdFmtTime(proxima.date_start) : '';
+  }
 
-    const cards = document.createElement('div');
-    cards.className = 'rmm-cards';
-    if (allMs.length === 0) {
-      cards.innerHTML = `<div class="rmm-empty">Sem itens</div>`;
-    } else {
-      allMs.forEach(({ ms, path, color }) => {
-        const card = document.createElement('div');
-        const isOverdue = ms.status !== 'done' && _msToDate(ms.m) < today;
-        const statusColor = ms.status === 'done' ? '#16a34a' : isOverdue ? '#dc2626' : '#f59e0b';
-        card.className = `rmm-card${ms.status === 'done' ? ' is-done' : ''}`;
-        card.style.borderLeftColor = color;
-        card.dataset.itemId = ms._itemId || ms.id;
-        card.innerHTML = `
-          <div class="rmm-card-meta">
-            <div class="rmm-card-status" style="background:${statusColor}"></div>
-            <span>${_fmtDate(_msToDate(ms.m))}</span>
+  const byArea = { saude: 0, trabalho: 0, financas: 0, rotina: 0, pessoal: 0 };
+  items.forEach(i => byArea[i.area] = (byArea[i.area] || 0) + 1);
+
+  const dayOfWeek = sel.getDay();
+  const startOfWeek = new Date(sel); startOfWeek.setDate(sel.getDate() - dayOfWeek);
+  const days = []; for (let i = 0; i < 7; i++) { const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate() + i); days.push(d); }
+  const monthName = mon.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+
+  body.innerHTML = `
+    <div class="rmd-frame">
+      <div class="rmd-month-row">
+        <button class="rmd-mbtn" data-act="prev-month">‹</button>
+        <span class="rmd-mname">${monthName}</span>
+        <button class="rmd-mbtn" data-act="next-month">›</button>
+      </div>
+      <div class="rmd-days-row">
+        ${days.map(d => {
+          const isToday = _rmdSameDay(d, today);
+          const isSel = _rmdSameDay(d, sel);
+          let cls = 'rmd-day';
+          if (isSel) cls += ' is-selected';
+          if (isToday) cls += ' is-today';
+          return `<div class="${cls}" data-iso="${d.toISOString()}">
+            <div class="rmd-dn">${RMD_DOW[d.getDay()]}</div>
+            <div class="rmd-dt">${String(d.getDate()).padStart(2,'0')}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="rmd-stats">
+        <div class="rmd-stat">
+          <div class="rmd-num" style="color:#1f2937">${pendentes}</div>
+          <div class="rmd-lbl">pendentes</div>
+        </div>
+        <div class="rmd-stat">
+          <div class="rmd-num" style="color:#16a34a">${feitas}</div>
+          <div class="rmd-lbl" style="color:#16a34a">feitas</div>
+        </div>
+        <div class="rmd-stat">
+          <div class="rmd-num" style="color:#dc2626">${atrasadas}</div>
+          <div class="rmd-lbl" style="color:#dc2626">atrasada</div>
+        </div>
+        <div class="rmd-stat rmd-next">
+          <div class="rmd-cd" data-cd-iso="${proxima ? proxima.date_start : ''}">${countdownStr}</div>
+          <div class="rmd-next-row">
+            <div class="rmd-next-dot" style="background:${proximaCor}"></div>
+            <div class="rmd-next-title">${_rmdEsc(proximaTitle)}</div>
           </div>
-          <div class="rmm-card-title${ms.status === 'done' ? ' done' : ''}">${ms.label || ''}</div>
-          <div class="rmm-card-path">${path.join(' › ')}</div>`;
-        // Click: toggle status
-        card.addEventListener('click', async () => {
-          if (!window.sbClient) return;
-          const itemId = card.dataset.itemId;
-          if (!itemId) return;
-          const newStatus = ms.status === 'done' ? 'planned' : 'done';
-          await window.sbClient.from('items')
-            .update({ status: newStatus, progress: newStatus === 'done' ? 100 : 0 })
-            .eq('id', itemId);
-        });
-        cards.appendChild(card);
-      });
-    }
-    block.appendChild(cards);
-    body.appendChild(block);
+          ${proximaTime ? `<div class="rmd-next-time">${proximaTime}</div>` : ''}
+        </div>
+      </div>
+      <div class="rmd-chips">
+        ${Object.entries(byArea).map(([area, count]) => {
+          const def = RMD_AREA_DEF[area]; if (!def) return '';
+          return `<span class="rmd-chip" style="background:${def.bg};color:${def.fg}"><span class="rmd-emoji">${def.emoji}</span>${count}</span>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  body.querySelectorAll('.rmd-day').forEach(el => {
+    el.addEventListener('click', () => {
+      _rmdSelectedDate = new Date(el.dataset.iso);
+      _rmdMonthCursor = new Date(_rmdSelectedDate.getFullYear(), _rmdSelectedDate.getMonth(), 1);
+      buildRoadmapMobile();
+    });
   });
+  body.querySelector('[data-act="prev-month"]')?.addEventListener('click', () => {
+    _rmdMonthCursor = new Date(_rmdMonthCursor.getFullYear(), _rmdMonthCursor.getMonth() - 1, 1);
+    _rmdSelectedDate = new Date(_rmdMonthCursor); buildRoadmapMobile();
+  });
+  body.querySelector('[data-act="next-month"]')?.addEventListener('click', () => {
+    _rmdMonthCursor = new Date(_rmdMonthCursor.getFullYear(), _rmdMonthCursor.getMonth() + 1, 1);
+    _rmdSelectedDate = new Date(_rmdMonthCursor); buildRoadmapMobile();
+  });
+
+  if (_rmdCountdownTimer) clearInterval(_rmdCountdownTimer);
+  _rmdCountdownTimer = setInterval(() => {
+    const cdEl = document.querySelector('.rmd-cd');
+    if (!cdEl) return;
+    const iso = cdEl.dataset.cdIso;
+    if (!iso) return;
+    const newStr = _rmdFmtCountdown(new Date(iso) - new Date());
+    if (cdEl.textContent !== newStr) cdEl.textContent = newStr;
+  }, 30000);
 }
 
 function buildAxis() {
