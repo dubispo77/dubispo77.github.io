@@ -2324,8 +2324,8 @@ function makeSubRow(sub, color, isLast) {
 function buildRoadmap() {
   const body = document.getElementById('rmBody');
   DATA.forEach(area => {
-    const areaLight    = lightColor(area.color, 0.09);
-    // Mesma cor da área propagada pra todas as linhas descendentes (subs, subsubs, level4)
+    // Tom mais escuro alinhado com paleta da Agenda visual (mês) — cores mais saturadas
+    const areaLight    = lightColor(area.color, 0.20);
     const areaLightSub = areaLight;
     const block = document.createElement('div'); block.className = 'rm-area-block';
     if (area.id) block.dataset.areaId = area.id;
