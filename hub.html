@@ -717,9 +717,14 @@ table.data-table tr:hover td { background: var(--bg); }
 .rmd-task-time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 8px; letter-spacing: -.01em; color: rgba(255,255,255,.55); }
 .rmd-task-title { font-size: 16px; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 42px; }
 .rmd-task-foot { display: flex; align-items: center; padding-top: 10px; margin-top: 6px; border-top: 0.5px solid rgba(255,255,255,.18); }
-.rmd-task-status { display: flex; align-items: center; gap: 5px; font-size: 10px; opacity: .85; }
-.rmd-task-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; opacity: .85; }
-.rmd-task-card.is-done { opacity: .6; }
+.rmd-task-status { display: flex; align-items: center; gap: 8px; font-size: 10px; opacity: .85; }
+.rmd-task-status-dot { width: 4px; height: 18px; border-radius: 2px; background: #f59e0b; flex-shrink: 0; }
+.rmd-task-status-dot.is-overdue { background: #dc2626; }
+.rmd-task-status-dot.is-done { background: #fff; }
+.rmd-task-card.is-done { opacity: .4; }
+.rmd-task-estim { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; opacity: .55; vertical-align: middle; margin-left: 6px; }
+.rmd-task-estim svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.rmd-task-time .rmd-dash { opacity: .55; font-weight: 700; }
 .rmd-task-card.is-done .rmd-task-title { text-decoration: line-through; }
 .rmd-task-actions { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); display: flex; gap: 3px; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity .15s; background: #1a1828; padding: 4px 6px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
 .rmd-task-card.show-actions .rmd-task-actions { opacity: 1; pointer-events: auto; }
@@ -2502,6 +2507,11 @@ document.addEventListener('click', async e => {
     if (window.copyItemId) window.copyItemId(id, btn);
     return;
   }
+  if (act === 'estim') {
+    card.classList.remove('show-actions');
+    _rmdOpenEstimPicker(id);
+    return;
+  }
   if (act === 'toggle') {
     const isDone = card.classList.contains('is-done');
     const newStatus = isDone ? 'planned' : 'done';
@@ -2543,9 +2553,13 @@ function _rmdRenderCards(items, byArea) {
     const now = new Date();
     const isOverdue = t.status === 'planned' && new Date(t.date_start) < now;
     const statusText = t.status === 'done' ? 'concluída' : isOverdue ? 'atrasada' : 'planejada';
+    const dotCls = t.status === 'done' ? 'is-done' : isOverdue ? 'is-overdue' : '';
     const projName = (_rmdProjects && _rmdProjects[t.project_id]) ? _rmdProjects[t.project_id].name : '';
     const path = projName ? `${def.name} › ${projName}` : def.name;
-    const time = t.has_time ? _rmdFmtTime(t.date_start) : '—';
+    const timeStr = t.has_time ? _rmdFmtTime(t.date_start) : '<span class="rmd-dash">–</span>';
+    const estimStr = t.estimated_minutes
+      ? `<span class="rmd-task-estim"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>${_rmdFmtMin(t.estimated_minutes)}</span>`
+      : `<span class="rmd-task-estim"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg><span class="rmd-dash">–</span></span>`;
     const doneCls = t.status === 'done' ? ' is-done' : '';
     return `<div class="rmd-task-card${doneCls}" data-area="${area}" data-item-id="${t.id}" style="background:${def.color}">
       <div class="rmd-task-head">
@@ -2560,22 +2574,83 @@ function _rmdRenderCards(items, byArea) {
       </div>
       <div class="rmd-task-body">
         <div class="rmd-task-path">${_rmdEsc(path)}</div>
-        <div class="rmd-task-time">${time}</div>
+        <div class="rmd-task-time">${timeStr}${estimStr}</div>
         <div class="rmd-task-title">${_rmdEsc(t.title || '')}</div>
         <div class="rmd-task-foot">
           <div class="rmd-task-status">
-            <div class="rmd-task-status-dot"></div>
+            <div class="rmd-task-status-dot ${dotCls}"></div>
             <span>${statusText}</span>
           </div>
         </div>
       </div>
       <div class="rmd-task-actions">
         <button class="rmd-act-btn" data-act="toggle" title="${t.status === 'done' ? 'Desfazer' : 'Concluir'}"><svg viewBox="0 0 16 16"><path d="M3 8 L 7 12 L 13 4"/></svg></button>
+        <button class="rmd-act-btn" data-act="estim" title="Estimar duração"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5 V 8 L 10 9.5"/></svg></button>
         <button class="rmd-act-btn" data-act="copy" title="Copiar ID"><svg viewBox="0 0 16 16"><path d="M9.5 6.5 L 13 3 a 2.5 2.5 0 0 1 3.5 3.5 L 13 10"/><path d="M6.5 9.5 L 3 13 a 2.5 2.5 0 0 0 3.5 3.5 L 10 13"/><path d="M6.5 9.5 L 9.5 6.5"/></svg></button>
         <button class="rmd-act-btn" data-act="del" title="Apagar"><svg viewBox="0 0 16 16"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg></button>
       </div>
     </div>`;
   }).join('') || `<div class="rmd-empty-msg">Sem tarefas neste dia</div>`;
+}
+
+function _rmdFmtMin(min) {
+  if (min == null) return '';
+  if (min < 60) return min + 'min';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m === 0 ? h + 'h' : h + 'h' + String(m).padStart(2,'0');
+}
+
+function _rmdOpenEstimPicker(itemId) {
+  let picker = document.getElementById('rmdEstimPicker');
+  if (!picker) {
+    picker = document.createElement('div');
+    picker.id = 'rmdEstimPicker';
+    picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;';
+    document.body.appendChild(picker);
+  }
+  picker.innerHTML = `
+    <div style="background:#1a1828;color:#fff;border-radius:14px;padding:20px;max-width:300px;width:100%;font-family:-apple-system,system-ui,sans-serif">
+      <div style="font-size:11px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px;text-align:center">Quanto vai durar?</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px" id="rmdEstimOpts">
+        <button data-min="15"  style="background:rgba(255,255,255,.12);color:#fff;border:none;padding:8px 14px;border-radius:8px;font:inherit;font-size:12px;font-weight:600;cursor:pointer">15 min</button>
+        <button data-min="30"  style="background:rgba(255,255,255,.12);color:#fff;border:none;padding:8px 14px;border-radius:8px;font:inherit;font-size:12px;font-weight:600;cursor:pointer">30 min</button>
+        <button data-min="60"  style="background:rgba(255,255,255,.12);color:#fff;border:none;padding:8px 14px;border-radius:8px;font:inherit;font-size:12px;font-weight:600;cursor:pointer">1h</button>
+        <button data-min="120" style="background:rgba(255,255,255,.12);color:#fff;border:none;padding:8px 14px;border-radius:8px;font:inherit;font-size:12px;font-weight:600;cursor:pointer">2h</button>
+        <button data-min="240" style="background:rgba(255,255,255,.12);color:#fff;border:none;padding:8px 14px;border-radius:8px;font:inherit;font-size:12px;font-weight:600;cursor:pointer">4h</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px">
+        <input type="number" min="1" max="1440" placeholder="custom (min)" id="rmdEstimCustom" style="flex:1;padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:12px">
+        <button id="rmdEstimSave" style="background:#fff;color:#1a1828;border:none;padding:7px 14px;border-radius:6px;font:inherit;font-size:12px;font-weight:700;cursor:pointer">salvar</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px">
+        <button id="rmdEstimClear" style="background:transparent;color:rgba(255,255,255,.55);border:none;cursor:pointer;font:inherit;font-size:11px">limpar</button>
+        <button id="rmdEstimCancel" style="background:transparent;color:rgba(255,255,255,.55);border:none;cursor:pointer;font:inherit;font-size:11px">fechar</button>
+      </div>
+    </div>`;
+  const close = () => picker.remove();
+  picker.addEventListener('click', e => { if (e.target === picker) close(); });
+  picker.querySelector('#rmdEstimCancel').onclick = close;
+  picker.querySelector('#rmdEstimClear').onclick = async () => {
+    if (window.sbClient) await window.sbClient.from('items').update({ estimated_minutes: null }).eq('id', itemId);
+    close();
+    if (typeof buildRoadmapMobile === 'function') buildRoadmapMobile();
+  };
+  picker.querySelector('#rmdEstimSave').onclick = async () => {
+    const v = parseInt(picker.querySelector('#rmdEstimCustom').value, 10);
+    if (!v || v < 1) return;
+    if (window.sbClient) await window.sbClient.from('items').update({ estimated_minutes: v }).eq('id', itemId);
+    close();
+    if (typeof buildRoadmapMobile === 'function') buildRoadmapMobile();
+  };
+  picker.querySelectorAll('#rmdEstimOpts button').forEach(b => {
+    b.onclick = async () => {
+      const min = parseInt(b.dataset.min, 10);
+      if (window.sbClient) await window.sbClient.from('items').update({ estimated_minutes: min }).eq('id', itemId);
+      close();
+      if (typeof buildRoadmapMobile === 'function') buildRoadmapMobile();
+    };
+  });
 }
 
 async function buildRoadmapMobile() {
@@ -2596,7 +2671,7 @@ async function buildRoadmapMobile() {
       const ds = new Date(sel); ds.setHours(0,0,0,0);
       const de = new Date(sel); de.setHours(23,59,59,999);
       const queries = [
-        sb.from('items').select('id,title,area,project_id,date_start,has_time,status').eq('is_roadmap', false)
+        sb.from('items').select('id,title,area,project_id,date_start,has_time,status,estimated_minutes').eq('is_roadmap', false)
           .gte('date_start', ds.toISOString()).lt('date_start', de.toISOString()).order('date_start'),
         sb.from('items').select('id').eq('is_roadmap', false).eq('status', 'planned').lt('date_start', now.toISOString())
       ];
