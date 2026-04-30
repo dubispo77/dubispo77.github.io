@@ -899,7 +899,11 @@ table.data-table tr:hover td { background: var(--bg); }
             <div id="rmTodayLine"></div>
             <div class="rm-axis-row" id="rmAxis" style="margin-left:220px;"></div>
             <div id="rmBody"></div>
-            <div id="rmMobileList" class="rm-mobile-list"></div>
+            <div id="rmMobileList" class="rm-mobile-list">
+              <div style="padding:24px 12px;text-align:center;color:#9ca3af;font-size:13px;font-family:-apple-system,system-ui,sans-serif">
+                Carregando agenda do dia…
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2656,6 +2660,17 @@ function _rmdOpenEstimPicker(itemId) {
 async function buildRoadmapMobile() {
   const body = document.getElementById('rmMobileList');
   if (!body) return;
+  try {
+    return await _buildRoadmapMobileInner(body);
+  } catch (err) {
+    console.error('[rmd] crash:', err);
+    body.innerHTML = `<div style="padding:24px 12px;background:#fef2f2;color:#991b1b;border-radius:10px;font-family:-apple-system,system-ui,sans-serif;font-size:12px;line-height:1.5">
+      <b>Erro ao montar dashboard:</b><br>${(err && err.message) || err}<br><br>
+      <small style="opacity:.7">${(err && err.stack ? String(err.stack).slice(0,400) : '')}</small>
+    </div>`;
+  }
+}
+async function _buildRoadmapMobileInner(body) {
   if (!_rmdSelectedDate) _rmdSelectedDate = new Date();
   if (!_rmdMonthCursor)  _rmdMonthCursor  = new Date();
 
