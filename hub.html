@@ -767,8 +767,8 @@ table.data-table tr:hover td { background: var(--bg); }
 /* MÊS */
 .calM-dow-row { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); }
 .calM-dow { font-size: 10px; color: #6b7280; text-align: center; padding: 4px 0 8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
-.calM-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); grid-auto-rows: 1fr; border: 1.5px solid #b8b8be; border-radius: 8px; overflow: hidden; flex: 1; min-height: calc(100vh - 230px); }
-.calM-cell { background: #eeeef1; border-right: 1.5px solid #c8c8cc; border-bottom: 1.5px solid #c8c8cc; min-height: 130px; padding: 6px 7px; cursor: pointer; transition: background .12s; position: relative; }
+.calM-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); grid-auto-rows: 1fr; border: 1.5px solid #b8b8be; border-radius: 8px; overflow: hidden; flex: 1; min-height: calc(100vh - 180px); }
+.calM-cell { background: #eeeef1; border-right: 1.5px solid #c8c8cc; border-bottom: 1.5px solid #c8c8cc; min-height: 180px; padding: 8px 9px; cursor: pointer; transition: background .12s; position: relative; }
 .calM-cell:nth-child(7n) { border-right: none; }
 .calM-cell:hover { background: #e6e6ea; }
 .calM-cell.is-out { background: #e0e0e4; cursor: default; }
@@ -778,17 +778,17 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell.is-mes-end   { border-right: 3px solid #6b7280; }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
-.calM-num { font-size: 12px; font-weight: 800; padding: 1px 5px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
-.calM-ev { position: relative; margin-top: 3px; padding: 3px 6px; border-radius: 4px; border-left: 3px solid; color: #fff; cursor: grab; }
+.calM-num { font-size: 14px; font-weight: 800; padding: 2px 7px; border-radius: 999px; display: inline-block; min-width: 22px; text-align: center; color: #111827; }
+.calM-ev { position: relative; margin-top: 4px; padding: 5px 8px; border-radius: 5px; border-left: 3px solid; color: #fff; cursor: grab; }
 .calM-ev:active { cursor: grabbing; }
-.calM-ev .hr { font-size: 8px; opacity: .8; line-height: 1.1; display: block; font-weight: 500; }
-.calM-ev .ti { font-size: 10px; font-weight: 600; line-height: 1.25; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calM-ev .hr { font-size: 10px; opacity: .85; line-height: 1.15; display: block; font-weight: 500; }
+.calM-ev .ti { font-size: 12px; font-weight: 600; line-height: 1.3; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calM-ev.proj-pessoal  { background: #7c3aed; border-color: #5b21b6; }
 .calM-ev.proj-trabalho { background: #2563eb; border-color: #1e3a8a; }
 .calM-ev.proj-saude    { background: #16a34a; border-color: #14532d; }
 .calM-ev.proj-financas { background: #d97706; border-color: #78350f; }
 .calM-ev.proj-rotina   { background: #0891b2; border-color: #164e63; }
-.calM-more { display: inline-block; margin-top: 4px; font-size: 9px; color: #4b5563; padding: 1px 5px; background: #fff; border-radius: 4px; font-weight: 600; }
+.calM-more { display: inline-block; margin-top: 5px; font-size: 11px; color: #4b5563; padding: 2px 7px; background: #fff; border-radius: 5px; font-weight: 600; }
 .calM-ev.is-done { opacity: .55; text-decoration: line-through; }
 .calM-ev.is-overdue { border-left-color: #dc2626 !important; border-left-width: 4px !important; }
 .calM-ev .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 1px 4px; border-radius: 3px; font-size: 7px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1.1; pointer-events: none; }
@@ -5077,7 +5077,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         : d.getDate() === lastOfMonth.getDate());
       // Items: todos os dias quando chrono, só do mês ativo quando normal.
       const items = isOut ? [] : itemsForDate(d);
-      const visible = items.slice(0, 3);
+      const visible = items.slice(0, 5);
       const extra = items.length - visible.length;
       const evHtml = visible.map(it => {
         const klass = `calM-ev event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}`;
