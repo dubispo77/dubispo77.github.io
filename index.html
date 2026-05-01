@@ -13,6 +13,10 @@
   <meta property="og:url" content="https://eduardobispo.com.br">
   <title>Eduardo Bispo — Videomaker</title>
   <link rel="preload" as="video" href="video-horizontal.mp4" type="video/mp4">
+  <link rel="preconnect" href="https://player.vimeo.com" crossorigin>
+  <link rel="preconnect" href="https://i.vimeocdn.com" crossorigin>
+  <link rel="preconnect" href="https://f.vimeocdn.com" crossorigin>
+  <link rel="dns-prefetch" href="https://vod-progressive.akamaized.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Barlow+Condensed:wght@700;900&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -1328,35 +1332,39 @@
     <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720-v.mp4#t=0.001" type="video/mp4">
     </video>
-    <iframe id="heroYT" class="hero-yt" title="" tabindex="-1" aria-hidden="true"
+    <iframe id="heroYT" class="hero-yt is-ready" title="" tabindex="-1" aria-hidden="true"
       allow="autoplay; fullscreen; picture-in-picture"
       frameborder="0"
       loading="eager"
-      src="about:blank"></iframe>
+      src=""
+      data-src="https://player.vimeo.com/video/1188375830?background=1&autoplay=1&loop=1&muted=1&dnt=1&quality=720p"></iframe>
     <div class="hero-yt-shield" aria-hidden="true"></div>
     <script>
+    // Inline imediato pra começar a baixar o Vimeo no Safari assim que o
+    // iframe é parseado (antes mesmo do resto do JS rodar).
     (function(){
       var ua = navigator.userAgent;
       var isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
-      var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
-      var ytFrame = document.getElementById('heroYT');
-
+      var f = document.getElementById('heroYT');
       if(isSafari){
-        // Safari bloqueia autoplay de <video> próprio. Usa Vimeo background=1
-        // — modo oficial pra video background, sem controles, sem overlay,
-        // autoplay+loop+muted automáticos. Funciona limpo no Safari.
         document.documentElement.classList.add('is-safari');
+        if(f && f.dataset.src) f.src = f.dataset.src;
+      } else if(f && f.parentNode){
+        f.parentNode.removeChild(f);
+      }
+    })();
+    </script>
+    <script>
+    (function(){
+      var isSafari = document.documentElement.classList.contains('is-safari');
+      var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
+      if(isSafari){
+        // Safari já está usando o iframe Vimeo (setado no script inline acima).
+        // Remove os <video> que não vão tocar mesmo.
         videos.forEach(function(v){ if(v && v.parentNode) v.parentNode.removeChild(v); });
-        if(ytFrame){
-          var vid = '1188375830';
-          ytFrame.src = 'https://player.vimeo.com/video/' + vid +
-            '?background=1&autoplay=1&loop=1&muted=1&dnt=1';
-          ytFrame.classList.add('is-ready');
-        }
         return;
       }
-      // Não-Safari: remove o iframe do YT
-      if(ytFrame && ytFrame.parentNode) ytFrame.parentNode.removeChild(ytFrame);
+      // Chrome/Firefox/Edge: usa o <video> mp4
 
       videos.forEach(function(v){
         if(!v) return;
