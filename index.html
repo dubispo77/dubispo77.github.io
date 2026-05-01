@@ -1328,11 +1328,7 @@
     <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720-v.mp4#t=0.001" type="video/mp4">
     </video>
-    <iframe id="heroYT" class="hero-yt" title="" tabindex="-1" aria-hidden="true"
-      allow="autoplay; encrypted-media"
-      frameborder="0"
-      loading="eager"
-      src="about:blank"></iframe>
+    <div id="heroYT" class="hero-yt" aria-hidden="true"></div>
     <div class="hero-yt-shield" aria-hidden="true"></div>
     <script>
     (function(){
@@ -1342,20 +1338,41 @@
       var ytFrame = document.getElementById('heroYT');
 
       if(isSafari){
-        // Safari bloqueia autoplay de <video> próprio. YouTube embed com
-        // allow=autoplay e SEM sandbox restritivo toca normal.
+        // Safari bloqueia autoplay de <video> próprio. Usa YouTube IFrame
+        // Player API (sem param playlist — assim o YouTube NÃO mostra controles
+        // de "anterior/pause/próximo" de playlist; loop é manual via JS).
         document.documentElement.classList.add('is-safari');
         videos.forEach(function(v){ if(v && v.parentNode) v.parentNode.removeChild(v); });
         if(ytFrame){
-          var vid = '4k2yeaFZCtk';
-          ytFrame.src = 'https://www.youtube.com/embed/' + vid +
-            '?autoplay=1&mute=1&controls=0&loop=1&playlist=' + vid +
-            '&playsinline=1&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0';
-          // Esconde os controles iniciais que o YouTube mostra no carregamento:
-          // mantém o iframe invisível por 4s (vê-se só o poster do #hero), e aí
-          // faz fade-in. Depois disso, o shield div absorve qualquer hover e
-          // o YouTube não mostra mais nenhum controle.
-          setTimeout(function(){ ytFrame.classList.add('is-ready'); }, 7000);
+          var tag = document.createElement('script');
+          tag.src = 'https://www.youtube.com/iframe_api';
+          document.head.appendChild(tag);
+          window.onYouTubeIframeAPIReady = function(){
+            new YT.Player('heroYT', {
+              videoId: '4k2yeaFZCtk',
+              playerVars: {
+                autoplay: 1, mute: 1, controls: 0, playsinline: 1,
+                modestbranding: 1, rel: 0, iv_load_policy: 3,
+                disablekb: 1, fs: 0, cc_load_policy: 0
+              },
+              events: {
+                onReady: function(e){
+                  var f = e.target.getIframe();
+                  f.className = 'hero-yt';
+                  f.setAttribute('tabindex', '-1');
+                  f.setAttribute('aria-hidden', 'true');
+                  e.target.mute();
+                  e.target.playVideo();
+                  // Fade-in depois de 5s (tempo dos controles iniciais sumirem)
+                  setTimeout(function(){ f.classList.add('is-ready'); }, 5000);
+                },
+                onStateChange: function(e){
+                  // ENDED = 0 → reinicia (loop manual, sem playlist)
+                  if(e.data === 0){ e.target.seekTo(0, true); e.target.playVideo(); }
+                }
+              }
+            });
+          };
         }
         return;
       }
