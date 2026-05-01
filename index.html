@@ -1328,7 +1328,11 @@
     <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
       <source src="hero-720-v.mp4#t=0.001" type="video/mp4">
     </video>
-    <div id="heroYT" class="hero-yt" aria-hidden="true"></div>
+    <iframe id="heroYT" class="hero-yt" title="" tabindex="-1" aria-hidden="true"
+      allow="autoplay; fullscreen; picture-in-picture"
+      frameborder="0"
+      loading="eager"
+      src="about:blank"></iframe>
     <div class="hero-yt-shield" aria-hidden="true"></div>
     <script>
     (function(){
@@ -1338,44 +1342,16 @@
       var ytFrame = document.getElementById('heroYT');
 
       if(isSafari){
-        // Safari bloqueia autoplay de <video> próprio. Usa YouTube IFrame
-        // Player API (sem param playlist — assim o YouTube NÃO mostra controles
-        // de "anterior/pause/próximo" de playlist; loop é manual via JS).
+        // Safari bloqueia autoplay de <video> próprio. Usa Vimeo background=1
+        // — modo oficial pra video background, sem controles, sem overlay,
+        // autoplay+loop+muted automáticos. Funciona limpo no Safari.
         document.documentElement.classList.add('is-safari');
         videos.forEach(function(v){ if(v && v.parentNode) v.parentNode.removeChild(v); });
         if(ytFrame){
-          var tag = document.createElement('script');
-          tag.src = 'https://www.youtube.com/iframe_api';
-          document.head.appendChild(tag);
-          window.onYouTubeIframeAPIReady = function(){
-            new YT.Player('heroYT', {
-              videoId: '4k2yeaFZCtk',
-              host: 'https://www.youtube-nocookie.com',
-              playerVars: {
-                autoplay: 1, mute: 1, controls: 0, playsinline: 1,
-                modestbranding: 1, rel: 0, iv_load_policy: 3,
-                disablekb: 1, fs: 0, cc_load_policy: 0,
-                start: 1
-              },
-              events: {
-                onReady: function(e){
-                  var f = e.target.getIframe();
-                  f.className = 'hero-yt';
-                  f.setAttribute('tabindex', '-1');
-                  f.setAttribute('aria-hidden', 'true');
-                  e.target.mute();
-                  e.target.playVideo();
-                },
-                onStateChange: function(e){
-                  var f = e.target.getIframe();
-                  // PLAYING = 1 → fade-in imediato (vídeo já começou)
-                  if(e.data === 1){ f.classList.add('is-ready'); }
-                  // ENDED = 0 → reinicia (loop manual, sem playlist)
-                  if(e.data === 0){ e.target.seekTo(1, true); e.target.playVideo(); }
-                }
-              }
-            });
-          };
+          var vid = '1188375830';
+          ytFrame.src = 'https://player.vimeo.com/video/' + vid +
+            '?background=1&autoplay=1&loop=1&muted=1&dnt=1';
+          ytFrame.classList.add('is-ready');
         }
         return;
       }
