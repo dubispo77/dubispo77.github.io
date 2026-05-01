@@ -765,7 +765,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .cal-label { font-size: 14px; font-weight: 600; color: #1f2937; margin-left: 8px; text-transform: capitalize; min-width: 110px; }
 .cal-container { background: #fff; border-radius: 12px; display: flex; flex-direction: column; }
 /* MÊS — timeline contínua com scroll vertical */
-.calM-scroll { max-height: calc(100vh - 200px); overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; position: relative; }
+.calM-scroll { max-height: calc(100vh - 200px); overflow-y: auto; overflow-x: hidden; position: relative; }
 .calM-scroll::-webkit-scrollbar { width: 8px; }
 .calM-scroll::-webkit-scrollbar-track { background: transparent; }
 .calM-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
@@ -794,7 +794,9 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
 .calM-num { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
-.calM-ev { position: relative; margin-top: 5px; padding: 7px 9px; border-radius: 7px; border-left: 4px solid; color: #fff; cursor: grab; min-height: 32px; }
+.calM-ev { position: relative; margin-top: 5px; padding: 7px 9px; border-radius: 7px; border-left: 4px solid; color: #fff; cursor: grab; min-height: 32px; margin-bottom: 0; }
+.calM-ev::before { display: none; }
+.calW-card::before { display: none; }
 /* Tooltip de ações no calendário: aparece deslizando de trás do item, embaixo */
 .calM-ev .eb-actions { top: 100%; right: auto; left: 6px; margin-top: 5px; transform: translateY(-12px) scale(.92); transition: opacity .2s ease, transform .25s cubic-bezier(.34, 1.56, .64, 1); z-index: 20; }
 .calM-ev.show-actions .eb-actions { transform: translateY(0) scale(1); }
