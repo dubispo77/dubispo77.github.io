@@ -5087,7 +5087,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       d.setDate(gridStart.getDate() + i);
       // Em modo cronológico, todos os dias são "in" (não há mês ativo único).
       const isOut = opts.chrono ? false : d.getMonth() !== month;
-      const isToday = isSameDay(d, today);
+      // Hoje só pinta de roxo no mês "novo" (dono do bloco), não no fantasma is-out
+      const isToday = !isOut && isSameDay(d, today);
       // Marcadores de transição: célula do dia 1 de qualquer mês visível (chrono) ou só do mês ativo (normal)
       const isMesStart = !isOut && d.getDate() === 1;
       const isMesEnd   = !isOut && (opts.chrono
