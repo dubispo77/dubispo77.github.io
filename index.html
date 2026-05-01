@@ -1353,7 +1353,8 @@
               playerVars: {
                 autoplay: 1, mute: 1, controls: 0, playsinline: 1,
                 modestbranding: 1, rel: 0, iv_load_policy: 3,
-                disablekb: 1, fs: 0, cc_load_policy: 0
+                disablekb: 1, fs: 0, cc_load_policy: 0,
+                start: 1
               },
               events: {
                 onReady: function(e){
@@ -1363,12 +1364,13 @@
                   f.setAttribute('aria-hidden', 'true');
                   e.target.mute();
                   e.target.playVideo();
-                  // Fade-in depois de 5s (tempo dos controles iniciais sumirem)
-                  setTimeout(function(){ f.classList.add('is-ready'); }, 5000);
                 },
                 onStateChange: function(e){
+                  var f = e.target.getIframe();
+                  // PLAYING = 1 → fade-in imediato (vídeo já começou)
+                  if(e.data === 1){ f.classList.add('is-ready'); }
                   // ENDED = 0 → reinicia (loop manual, sem playlist)
-                  if(e.data === 0){ e.target.seekTo(0, true); e.target.playVideo(); }
+                  if(e.data === 0){ e.target.seekTo(1, true); e.target.playVideo(); }
                 }
               }
             });
