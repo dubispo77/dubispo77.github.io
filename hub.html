@@ -5170,6 +5170,17 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const scroller = container.querySelector('.calM-scroll');
     if (!scroller) return;
 
+    // Wheel damper — desacelera scroll do trackpad/rodinha
+    if (!scroller._wheelDamperAttached) {
+      scroller.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          scroller.scrollTop += e.deltaY * 0.45;
+        }
+      }, { passive: false });
+      scroller._wheelDamperAttached = true;
+    }
+
     // Observer 1: detecta qual mês está mais visível pra atualizar o label do header
     _timelineObserver = new IntersectionObserver((entries) => {
       let best = null, bestRatio = 0;
