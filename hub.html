@@ -764,10 +764,25 @@ table.data-table tr:hover td { background: var(--bg); }
 .cal-today-btn { font-size: 11px; padding: 5px 12px; }
 .cal-label { font-size: 14px; font-weight: 600; color: #1f2937; margin-left: 8px; text-transform: capitalize; min-width: 110px; }
 .cal-container { background: #fff; border-radius: 12px; display: flex; flex-direction: column; }
-/* MÊS */
-.calM-dow-row { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); }
+/* MÊS — timeline contínua com scroll vertical */
+.calM-scroll { max-height: calc(100vh - 200px); overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; position: relative; }
+.calM-scroll::-webkit-scrollbar { width: 8px; }
+.calM-scroll::-webkit-scrollbar-track { background: transparent; }
+.calM-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+.calM-scroll::-webkit-scrollbar-thumb:hover { background: #b4b2a9; }
+.calM-month { margin-bottom: 14px; scroll-margin-top: 60px; }
+.calM-month:last-child { margin-bottom: 0; }
+.calM-month-header { font-size: 13px; font-weight: 700; color: #111827; text-transform: capitalize; padding: 12px 4px 6px; letter-spacing: .01em; display: flex; align-items: baseline; gap: 8px; }
+.calM-month-header::after { content: ''; flex: 1; height: 1px; background: #e0e0e4; }
+.calM-month-header .calM-month-label-year { font-size: 11px; font-weight: 500; color: #6b7280; }
+.calM-dow-row { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); position: sticky; top: 0; background: #fff; z-index: 5; padding-top: 4px; }
 .calM-dow { font-size: 10px; color: #6b7280; text-align: center; padding: 4px 0 8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
-.calM-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); grid-auto-rows: 1fr; border: 1px solid #c8c8cc; border-radius: 8px; overflow: hidden; flex: 1; min-height: calc(100vh - 180px); }
+.calM-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); grid-auto-rows: 1fr; border: 1px solid #c8c8cc; border-radius: 8px; overflow: hidden; }
+/* No modo single-page (chrono ou semana), grid estica viewport. Timeline NÃO. */
+.cal-container.single-page .calM-grid { flex: 1; min-height: calc(100vh - 200px); }
+.cal-container.single-page .calM-scroll { max-height: none; overflow: visible; flex: 1; display: flex; flex-direction: column; }
+.cal-container.single-page .calM-month-header { display: none; }
+.cal-container.single-page .calM-month { margin-bottom: 0; flex: 1; display: flex; flex-direction: column; }
 .calM-cell { background: #eeeef1; border-right: 1px solid #d4d4d8; border-bottom: 1px solid #d4d4d8; min-height: 136px; padding: 7px 8px; cursor: pointer; transition: background .12s; position: relative; }
 .calM-cell:nth-child(7n) { border-right: none; }
 .calM-cell:hover { background: #e6e6ea; }
@@ -5041,24 +5056,22 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     if (cursor < loadedRange.start || cursor >= loadedRange.end) return reloadItemsForCursor();
   }
 
-  // ── Vista mês ──
-  // Só renderiza dias do mês ativo; dias do mês anterior/seguinte ficam como células
-  // VAZIAS (transparentes, sem borda) — ar visual em vez de números cinzas.
-  // Grid adaptativo: corta linhas que ficam 100% vazias no fim.
-  function renderMonth() {
+  // ── Build de UM mês (HTML string) — usado por renderMonth (single) e renderTimeline (stacked)
+  // Modo `chrono` mantém o comportamento antigo (single-page com 6 semanas a partir de hoje).
+  // Sem chrono, retorna grid adaptativo do mês `monthAnchor` (Date de qualquer dia desse mês).
+  function buildMonthBlock(monthAnchor, opts = {}) {
     const today = new Date(); today.setHours(0,0,0,0);
-    const year = cursor.getFullYear(), month = cursor.getMonth();
+    const year = monthAnchor.getFullYear(), month = monthAnchor.getMonth();
     const firstOfMonth = new Date(year, month, 1);
     const dayOfWeek = firstOfMonth.getDay();
     const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     let gridStart, totalCells, lastOfMonth;
-    if (chronoMode) {
-      // Modo cronológico: começa na segunda-feira da semana de HOJE, mostra 6 semanas pra frente.
+    if (opts.chrono) {
       const todayDow = today.getDay();
       const todayOffset = todayDow === 0 ? 6 : todayDow - 1;
       gridStart = new Date(today);
       gridStart.setDate(today.getDate() - todayOffset);
-      totalCells = 42; // 6 semanas
+      totalCells = 42;
       lastOfMonth = new Date(year, month + 1, 0);
     } else {
       gridStart = new Date(year, month, 1 - offset);
@@ -5073,11 +5086,11 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       const d = new Date(gridStart);
       d.setDate(gridStart.getDate() + i);
       // Em modo cronológico, todos os dias são "in" (não há mês ativo único).
-      const isOut = chronoMode ? false : d.getMonth() !== month;
+      const isOut = opts.chrono ? false : d.getMonth() !== month;
       const isToday = isSameDay(d, today);
       // Marcadores de transição: célula do dia 1 de qualquer mês visível (chrono) ou só do mês ativo (normal)
       const isMesStart = !isOut && d.getDate() === 1;
-      const isMesEnd   = !isOut && (chronoMode
+      const isMesEnd   = !isOut && (opts.chrono
         ? d.getDate() === new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
         : d.getDate() === lastOfMonth.getDate());
       // Items: todos os dias quando chrono, só do mês ativo quando normal.
@@ -5125,22 +5138,213 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         ${evHtml}${moreHtml}
       </div>`;
     }
+    const headerHtml = opts.includeHeader
+      ? `<div class="calM-month-header">${MESES_LONG[month]} <span class="calM-month-label-year">${year}</span></div>`
+      : '';
+    return `<section class="calM-month" data-month-key="${year}-${String(month+1).padStart(2,'0')}" data-year="${year}" data-month="${month}">
+      ${headerHtml}
+      <div class="calM-grid">${cells}</div>
+    </section>`;
+  }
+
+  // ── Estado e helpers da timeline ──
+  let _timelineLoaded = []; // [{year, month}] — meses já no DOM, ordenado
+  let _timelineObserver = null;
+  let _timelineEdgeObserver = null;
+  let _suppressLabelUpdate = false;
+
+  function monthKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
+  function addMonths(y, m, delta) {
+    const d = new Date(y, m + delta, 1);
+    return { year: d.getFullYear(), month: d.getMonth() };
+  }
+
+  function updateLabelFromMonth(year, month) {
+    if (_suppressLabelUpdate) return;
+    document.getElementById('calLabel').textContent = `${MESES_LONG[month]} ${year}`;
+  }
+
+  function setupTimelineObservers() {
+    if (_timelineObserver) _timelineObserver.disconnect();
+    if (_timelineEdgeObserver) _timelineEdgeObserver.disconnect();
+    const scroller = container.querySelector('.calM-scroll');
+    if (!scroller) return;
+
+    // Observer 1: detecta qual mês está mais visível pra atualizar o label do header
+    _timelineObserver = new IntersectionObserver((entries) => {
+      let best = null, bestRatio = 0;
+      entries.forEach(en => { if (en.intersectionRatio > bestRatio) { best = en.target; bestRatio = en.intersectionRatio; } });
+      if (best && bestRatio > 0.15) {
+        const y = parseInt(best.dataset.year, 10);
+        const m = parseInt(best.dataset.month, 10);
+        updateLabelFromMonth(y, m);
+        // Atualiza cursor pra trocas de prev/next manterem contexto
+        cursor = new Date(y, m, 1);
+      }
+    }, { root: scroller, threshold: [0, 0.15, 0.3, 0.5, 0.7, 1] });
+    container.querySelectorAll('.calM-month').forEach(el => _timelineObserver.observe(el));
+
+    // Observer 2: lazy-load de meses nas pontas
+    _timelineEdgeObserver = new IntersectionObserver(async (entries) => {
+      for (const en of entries) {
+        if (!en.isIntersecting) continue;
+        const which = en.target.dataset.edge;
+        if (which === 'top')    await extendTimelineUp();
+        if (which === 'bottom') await extendTimelineDown();
+      }
+    }, { root: scroller, rootMargin: '200px' });
+    const top = scroller.querySelector('.calM-edge-top');
+    const bot = scroller.querySelector('.calM-edge-bottom');
+    if (top) _timelineEdgeObserver.observe(top);
+    if (bot) _timelineEdgeObserver.observe(bot);
+  }
+
+  async function extendTimelineUp() {
+    if (!_timelineLoaded.length) return;
+    const first = _timelineLoaded[0];
+    const prev = addMonths(first.year, first.month, -1);
+    if (_timelineLoaded.some(x => x.year === prev.year && x.month === prev.month)) return;
+    _timelineLoaded.unshift(prev);
+    // Garante que items pra esse mês estão carregados
+    cursor = new Date(prev.year, prev.month, 15);
+    await ensureRangeForCursor();
+    const scroller = container.querySelector('.calM-scroll');
+    const prevHeight = scroller.scrollHeight;
+    const prevTop = scroller.scrollTop;
+    const newBlock = buildMonthBlock(new Date(prev.year, prev.month, 1), { includeHeader: true });
+    const wrap = scroller.querySelector('.calM-edge-top');
+    wrap.insertAdjacentHTML('afterend', newBlock);
+    // Mantém scroll position visual
+    const delta = scroller.scrollHeight - prevHeight;
+    scroller.scrollTop = prevTop + delta;
+    setupTimelineObservers();
+  }
+
+  async function extendTimelineDown() {
+    if (!_timelineLoaded.length) return;
+    const last = _timelineLoaded[_timelineLoaded.length - 1];
+    const next = addMonths(last.year, last.month, 1);
+    if (_timelineLoaded.some(x => x.year === next.year && x.month === next.month)) return;
+    _timelineLoaded.push(next);
+    cursor = new Date(next.year, next.month, 15);
+    await ensureRangeForCursor();
+    const scroller = container.querySelector('.calM-scroll');
+    const newBlock = buildMonthBlock(new Date(next.year, next.month, 1), { includeHeader: true });
+    const wrap = scroller.querySelector('.calM-edge-bottom');
+    wrap.insertAdjacentHTML('beforebegin', newBlock);
+    setupTimelineObservers();
+  }
+
+  // ── Vista mês — TIMELINE ──
+  async function renderTimeline() {
+    container.classList.remove('single-page');
+    const today = new Date();
+    // Carrega 3 meses iniciais: anterior, atual (cursor), próximo
+    const c = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+    const months = [
+      addMonths(c.getFullYear(), c.getMonth(), -1),
+      { year: c.getFullYear(), month: c.getMonth() },
+      addMonths(c.getFullYear(), c.getMonth(), 1),
+    ];
+    _timelineLoaded = months;
+    // Garante items carregados pra range
+    await ensureRangeForCursor();
+    const blocks = months.map(mm => buildMonthBlock(new Date(mm.year, mm.month, 1), { includeHeader: true })).join('');
     container.innerHTML = `
       <div class="calM-dow-row">
         ${DOW_SHORT.map(d => `<div class="calM-dow">${d}</div>`).join('')}
       </div>
-      <div class="calM-grid">${cells}</div>
+      <div class="calM-scroll">
+        <div class="calM-edge-top" data-edge="top" style="height:1px"></div>
+        ${blocks}
+        <div class="calM-edge-bottom" data-edge="bottom" style="height:1px"></div>
+      </div>
+    `;
+    // Scroll inicial: posiciona no mês atual (do meio)
+    const scroller = container.querySelector('.calM-scroll');
+    const middle = container.querySelector(`.calM-month[data-month-key="${monthKey(c.getFullYear(), c.getMonth())}"]`);
+    if (middle && scroller) {
+      // Sem animação no primeiro carregamento
+      _suppressLabelUpdate = true;
+      scroller.scrollTop = middle.offsetTop;
+      updateLabelFromMonth(c.getFullYear(), c.getMonth());
+      requestAnimationFrame(() => { _suppressLabelUpdate = false; });
+    }
+    setupTimelineObservers();
+  }
+
+  // ── Vista mês — PÁGINA ÚNICA (modo cronológico) ──
+  function renderMonthSinglePage() {
+    container.classList.add('single-page');
+    const html = buildMonthBlock(cursor, { chrono: chronoMode, includeHeader: false });
+    container.innerHTML = `
+      <div class="calM-dow-row">
+        ${DOW_SHORT.map(d => `<div class="calM-dow">${d}</div>`).join('')}
+      </div>
+      <div class="calM-scroll">${html}</div>
     `;
     if (chronoMode) {
-      const lastDate = new Date(gridStart);
-      lastDate.setDate(gridStart.getDate() + totalCells - 1);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const dow = today.getDay(); const todayOffset = dow === 0 ? 6 : dow - 1;
+      const gridStart = new Date(today); gridStart.setDate(today.getDate() - todayOffset);
+      const lastDate = new Date(gridStart); lastDate.setDate(gridStart.getDate() + 41);
       const sm = MESES_LONG[gridStart.getMonth()].slice(0,3);
       const lm = MESES_LONG[lastDate.getMonth()].slice(0,3);
       document.getElementById('calLabel').textContent = sm === lm
         ? `${gridStart.getDate()}–${lastDate.getDate()} ${sm}`
         : `${gridStart.getDate()} ${sm} – ${lastDate.getDate()} ${lm}`;
     } else {
-      document.getElementById('calLabel').textContent = `${MESES_LONG[month]} ${year}`;
+      updateLabelFromMonth(cursor.getFullYear(), cursor.getMonth());
+    }
+  }
+
+  function renderMonth() {
+    // Preserva posição de scroll quando re-renderiza timeline (após drag-drop, toggle, etc)
+    const oldScroller = container.querySelector('.calM-scroll');
+    const oldScrollTop = oldScroller ? oldScroller.scrollTop : null;
+    const oldVisibleKey = oldScroller && !chronoMode
+      ? (() => {
+          const ms = container.querySelectorAll('.calM-month');
+          for (const m of ms) {
+            const top = m.offsetTop, bot = top + m.offsetHeight;
+            if (oldScrollTop >= top - 80 && oldScrollTop < bot - 80) return m.dataset.monthKey;
+          }
+          return null;
+        })()
+      : null;
+    if (chronoMode) {
+      renderMonthSinglePage();
+    } else {
+      renderTimeline().then(() => {
+        if (oldVisibleKey) {
+          const target = container.querySelector(`.calM-month[data-month-key="${oldVisibleKey}"]`);
+          const newScroller = container.querySelector('.calM-scroll');
+          if (target && newScroller) {
+            _suppressLabelUpdate = true;
+            newScroller.scrollTop = target.offsetTop;
+            requestAnimationFrame(() => { _suppressLabelUpdate = false; });
+          }
+        }
+      });
+    }
+  }
+
+  // Faz scroll suave até um mês específico (timeline). Carrega o mês se não estiver no DOM.
+  async function scrollToMonth(year, month) {
+    if (chronoMode) { cursor = new Date(year, month, 1); render(); return; }
+    let target = container.querySelector(`.calM-month[data-month-key="${monthKey(year, month)}"]`);
+    if (!target) {
+      // Reinicia timeline ancorada nesse mês
+      cursor = new Date(year, month, 15);
+      await renderTimeline();
+      target = container.querySelector(`.calM-month[data-month-key="${monthKey(year, month)}"]`);
+    }
+    if (target) {
+      const scroller = container.querySelector('.calM-scroll');
+      _suppressLabelUpdate = true;
+      scroller.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+      updateLabelFromMonth(year, month);
+      setTimeout(() => { _suppressLabelUpdate = false; }, 600);
     }
   }
 
@@ -5316,19 +5520,34 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     });
   });
   document.getElementById('calPrev').addEventListener('click', async () => {
+    if (view === 'month' && !chronoMode) {
+      const t = addMonths(cursor.getFullYear(), cursor.getMonth(), -1);
+      await scrollToMonth(t.year, t.month);
+      return;
+    }
     if (view === 'month') cursor.setMonth(cursor.getMonth() - 1);
     else                  cursor.setDate(cursor.getDate() - 7);
     await ensureRangeForCursor();
     render();
   });
   document.getElementById('calNext').addEventListener('click', async () => {
+    if (view === 'month' && !chronoMode) {
+      const t = addMonths(cursor.getFullYear(), cursor.getMonth(), 1);
+      await scrollToMonth(t.year, t.month);
+      return;
+    }
     if (view === 'month') cursor.setMonth(cursor.getMonth() + 1);
     else                  cursor.setDate(cursor.getDate() + 7);
     await ensureRangeForCursor();
     render();
   });
   document.getElementById('calToday').addEventListener('click', async () => {
-    cursor = new Date();
+    const today = new Date();
+    if (view === 'month' && !chronoMode) {
+      await scrollToMonth(today.getFullYear(), today.getMonth());
+      return;
+    }
+    cursor = today;
     await ensureRangeForCursor();
     render();
   });
@@ -5446,7 +5665,9 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const dt = Date.now() - _ts.t;
     if (dt > 600) return; // gesto lento, ignora
     if (view === 'month') {
-      // Swipe vertical de pelo menos 70px e mais vertical que horizontal
+      // Em modo timeline, scroll é nativo — pula swipe handler
+      if (!chronoMode) return;
+      // Swipe vertical de pelo menos 70px e mais vertical que horizontal (chrono)
       if (ay < 70 || ax > ay) return;
       if (dy < 0) cursor.setMonth(cursor.getMonth() + 1);
       else        cursor.setMonth(cursor.getMonth() - 1);
