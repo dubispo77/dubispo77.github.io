@@ -771,8 +771,11 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
 .calM-scroll::-webkit-scrollbar-thumb:hover { background: #b4b2a9; }
 .calM-month { scroll-margin-top: 60px; }
-.calM-month + .calM-month { margin-top: 6px; padding-top: 6px; border-top: 1px solid #e0e0e4; }
+.calM-month + .calM-month { margin-top: -1px; }
 .calM-month-header { display: none; }
+/* Em modo timeline, células fora do mês ficam totalmente em branco (sem número, sem hover) */
+.calM-cell.is-empty { background: transparent; border-right-color: transparent; border-bottom-color: transparent; cursor: default; pointer-events: none; }
+.calM-cell.is-empty .calM-num { display: none; }
 .calM-dow-row { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); position: sticky; top: 0; background: #fff; z-index: 5; padding-top: 4px; }
 .calM-dow { font-size: 10px; color: #6b7280; text-align: center; padding: 4px 0 8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
 .calM-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); grid-auto-rows: 1fr; border: 1px solid #c8c8cc; border-radius: 8px; overflow: hidden; }
@@ -5054,9 +5057,84 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     if (cursor < loadedRange.start || cursor >= loadedRange.end) return reloadItemsForCursor();
   }
 
-  // ── Build de UM mês (HTML string) — usado por renderMonth (single) e renderTimeline (stacked)
-  // Modo `chrono` mantém o comportamento antigo (single-page com 6 semanas a partir de hoje).
-  // Sem chrono, retorna grid adaptativo do mês `monthAnchor` (Date de qualquer dia desse mês).
+  // ── Build de células de UM dia ──
+  // Helper interno: gera HTML de uma célula. month é o mês "ativo" pra cálculo de is-mes-start/end.
+  function buildDayCell(d, today, month, isEmpty = false) {
+    if (isEmpty) return `<div class="calM-cell is-empty"></div>`;
+    const isOut = false; // só passamos dias "in" pra essa função
+    const isToday = isSameDay(d, today);
+    const isMesStart = d.getDate() === 1;
+    const isMesEnd = d.getDate() === new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    const items = itemsForDate(d);
+    const visible = items.slice(0, 5);
+    const extra = items.length - visible.length;
+    const evHtml = visible.map(it => {
+      const klass = `calM-ev event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}`;
+      const badges = [
+        it.is_done ? '<span class="bd dn">✓</span>' : '',
+        it.is_recurring ? '<span class="bd rc">♻</span>' : '',
+      ].join('');
+      let overdueBadge = '';
+      if (it.is_overdue && it.raw && it.raw.date_start) {
+        const _dStart = new Date(it.raw.date_start); _dStart.setHours(0,0,0,0);
+        const _today = new Date(); _today.setHours(0,0,0,0);
+        const _days = Math.max(1, Math.round((_today - _dStart) / 86400000));
+        overdueBadge = `<span class="badge-overdue">${_days}d</span>`;
+      }
+      const ICO_CHECK = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M3 8 L 7 12 L 13 4"/></svg>';
+      const ICO_UNDO = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M5 4 L 2 7 L 5 10"/><path d="M2 7 H 10 a 4 4 0 0 1 0 8 H 8"/></svg>';
+      const ICO_LINK = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M9.5 6.5 L 13 3 a 2.5 2.5 0 0 1 3.5 3.5 L 13 10"/><path d="M6.5 9.5 L 3 13 a 2.5 2.5 0 0 0 3.5 3.5 L 10 13"/><path d="M6.5 9.5 L 9.5 6.5"/></svg>';
+      const ICO_X = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg>';
+      const actions = `<div class="eb-actions">
+        <button class="eb-btn calM-act" data-act="toggle" data-id="${it.id}" title="${it.is_done ? 'Desfazer' : 'Concluir'}">${it.is_done ? ICO_UNDO : ICO_CHECK}</button>
+        <button class="eb-btn calM-act" data-act="copy"   data-id="${it.id}" title="Copiar ID">${ICO_LINK}</button>
+        <button class="eb-btn calM-act" data-act="del"    data-id="${it.id}" title="Apagar">${ICO_X}</button>
+      </div>`;
+      return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
+        ${overdueBadge}
+        ${it.has_time ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}
+        <span class="ti">${badges}${escHtml(it.title)}</span>
+        ${actions}
+      </div>`;
+    }).join('');
+    const moreHtml = extra > 0 ? `<span class="calM-more">+ ${extra} mais</span>` : '';
+    const classes = [
+      isToday ? 'is-today' : '',
+      isMesStart ? 'is-mes-start' : '',
+      isMesEnd ? 'is-mes-end' : '',
+    ].filter(Boolean).join(' ');
+    return `<div class="calM-cell ${classes}" data-date="${ymd(d)}" data-year="${d.getFullYear()}" data-month="${d.getMonth()}">
+      <span class="calM-num">${d.getDate()}</span>
+      ${evHtml}${moreHtml}
+    </div>`;
+  }
+
+  // Range contínuo: gera células de [startDate, endDateInclusive], com vazias antes do start
+  // pra alinhar a primeira segunda-feira. Última semana fica completa com vazias depois do end.
+  function buildContinuousCells(startDate, endDate) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dow = startDate.getDay(); // 0=dom..6=sab
+    const offsetBefore = dow === 0 ? 6 : dow - 1;
+    let html = '';
+    // Vazias no início (pra alinhar segunda-feira)
+    for (let i = 0; i < offsetBefore; i++) {
+      html += `<div class="calM-cell is-empty"></div>`;
+    }
+    const cur = new Date(startDate);
+    while (cur <= endDate) {
+      html += buildDayCell(new Date(cur), today, cur.getMonth());
+      cur.setDate(cur.getDate() + 1);
+    }
+    // Vazias no fim (pra completar a semana)
+    const endDow = endDate.getDay();
+    const offsetAfter = endDow === 0 ? 0 : 7 - endDow;
+    for (let i = 0; i < offsetAfter; i++) {
+      html += `<div class="calM-cell is-empty"></div>`;
+    }
+    return html;
+  }
+
+  // ── Build de UM mês (HTML string) — usado APENAS pelo modo single-page (chrono)
   function buildMonthBlock(monthAnchor, opts = {}) {
     const today = new Date(); today.setHours(0,0,0,0);
     const year = monthAnchor.getFullYear(), month = monthAnchor.getMonth();
@@ -5085,6 +5163,13 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       d.setDate(gridStart.getDate() + i);
       // Em modo cronológico, todos os dias são "in" (não há mês ativo único).
       const isOut = opts.chrono ? false : d.getMonth() !== month;
+      // Em modo timeline (não-chrono e não-singlepage), dias fora do mês ficam células vazias
+      // pra não duplicar com o mês de cima/baixo
+      const isEmpty = isOut && !opts.chrono;
+      if (isEmpty) {
+        cells += `<div class="calM-cell is-empty"></div>`;
+        continue;
+      }
       const isToday = isSameDay(d, today);
       // Marcadores de transição: célula do dia 1 de qualquer mês visível (chrono) ou só do mês ativo (normal)
       const isMesStart = !isOut && d.getDate() === 1;
@@ -5146,9 +5231,10 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   }
 
   // ── Estado e helpers da timeline ──
-  let _timelineLoaded = []; // [{year, month}] — meses já no DOM, ordenado
-  let _timelineObserver = null;
+  // Range carregado: { startMonth: Date(1º dia), endMonth: Date(1º dia) }
+  let _timelineRange = null;
   let _timelineEdgeObserver = null;
+  let _timelineMonthObserver = null;
   let _suppressLabelUpdate = false;
 
   function monthKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
@@ -5163,26 +5249,31 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   }
 
   function setupTimelineObservers() {
-    if (_timelineObserver) _timelineObserver.disconnect();
     if (_timelineEdgeObserver) _timelineEdgeObserver.disconnect();
+    if (_timelineMonthObserver) _timelineMonthObserver.disconnect();
     const scroller = container.querySelector('.calM-scroll');
     if (!scroller) return;
 
-    // Observer 1: detecta qual mês está mais visível pra atualizar o label do header
-    _timelineObserver = new IntersectionObserver((entries) => {
-      let best = null, bestRatio = 0;
-      entries.forEach(en => { if (en.intersectionRatio > bestRatio) { best = en.target; bestRatio = en.intersectionRatio; } });
-      if (best && bestRatio > 0.15) {
-        const y = parseInt(best.dataset.year, 10);
-        const m = parseInt(best.dataset.month, 10);
+    // Observer: detecta qual cell.is-mes-start está mais visível pra atualizar label
+    // Como é grid contínua, observa as cells "1 do mês"
+    _timelineMonthObserver = new IntersectionObserver((entries) => {
+      // Pega a is-mes-start mais "no topo do scroll" e em vista
+      let topVisible = null, topY = Infinity;
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const r = en.boundingClientRect.top;
+        if (r < topY) { topY = r; topVisible = en.target; }
+      });
+      if (topVisible) {
+        const y = parseInt(topVisible.dataset.year, 10);
+        const m = parseInt(topVisible.dataset.month, 10);
         updateLabelFromMonth(y, m);
-        // Atualiza cursor pra trocas de prev/next manterem contexto
         cursor = new Date(y, m, 1);
       }
-    }, { root: scroller, threshold: [0, 0.15, 0.3, 0.5, 0.7, 1] });
-    container.querySelectorAll('.calM-month').forEach(el => _timelineObserver.observe(el));
+    }, { root: scroller, rootMargin: '-10px 0px -70% 0px', threshold: 0 });
+    container.querySelectorAll('.calM-cell.is-mes-start').forEach(el => _timelineMonthObserver.observe(el));
 
-    // Observer 2: lazy-load de meses nas pontas
+    // Observer: lazy-load nas pontas
     _timelineEdgeObserver = new IntersectionObserver(async (entries) => {
       for (const en of entries) {
         if (!en.isIntersecting) continue;
@@ -5190,7 +5281,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         if (which === 'top')    await extendTimelineUp();
         if (which === 'bottom') await extendTimelineDown();
       }
-    }, { root: scroller, rootMargin: '200px' });
+    }, { root: scroller, rootMargin: '300px' });
     const top = scroller.querySelector('.calM-edge-top');
     const bot = scroller.querySelector('.calM-edge-bottom');
     if (top) _timelineEdgeObserver.observe(top);
@@ -5198,73 +5289,70 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   }
 
   async function extendTimelineUp() {
-    if (!_timelineLoaded.length) return;
-    const first = _timelineLoaded[0];
-    const prev = addMonths(first.year, first.month, -1);
-    if (_timelineLoaded.some(x => x.year === prev.year && x.month === prev.month)) return;
-    _timelineLoaded.unshift(prev);
-    // Garante que items pra esse mês estão carregados
-    cursor = new Date(prev.year, prev.month, 15);
+    if (!_timelineRange) return;
+    const cur = _timelineRange.startMonth;
+    const prev = new Date(cur.getFullYear(), cur.getMonth() - 1, 1);
+    cursor = new Date(prev.getFullYear(), prev.getMonth(), 15);
     await ensureRangeForCursor();
+    _timelineRange.startMonth = prev;
+    // Re-renderiza grid completa preservando scroll position visual
     const scroller = container.querySelector('.calM-scroll');
     const prevHeight = scroller.scrollHeight;
     const prevTop = scroller.scrollTop;
-    const newBlock = buildMonthBlock(new Date(prev.year, prev.month, 1), { includeHeader: true });
-    const wrap = scroller.querySelector('.calM-edge-top');
-    wrap.insertAdjacentHTML('afterend', newBlock);
-    // Mantém scroll position visual
-    const delta = scroller.scrollHeight - prevHeight;
-    scroller.scrollTop = prevTop + delta;
+    rebuildTimelineGrid();
+    const newScroller = container.querySelector('.calM-scroll');
+    const delta = newScroller.scrollHeight - prevHeight;
+    newScroller.scrollTop = prevTop + delta;
     setupTimelineObservers();
   }
 
   async function extendTimelineDown() {
-    if (!_timelineLoaded.length) return;
-    const last = _timelineLoaded[_timelineLoaded.length - 1];
-    const next = addMonths(last.year, last.month, 1);
-    if (_timelineLoaded.some(x => x.year === next.year && x.month === next.month)) return;
-    _timelineLoaded.push(next);
-    cursor = new Date(next.year, next.month, 15);
+    if (!_timelineRange) return;
+    const cur = _timelineRange.endMonth;
+    const next = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+    cursor = new Date(next.getFullYear(), next.getMonth(), 15);
     await ensureRangeForCursor();
+    _timelineRange.endMonth = next;
     const scroller = container.querySelector('.calM-scroll');
-    const newBlock = buildMonthBlock(new Date(next.year, next.month, 1), { includeHeader: true });
-    const wrap = scroller.querySelector('.calM-edge-bottom');
-    wrap.insertAdjacentHTML('beforebegin', newBlock);
+    const prevTop = scroller.scrollTop;
+    rebuildTimelineGrid();
+    const newScroller = container.querySelector('.calM-scroll');
+    newScroller.scrollTop = prevTop;
     setupTimelineObservers();
   }
 
-  // ── Vista mês — TIMELINE ──
-  async function renderTimeline() {
-    container.classList.remove('single-page');
-    const today = new Date();
-    // Carrega 3 meses iniciais: anterior, atual (cursor), próximo
-    const c = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-    const months = [
-      addMonths(c.getFullYear(), c.getMonth(), -1),
-      { year: c.getFullYear(), month: c.getMonth() },
-      addMonths(c.getFullYear(), c.getMonth(), 1),
-    ];
-    _timelineLoaded = months;
-    // Garante items carregados pra range
-    await ensureRangeForCursor();
-    const blocks = months.map(mm => buildMonthBlock(new Date(mm.year, mm.month, 1), { includeHeader: true })).join('');
+  function rebuildTimelineGrid() {
+    const startDate = new Date(_timelineRange.startMonth);
+    const endDate = new Date(_timelineRange.endMonth.getFullYear(), _timelineRange.endMonth.getMonth() + 1, 0);
+    const cells = buildContinuousCells(startDate, endDate);
     container.innerHTML = `
       <div class="calM-dow-row">
         ${DOW_SHORT.map(d => `<div class="calM-dow">${d}</div>`).join('')}
       </div>
       <div class="calM-scroll">
         <div class="calM-edge-top" data-edge="top" style="height:1px"></div>
-        ${blocks}
+        <div class="calM-grid">${cells}</div>
         <div class="calM-edge-bottom" data-edge="bottom" style="height:1px"></div>
       </div>
     `;
-    // Scroll inicial: posiciona no mês atual (do meio)
+  }
+
+  // ── Vista mês — TIMELINE (grid contínua única) ──
+  async function renderTimeline() {
+    container.classList.remove('single-page');
+    const c = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+    _timelineRange = {
+      startMonth: new Date(c.getFullYear(), c.getMonth() - 1, 1),
+      endMonth:   new Date(c.getFullYear(), c.getMonth() + 1, 1),
+    };
+    await ensureRangeForCursor();
+    rebuildTimelineGrid();
+    // Scroll inicial: posiciona no dia 1 do mês cursor (do meio)
     const scroller = container.querySelector('.calM-scroll');
-    const middle = container.querySelector(`.calM-month[data-month-key="${monthKey(c.getFullYear(), c.getMonth())}"]`);
-    if (middle && scroller) {
-      // Sem animação no primeiro carregamento
+    const targetCell = container.querySelector(`.calM-cell.is-mes-start[data-year="${c.getFullYear()}"][data-month="${c.getMonth()}"]`);
+    if (targetCell && scroller) {
       _suppressLabelUpdate = true;
-      scroller.scrollTop = middle.offsetTop;
+      scroller.scrollTop = targetCell.offsetTop;
       updateLabelFromMonth(c.getFullYear(), c.getMonth());
       requestAnimationFrame(() => { _suppressLabelUpdate = false; });
     }
@@ -5300,26 +5388,15 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     // Preserva posição de scroll quando re-renderiza timeline (após drag-drop, toggle, etc)
     const oldScroller = container.querySelector('.calM-scroll');
     const oldScrollTop = oldScroller ? oldScroller.scrollTop : null;
-    const oldVisibleKey = oldScroller && !chronoMode
-      ? (() => {
-          const ms = container.querySelectorAll('.calM-month');
-          for (const m of ms) {
-            const top = m.offsetTop, bot = top + m.offsetHeight;
-            if (oldScrollTop >= top - 80 && oldScrollTop < bot - 80) return m.dataset.monthKey;
-          }
-          return null;
-        })()
-      : null;
     if (chronoMode) {
       renderMonthSinglePage();
     } else {
       renderTimeline().then(() => {
-        if (oldVisibleKey) {
-          const target = container.querySelector(`.calM-month[data-month-key="${oldVisibleKey}"]`);
+        if (oldScrollTop != null) {
           const newScroller = container.querySelector('.calM-scroll');
-          if (target && newScroller) {
+          if (newScroller) {
             _suppressLabelUpdate = true;
-            newScroller.scrollTop = target.offsetTop;
+            newScroller.scrollTop = oldScrollTop;
             requestAnimationFrame(() => { _suppressLabelUpdate = false; });
           }
         }
@@ -5327,15 +5404,15 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     }
   }
 
-  // Faz scroll suave até um mês específico (timeline). Carrega o mês se não estiver no DOM.
+  // Faz scroll suave até um mês específico
   async function scrollToMonth(year, month) {
     if (chronoMode) { cursor = new Date(year, month, 1); render(); return; }
-    let target = container.querySelector(`.calM-month[data-month-key="${monthKey(year, month)}"]`);
+    let target = container.querySelector(`.calM-cell.is-mes-start[data-year="${year}"][data-month="${month}"]`);
     if (!target) {
       // Reinicia timeline ancorada nesse mês
       cursor = new Date(year, month, 15);
       await renderTimeline();
-      target = container.querySelector(`.calM-month[data-month-key="${monthKey(year, month)}"]`);
+      target = container.querySelector(`.calM-cell.is-mes-start[data-year="${year}"][data-month="${month}"]`);
     }
     if (target) {
       const scroller = container.querySelector('.calM-scroll');
