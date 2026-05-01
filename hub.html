@@ -797,10 +797,23 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev { position: relative; margin-top: 5px; padding: 7px 9px; border-radius: 7px; border-left: 4px solid; color: #fff; cursor: grab; min-height: 32px; margin-bottom: 0; }
 .calM-ev::before { display: none; }
 .calW-card::before { display: none; }
-/* Tooltip de ações no calendário: opção 16 — cápsulas brancas circulares separadas */
-.calM-ev .eb-actions { top: 100%; right: auto; left: 0; margin-top: 0; padding-top: 6px; padding-bottom: 0; padding-left: 0; padding-right: 0; background: transparent; box-shadow: none; border-radius: 0; gap: 6px; transform: translateY(-8px) scale(.96); transition: opacity .2s ease, transform .22s cubic-bezier(.34, 1.56, .64, 1); z-index: 20; }
+/* Tooltip de ações no calendário: opção 16 — cápsulas brancas circulares separadas
+   Posicionamento adaptativo (modo B):
+   1. último/solo da célula → tooltip embaixo (espaço livre)
+   2. primeiro com outros embaixo → tooltip pra cima (espaço livre)
+   3. no meio (tem antes E depois) → overlay no lado direito do próprio item */
+.calM-ev .eb-actions { top: 100%; bottom: auto; right: auto; left: 0; margin-top: 0; padding-top: 6px; padding-bottom: 0; padding-left: 0; padding-right: 0; background: transparent; box-shadow: none; border-radius: 0; gap: 6px; transform: translateY(-8px) scale(.96); transition: opacity .2s ease, transform .22s cubic-bezier(.34, 1.56, .64, 1); z-index: 20; }
 .calM-ev.show-actions .eb-actions { transform: translateY(0) scale(1); }
+.calM-ev.actions-up .eb-actions { top: auto; bottom: 100%; padding-top: 0; padding-bottom: 6px; transform: translateY(8px) scale(.96); }
+.calM-ev.actions-up.show-actions .eb-actions { transform: translateY(0) scale(1); }
+/* Estado 2: tem item depois mas não tem item antes → tooltip pra cima */
+.calM-ev:has(+ .calM-ev):not(.calM-ev + .calM-ev) .eb-actions { top: auto; bottom: 100%; padding-top: 0; padding-bottom: 6px; transform: translateY(8px) scale(.96); }
+.calM-ev:has(+ .calM-ev):not(.calM-ev + .calM-ev).show-actions .eb-actions { transform: translateY(0) scale(1); }
+/* Estado 3: tem antes E depois (no meio) → overlay no lado direito */
+.calM-ev + .calM-ev:has(+ .calM-ev) .eb-actions { top: 50%; bottom: auto; right: 6px; left: auto; padding: 0; transform: translate(8px, -50%) scale(.96); background: rgba(255,255,255,.94); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 999px; padding: 3px 5px; box-shadow: 0 2px 8px rgba(0,0,0,.14); }
+.calM-ev + .calM-ev:has(+ .calM-ev).show-actions .eb-actions { transform: translate(0, -50%) scale(1); }
 .calM-ev .eb-actions .eb-btn { background: #fff; border-radius: 999px; width: 26px; height: 26px; box-shadow: 0 2px 6px rgba(0,0,0,.14); }
+.calM-ev + .calM-ev:has(+ .calM-ev) .eb-actions .eb-btn { width: 22px; height: 22px; box-shadow: none; }
 .calM-ev .eb-actions .eb-btn:hover { background: #fff; filter: brightness(.95); }
 .calM-ev .eb-actions .eb-btn[data-act="toggle"] { color: #16a34a; }
 .calM-ev .eb-actions .eb-btn[data-act="copy"]   { color: #6366f1; }
@@ -1301,7 +1314,7 @@ window.copyItemId = async function(id, btnEl) {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-04-30 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-05-01 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done',    cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG',  m:1.03, pos:'bot', status:'planned', cal:'Tarefas pessoais' },
@@ -3028,6 +3041,17 @@ document.addEventListener('click', handleMilestoneClick, true);
     }
     trackingBlock = block;
     hoverTimer = setTimeout(() => {
+      // Se for item do calendário (.calM-ev) e tem outro item abaixo na mesma célula,
+      // a caixinha de ações vai pra CIMA pra não cobrir o item de baixo.
+      if (block.classList.contains('calM-ev')) {
+        const cell = block.closest('.calM-cell');
+        if (cell) {
+          const evs = Array.from(cell.querySelectorAll('.calM-ev'));
+          const idx = evs.indexOf(block);
+          const hasBelow = idx >= 0 && idx < evs.length - 1;
+          block.classList.toggle('actions-up', hasBelow);
+        }
+      }
       block.classList.add('show-actions');
       activeBlock = block;
       hoverTimer = null;
