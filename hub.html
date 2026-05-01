@@ -770,11 +770,11 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-scroll::-webkit-scrollbar-track { background: transparent; }
 .calM-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
 .calM-scroll::-webkit-scrollbar-thumb:hover { background: #b4b2a9; }
-.calM-month { margin-bottom: 14px; scroll-margin-top: 60px; }
+.calM-month { margin-bottom: 4px; scroll-margin-top: 60px; }
 .calM-month:last-child { margin-bottom: 0; }
-.calM-month-header { font-size: 13px; font-weight: 700; color: #111827; text-transform: capitalize; padding: 12px 4px 6px; letter-spacing: .01em; display: flex; align-items: baseline; gap: 8px; }
+.calM-month-header { font-size: 17px; font-weight: 700; color: #111827; text-transform: capitalize; padding: 8px 4px 4px; letter-spacing: .01em; display: flex; align-items: baseline; gap: 10px; }
 .calM-month-header::after { content: ''; flex: 1; height: 1px; background: #e0e0e4; }
-.calM-month-header .calM-month-label-year { font-size: 11px; font-weight: 500; color: #6b7280; }
+.calM-month-header .calM-month-label-year { font-size: 13px; font-weight: 500; color: #6b7280; }
 .calM-dow-row { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); position: sticky; top: 0; background: #fff; z-index: 5; padding-top: 4px; }
 .calM-dow { font-size: 10px; color: #6b7280; text-align: center; padding: 4px 0 8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
 .calM-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); grid-auto-rows: 1fr; border: 1px solid #c8c8cc; border-radius: 8px; overflow: hidden; }
@@ -5565,20 +5565,47 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     });
   }
 
-  // ── Drag & drop (Fase 4) com feedback ao vivo ──
+  // ── Drag & drop (Fase 4) com feedback ao vivo + auto-scroll vertical ──
+  let _dragScrollInterval = null;
+  let _dragLastY = 0;
+  function startDragAutoScroll() {
+    if (_dragScrollInterval) return;
+    _dragScrollInterval = setInterval(() => {
+      const scroller = container.querySelector('.calM-scroll');
+      if (!scroller) return;
+      const r = scroller.getBoundingClientRect();
+      const zone = 70; // px da borda que ativa scroll
+      const maxSpeed = 16;
+      let dy = 0;
+      if (_dragLastY < r.top + zone) {
+        const ratio = Math.max(0, Math.min(1, (r.top + zone - _dragLastY) / zone));
+        dy = -Math.ceil(maxSpeed * ratio);
+      } else if (_dragLastY > r.bottom - zone) {
+        const ratio = Math.max(0, Math.min(1, (_dragLastY - (r.bottom - zone)) / zone));
+        dy = Math.ceil(maxSpeed * ratio);
+      }
+      if (dy !== 0) scroller.scrollTop += dy;
+    }, 30);
+  }
+  function stopDragAutoScroll() {
+    if (_dragScrollInterval) { clearInterval(_dragScrollInterval); _dragScrollInterval = null; }
+  }
   container.addEventListener('dragstart', e => {
     const ev = e.target.closest('.calM-ev');
     if (!ev) return;
     e.dataTransfer.setData('text/plain', ev.dataset.itemId);
     e.dataTransfer.effectAllowed = 'move';
     ev.classList.add('is-dragging');
+    startDragAutoScroll();
   });
   container.addEventListener('dragend', e => {
     const ev = e.target.closest('.calM-ev.is-dragging');
     if (ev) ev.classList.remove('is-dragging');
     document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
+    stopDragAutoScroll();
   });
   container.addEventListener('dragover', e => {
+    _dragLastY = e.clientY;
     const cell = e.target.closest('.calM-cell:not(.is-out)');
     if (!cell) return;
     e.preventDefault();
@@ -5609,6 +5636,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     if (cell && !cell.contains(e.relatedTarget)) cell.style.outline = '';
   });
   container.addEventListener('drop', async e => {
+    stopDragAutoScroll();
     const cell = e.target.closest('.calM-cell:not(.is-out)');
     if (!cell) return;
     e.preventDefault();
