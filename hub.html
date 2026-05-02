@@ -874,6 +874,78 @@ table.data-table tr:hover td { background: var(--bg); }
   .calW-head .calW-num { font-size: 14px; }
   .calW-card .ti { font-size: 11px; }
 }
+
+/* ── MODAL DETALHADO DA TAREFA ─────────────────────────────────────────── */
+.tdm-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity .2s; }
+.tdm-overlay.open { display: flex; opacity: 1; }
+.tdm { width: 520px; max-width: calc(100vw - 32px); max-height: calc(100vh - 60px); background: #fff; border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,.32); display: flex; flex-direction: column; overflow: hidden; transform: scale(.95); transition: transform .22s cubic-bezier(.34, 1.56, .64, 1); }
+.tdm-overlay.open .tdm { transform: scale(1); }
+.tdm-head { padding: 18px 22px 12px; border-bottom: 0.5px solid #f3f4f6; flex-shrink: 0; position: relative; }
+.tdm-area-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
+.tdm-area-pill.area-pessoal  { background: #86efac; color: #14532d; }
+.tdm-area-pill.area-trabalho { background: #c4b5fd; color: #3b0764; }
+.tdm-area-pill.area-saude    { background: #f9a8d4; color: #831843; }
+.tdm-area-pill.area-financas { background: #fcd34d; color: #78350f; }
+.tdm-area-pill.area-rotina   { background: #93c5fd; color: #1e3a8a; }
+.tdm-title { font-size: 20px; font-weight: 600; margin: 8px 0 0; line-height: 1.3; word-break: break-word; }
+.tdm-when { font-size: 13px; color: #6b7280; margin-top: 4px; }
+.tdm-close { position: absolute; top: 14px; right: 14px; background: #f3f4f6; border: none; width: 30px; height: 30px; border-radius: 999px; cursor: pointer; color: #6b7280; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.tdm-close:hover { background: #e5e7eb; color: #1f2937; }
+.tdm-body { padding: 14px 22px 18px; overflow-y: auto; flex: 1; }
+.tdm-field { margin-bottom: 14px; }
+.tdm-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #6b7280; margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+.tdm-field-label svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+.tdm-field-value { font-size: 13px; color: #1f2937; padding: 8px 10px; background: #f7f7fb; border-radius: 7px; min-height: 34px; line-height: 1.5; border: 0.5px solid transparent; word-break: break-word; }
+.tdm-field-value.editable { border-color: #e0e0e4; background: #fff; cursor: text; }
+.tdm-field-value:focus-within { border-color: #7c3aed; }
+.tdm-field-value textarea, .tdm-field-value input, .tdm-field-value select { width: 100%; border: none; background: transparent; outline: none; font: inherit; resize: vertical; }
+.tdm-field-empty { color: #9ca3af; font-style: italic; }
+.tdm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tdm-link-preview { background: #fff; border: 0.5px solid #e0e0e4; border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color .15s; display: block; text-decoration: none; color: inherit; }
+.tdm-link-preview:hover { border-color: #7c3aed; }
+.tdm-link-preview img { width: 100%; height: 140px; object-fit: cover; display: block; background: #f3f4f6; }
+.tdm-link-preview .tdm-lp-body { padding: 10px 12px; }
+.tdm-link-preview .tdm-lp-site { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+.tdm-link-preview .tdm-lp-title { font-size: 13px; font-weight: 600; margin-top: 4px; line-height: 1.3; }
+.tdm-link-preview .tdm-lp-desc { font-size: 12px; color: #4b5563; margin-top: 4px; line-height: 1.4; max-height: 36px; overflow: hidden; }
+.tdm-loading { font-size: 12px; color: #9ca3af; }
+
+/* Mapa: tempos de viagem + horários de saída + Waze */
+.tdm-map-card { background: #f7f7fb; border-radius: 8px; padding: 10px 12px; }
+.tdm-map-times { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; }
+.tdm-map-time { display: flex; align-items: center; gap: 5px; color: #1f2937; }
+.tdm-map-time .tdm-mode-emoji { font-size: 14px; }
+.tdm-map-time-min { font-weight: 600; }
+.tdm-map-leave { font-size: 12px; color: #4b5563; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid #e0e0e4; }
+.tdm-map-leave strong { color: #7c3aed; font-weight: 600; }
+.tdm-map-actions { display: flex; gap: 8px; margin-top: 10px; }
+.tdm-map-btn { background: #fff; border: 0.5px solid #c8c8cc; border-radius: 6px; padding: 5px 10px; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-family: inherit; color: #374151; }
+.tdm-map-btn:hover { background: #f3f4f6; }
+.tdm-map-btn.tdm-waze { background: #33ccff; color: #fff; border-color: #33ccff; }
+.tdm-map-btn.tdm-waze:hover { background: #1eb8ec; border-color: #1eb8ec; }
+.tdm-map-cache-info { font-size: 10px; color: #9ca3af; margin-left: auto; align-self: center; }
+
+/* Chips de adicionar campo (estilo opção 8 — Tabler em preto/cinza) */
+.tdm-add-chips { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 12px; border-top: 0.5px dashed #e0e0e4; margin-top: 14px; }
+.tdm-add-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: none; background: #f3f4f6; color: #374151; border-radius: 999px; font-size: 12px; cursor: pointer; font-weight: 500; font-family: inherit; transition: background .12s; }
+.tdm-add-chip:hover { background: #e5e7eb; }
+.tdm-add-chip svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Footer com botões de ação */
+.tdm-foot { padding: 12px 22px; border-top: 0.5px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; background: #fafafb; }
+.tdm-btn { padding: 8px 16px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; border: 0.5px solid #c8c8cc; background: #fff; color: #374151; }
+.tdm-btn:hover { background: #f3f4f6; }
+.tdm-btn.tdm-btn-primary { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+.tdm-btn.tdm-btn-primary:hover { background: #6d28d9; border-color: #6d28d9; }
+.tdm-btn.tdm-btn-danger { background: transparent; color: #dc2626; border-color: transparent; margin-right: auto; }
+.tdm-btn.tdm-btn-danger:hover { background: #fee2e2; }
+
+@media (max-width: 600px) {
+  .tdm { width: 100%; max-width: 100%; max-height: calc(100vh - 30px); border-radius: 12px 12px 0 0; align-self: flex-end; transform: translateY(20px); }
+  .tdm-overlay.open .tdm { transform: translateY(0); }
+  .tdm-overlay { align-items: flex-end; }
+  .tdm-row { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -1314,10 +1386,10 @@ window.copyItemId = async function(id, btnEl) {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-05-01 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-05-02 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
-  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done',    cal:'Tarefas pessoais' },
-  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG',  m:1.03, pos:'bot', status:'planned', cal:'Tarefas pessoais' },
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done',   cal:'Tarefas pessoais' },
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG', m:1.03, pos:'bot', status:'active', cal:'Tarefas pessoais' },
 ];
 // CALENDAR_EVENTS_END
 
@@ -5845,5 +5917,431 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 })();
 </script>
 <!-- END GCAL INJECT -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MODAL DETALHADO DA TAREFA — popup ao clicar num item do calendário
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="tdm-overlay" id="tdmOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="tdm" id="tdm" role="document">
+    <button class="tdm-close" id="tdmClose" type="button" aria-label="Fechar">✕</button>
+    <div class="tdm-head">
+      <span class="tdm-area-pill" id="tdmAreaPill">—</span>
+      <h2 class="tdm-title" id="tdmTitle">—</h2>
+      <div class="tdm-when" id="tdmWhen">—</div>
+    </div>
+    <div class="tdm-body" id="tdmBody"></div>
+    <div class="tdm-foot">
+      <button class="tdm-btn tdm-btn-danger" id="tdmDelete" type="button">Apagar</button>
+      <button class="tdm-btn" id="tdmEdit" type="button">Editar</button>
+      <button class="tdm-btn tdm-btn-primary" id="tdmSave" type="button" style="display:none">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function setupTaskDetailModal() {
+  const sb = window.sbClient;
+  const overlay = document.getElementById('tdmOverlay');
+  const tdm     = document.getElementById('tdm');
+  const elTitle = document.getElementById('tdmTitle');
+  const elWhen  = document.getElementById('tdmWhen');
+  const elArea  = document.getElementById('tdmAreaPill');
+  const elBody  = document.getElementById('tdmBody');
+  const btnEdit = document.getElementById('tdmEdit');
+  const btnSave = document.getElementById('tdmSave');
+  const btnDel  = document.getElementById('tdmDelete');
+  const btnClose= document.getElementById('tdmClose');
+
+  let currentItem = null;
+  let editMode = false;
+  let activeFields = new Set(); // campos visíveis (preenchidos ou recém-adicionados)
+
+  const ICONS = {
+    address:  '<svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0 3 3 0 0 0-6 0"/><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/></svg>',
+    notes:    '<svg viewBox="0 0 24 24"><path d="M5 4a2 2 0 0 1 2-2h7l5 5v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4z"/><path d="M9 9h1M9 13h6M9 17h6"/></svg>',
+    link:     '<svg viewBox="0 0 24 24"><path d="M10 14a3.5 3.5 0 0 0 5 0l4-4a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M14 10a3.5 3.5 0 0 0-5 0l-4 4a3.5 3.5 0 0 0 5 5l1.5-1.5"/></svg>',
+    attachment:'<svg viewBox="0 0 24 24"><path d="M15 7l-6.5 6.5a2 2 0 0 0 2.83 2.83L19 7.5a4 4 0 0 0-5.66-5.66L4.5 10.67a6 6 0 0 0 8.49 8.49L21 11"/></svg>',
+    reminder: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3l-2 2M19 3l2 2"/></svg>',
+    recurrence:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 20v-4h4"/></svg>',
+    estimated:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  };
+
+  const FIELD_LABELS = {
+    address: 'Local', notes: 'Notas', link_url: 'Link',
+    attachment_url: 'Anexo', reminder_minutes: 'Lembrete',
+  };
+
+  function formatWhen(item) {
+    if (!item.date_start) return 'Sem data';
+    const d = new Date(item.date_start);
+    const DIAS = ['dom','seg','ter','qua','qui','sex','sáb'];
+    const MES  = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const dia = `${DIAS[d.getDay()]}, ${d.getDate()} ${MES[d.getMonth()]}`;
+    if (!item.has_time) return dia;
+    const hr = `${String(d.getHours()).padStart(2,'0')}h${d.getMinutes() ? String(d.getMinutes()).padStart(2,'0') : ''}`;
+    if (item.date_end) {
+      const de = new Date(item.date_end);
+      const hre = `${String(de.getHours()).padStart(2,'0')}h${de.getMinutes() ? String(de.getMinutes()).padStart(2,'0') : ''}`;
+      return `${dia} · ${hr} — ${hre}`;
+    }
+    return `${dia} · ${hr}`;
+  }
+
+  function fmtMinutes(m) {
+    if (m == null || isNaN(m)) return '—';
+    if (m < 60) return `${m}min`;
+    const h = Math.floor(m/60), mm = m % 60;
+    return mm ? `${h}h${String(mm).padStart(2,'0')}` : `${h}h`;
+  }
+
+  function fmtReminder(min) {
+    if (min == null) return '—';
+    if (min === 0) return 'Na hora';
+    if (min < 60) return `${min} min antes`;
+    if (min < 1440) return `${Math.round(min/60)} h antes`;
+    return `${Math.round(min/1440)} dia(s) antes`;
+  }
+
+  function escHtml(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function field(label, iconKey, html, opts = {}) {
+    return `<div class="tdm-field" data-field="${opts.dataField || ''}">
+      <div class="tdm-field-label">${ICONS[iconKey] || ''}${label}</div>
+      <div class="tdm-field-value ${opts.editable ? 'editable' : ''}">${html}</div>
+    </div>`;
+  }
+
+  function renderBody() {
+    if (!currentItem) { elBody.innerHTML = ''; return; }
+    const i = currentItem;
+    let html = '';
+
+    // Local
+    if (i.address || activeFields.has('address')) {
+      const wazeBtn = (i.address_lat && i.address_lng)
+        ? `<a class="tdm-map-btn tdm-waze" href="waze://?ll=${i.address_lat},${i.address_lng}&navigate=yes" target="_blank">Waze ↗</a>`
+        : '';
+      const inner = editMode
+        ? `<input type="text" data-edit="address" value="${escHtml(i.address || '')}" placeholder="Rua, número, bairro, cidade">`
+        : escHtml(i.address || '<span class="tdm-field-empty">Sem local</span>');
+      html += `<div class="tdm-field" data-field="address">
+        <div class="tdm-field-label">${ICONS.address}Local</div>
+        <div class="tdm-field-value ${editMode ? 'editable' : ''}">${inner}</div>
+        <div class="tdm-map-card" id="tdmMapCard" style="margin-top:8px;display:${i.address && i.address_lat ? 'block' : 'none'}">
+          <div class="tdm-map-times" id="tdmMapTimes"><span class="tdm-loading">Carregando trajeto...</span></div>
+          <div class="tdm-map-leave" id="tdmMapLeave" style="display:none"></div>
+          <div class="tdm-map-actions">
+            <button class="tdm-map-btn" id="tdmMapRefresh" type="button">↻ Atualizar agora</button>
+            ${wazeBtn}
+            <span class="tdm-map-cache-info" id="tdmMapCacheInfo"></span>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // Notas
+    if (i.notes || activeFields.has('notes')) {
+      const inner = editMode
+        ? `<textarea data-edit="notes" rows="3" placeholder="Notas, lembretes, contexto...">${escHtml(i.notes || '')}</textarea>`
+        : escHtml(i.notes || '<span class="tdm-field-empty">Sem notas</span>');
+      html += field('Notas', 'notes', inner, { editable: editMode });
+    }
+
+    // Link com preview
+    if (i.link_url || activeFields.has('link_url')) {
+      let inner;
+      if (editMode) {
+        inner = `<input type="url" data-edit="link_url" value="${escHtml(i.link_url || '')}" placeholder="https://...">`;
+      } else if (i.link_preview && i.link_preview.title) {
+        const lp = i.link_preview;
+        inner = `<a class="tdm-link-preview" href="${escHtml(i.link_url)}" target="_blank">
+          ${lp.image ? `<img src="${escHtml(lp.image)}" alt="" onerror="this.style.display='none'">` : ''}
+          <div class="tdm-lp-body">
+            <div class="tdm-lp-site">${escHtml(lp.site_name || '')}</div>
+            <div class="tdm-lp-title">${escHtml(lp.title)}</div>
+            ${lp.description ? `<div class="tdm-lp-desc">${escHtml(lp.description)}</div>` : ''}
+          </div>
+        </a>`;
+      } else if (i.link_url) {
+        inner = `<a href="${escHtml(i.link_url)}" target="_blank" style="color:#2563eb">${escHtml(i.link_url)}</a>`;
+      } else {
+        inner = '<span class="tdm-field-empty">Sem link</span>';
+      }
+      html += field('Link', 'link', inner, { editable: editMode });
+    }
+
+    // Anexo
+    if (i.attachment_url || activeFields.has('attachment_url')) {
+      const inner = editMode
+        ? `<input type="url" data-edit="attachment_url" value="${escHtml(i.attachment_url || '')}" placeholder="URL do anexo (foto, PDF...)">`
+        : (i.attachment_url
+          ? `<a href="${escHtml(i.attachment_url)}" target="_blank" style="color:#2563eb">📎 ${escHtml(i.attachment_url.split('/').pop())}</a>`
+          : '<span class="tdm-field-empty">Sem anexo</span>');
+      html += field('Anexo', 'attachment', inner, { editable: editMode });
+    }
+
+    // Lembrete + Recorrência + Tempo (row de 2)
+    const hasReminder = i.reminder_minutes != null || activeFields.has('reminder_minutes');
+    const hasRecurrence = !!i.recurrence;
+    const hasEstimated = i.estimated_minutes != null;
+
+    if (hasReminder || hasRecurrence || hasEstimated) {
+      const cells = [];
+      if (hasReminder) {
+        const inner = editMode
+          ? `<select data-edit="reminder_minutes">
+              <option value="">Sem lembrete</option>
+              <option value="0" ${i.reminder_minutes === 0 ? 'selected' : ''}>Na hora</option>
+              <option value="5" ${i.reminder_minutes === 5 ? 'selected' : ''}>5 min antes</option>
+              <option value="15" ${i.reminder_minutes === 15 ? 'selected' : ''}>15 min antes</option>
+              <option value="30" ${i.reminder_minutes === 30 ? 'selected' : ''}>30 min antes</option>
+              <option value="60" ${i.reminder_minutes === 60 ? 'selected' : ''}>1 h antes</option>
+              <option value="120" ${i.reminder_minutes === 120 ? 'selected' : ''}>2 h antes</option>
+              <option value="1440" ${i.reminder_minutes === 1440 ? 'selected' : ''}>1 dia antes</option>
+            </select>`
+          : fmtReminder(i.reminder_minutes);
+        cells.push(field('Lembrete', 'reminder', inner, { editable: editMode }));
+      }
+      if (hasRecurrence) cells.push(field('Recorrência', 'recurrence', escHtml(i.recurrence)));
+      if (hasEstimated)  cells.push(field('Tempo', 'estimated', fmtMinutes(i.estimated_minutes)));
+      html += cells.length === 1 ? cells[0] : `<div class="tdm-row">${cells.join('')}</div>`;
+    }
+
+    // Chips pra adicionar campos vazios (só no modo edição)
+    if (editMode) {
+      const optional = [
+        { key: 'address', label: 'Local', icon: ICONS.address },
+        { key: 'notes', label: 'Notas', icon: ICONS.notes },
+        { key: 'link_url', label: 'Link', icon: ICONS.link },
+        { key: 'attachment_url', label: 'Anexo', icon: ICONS.attachment },
+        { key: 'reminder_minutes', label: 'Lembrete', icon: ICONS.reminder },
+      ];
+      const available = optional.filter(o => {
+        const cur = i[o.key];
+        const isFilled = (o.key === 'reminder_minutes') ? (cur != null) : !!cur;
+        return !isFilled && !activeFields.has(o.key);
+      });
+      if (available.length) {
+        html += `<div class="tdm-add-chips">
+          ${available.map(o => `<button class="tdm-add-chip" data-add-field="${o.key}" type="button">${o.icon}${o.label}</button>`).join('')}
+        </div>`;
+      }
+    }
+
+    elBody.innerHTML = html;
+
+    // Hooks pós-render
+    if (editMode) {
+      elBody.querySelectorAll('.tdm-add-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeFields.add(btn.dataset.addField);
+          renderBody();
+        });
+      });
+    }
+    // Refresh do mapa
+    const refreshBtn = document.getElementById('tdmMapRefresh');
+    if (refreshBtn) refreshBtn.addEventListener('click', () => loadTravelTimes(true));
+    if (i.address && i.address_lat && i.address_lng) loadTravelTimes(false);
+  }
+
+  async function loadTravelTimes(force) {
+    const card = document.getElementById('tdmMapCard');
+    const times = document.getElementById('tdmMapTimes');
+    const leave = document.getElementById('tdmMapLeave');
+    const cacheInfo = document.getElementById('tdmMapCacheInfo');
+    if (!card || !times) return;
+
+    // Busca endereço de casa em user_settings
+    const { data: settings } = await sb.from('user_settings').select('home_lat, home_lng, home_address').maybeSingle();
+    if (!settings || !settings.home_lat || !settings.home_lng) {
+      times.innerHTML = '<span style="color:#9ca3af;font-size:12px">Cadastre o endereço de casa nas configurações pra ver o tempo de trajeto</span>';
+      return;
+    }
+
+    times.innerHTML = '<span class="tdm-loading">Carregando trajeto...</span>';
+    try {
+      const { data, error } = await sb.functions.invoke('maps-proxy', {
+        body: {
+          from_lat: Number(settings.home_lat),
+          from_lng: Number(settings.home_lng),
+          to_lat: Number(currentItem.address_lat),
+          to_lng: Number(currentItem.address_lng),
+          force,
+        },
+      });
+      if (error) throw error;
+      const modes = [
+        { key: 'driving', emoji: '🚗', label: 'carro' },
+        { key: 'transit', emoji: '🚌', label: 'transporte' },
+        { key: 'walking', emoji: '🚶', label: 'a pé' },
+      ];
+      times.innerHTML = modes.map(m => {
+        const r = data[m.key];
+        if (!r || r.minutes == null) return '';
+        return `<div class="tdm-map-time"><span class="tdm-mode-emoji">${m.emoji}</span><span class="tdm-map-time-min">${fmtMinutes(r.minutes)}</span></div>`;
+      }).join('');
+
+      // Horários de saída (se item tem hora)
+      if (currentItem.has_time && currentItem.date_start) {
+        const start = new Date(currentItem.date_start);
+        const buffer = 15;
+        const lines = modes.map(m => {
+          const r = data[m.key];
+          if (!r || r.minutes == null) return null;
+          const leaveAt = new Date(start.getTime() - (r.minutes + buffer) * 60000);
+          const hr = `${String(leaveAt.getHours()).padStart(2,'0')}h${String(leaveAt.getMinutes()).padStart(2,'0')}`;
+          return `${m.emoji} <strong>${hr}</strong>`;
+        }).filter(Boolean);
+        if (lines.length) {
+          leave.innerHTML = `Sair pra chegar 15min antes: ${lines.join(' · ')}`;
+          leave.style.display = 'block';
+        }
+      }
+
+      if (cacheInfo) {
+        cacheInfo.textContent = data.cached ? `cache ${data.age_seconds}s` : 'agora';
+      }
+    } catch (e) {
+      times.innerHTML = `<span style="color:#dc2626;font-size:12px">Erro: ${escHtml(String(e))}</span>`;
+    }
+  }
+
+  function open(item) {
+    currentItem = item;
+    editMode = false;
+    activeFields = new Set();
+    elTitle.textContent = item.title || '(sem título)';
+    elWhen.textContent = formatWhen(item);
+    elArea.className = 'tdm-area-pill area-' + (item.area || 'pessoal');
+    elArea.textContent = item.area || 'pessoal';
+    btnEdit.style.display = 'inline-block';
+    btnSave.style.display = 'none';
+    renderBody();
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function close() {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    currentItem = null;
+    editMode = false;
+  }
+
+  // Expor pra outros módulos
+  window.openTaskPopup = async function(itemId) {
+    if (!sb || !itemId) return;
+    const { data, error } = await sb.from('items').select('*').eq('id', itemId).maybeSingle();
+    if (error || !data) { console.error('[tdm] item não encontrado', itemId, error); return; }
+    open(data);
+  };
+
+  btnClose.addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('open')) close(); });
+
+  btnEdit.addEventListener('click', () => {
+    editMode = true;
+    btnEdit.style.display = 'none';
+    btnSave.style.display = 'inline-block';
+    renderBody();
+  });
+
+  btnSave.addEventListener('click', async () => {
+    if (!currentItem) return;
+    const updates = {};
+    elBody.querySelectorAll('[data-edit]').forEach(el => {
+      const key = el.dataset.edit;
+      let val = el.value;
+      if (key === 'reminder_minutes') val = val === '' ? null : parseInt(val, 10);
+      else if (val === '') val = null;
+      updates[key] = val;
+    });
+    // Geocode endereço se mudou
+    if (updates.address && updates.address !== currentItem.address) {
+      try {
+        const { data: geo } = await sb.functions.invoke('geocode', { body: { address: updates.address } });
+        if (geo && geo.lat) {
+          updates.address_lat = geo.lat;
+          updates.address_lng = geo.lng;
+          updates.address_formatted = geo.formatted_address;
+        }
+      } catch (e) { console.warn('[tdm] geocode falhou', e); }
+    } else if (updates.address === null) {
+      updates.address_lat = null; updates.address_lng = null; updates.address_formatted = null;
+    }
+    // Preview de link se mudou
+    if (updates.link_url && updates.link_url !== currentItem.link_url) {
+      try {
+        const { data: og } = await sb.functions.invoke('og-preview', { body: { url: updates.link_url } });
+        if (og && og.title) updates.link_preview = og;
+      } catch (e) { console.warn('[tdm] og-preview falhou', e); }
+    } else if (updates.link_url === null) {
+      updates.link_preview = null;
+    }
+    btnSave.disabled = true;
+    const { error } = await sb.from('items').update(updates).eq('id', currentItem.id);
+    btnSave.disabled = false;
+    if (error) { alert('Erro ao salvar: ' + error.message); return; }
+    Object.assign(currentItem, updates);
+    editMode = false;
+    btnEdit.style.display = 'inline-block';
+    btnSave.style.display = 'none';
+    renderBody();
+  });
+
+  btnDel.addEventListener('click', async () => {
+    if (!currentItem) return;
+    if (!confirm('Apagar este item?')) return;
+    const { error } = await sb.from('items').delete().eq('id', currentItem.id);
+    if (error) { alert('Erro: ' + error.message); return; }
+    close();
+  });
+
+  // ── Click no card do calendário → abre popup ──
+  document.addEventListener('click', e => {
+    if (e.target.closest('.eb-actions') || e.target.closest('.eb-btn') || e.target.closest('.calM-act')) return;
+    const ev = e.target.closest('.calM-ev');
+    if (!ev) return;
+    const id = ev.dataset.itemId;
+    if (id) { e.preventDefault(); window.openTaskPopup(id); }
+  });
+
+  // ── Long press no mobile: substitui o tap como gatilho da caixinha de ações ──
+  // (No mobile: tap rápido = abre popup; long press = mostra caixinha)
+  let touchTimer = null;
+  let touchHadLongPress = false;
+  document.addEventListener('touchstart', e => {
+    const ev = e.target.closest('.calM-ev');
+    if (!ev) return;
+    touchHadLongPress = false;
+    if (touchTimer) clearTimeout(touchTimer);
+    touchTimer = setTimeout(() => {
+      touchHadLongPress = true;
+      // Fecha outras caixinhas
+      document.querySelectorAll('.event-block.show-actions').forEach(b => { if (b !== ev) b.classList.remove('show-actions'); });
+      // Calcula direção (cima/baixo) com base em vizinhos
+      const cell = ev.closest('.calM-cell');
+      if (cell) {
+        const evs = Array.from(cell.querySelectorAll('.calM-ev'));
+        const idx = evs.indexOf(ev);
+        ev.classList.toggle('actions-up', idx >= 0 && idx < evs.length - 1);
+      }
+      ev.classList.add('show-actions');
+    }, 500);
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+    if (touchHadLongPress) { e.preventDefault?.(); }
+  });
+  document.addEventListener('touchmove', () => {
+    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+  }, { passive: true });
+})();
+</script>
+
 </body>
 </html>
