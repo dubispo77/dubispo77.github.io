@@ -925,6 +925,15 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-map-btn.tdm-waze:hover { background: #1eb8ec; border-color: #1eb8ec; }
 .tdm-map-cache-info { font-size: 10px; color: #9ca3af; margin-left: auto; align-self: center; }
 
+/* Chips de endereços favoritos (abaixo do input Local) */
+.tdm-fav-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+.tdm-fav-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: 0.5px solid #c8c8cc; background: #fff; border-radius: 999px; font-size: 11px; cursor: pointer; font-family: inherit; color: #374151; transition: background .12s, border-color .12s; }
+.tdm-fav-chip:hover { background: #f3f4f6; border-color: #888; }
+.tdm-fav-chip.active { background: #ede9fe; border-color: #7c3aed; color: #5b21b6; font-weight: 500; }
+.tdm-fav-chip .icon { font-size: 12px; }
+.tdm-fav-save { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: 0.5px dashed #c8c8cc; background: transparent; border-radius: 999px; font-size: 11px; cursor: pointer; font-family: inherit; color: #6b7280; }
+.tdm-fav-save:hover { border-color: #f59e0b; color: #d97706; }
+
 /* Chips de adicionar campo (estilo opção 8 — Tabler em preto/cinza) */
 .tdm-add-chips { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 12px; border-top: 0.5px dashed #e0e0e4; margin-top: 14px; }
 .tdm-add-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: none; background: #f3f4f6; color: #374151; border-radius: 999px; font-size: 12px; cursor: pointer; font-weight: 500; font-family: inherit; transition: background .12s; }
@@ -1386,10 +1395,10 @@ window.copyItemId = async function(id, btnEl) {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-05-02 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-05-03 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
-  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done',   cal:'Tarefas pessoais' },
-  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG', m:1.03, pos:'bot', status:'active', cal:'Tarefas pessoais' },
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
+  { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG', m:1.03, pos:'bot', status:'done', cal:'Tarefas pessoais' },
 ];
 // CALENDAR_EVENTS_END
 
@@ -5955,6 +5964,15 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   let currentItem = null;
   let editMode = false;
   let activeFields = new Set(); // campos visíveis (preenchidos ou recém-adicionados)
+  let favoritesCache = null;    // [{id, label, address, lat, lng, icon}, ...]
+
+  async function loadFavorites(forceReload = false) {
+    if (favoritesCache && !forceReload) return favoritesCache;
+    if (!sb) return [];
+    const { data } = await sb.from('favorite_addresses').select('id,label,address,lat,lng,formatted,icon,ordem').order('ordem');
+    favoritesCache = data || [];
+    return favoritesCache;
+  }
 
   const ICONS = {
     address:  '<svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0 3 3 0 0 0-6 0"/><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/></svg>',
@@ -6026,9 +6044,24 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       const inner = editMode
         ? `<input type="text" data-edit="address" value="${escHtml(i.address || '')}" placeholder="Rua, número, bairro, cidade">`
         : escHtml(i.address || '<span class="tdm-field-empty">Sem local</span>');
+
+      // Chips de favoritos (só em modo edição)
+      let favChipsHtml = '';
+      if (editMode && favoritesCache && favoritesCache.length) {
+        const isCurrentFav = favoritesCache.some(f => f.address === i.address);
+        favChipsHtml = `<div class="tdm-fav-chips">
+          ${favoritesCache.map(f => {
+            const active = i.address === f.address ? 'active' : '';
+            return `<button class="tdm-fav-chip ${active}" type="button" data-fav-id="${f.id}" data-fav-address="${escHtml(f.address)}" data-fav-lat="${f.lat || ''}" data-fav-lng="${f.lng || ''}" data-fav-formatted="${escHtml(f.formatted || '')}">${f.icon ? `<span class="icon">${f.icon}</span>` : ''}${escHtml(f.label)}</button>`;
+          }).join('')}
+          ${i.address && !isCurrentFav ? `<button class="tdm-fav-save" type="button" id="tdmFavSave">★ Salvar este como favorito</button>` : ''}
+        </div>`;
+      }
+
       html += `<div class="tdm-field" data-field="address">
         <div class="tdm-field-label">${ICONS.address}Local</div>
         <div class="tdm-field-value ${editMode ? 'editable' : ''}">${inner}</div>
+        ${favChipsHtml}
         <div class="tdm-map-card" id="tdmMapCard" style="margin-top:8px;display:${i.address && i.address_lat ? 'block' : 'none'}">
           <div class="tdm-map-times" id="tdmMapTimes"><span class="tdm-loading">Carregando trajeto...</span></div>
           <div class="tdm-map-leave" id="tdmMapLeave" style="display:none"></div>
@@ -6140,6 +6173,54 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
           renderBody();
         });
       });
+      // Chips de favoritos: click preenche input
+      elBody.querySelectorAll('.tdm-fav-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const input = elBody.querySelector('input[data-edit="address"]');
+          if (input) {
+            input.value = btn.dataset.favAddress;
+            // Marca lat/lng e formatted no item temporariamente (vai ser salvo no save)
+            currentItem._fav_pending = {
+              address: btn.dataset.favAddress,
+              address_lat: btn.dataset.favLat ? parseFloat(btn.dataset.favLat) : null,
+              address_lng: btn.dataset.favLng ? parseFloat(btn.dataset.favLng) : null,
+              address_formatted: btn.dataset.favFormatted || null,
+            };
+            // Re-render pra atualizar visual (chip ativo, etc)
+            currentItem.address = btn.dataset.favAddress;
+            currentItem.address_lat = currentItem._fav_pending.address_lat;
+            currentItem.address_lng = currentItem._fav_pending.address_lng;
+            currentItem.address_formatted = currentItem._fav_pending.address_formatted;
+            renderBody();
+          }
+        });
+      });
+      // Salvar endereço atual como favorito
+      const favSaveBtn = elBody.querySelector('#tdmFavSave');
+      if (favSaveBtn) {
+        favSaveBtn.addEventListener('click', async () => {
+          const input = elBody.querySelector('input[data-edit="address"]');
+          const address = (input?.value || currentItem.address || '').trim();
+          if (!address) return;
+          const label = prompt('Nome do favorito (ex: Casa, Academia, Cortez):');
+          if (!label) return;
+          const icon = prompt('Emoji do favorito (opcional, ex: 🏠 💪 🏛️):', '📍') || '📍';
+          // Geocodar se ainda não tem coords
+          let lat = currentItem.address_lat, lng = currentItem.address_lng, formatted = currentItem.address_formatted;
+          if (!lat || !lng) {
+            try {
+              const { data: geo } = await sb.functions.invoke('geocode', { body: { address } });
+              if (geo && geo.lat) { lat = geo.lat; lng = geo.lng; formatted = geo.formatted_address; }
+            } catch (e) { console.warn('[fav] geocode falhou', e); }
+          }
+          const { error } = await sb.from('favorite_addresses').insert({
+            label: label.trim(), address, lat, lng, formatted, icon: icon.trim(), ordem: 100,
+          });
+          if (error) { alert('Erro ao salvar favorito: ' + error.message); return; }
+          await loadFavorites(true);
+          renderBody();
+        });
+      }
     }
     // Refresh do mapa
     const refreshBtn = document.getElementById('tdmMapRefresh');
@@ -6209,7 +6290,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     }
   }
 
-  function open(item) {
+  async function open(item) {
     currentItem = item;
     editMode = false;
     activeFields = new Set();
@@ -6222,6 +6303,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     renderBody();
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
+    // Carrega favoritos em background pra estarem prontos quando entrar em modo edit
+    loadFavorites().then(() => { if (editMode) renderBody(); });
   }
 
   function close() {
