@@ -964,12 +964,26 @@ table.data-table tr:hover td { background: var(--bg); }
   <div class="login-card">
     <div class="login-emoji">🏠</div>
     <h1 class="login-title">Hub do Eduardo</h1>
-    <p class="login-sub">Acesso restrito. Entra com seu email pra receber o link.</p>
+    <p class="login-sub" id="loginSub">Acesso restrito.</p>
+    <button id="loginBiometryBtn" type="button" style="display:none;width:100%;padding:14px 18px;background:#7c3aed;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
+      <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M12 11v3"/><path d="M12 17v.01"/><path d="M5 11a7 7 0 0 1 14 0v3a7 7 0 0 1-14 0v-3z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+      <span id="loginBiometryLabel">Entrar com biometria</span>
+    </button>
+    <div id="loginDivider" style="display:none;text-align:center;color:#9ca3af;font-size:11px;margin:6px 0;text-transform:uppercase;letter-spacing:.06em">ou</div>
     <form id="loginForm" class="login-form">
       <input id="loginEmail" type="email" required placeholder="seu email" autocomplete="email" />
-      <button type="submit" id="loginBtn">Enviar link</button>
+      <button type="submit" id="loginBtn">Enviar link por email</button>
     </form>
     <div id="loginStatus" class="login-status"></div>
+  </div>
+</div>
+
+<div id="webauthnBanner" style="display:none;position:fixed;bottom:18px;right:18px;max-width:340px;background:#1a1828;color:#fff;padding:14px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:998;font-size:13px;line-height:1.5">
+  <div style="font-weight:600;margin-bottom:6px">Cadastrar biometria neste dispositivo?</div>
+  <div style="opacity:.85;margin-bottom:10px">Próximas vezes você entra só com Touch ID / impressão digital, sem precisar do email.</div>
+  <div style="display:flex;gap:6px;justify-content:flex-end">
+    <button id="webauthnDismissBtn" type="button" style="background:transparent;color:#fff;border:0.5px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit">Agora não</button>
+    <button id="webauthnRegisterBtn" type="button" style="background:#7c3aed;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:500;font-family:inherit">Cadastrar</button>
   </div>
 </div>
 
@@ -1311,12 +1325,96 @@ window.copyItemId = async function(id, btnEl) {
   window._copyToastT = setTimeout(() => toast.classList.remove('show'), 1400);
 };
 
+// ── Helpers WebAuthn (compartilhados entre login e cadastro) ──
+window.WebAuthnHelpers = (function() {
+  const FN_REG_OPT  = 'webauthn-register-options';
+  const FN_REG_VER  = 'webauthn-register-verify';
+  const FN_AUTH_OPT = 'webauthn-authenticate-options';
+  const FN_AUTH_VER = 'webauthn-authenticate-verify';
+
+  function b64urlToBuf(b64url) {
+    const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/').padEnd(b64url.length + (4 - b64url.length % 4) % 4, '=');
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out.buffer;
+  }
+  function bufToB64url(buf) {
+    const bytes = new Uint8Array(buf);
+    let bin = ''; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+
+  function decodeOptions(opts) {
+    const out = { ...opts };
+    if (out.challenge) out.challenge = b64urlToBuf(out.challenge);
+    if (out.user?.id) out.user.id = b64urlToBuf(out.user.id);
+    if (out.excludeCredentials) out.excludeCredentials = out.excludeCredentials.map(c => ({ ...c, id: b64urlToBuf(c.id) }));
+    if (out.allowCredentials)   out.allowCredentials   = out.allowCredentials.map(c => ({ ...c, id: b64urlToBuf(c.id) }));
+    return out;
+  }
+  function encodeCredential(cred) {
+    const out = {
+      id: cred.id, rawId: bufToB64url(cred.rawId), type: cred.type,
+      authenticatorAttachment: cred.authenticatorAttachment,
+      response: {}, clientExtensionResults: cred.getClientExtensionResults?.() || {},
+    };
+    if (cred.response.clientDataJSON) out.response.clientDataJSON = bufToB64url(cred.response.clientDataJSON);
+    if (cred.response.attestationObject) out.response.attestationObject = bufToB64url(cred.response.attestationObject);
+    if (cred.response.authenticatorData) out.response.authenticatorData = bufToB64url(cred.response.authenticatorData);
+    if (cred.response.signature) out.response.signature = bufToB64url(cred.response.signature);
+    if (cred.response.userHandle) out.response.userHandle = bufToB64url(cred.response.userHandle);
+    if (cred.response.getTransports) out.response.transports = cred.response.getTransports();
+    return out;
+  }
+
+  async function register(deviceLabel) {
+    const sb = window.sbClient;
+    const { data: optResp, error: e1 } = await sb.functions.invoke(FN_REG_OPT, { body: { device_label: deviceLabel } });
+    if (e1 || !optResp?.options) throw new Error('Falha ao gerar opções: ' + (e1?.message || 'sem options'));
+    const publicKey = decodeOptions(optResp.options);
+    const cred = await navigator.credentials.create({ publicKey });
+    if (!cred) throw new Error('Cancelado');
+    const credPayload = encodeCredential(cred);
+    const { data: verResp, error: e2 } = await sb.functions.invoke(FN_REG_VER, { body: { credential: credPayload, device_label: deviceLabel } });
+    if (e2) throw new Error('Verificação falhou: ' + e2.message);
+    if (verResp?.error) throw new Error(verResp.error);
+    return verResp;
+  }
+
+  async function authenticate(email) {
+    const sb = window.sbClient;
+    const { data: optResp, error: e1 } = await sb.functions.invoke(FN_AUTH_OPT, { body: { email } });
+    if (e1 || !optResp?.options) {
+      const msg = optResp?.message || e1?.message || 'sem options';
+      throw new Error(msg);
+    }
+    const publicKey = decodeOptions(optResp.options);
+    const cred = await navigator.credentials.get({ publicKey });
+    if (!cred) throw new Error('Cancelado');
+    const credPayload = encodeCredential(cred);
+    const { data: verResp, error: e2 } = await sb.functions.invoke(FN_AUTH_VER, { body: { credential: credPayload, email } });
+    if (e2) throw new Error('Verificação falhou: ' + e2.message);
+    if (verResp?.error) throw new Error(verResp.error);
+    if (!verResp?.access_token) throw new Error('Sem token na resposta');
+    const { error: setErr } = await sb.auth.setSession({ access_token: verResp.access_token, refresh_token: verResp.refresh_token });
+    if (setErr) throw new Error('Falha ao iniciar sessão: ' + setErr.message);
+    return verResp;
+  }
+
+  return { register, authenticate };
+})();
+
 (async function bootstrapAuth() {
   const overlay = document.getElementById('loginOverlay');
   const form    = document.getElementById('loginForm');
   const emailIn = document.getElementById('loginEmail');
   const btn     = document.getElementById('loginBtn');
   const status  = document.getElementById('loginStatus');
+  const bioBtn  = document.getElementById('loginBiometryBtn');
+  const bioLbl  = document.getElementById('loginBiometryLabel');
+  const divider = document.getElementById('loginDivider');
+
   if (!window.sbClient) {
     overlay.style.display = 'flex';
     status.textContent = 'Erro: Supabase não carregou.';
@@ -1327,10 +1425,81 @@ window.copyItemId = async function(id, btnEl) {
   function mostrarHub() {
     overlay.style.display = 'none';
     document.querySelector('.layout').style.display = '';
+    setTimeout(maybeOfferPasskeyRegistration, 1500);
   }
   function mostrarLogin() {
     overlay.style.display = 'flex';
     document.querySelector('.layout').style.display = 'none';
+    showBiometryButtonIfApplicable();
+  }
+
+  function showBiometryButtonIfApplicable() {
+    const lastEmail = localStorage.getItem('webauthn_last_email');
+    const supports = !!window.PublicKeyCredential;
+    if (lastEmail && supports) {
+      bioBtn.style.display = 'inline-flex';
+      divider.style.display = 'block';
+      emailIn.value = lastEmail;
+      bioLbl.textContent = 'Entrar com biometria';
+    }
+  }
+
+  bioBtn?.addEventListener('click', async () => {
+    const email = emailIn.value.trim() || localStorage.getItem('webauthn_last_email');
+    if (!email) { status.textContent = 'Digite o email primeiro'; status.className = 'login-status error'; return; }
+    bioBtn.disabled = true;
+    bioLbl.textContent = 'Aguardando biometria...';
+    status.textContent = '';
+    try {
+      await window.WebAuthnHelpers.authenticate(email);
+      bioLbl.textContent = 'Entrou! Carregando...';
+      localStorage.setItem('webauthn_last_email', email);
+      setTimeout(() => location.reload(), 300);
+    } catch (e) {
+      bioBtn.disabled = false;
+      bioLbl.textContent = 'Tentar de novo com biometria';
+      status.textContent = 'Falhou: ' + e.message + '. Tenta o link por email.';
+      status.className = 'login-status error';
+    }
+  });
+
+  // Banner de cadastrar passkey após login normal
+  async function maybeOfferPasskeyRegistration() {
+    const banner = document.getElementById('webauthnBanner');
+    if (!banner || !window.PublicKeyCredential) return;
+    if (localStorage.getItem('webauthn_dismissed_at')) {
+      const dismissedAt = parseInt(localStorage.getItem('webauthn_dismissed_at'), 10);
+      // re-pergunta a cada 14 dias se ainda não cadastrou
+      if (Date.now() - dismissedAt < 14 * 24 * 60 * 60 * 1000) return;
+    }
+    // Já cadastrado neste device?
+    const lastEmail = localStorage.getItem('webauthn_last_email');
+    const { data: { user } } = await window.sbClient.auth.getUser();
+    if (lastEmail && user?.email === lastEmail) {
+      // já tem biometria no device pra esse email; não oferece
+      return;
+    }
+    banner.style.display = 'block';
+    document.getElementById('webauthnDismissBtn').onclick = () => {
+      banner.style.display = 'none';
+      localStorage.setItem('webauthn_dismissed_at', String(Date.now()));
+    };
+    document.getElementById('webauthnRegisterBtn').onclick = async () => {
+      const btn = document.getElementById('webauthnRegisterBtn');
+      btn.disabled = true; btn.textContent = 'Aguardando biometria...';
+      try {
+        const ua = navigator.userAgent;
+        const label = /iPhone|iPad/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : 'Computador';
+        await window.WebAuthnHelpers.register(label);
+        localStorage.setItem('webauthn_last_email', user.email);
+        localStorage.removeItem('webauthn_dismissed_at');
+        btn.textContent = 'Cadastrado ✓';
+        setTimeout(() => banner.style.display = 'none', 1500);
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Tentar de novo';
+        alert('Erro: ' + e.message);
+      }
+    };
   }
 
   // Detecta callback do magic link. O Supabase JS processa o hash automaticamente.
