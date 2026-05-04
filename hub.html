@@ -1435,6 +1435,38 @@ window.WebAuthnHelpers = (function() {
     overlay.style.display = 'flex';
     document.querySelector('.layout').style.display = 'none';
     showBiometryButtonIfApplicable();
+    // Auto-dispara biometria ao abrir, se navegador suporta e não foi bloqueado antes
+    tryAutoBiometry();
+  }
+
+  let _autoBiometryTried = false;
+  async function tryAutoBiometry() {
+    if (_autoBiometryTried) return;
+    _autoBiometryTried = true;
+    if (!window.PublicKeyCredential) return;
+    // Espera 200ms pra UI renderizar antes de disparar Touch ID
+    await new Promise(r => setTimeout(r, 200));
+    const email = emailIn.value.trim() || localStorage.getItem('webauthn_last_email') || ALLOWED_EMAIL;
+    bioBtn.disabled = true;
+    bioLbl.textContent = 'Aguardando biometria...';
+    try {
+      await window.WebAuthnHelpers.authenticate(email);
+      bioLbl.textContent = 'Entrou! Carregando...';
+      localStorage.setItem('webauthn_last_email', email);
+      setTimeout(() => location.reload(), 300);
+    } catch (e) {
+      bioBtn.disabled = false;
+      bioLbl.textContent = 'Entrar com biometria';
+      // Silencioso: se falhou (cancelou, navegador bloqueou, sem passkey), só deixa o user clicar manual
+      // Erro só aparece se for problema técnico real (ex: edge function fora)
+      const msg = String(e?.message || e);
+      const benignos = ['NotAllowedError', 'AbortError', 'no_passkeys', 'Cancelado'];
+      const ehBenigno = benignos.some(b => msg.includes(b));
+      if (!ehBenigno) {
+        status.textContent = 'Falhou: ' + msg;
+        status.className = 'login-status error';
+      }
+    }
   }
 
   function showBiometryButtonIfApplicable() {
