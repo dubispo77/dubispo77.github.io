@@ -1063,7 +1063,7 @@ table.data-table tr:hover td { background: var(--bg); }
     <section id="roadmap" class="section active">
       <div class="section-header">
         <div class="section-title">🗺️ Roadmap de Vida</div>
-        <div class="section-subtitle">5 áreas · Trabalho · Finanças · Saúde · Rotina · Pessoal</div>
+        <div class="section-subtitle">6 áreas · Pessoal · Trabalho · Saúde · Administração · Casa · Eventos</div>
       </div>
       <div style="padding-bottom:60px;">
         <div class="rm-wrap" id="rmWrap">
@@ -3577,18 +3577,22 @@ function _dateToMRoadmap(d) {
 }
 
 const AREA_DEFAULTS = {
-  trabalho: { emoji: '💼', colorSoft: '#c4b5fd', badgeColor: '#7c3aed', badge: '' },
-  financas: { emoji: '💰', colorSoft: '#fcd34d', badgeColor: '#ef4444', badge: 'URGENTE' },
-  saude:    { emoji: '🏋️', colorSoft: '#f9a8d4', badgeColor: '#f59e0b', badge: 'Em aberto' },
-  rotina:   { emoji: '📅', colorSoft: '#93c5fd', badgeColor: '#f59e0b', badge: 'Instável' },
-  pessoal:  { emoji: '🌿', colorSoft: '#86efac', badgeColor: '#8b5cf6', badge: 'Processando' }
+  pessoal:       { emoji: '🙋', colorSoft: '#fecaca', badgeColor: '#dc2626', badge: '' },
+  trabalho:      { emoji: '💼', colorSoft: '#93c5fd', badgeColor: '#2563eb', badge: '' },
+  saude:         { emoji: '🏃', colorSoft: '#86efac', badgeColor: '#16a34a', badge: '' },
+  administracao: { emoji: '💰', colorSoft: '#c4b5fd', badgeColor: '#7c3aed', badge: '' },
+  casa:          { emoji: '🏡', colorSoft: '#fcd34d', badgeColor: '#d97706', badge: '' },
+  eventos:       { emoji: '🎟️', colorSoft: '#fed7aa', badgeColor: '#ea580c', badge: '' },
+  // Aliases retrocompat (caso algum item tenha area antiga)
+  financas:      { emoji: '💰', colorSoft: '#c4b5fd', badgeColor: '#7c3aed', badge: '' },
+  rotina:        { emoji: '🙋', colorSoft: '#fecaca', badgeColor: '#dc2626', badge: '' }
 };
 
 async function loadRoadmapFromItems() {
   const sb = window.sbClient;
   if (!sb) throw new Error('sbClient indisponível');
   const [pq, iq] = await Promise.all([
-    sb.from('projects').select('*').order('ordem', { ascending: true }),
+    sb.from('projects').select('*').eq('archived', false).eq('show_in_roadmap', true).order('ordem', { ascending: true }),
     sb.from('items').select('*').eq('is_roadmap', true)
   ]);
   if (pq.error) throw pq.error;
