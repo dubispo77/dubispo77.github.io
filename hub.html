@@ -1215,6 +1215,11 @@ table.data-table tr:hover td { background: var(--bg); }
             <div class="setup-row"><span class="sr-icon">📌</span><span class="sr-name">roadmap-calendar-sync (8h)</span><span class="sr-status" style="color:#16a34a">✅</span></div>
             <div class="setup-row"><span class="sr-icon">📆</span><span class="sr-name">gcal-hub-sync (7h) — Fase 4</span><span class="sr-status" style="color:#16a34a">✅</span></div>
           </div>
+          <div class="setup-group" id="bioGroup">
+            <div class="setup-group-header">🔐 Biometria</div>
+            <div id="bioList"><div class="setup-row" style="color:var(--text-faint)">Carregando...</div></div>
+            <button id="bioRegisterCurrent" type="button" style="margin-top:8px;padding:8px 12px;border:0.5px solid var(--border);background:var(--card);border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text);width:100%;display:none">＋ Cadastrar este dispositivo</button>
+          </div>
         </div>
       </div>
     </section>
@@ -1596,6 +1601,82 @@ window.WebAuthnHelpers = (function() {
       status.className = 'login-status ok';
     }
   });
+})();
+
+// ── Gerenciamento de biometria (lista de dispositivos cadastrados em Setup)
+(async function setupBiometryManager() {
+  const sb = window.sbClient;
+  if (!sb) return;
+  const list = document.getElementById('bioList');
+  const btnReg = document.getElementById('bioRegisterCurrent');
+  if (!list) return;
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  }
+  function deviceIcon(label, transports) {
+    const lc = (label || '').toLowerCase();
+    if (lc.includes('iphone') || lc.includes('ipad')) return '📱';
+    if (lc.includes('android')) return '📱';
+    if (lc.includes('mac')) return '💻';
+    if (lc.includes('windows') || lc.includes('pc')) return '🖥';
+    return '🔑';
+  }
+
+  async function load() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { list.innerHTML = '<div class="setup-row" style="color:var(--text-faint)">Faça login pra ver dispositivos</div>'; return; }
+    const { data, error } = await sb.from('webauthn_credentials')
+      .select('id, device_label, transports, created_at, last_used_at')
+      .order('created_at', { ascending: false });
+    if (error) { list.innerHTML = `<div class="setup-row" style="color:#dc2626">Erro: ${error.message}</div>`; return; }
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div class="setup-row" style="color:var(--text-faint);font-size:12px">Nenhum dispositivo cadastrado ainda</div>';
+    } else {
+      list.innerHTML = data.map(d => `<div class="setup-row" data-bio-id="${d.id}" style="display:flex;align-items:center;gap:8px;padding:6px 0">
+        <span class="sr-icon" style="font-size:14px">${deviceIcon(d.device_label, d.transports)}</span>
+        <span class="sr-name" style="flex:1">${(d.device_label || 'Dispositivo')} <span style="color:var(--text-faint);font-size:10px">· cadastrado ${fmtDate(d.created_at)}${d.last_used_at ? ` · usado ${fmtDate(d.last_used_at)}` : ''}</span></span>
+        <button class="bio-del-btn" data-bio-id="${d.id}" title="Apagar este dispositivo" style="background:transparent;border:none;cursor:pointer;color:var(--text-faint);padding:4px;border-radius:4px;display:flex;align-items:center">${window.ICONS?.x || '✕'}</button>
+      </div>`).join('');
+      list.querySelectorAll('.bio-del-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Apagar essa passkey? Você não vai mais conseguir entrar com biometria neste dispositivo.')) return;
+          const { error: delErr } = await sb.from('webauthn_credentials').delete().eq('id', btn.dataset.bioId);
+          if (delErr) { alert('Erro: ' + delErr.message); return; }
+          load();
+        });
+      });
+    }
+    // Mostra botão de cadastrar este dispositivo se WebAuthn suportado
+    if (window.PublicKeyCredential && btnReg) btnReg.style.display = 'block';
+  }
+
+  btnReg?.addEventListener('click', async () => {
+    if (!window.WebAuthnHelpers) return;
+    btnReg.disabled = true;
+    btnReg.textContent = 'Aguardando biometria...';
+    try {
+      const ua = navigator.userAgent;
+      const label = /iPhone|iPad/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'PC Windows' : 'Computador';
+      await window.WebAuthnHelpers.register(label);
+      btnReg.textContent = '✓ Cadastrado';
+      const { data: { user } } = await sb.auth.getUser();
+      if (user?.email) localStorage.setItem('webauthn_last_email', user.email);
+      setTimeout(() => { btnReg.disabled = false; btnReg.textContent = '＋ Cadastrar este dispositivo'; load(); }, 1200);
+    } catch (e) {
+      btnReg.disabled = false;
+      btnReg.textContent = '＋ Cadastrar este dispositivo';
+      alert('Erro: ' + (e?.message || e));
+    }
+  });
+
+  load();
+
+  sb.channel('webauthn-creds-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'webauthn_credentials' }, load)
+    .subscribe();
 })();
 
 // ── CALENDÁRIO
