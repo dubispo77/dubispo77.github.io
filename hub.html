@@ -1449,8 +1449,7 @@ window.WebAuthnHelpers = (function() {
   }
 
   bioBtn?.addEventListener('click', async () => {
-    const email = emailIn.value.trim() || localStorage.getItem('webauthn_last_email');
-    if (!email) { status.textContent = 'Digite o email primeiro'; status.className = 'login-status error'; return; }
+    const email = emailIn.value.trim() || localStorage.getItem('webauthn_last_email') || ALLOWED_EMAIL;
     bioBtn.disabled = true;
     bioLbl.textContent = 'Aguardando biometria...';
     status.textContent = '';
