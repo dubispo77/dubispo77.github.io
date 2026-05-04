@@ -1434,12 +1434,12 @@ window.WebAuthnHelpers = (function() {
   }
 
   function showBiometryButtonIfApplicable() {
-    const lastEmail = localStorage.getItem('webauthn_last_email');
     const supports = !!window.PublicKeyCredential;
-    if (lastEmail && supports) {
+    if (supports) {
       bioBtn.style.display = 'inline-flex';
       divider.style.display = 'block';
-      emailIn.value = lastEmail;
+      const lastEmail = localStorage.getItem('webauthn_last_email');
+      if (lastEmail) emailIn.value = lastEmail;
       bioLbl.textContent = 'Entrar com biometria';
     }
   }
