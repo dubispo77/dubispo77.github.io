@@ -1291,6 +1291,14 @@ window.isOverdueItem = function(item) {
   return item ? window.isOverdue(item.date_start, item.status) : false;
 };
 
+// ── Ícones SVG compartilhados (substituem emojis nos botões de ação) ──
+window.ICONS = {
+  link: '<svg viewBox="0 0 16 16" stroke-width="1.8" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;display:block"><path d="M9.5 6.5 L 13 3 a 2.5 2.5 0 0 1 3.5 3.5 L 13 10"/><path d="M6.5 9.5 L 3 13 a 2.5 2.5 0 0 0 3.5 3.5 L 10 13"/><path d="M6.5 9.5 L 9.5 6.5"/></svg>',
+  edit: '<svg viewBox="0 0 16 16" stroke-width="1.8" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;display:block"><path d="M11 2 L 14 5 L 5 14 L 2 14 L 2 11 Z"/><path d="M9 4 L 12 7"/></svg>',
+  x: '<svg viewBox="0 0 16 16" stroke-width="1.8" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;display:block"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg>',
+  check: '<svg viewBox="0 0 16 16" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;display:block"><path d="M3 8 L 7 12 L 13 4"/></svg>',
+};
+
 // ── Copiar ID + toast (usado por todas as abas) ─────────────────────────
 window.copyItemId = async function(id, btnEl) {
   if (!id) return;
@@ -1599,7 +1607,7 @@ window.WebAuthnHelpers = (function() {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-05-03 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-05-04 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG', m:1.03, pos:'bot', status:'done', cal:'Tarefas pessoais' },
@@ -4229,8 +4237,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
         <div class="event-cal">${done ? '<span class="pill" style="background:#ede9fe;color:#7c3aed;">✓ Feito</span>' : '<span class="pill" style="background:#ede9fe;color:#7c3aed;">⏳ Pendente</span>'}</div>
         <div class="eb-actions">
-          <button class="eb-btn eb-pessoal-copy" title="Copiar ID">🔗</button>
-          <button class="eb-btn eb-pessoal-del" title="Apagar">✕</button>
+          <button class="eb-btn eb-pessoal-copy" title="Copiar ID">${window.ICONS.link}</button>
+          <button class="eb-btn eb-pessoal-del" title="Apagar">${window.ICONS.x}</button>
         </div>
       </div>`;
     }
@@ -4399,8 +4407,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         <div class="event-title" style="${done?'text-decoration:line-through':''}${done?';color:var(--text-faint)':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
         <div class="event-cal">${done ? '<span class="pill" style="background:#dcfce7;color:#16a34a;">✓ Feito</span>' : '<span class="pill" style="background:#e0f2fe;color:#0891b2;">⏳ Pendente</span>'}</div>
         <div class="eb-actions">
-          <button class="eb-btn eb-rotina-copy" title="Copiar ID">🔗</button>
-          <button class="eb-btn eb-rotina-del" title="Apagar">✕</button>
+          <button class="eb-btn eb-rotina-copy" title="Copiar ID">${window.ICONS.link}</button>
+          <button class="eb-btn eb-rotina-del" title="Apagar">${window.ICONS.x}</button>
         </div>
       </div>`;
     }
@@ -4589,8 +4597,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
         <div class="event-cal">${PILL_STATUS[i.status] || PILL_STATUS['planned']}</div>
         <div class="eb-actions">
-          <button class="eb-btn eb-saude-copy" title="Copiar ID">🔗</button>
-          <button class="eb-btn eb-saude-del" title="Apagar">✕</button>
+          <button class="eb-btn eb-saude-copy" title="Copiar ID">${window.ICONS.link}</button>
+          <button class="eb-btn eb-saude-del" title="Apagar">${window.ICONS.x}</button>
         </div>
       </div>`;
     }
@@ -4741,7 +4749,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         <td style="color:${b.status==='done'?'var(--text-faint)':'var(--text)'}">${fmtVal(b.amount)}</td>
         <td>${PILL[b.status] || PILL['planned']}</td>
         <td style="color:${vencida(b)?'#ef4444':'var(--text-dim)'}">${fmtDate(b.date_start)}${vencida(b)?' ⚠️':''}</td>
-        <td style="text-align:right"><button class="eb-btn eb-fin-copy" title="Copiar ID" style="opacity:.5">🔗</button></td>
+        <td style="text-align:right"><button class="eb-btn eb-fin-copy" title="Copiar ID" style="opacity:.5">${window.ICONS.link}</button></td>
       </tr>`).join('')}</tbody>
     </table>`;
 
@@ -4970,9 +4978,9 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
         <div class="event-title" style="${done ? 'text-decoration:line-through' : ''}">${icon} ${esc(item.title)}</div>
         <div class="event-cal">${esc(label)}</div>
         <div class="eb-actions">
-          <button class="eb-btn eb-copy" title="Copiar ID">🔗</button>
-          <button class="eb-btn eb-edit" title="Editar">✏️</button>
-          <button class="eb-btn eb-del" title="Apagar">✕</button>
+          <button class="eb-btn eb-copy" title="Copiar ID">${window.ICONS.link}</button>
+          <button class="eb-btn eb-edit" title="Editar">${window.ICONS.edit}</button>
+          <button class="eb-btn eb-del" title="Apagar">${window.ICONS.x}</button>
         </div>
       </div>`;
     }
