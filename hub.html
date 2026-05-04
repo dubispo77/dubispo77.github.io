@@ -1016,7 +1016,7 @@ table.data-table tr:hover td { background: var(--bg); }
     <div class="sidebar-footer">
       <div class="today-chip" id="todayChipSidebar"></div>
     </div>
-    <button class="logout-btn" onclick="window.sbClient && window.sbClient.auth.signOut()">Sair</button>
+    <button class="logout-btn" id="hubLogoutBtn" type="button">Sair</button>
   </aside>
 
   <!-- MAIN -->
@@ -1600,6 +1600,47 @@ window.WebAuthnHelpers = (function() {
       status.textContent = 'Link enviado! Confere seu email e clica no link pra entrar.';
       status.className = 'login-status ok';
     }
+  });
+})();
+
+// ── Logout bonito: oferece sair só ou sair + remover biometria deste dispositivo
+(function setupLogout() {
+  const btn = document.getElementById('hubLogoutBtn');
+  if (!btn || !window.sbClient) return;
+  const sb = window.sbClient;
+
+  btn.addEventListener('click', async () => {
+    // Verifica se há passkey cadastrada pra esse user
+    let hasPasskeys = false;
+    try {
+      const { data } = await sb.from('webauthn_credentials').select('id').limit(1);
+      hasPasskeys = (data && data.length > 0);
+    } catch (_) { /* ignore */ }
+
+    if (!hasPasskeys) {
+      // Sem passkeys, logout simples
+      if (confirm('Sair do Hub?')) {
+        await sb.auth.signOut();
+      }
+      return;
+    }
+
+    // Tem passkeys — oferece dialog com opções
+    const choice = prompt(
+      'Sair do Hub?\n\nDigite:\n  1 — Sair só (mantém biometria pra próxima vez)\n  2 — Sair e remover biometria deste dispositivo (não vai mais entrar com Touch ID até cadastrar de novo)\n  cancelar — desistir',
+      '1'
+    );
+    if (!choice || choice.toLowerCase() === 'cancelar') return;
+
+    if (choice === '2') {
+      // Remove TODAS as passkeys deste user — não dá pra identificar qual é deste dispositivo só pelo browser
+      // (o ideal seria detectar pelo aaguid, mas seria complicado e cada device pode ter várias)
+      if (!confirm('Vai remover TODAS as passkeys cadastradas (não só deste dispositivo). Tem certeza?')) return;
+      const { error: delErr } = await sb.from('webauthn_credentials').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (delErr) { alert('Erro: ' + delErr.message); return; }
+      localStorage.removeItem('webauthn_last_email');
+    }
+    await sb.auth.signOut();
   });
 })();
 
