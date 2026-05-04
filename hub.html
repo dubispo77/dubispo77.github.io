@@ -866,7 +866,7 @@ table.data-table tr:hover td { background: var(--bg); }
 @media (max-width: 600px) {
   .cal-header { gap: 8px; }
   .cal-header-left { gap: 8px; flex: 1; }
-  .cal-label { min-width: auto; font-size: 13px; }
+  .cal-label { min-width: auto; font-size: 16px; }
   .calM-cell { min-height: 78px; padding: 4px 5px; }
   .calM-num { font-size: 10px; }
   .calM-ev .ti { font-size: 9px; }
@@ -874,6 +874,28 @@ table.data-table tr:hover td { background: var(--bg); }
   .calW-head .calW-num { font-size: 14px; }
   .calW-card .ti { font-size: 11px; }
 }
+
+/* Agenda mobile A2 v4 — lista vertical com dias agrupados (opção B) */
+.calMM-scroll { max-height: calc(100vh - 200px); overflow-y: auto; overflow-x: hidden; padding: 8px 4px 24px; background: var(--bg); border-radius: 12px; }
+.calMM-scroll::-webkit-scrollbar { width: 5px; }
+.calMM-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
+.calMM-day-header { position: sticky; top: 0; background: var(--bg); padding: 12px 8px 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; z-index: 5; }
+.calMM-day-header.is-today { color: #7c3aed; }
+.calMM-day-header.is-overdue-day { color: #dc2626; }
+.calMM-day-section { margin-bottom: 4px; }
+.calMM-day-empty { padding: 4px 12px 8px; font-size: 12px; color: #9ca3af; font-style: italic; }
+.calMM-card { display: block; padding: 12px 14px; border-radius: 10px; border-left: 4px solid; margin: 4px 8px; position: relative; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.calMM-card .hr { font-size: 11px; opacity: .85; font-weight: 500; line-height: 1.2; }
+.calMM-card .ti { font-size: 14px; font-weight: 600; line-height: 1.3; margin-top: 2px; word-break: break-word; }
+.calMM-card.is-done { opacity: .5; }
+.calMM-card.is-done .ti { text-decoration: line-through; }
+.calMM-card.is-overdue { border-left-color: #dc2626 !important; border-left-width: 5px !important; }
+.calMM-card .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 700; line-height: 1.2; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.calMM-card.proj-pessoal  { background: #86efac; border-color: #16a34a; color: #14532d; }
+.calMM-card.proj-trabalho { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
+.calMM-card.proj-saude    { background: #f9a8d4; border-color: #db2777; color: #831843; }
+.calMM-card.proj-financas { background: #fcd34d; border-color: #d97706; color: #78350f; }
+.calMM-card.proj-rotina   { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
 
 /* ── MODAL DETALHADO DA TAREFA ─────────────────────────────────────────── */
 .tdm-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity .2s; }
@@ -5756,7 +5778,174 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     }
   }
 
+  function isMobile() { return window.innerWidth <= 600; }
+
+  // ── Mobile A2 v4: lista vertical de dias (cards grandes coloridos) ──
+  let _mobileLoadedRange = null; // {start: Date, end: Date}
+
+  function buildMobileDaysHtml(start, end) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const DIA = ['dom','seg','ter','qua','qui','sex','sáb'];
+    let html = '';
+    const cur = new Date(start);
+    while (cur <= end) {
+      const y = cur.getFullYear(), m = cur.getMonth(), d = cur.getDate();
+      const isToday = isSameDay(cur, today);
+      const isPast = cur < today;
+      const items = itemsForDate(cur);
+      const overdueCount = items.filter(it => it.is_overdue).length;
+      const headerClasses = [
+        isToday ? 'is-today' : '',
+        (isPast && overdueCount > 0) ? 'is-overdue-day' : '',
+      ].filter(Boolean).join(' ');
+      const headerLabel = `${DIA[cur.getDay()]}, ${d} ${MES[m]}${isToday ? ' · hoje' : ''}${(isPast && overdueCount > 0) ? ` · ${overdueCount} atrasado${overdueCount > 1 ? 's' : ''}` : ''}`;
+      html += `<section class="calMM-day-section" data-day="${ymd(cur)}">
+        <div class="calMM-day-header ${headerClasses}" data-year="${y}" data-month="${m}">${headerLabel}</div>`;
+      if (items.length === 0) {
+        html += '<div class="calMM-day-empty">Nada agendado</div>';
+      } else {
+        html += items.map(it => {
+          const klass = `calMM-card event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}`;
+          let overdueBadge = '';
+          if (it.is_overdue && it.raw && it.raw.date_start) {
+            const _dStart = new Date(it.raw.date_start); _dStart.setHours(0,0,0,0);
+            const _today = new Date(); _today.setHours(0,0,0,0);
+            const _days = Math.max(1, Math.round((_today - _dStart) / 86400000));
+            overdueBadge = `<span class="badge-overdue">${_days}d</span>`;
+          }
+          return `<div class="${klass}" data-item-id="${it.id}">
+            ${overdueBadge}
+            ${it.has_time ? `<div class="hr">${escHtml(it.hr)}</div>` : '<div class="hr">dia inteiro</div>'}
+            <div class="ti">${escHtml(it.title)}</div>
+          </div>`;
+        }).join('');
+      }
+      html += '</section>';
+      cur.setDate(cur.getDate() + 1);
+    }
+    return html;
+  }
+
+  let _mobileEdgeObserver = null;
+  let _mobileHeaderObserver = null;
+  function setupMobileObservers() {
+    if (_mobileEdgeObserver) _mobileEdgeObserver.disconnect();
+    if (_mobileHeaderObserver) _mobileHeaderObserver.disconnect();
+    const scroller = container.querySelector('.calMM-scroll');
+    if (!scroller) return;
+
+    // Wheel damper igual desktop
+    if (!scroller._wheelDamperAttached) {
+      scroller.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          scroller.scrollTop += e.deltaY * 0.62;
+        }
+      }, { passive: false });
+      scroller._wheelDamperAttached = true;
+    }
+
+    // Atualiza label do header conforme rola
+    _mobileHeaderObserver = new IntersectionObserver((entries) => {
+      let topVisible = null, topY = Infinity;
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const r = en.boundingClientRect.top;
+        if (r < topY) { topY = r; topVisible = en.target; }
+      });
+      if (topVisible) {
+        const y = parseInt(topVisible.dataset.year, 10);
+        const m = parseInt(topVisible.dataset.month, 10);
+        updateLabelFromMonth(y, m);
+        cursor = new Date(y, m, 1);
+      }
+    }, { root: scroller, rootMargin: '-10px 0px -70% 0px', threshold: 0 });
+    container.querySelectorAll('.calMM-day-header').forEach(el => _mobileHeaderObserver.observe(el));
+
+    // Lazy-load nas pontas
+    _mobileEdgeObserver = new IntersectionObserver(async (entries) => {
+      for (const en of entries) {
+        if (!en.isIntersecting) continue;
+        const which = en.target.dataset.edge;
+        if (which === 'top') await extendMobileUp();
+        if (which === 'bottom') await extendMobileDown();
+      }
+    }, { root: scroller, rootMargin: '300px' });
+    const top = scroller.querySelector('.calMM-edge-top');
+    const bot = scroller.querySelector('.calMM-edge-bottom');
+    if (top) _mobileEdgeObserver.observe(top);
+    if (bot) _mobileEdgeObserver.observe(bot);
+  }
+
+  async function extendMobileUp() {
+    if (!_mobileLoadedRange) return;
+    const newStart = new Date(_mobileLoadedRange.start);
+    newStart.setDate(newStart.getDate() - 30);
+    cursor = new Date(newStart);
+    await ensureRangeForCursor();
+    const scroller = container.querySelector('.calMM-scroll');
+    const prevHeight = scroller.scrollHeight;
+    const prevTop = scroller.scrollTop;
+    const newDaysHtml = buildMobileDaysHtml(newStart, new Date(_mobileLoadedRange.start.getTime() - 86400000));
+    const wrap = scroller.querySelector('.calMM-edge-top');
+    wrap.insertAdjacentHTML('afterend', newDaysHtml);
+    _mobileLoadedRange.start = newStart;
+    const delta = scroller.scrollHeight - prevHeight;
+    scroller.scrollTop = prevTop + delta;
+    setupMobileObservers();
+  }
+
+  async function extendMobileDown() {
+    if (!_mobileLoadedRange) return;
+    const newStart = new Date(_mobileLoadedRange.end.getTime() + 86400000);
+    const newEnd = new Date(newStart);
+    newEnd.setDate(newEnd.getDate() + 30);
+    cursor = new Date(newEnd);
+    await ensureRangeForCursor();
+    const scroller = container.querySelector('.calMM-scroll');
+    const newDaysHtml = buildMobileDaysHtml(newStart, newEnd);
+    const wrap = scroller.querySelector('.calMM-edge-bottom');
+    wrap.insertAdjacentHTML('beforebegin', newDaysHtml);
+    _mobileLoadedRange.end = newEnd;
+    setupMobileObservers();
+  }
+
+  async function renderMobileAgenda() {
+    container.classList.remove('single-page');
+    const today = new Date(); today.setHours(0,0,0,0);
+    // Range inicial: 7 dias antes de hoje + 30 dias depois
+    const start = new Date(today); start.setDate(start.getDate() - 7);
+    const end = new Date(today); end.setDate(end.getDate() + 30);
+    _mobileLoadedRange = { start, end };
+    cursor = new Date(today);
+    await ensureRangeForCursor();
+    const daysHtml = buildMobileDaysHtml(start, end);
+    container.innerHTML = `
+      <div class="calMM-scroll">
+        <div class="calMM-edge-top" data-edge="top" style="height:1px"></div>
+        ${daysHtml}
+        <div class="calMM-edge-bottom" data-edge="bottom" style="height:1px"></div>
+      </div>
+    `;
+    // Scroll inicial: começa em HOJE
+    const scroller = container.querySelector('.calMM-scroll');
+    const todayHeader = container.querySelector(`.calMM-day-section[data-day="${ymd(today)}"] .calMM-day-header`);
+    if (todayHeader && scroller) {
+      _suppressLabelUpdate = true;
+      scroller.scrollTop = todayHeader.parentElement.offsetTop;
+      updateLabelFromMonth(today.getFullYear(), today.getMonth());
+      requestAnimationFrame(() => { _suppressLabelUpdate = false; });
+    }
+    setupMobileObservers();
+  }
+
   function renderMonth() {
+    // Mobile: lista vertical de dias (A2 v4)
+    if (isMobile() && !chronoMode) {
+      renderMobileAgenda();
+      return;
+    }
     // Preserva posição de scroll quando re-renderiza timeline (após drag-drop, toggle, etc)
     const oldScroller = container.querySelector('.calM-scroll');
     const oldScrollTop = oldScroller ? oldScroller.scrollTop : null;
@@ -6718,17 +6907,17 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     close();
   });
 
-  // ── Click no card do calendário → abre popup ──
+  // ── Click/tap no card do calendário (desktop ou mobile) → abre popup ──
   document.addEventListener('click', e => {
     if (e.target.closest('.eb-actions') || e.target.closest('.eb-btn') || e.target.closest('.calM-act')) return;
-    const ev = e.target.closest('.calM-ev');
+    const ev = e.target.closest('.calM-ev, .calMM-card');
     if (!ev) return;
     const id = ev.dataset.itemId;
     if (id) { e.preventDefault(); window.openTaskPopup(id); }
   });
 
   // ── Long press no mobile: substitui o tap como gatilho da caixinha de ações ──
-  // (No mobile: tap rápido = abre popup; long press = mostra caixinha)
+  // (No mobile: tap rápido = abre popup; long press = mostra caixinha — só faz sentido no calendário desktop com .calM-ev)
   let touchTimer = null;
   let touchHadLongPress = false;
   document.addEventListener('touchstart', e => {
