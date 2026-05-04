@@ -821,11 +821,15 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev:active { cursor: grabbing; }
 .calM-ev .hr { font-size: 9px; opacity: .9; line-height: 1.2; display: block; font-weight: 500; }
 .calM-ev .ti { font-size: 11px; font-weight: 600; line-height: 1.3; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.calM-ev.proj-pessoal  { background: #86efac; border-color: #16a34a; color: #14532d; }
-.calM-ev.proj-trabalho { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
-.calM-ev.proj-saude    { background: #f9a8d4; border-color: #db2777; color: #831843; }
-.calM-ev.proj-financas { background: #fcd34d; border-color: #d97706; color: #78350f; }
-.calM-ev.proj-rotina   { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
+.calM-ev.proj-pessoal       { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
+.calM-ev.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
+.calM-ev.proj-saude         { background: #86efac; border-color: #16a34a; color: #14532d; }
+.calM-ev.proj-administracao { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
+.calM-ev.proj-casa          { background: #fcd34d; border-color: #d97706; color: #78350f; }
+.calM-ev.proj-eventos       { background: #fed7aa; border-color: #ea580c; color: #7c2d12; }
+/* Aliases retrocompat — strings antigas mapeadas pras cores novas */
+.calM-ev.proj-financas      { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
+.calM-ev.proj-rotina        { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
 .calM-ev .bd.ov { color: #dc2626; }
 .calM-ev .bd.dn { color: #166534; }
 .calM-more { display: inline-block; margin-top: 4px; font-size: 9px; color: #4b5563; padding: 2px 6px; background: #fff; border-radius: 5px; font-weight: 600; }
@@ -847,11 +851,14 @@ table.data-table tr:hover td { background: var(--bg); }
 .calW-card { padding: 8px 10px; border-radius: 6px; margin-bottom: 5px; color: #fff; }
 .calW-card .ti { font-size: 12px; font-weight: 600; line-height: 1.3; }
 .calW-card .hr { font-size: 10px; opacity: .8; margin-top: 2px; font-weight: 500; }
-.calW-card.proj-pessoal  { background: #86efac; color: #14532d; border-left: 3px solid #16a34a; }
-.calW-card.proj-trabalho { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
-.calW-card.proj-saude    { background: #f9a8d4; color: #831843; border-left: 3px solid #db2777; }
-.calW-card.proj-financas { background: #fcd34d; color: #78350f; border-left: 3px solid #d97706; }
-.calW-card.proj-rotina   { background: #93c5fd; color: #1e3a8a; border-left: 3px solid #2563eb; }
+.calW-card.proj-pessoal       { background: #fecaca; color: #7f1d1d; border-left: 3px solid #dc2626; }
+.calW-card.proj-trabalho      { background: #93c5fd; color: #1e3a8a; border-left: 3px solid #2563eb; }
+.calW-card.proj-saude         { background: #86efac; color: #14532d; border-left: 3px solid #16a34a; }
+.calW-card.proj-administracao { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
+.calW-card.proj-casa          { background: #fcd34d; color: #78350f; border-left: 3px solid #d97706; }
+.calW-card.proj-eventos       { background: #fed7aa; color: #7c2d12; border-left: 3px solid #ea580c; }
+.calW-card.proj-financas      { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
+.calW-card.proj-rotina        { background: #fecaca; color: #7f1d1d; border-left: 3px solid #dc2626; }
 /* Dropdown ao clicar no dia */
 .cal-day-popover { position: fixed; background: #fff; border: 1px solid #d8d8db; border-radius: 10px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 9999; min-width: 260px; max-width: 320px; }
 .cal-day-popover h3 { font-size: 13px; font-weight: 700; color: #1f2937; margin: 0 0 10px; }
@@ -891,11 +898,14 @@ table.data-table tr:hover td { background: var(--bg); }
 .calMM-card.is-done .ti { text-decoration: line-through; }
 .calMM-card.is-overdue { border-left-color: #dc2626 !important; border-left-width: 5px !important; }
 .calMM-card .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 700; line-height: 1.2; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
-.calMM-card.proj-pessoal  { background: #86efac; border-color: #16a34a; color: #14532d; }
-.calMM-card.proj-trabalho { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
-.calMM-card.proj-saude    { background: #f9a8d4; border-color: #db2777; color: #831843; }
-.calMM-card.proj-financas { background: #fcd34d; border-color: #d97706; color: #78350f; }
-.calMM-card.proj-rotina   { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
+.calMM-card.proj-pessoal       { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
+.calMM-card.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
+.calMM-card.proj-saude         { background: #86efac; border-color: #16a34a; color: #14532d; }
+.calMM-card.proj-administracao { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
+.calMM-card.proj-casa          { background: #fcd34d; border-color: #d97706; color: #78350f; }
+.calMM-card.proj-eventos       { background: #fed7aa; border-color: #ea580c; color: #7c2d12; }
+.calMM-card.proj-financas      { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
+.calMM-card.proj-rotina        { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
 
 /* ── MODAL DETALHADO DA TAREFA ─────────────────────────────────────────── */
 .tdm-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity .2s; }
@@ -904,11 +914,14 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-overlay.open .tdm { transform: scale(1); }
 .tdm-head { padding: 18px 22px 12px; border-bottom: 0.5px solid #f3f4f6; flex-shrink: 0; position: relative; }
 .tdm-area-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
-.tdm-area-pill.area-pessoal  { background: #86efac; color: #14532d; }
-.tdm-area-pill.area-trabalho { background: #c4b5fd; color: #3b0764; }
-.tdm-area-pill.area-saude    { background: #f9a8d4; color: #831843; }
-.tdm-area-pill.area-financas { background: #fcd34d; color: #78350f; }
-.tdm-area-pill.area-rotina   { background: #93c5fd; color: #1e3a8a; }
+.tdm-area-pill.area-pessoal       { background: #fecaca; color: #7f1d1d; }
+.tdm-area-pill.area-trabalho      { background: #93c5fd; color: #1e3a8a; }
+.tdm-area-pill.area-saude         { background: #86efac; color: #14532d; }
+.tdm-area-pill.area-administracao { background: #c4b5fd; color: #3b0764; }
+.tdm-area-pill.area-casa          { background: #fcd34d; color: #78350f; }
+.tdm-area-pill.area-eventos       { background: #fed7aa; color: #7c2d12; }
+.tdm-area-pill.area-financas      { background: #c4b5fd; color: #3b0764; }
+.tdm-area-pill.area-rotina        { background: #fecaca; color: #7f1d1d; }
 .tdm-title { font-size: 20px; font-weight: 600; margin: 8px 0 0; line-height: 1.3; word-break: break-word; }
 .tdm-when { font-size: 13px; color: #6b7280; margin-top: 4px; }
 .tdm-close { position: absolute; top: 14px; right: 14px; background: #f3f4f6; border: none; width: 30px; height: 30px; border-radius: 999px; cursor: pointer; color: #6b7280; font-size: 14px; display: flex; align-items: center; justify-content: center; }
@@ -1022,10 +1035,12 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="sidebar-section-label">Principal</div>
       <div class="nav-item active" data-sec="roadmap"><span class="ni-icon">🗺️</span><span class="ni-text">Roadmap</span><span class="ni-badge badge-red">Urgente</span></div>
       <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span><span id="badgeAgenda" class="ni-badge badge-red" style="display:none">0</span></div>
-      <div class="nav-item" data-sec="financas"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeFinancas" class="ni-badge badge-red" style="display:none">0</span></div>
-      <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span><span id="badgeSaude" class="ni-badge badge-red" style="display:none">0</span></div>
-      <div class="nav-item" data-sec="rotina"><span class="ni-icon">⏰</span><span class="ni-text">Rotina</span><span id="badgeRotina" class="ni-badge badge-yellow" style="display:none">0</span></div>
       <div class="nav-item" data-sec="pessoal"><span class="ni-icon">🙋</span><span class="ni-text">Pessoal</span><span id="badgePessoal" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="trabalho"><span class="ni-icon">💼</span><span class="ni-text">Trabalho</span><span id="badgeTrabalho" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span><span id="badgeSaude" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Administração</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="casa"><span class="ni-icon">🏡</span><span class="ni-text">Casa</span><span id="badgeCasa" class="ni-badge badge-yellow" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="eventos"><span class="ni-icon">🎟️</span><span class="ni-text">Eventos</span><span id="badgeEventos" class="ni-badge badge-yellow" style="display:none">0</span></div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">
@@ -1120,8 +1135,8 @@ table.data-table tr:hover td { background: var(--bg); }
     </section>
 
     <!-- FINANÇAS -->
-    <section id="financas" class="section">
-      <div class="section-header"><div class="section-title">💰 Finanças</div><div class="section-subtitle" id="finSubtitle">Carregando...</div></div>
+    <section id="administracao" class="section">
+      <div class="section-header"><div class="section-title">💰 Administração</div><div class="section-subtitle" id="finSubtitle">Carregando...</div></div>
       <div class="section-body">
         <div class="kpi-row">
           <div class="kpi"><div class="kpi-value" id="finKpiVenc"  style="color:#ef4444">—</div><div class="kpi-label">Vencem em 7 dias</div></div>
@@ -1163,20 +1178,56 @@ table.data-table tr:hover td { background: var(--bg); }
       </div>
     </section>
 
-    <!-- ROTINA -->
-    <section id="rotina" class="section">
-      <div class="section-header"><div class="section-title">⏰ Rotina</div><div class="section-subtitle" id="rotinaSubtitle">Carregando...</div></div>
+    <!-- TRABALHO -->
+    <section id="trabalho" class="section">
+      <div class="section-header"><div class="section-title">💼 Trabalho</div><div class="section-subtitle" id="trabalhoSubtitle">Carregando...</div></div>
       <div class="section-body">
         <div class="kpi-row">
-          <div class="kpi"><div class="kpi-value" id="rotinaKpiHoje"   style="color:#0891b2">—</div><div class="kpi-label">Itens hoje</div></div>
-          <div class="kpi"><div class="kpi-value" id="rotinaKpiFeitos" style="color:#16a34a">—</div><div class="kpi-label">Feitos hoje</div></div>
-          <div class="kpi"><div class="kpi-value" id="rotinaKpiPct"    style="color:#d97706">—</div><div class="kpi-label">% do dia</div></div>
+          <div class="kpi"><div class="kpi-value" id="trabalhoKpiHoje"   style="color:#2563eb">—</div><div class="kpi-label">Hoje</div></div>
+          <div class="kpi"><div class="kpi-value" id="trabalhoKpiSemana" style="color:#7c3aed">—</div><div class="kpi-label">Esta semana</div></div>
+          <div class="kpi"><div class="kpi-value" id="trabalhoKpiFeitos" style="color:#16a34a">—</div><div class="kpi-label">Feitos (30 dias)</div></div>
         </div>
-        <div id="rotinaItemsWrap">
+        <div id="trabalhoItemsWrap">
           <div class="empty-day" style="padding:24px"><div class="ei">⏳</div><div>Carregando...</div></div>
         </div>
         <div class="agenda-add-wrap">
-          <button class="agenda-add-btn" id="rotinaAddBtn">＋ Adicionar item de rotina</button>
+          <button class="agenda-add-btn" id="trabalhoAddBtn">＋ Adicionar item de trabalho</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CASA -->
+    <section id="casa" class="section">
+      <div class="section-header"><div class="section-title">🏡 Casa</div><div class="section-subtitle" id="casaSubtitle">Carregando...</div></div>
+      <div class="section-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" id="casaKpiHoje"   style="color:#d97706">—</div><div class="kpi-label">Hoje</div></div>
+          <div class="kpi"><div class="kpi-value" id="casaKpiSemana" style="color:#a16207">—</div><div class="kpi-label">Esta semana</div></div>
+          <div class="kpi"><div class="kpi-value" id="casaKpiFeitos" style="color:#16a34a">—</div><div class="kpi-label">Feitos (30 dias)</div></div>
+        </div>
+        <div id="casaItemsWrap">
+          <div class="empty-day" style="padding:24px"><div class="ei">⏳</div><div>Carregando...</div></div>
+        </div>
+        <div class="agenda-add-wrap">
+          <button class="agenda-add-btn" id="casaAddBtn">＋ Adicionar item da casa</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section id="eventos" class="section">
+      <div class="section-header"><div class="section-title">🎟️ Eventos</div><div class="section-subtitle" id="eventosSubtitle">Carregando...</div></div>
+      <div class="section-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-value" id="eventosKpiProx"   style="color:#ea580c">—</div><div class="kpi-label">Próximos 7 dias</div></div>
+          <div class="kpi"><div class="kpi-value" id="eventosKpiHoje"   style="color:#dc2626">—</div><div class="kpi-label">Hoje</div></div>
+          <div class="kpi"><div class="kpi-value" id="eventosKpiSemana" style="color:#7c3aed">—</div><div class="kpi-label">Esta semana</div></div>
+        </div>
+        <div id="eventosItemsWrap">
+          <div class="empty-day" style="padding:24px"><div class="ei">⏳</div><div>Carregando...</div></div>
+        </div>
+        <div class="agenda-add-wrap">
+          <button class="agenda-add-btn" id="eventosAddBtn">＋ Adicionar evento</button>
         </div>
       </div>
     </section>
@@ -3057,7 +3108,7 @@ function _rmdRenderCards(items, byArea) {
     const tb = b.has_time ? new Date(b.date_start).getTime() : Infinity;
     return ta - tb;
   }));
-  const order = ['saude', 'trabalho', 'financas', 'rotina', 'pessoal'];
+  const order = ['saude', 'trabalho', 'administracao', 'casa', 'pessoal', 'eventos'];
   return order.filter(area => (itemsByArea[area] || []).length > 0).map(area => {
     const def = RMD_AREA_DEF[area];
     const tasks = itemsByArea[area];
@@ -3213,7 +3264,7 @@ async function buildRoadmapMobile() {
     proximaTime = proxima.has_time ? _rmdFmtTime(proxima.date_start) : '';
   }
 
-  const byArea = { saude: 0, trabalho: 0, financas: 0, rotina: 0, pessoal: 0 };
+  const byArea = { saude: 0, trabalho: 0, administracao: 0, casa: 0, pessoal: 0, eventos: 0 };
   items.forEach(i => byArea[i.area] = (byArea[i.area] || 0) + 1);
 
   const dayOfWeek = sel.getDay();
@@ -4248,19 +4299,21 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     const items = data || [];
 
-    const byArea = { agenda: 0, financas: 0, saude: 0, rotina: 0, pessoal: 0 };
+    const byArea = { agenda: 0, administracao: 0, saude: 0, trabalho: 0, casa: 0, eventos: 0, pessoal: 0 };
 
     items.forEach(i => {
       const ld = localDate(i.date_start);
       if (!ld || ld.getTime() !== today.getTime()) return;
-      if (i.area === 'saude')         byArea.saude++;
-      else if (i.area === 'rotina')   byArea.rotina++;
-      else if (i.area === 'financas') byArea.financas++;
-      else if (i.area === 'pessoal')  byArea.pessoal++;
+      if (i.area === 'saude')              byArea.saude++;
+      else if (i.area === 'trabalho')      byArea.trabalho++;
+      else if (i.area === 'administracao') byArea.administracao++;
+      else if (i.area === 'casa')          byArea.casa++;
+      else if (i.area === 'eventos')       byArea.eventos++;
+      else if (i.area === 'pessoal')       byArea.pessoal++;
       else byArea.agenda++;
     });
 
-    // Bills vencendo em 7 dias pra Finanças
+    // Bills vencendo em 7 dias pra Administração
     const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
     const { data: bills } = await sb.from('items')
       .select('id')
@@ -4270,9 +4323,9 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       .not('status', 'eq', 'cancelled')
       .gte('date_start', today.toISOString())
       .lt('date_start', in7.toISOString());
-    byArea.financas = (bills || []).length;
+    byArea.administracao = (bills || []).length;
 
-    // Total agenda = todos os pendentes de hoje que não são saude/rotina/financas
+    // Total agenda = todos os pendentes de hoje que não cabem nas áreas dedicadas
     const { data: agendaItems } = await sb.from('items')
       .select('id,area')
       .eq('is_roadmap', false)
@@ -4280,13 +4333,15 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       .not('status', 'eq', 'cancelled')
       .gte('date_start', today.toISOString())
       .lt('date_start', tomorrow.toISOString());
-    byArea.agenda = (agendaItems || []).filter(i => !['saude','rotina','financas'].includes(i.area)).length;
+    byArea.agenda = (agendaItems || []).filter(i => !['saude','trabalho','administracao','casa','eventos','pessoal'].includes(i.area)).length;
 
-    setBadge('badgeAgenda',   byArea.agenda,   1);
-    setBadge('badgeFinancas', byArea.financas, 1);
-    setBadge('badgeSaude',    byArea.saude,    1);
-    setBadge('badgeRotina',   byArea.rotina,   1);
-    setBadge('badgePessoal',  byArea.pessoal,  1);
+    setBadge('badgeAgenda',        byArea.agenda,        1);
+    setBadge('badgeAdministracao', byArea.administracao, 1);
+    setBadge('badgeSaude',         byArea.saude,         1);
+    setBadge('badgeTrabalho',      byArea.trabalho,      1);
+    setBadge('badgeCasa',          byArea.casa,          1);
+    setBadge('badgeEventos',       byArea.eventos,       1);
+    setBadge('badgePessoal',       byArea.pessoal,       1);
   }
 
   await updateBadges();
@@ -4461,8 +4516,145 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     .subscribe();
 })();
 
-// ── ROTINA DINÂMICA (puxado de public.items onde area='rotina')
-(async function setupRotina() {
+// ── Configuração das áreas genéricas (Trabalho, Casa, Eventos) ──
+// Cada uma renderiza uma lista simples de items dessa área, similar ao Pessoal
+async function setupGenericArea(area, opts) {
+  if (!window.sbClient) return;
+  const { data: { session } } = await window.sbClient.auth.getSession();
+  if (!session) return;
+  const sb = window.sbClient;
+  const COLOR = opts.color;
+  const ICON  = opts.icon || '📌';
+  const SUBTITLE = opts.subtitle || 'Lista de itens';
+  const EMPTY_MSG = opts.emptyMsg || 'Nenhum item cadastrado';
+  const PILL_STYLE = opts.pillStyle || `background:${COLOR}20;color:${COLOR};`;
+
+  function parseDt(iso) { return new Date((iso || '').replace(' ', 'T')); }
+  function todayMid()   { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function localDate(iso) { if (!iso) return null; const d = parseDt(iso); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function esc(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  let itemsCache = [];
+
+  async function loadItems() {
+    const today = todayMid();
+    const in30  = new Date(today); in30.setDate(in30.getDate() + 30);
+    const from30 = new Date(today); from30.setDate(from30.getDate() - 30);
+    const { data } = await sb.from('items')
+      .select('id,title,type,date_start,has_time,status')
+      .eq('is_roadmap', false)
+      .eq('area', area)
+      .not('status', 'eq', 'cancelled')
+      .gte('date_start', from30.toISOString())
+      .lt('date_start', in30.toISOString())
+      .order('date_start');
+    itemsCache = data || [];
+  }
+
+  function render() {
+    const today = todayMid();
+    const wkEnd = new Date(today); wkEnd.setDate(wkEnd.getDate() + 7);
+    const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const WEEK_DAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+    const deHoje  = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld.getTime() === today.getTime() && i.status !== 'done'; });
+    const semana  = itemsCache.filter(i => { const ld = localDate(i.date_start); return ld && ld >= today && ld < wkEnd && i.status !== 'done'; });
+    const feitos  = itemsCache.filter(i => i.status === 'done').length;
+
+    const sub = document.getElementById(area + 'Subtitle');
+    if (sub) sub.textContent = `${SUBTITLE} · ${MESES[today.getMonth()]} ${today.getFullYear()}`;
+
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    const kH = document.getElementById(area + 'KpiHoje');
+    const kS = document.getElementById(area + 'KpiSemana');
+    const kF = document.getElementById(area + 'KpiFeitos');
+    const kProx = document.getElementById(area + 'KpiProx');
+    if (kH) kH.textContent = deHoje.length;
+    if (kS) kS.textContent = semana.length;
+    if (kF) kF.textContent = feitos;
+    if (kProx) kProx.textContent = semana.length;
+
+    const wrap = document.getElementById(area + 'ItemsWrap');
+    if (!wrap) return;
+
+    if (itemsCache.length === 0) {
+      wrap.innerHTML = `<div class="empty-day" style="padding:24px"><div class="ei">${ICON}</div><div>${EMPTY_MSG}</div></div>`;
+      return;
+    }
+
+    const TYPE_ICON = { task:'✓', event:'📌', milestone:'🏁', note:'📝', bill:'💸' };
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      const d = localDate(iso);
+      const diff = Math.round((d - today) / 86400000);
+      if (diff === 0) return 'Hoje';
+      if (diff === 1) return 'Amanhã';
+      if (diff < 0)  return `${Math.abs(diff)}d atrás`;
+      return `${WEEK_DAYS[d.getDay()]} ${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function itemHtml(i) {
+      const done = i.status === 'done';
+      const overdue = window.isOverdueItem(i);
+      const badge = overdue ? '<div class="overdue-badge" title="Atrasado">⚠</div>' : '';
+      return `<div class="event-block" style="border-color:${COLOR};color:${COLOR}${done?';opacity:.45':''};padding-right:60px" data-${area}-id="${i.id}" data-status="${i.status}">
+        ${badge}
+        <div class="event-time">${fmtDate(i.date_start)}</div>
+        <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
+        <div class="event-cal">${done ? `<span class="pill" style="${PILL_STYLE}">✓ Feito</span>` : `<span class="pill" style="${PILL_STYLE}">⏳ Pendente</span>`}</div>
+        <div class="eb-actions">
+          <button class="eb-btn eb-${area}-copy" title="Copiar ID">${window.ICONS.link}</button>
+          <button class="eb-btn eb-${area}-del" title="Apagar">${window.ICONS.x}</button>
+        </div>
+      </div>`;
+    }
+
+    const pending = itemsCache.filter(i => i.status !== 'done');
+    const done    = itemsCache.filter(i => i.status === 'done');
+    let html = '';
+    if (pending.length > 0) html += pending.sort((a,b) => parseDt(a.date_start) - parseDt(b.date_start)).map(itemHtml).join('');
+    if (done.length > 0) {
+      html += `<div class="agenda-day-header" style="margin-top:16px;margin-bottom:8px;color:var(--text-faint);">✓ Concluídos</div>`;
+      html += done.slice(0, 5).map(itemHtml).join('');
+    }
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll(`.event-block[data-${area}-id]`).forEach(block => {
+      block.addEventListener('click', async e => {
+        const copyBtn = e.target.closest(`.eb-${area}-copy`);
+        const delBtn  = e.target.closest(`.eb-${area}-del`);
+        if (copyBtn) { e.stopPropagation(); window.copyItemId(block.dataset[area + 'Id'], copyBtn); return; }
+        if (delBtn) {
+          e.stopPropagation();
+          if (!confirm('Apagar este item?')) return;
+          await sb.from('items').delete().eq('id', block.dataset[area + 'Id']);
+          await loadItems(); render();
+          return;
+        }
+        // Abrir popup detalhado
+        const id = block.dataset[area + 'Id'];
+        if (id && window.openTaskPopup) window.openTaskPopup(id);
+      });
+    });
+  }
+
+  await loadItems();
+  render();
+
+  sb.channel(area + '-items-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items', filter: `area=eq.${area}` }, async () => {
+      await loadItems(); render();
+    })
+    .subscribe();
+}
+
+setupGenericArea('trabalho', { color: '#2563eb', icon: '💼', subtitle: 'Reuniões, edições, recolocação', emptyMsg: 'Nenhum item de trabalho', pillStyle: 'background:#dbeafe;color:#1e3a8a;' });
+setupGenericArea('casa',     { color: '#d97706', icon: '🏡', subtitle: 'Tarefas domésticas e manutenção', emptyMsg: 'Nada da casa cadastrado', pillStyle: 'background:#fef3c7;color:#78350f;' });
+setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Compromissos externos e ocasiões', emptyMsg: 'Nenhum evento agendado', pillStyle: 'background:#ffedd5;color:#7c2d12;' });
+
+// ── (legado) setupRotina removido — área "rotina" foi extinta. Items migrados pra "pessoal".
+(async function setupRotinaLegado_DESATIVADO() {
+  return; // Mantido só pra não quebrar referências, função body antiga ignorada
   if (!window.sbClient) return;
   const { data: { session } } = await window.sbClient.auth.getSession();
   if (!session) return;
@@ -4968,7 +5160,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   }
 
   function areaColor(area) {
-    return { saude:'#16a34a', trabalho:'#2563eb', financas:'#d97706', rotina:'#0891b2', pessoal:'#7c3aed' }[area] || '#6b637a';
+    return { saude:'#16a34a', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#d97706', eventos:'#ea580c', pessoal:'#dc2626', financas:'#7c3aed', rotina:'#dc2626' }[area] || '#6b637a';
   }
 
   // ── Carrega projetos (constrói mapa id → projeto) ──
@@ -6032,7 +6224,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const old = document.querySelector('.cal-day-popover');
     if (old) old.remove();
   }
-  const PROJECT_COLORS = { pessoal:'#7c3aed', trabalho:'#2563eb', saude:'#16a34a', financas:'#d97706', rotina:'#0891b2' };
+  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#16a34a', administracao:'#7c3aed', casa:'#d97706', eventos:'#ea580c', financas:'#7c3aed', rotina:'#dc2626' };
 
   function openPopoverFor(cellEl, dateStr) {
     closePopover();
