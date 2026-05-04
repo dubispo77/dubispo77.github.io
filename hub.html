@@ -1393,9 +1393,13 @@ window.WebAuthnHelpers = (function() {
     const cred = await navigator.credentials.get({ publicKey });
     if (!cred) throw new Error('Cancelado');
     const credPayload = encodeCredential(cred);
-    const { data: verResp, error: e2 } = await sb.functions.invoke(FN_AUTH_VER, { body: { credential: credPayload, email } });
-    if (e2) throw new Error('Verificação falhou: ' + e2.message);
-    if (verResp?.error) throw new Error(verResp.error);
+    // Chamar via fetch direto pra capturar body do erro (functions.invoke esconde)
+    const verResp = await fetch(`${window.SUPABASE_URL || 'https://bpyoaxdmejnnyixrjxel.supabase.co'}/functions/v1/${FN_AUTH_VER}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': sb.supabaseKey || sb.rest?.headers?.apikey || 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1' },
+      body: JSON.stringify({ credential: credPayload, email }),
+    }).then(r => r.json());
+    if (verResp?.error) throw new Error('[' + (verResp.debug?.step || 'unknown') + '] ' + verResp.error);
     if (!verResp?.access_token) throw new Error('Sem token na resposta');
     const { error: setErr } = await sb.auth.setSession({ access_token: verResp.access_token, refresh_token: verResp.refresh_token });
     if (setErr) throw new Error('Falha ao iniciar sessão: ' + setErr.message);
