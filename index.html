@@ -588,8 +588,10 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 48px;
-      align-items: start;
+      align-items: stretch;
     }
+    .sobre-text { display: flex; flex-direction: column; }
+    .sobre-text .skills-list { margin-top: auto; }
 
     .sobre-subtitle, .tl-title, .sobre-timeline h2 {
       font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
