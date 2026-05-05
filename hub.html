@@ -745,21 +745,30 @@ table.data-table tr:hover td { background: var(--bg); }
   .data-table th, .data-table td { padding: 8px 6px; }
 
   /* Cards de fluxograma */
-  .flow-placeholder { padding: 14px; }
+  .flow-placeholder { padding: 18px 14px; }
+  .flow-placeholder .fp-icon { font-size: 32px; }
+  .flow-placeholder .fp-title { font-size: 15px; margin-bottom: 4px; }
+  .flow-placeholder .fp-sub { font-size: 12.5px; line-height: 1.4; }
 
   /* Setup */
-  .setup-grid { grid-template-columns: 1fr; gap: 10px; }
-  .setup-row { font-size: 12px; }
+  .setup-grid { flex-direction: column; gap: 10px; }
+  .setup-group { min-width: 0; }
+  .setup-row { font-size: 12px; padding: 11px 14px; }
+  .setup-row .sr-icon { font-size: 16px; }
+  .setup-group-header { padding: 10px 14px; font-size: 11px; }
 
   /* Sobre mim — mais compacto */
   .contexto-grupo { margin-bottom: 18px; }
   .cg-title { font-size: 10px; }
   .ci-titulo { font-size: 13px; }
-  .ci-conteudo { font-size: 12.5px; }
+  .ci-conteudo { font-size: 12.5px; line-height: 1.5; }
   .ci-toolbar { opacity: 1; } /* hover não funciona no celular, mostra sempre */
-  .proposta-card { padding: 10px 12px; }
+  .ci-btn { padding: 6px 11px; font-size: 12px; } /* alvos de toque maiores */
+  .proposta-card { padding: 12px 14px; }
   .pc-titulo { font-size: 13px; }
-  .pc-conteudo { font-size: 12px; }
+  .pc-conteudo { font-size: 12px; line-height: 1.5; }
+  .pc-actions { gap: 8px; margin-top: 10px; }
+  .pc-actions button { padding: 8px 12px !important; font-size: 12.5px !important; }
 
   /* Chat — full screen, input fixed embaixo */
   #chat.section.active { display: flex; flex-direction: column; }
