@@ -425,6 +425,13 @@ table.data-table tr:hover td { background: var(--bg); }
 .chat-conv-item .conv-act-btn { background: transparent; border: none; cursor: pointer; padding: 2px 4px; color: var(--text-faint); border-radius: 4px; font-size: 11px; }
 .chat-conv-item .conv-act-btn:hover { background: rgba(0,0,0,.06); color: var(--text); }
 .chat-conv-empty { text-align: center; font-size: 11px; color: var(--text-faint); padding: 20px 8px; }
+/* Cards de alternativas clicáveis na resposta do Claude */
+.chat-options { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.chat-option-btn { padding: 10px 14px; background: #fff; border: 0.5px solid var(--border); border-radius: 8px; font-size: 13px; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); transition: background .12s, border-color .12s; }
+.chat-option-btn:hover { background: var(--sidebar-hover); border-color: var(--accent); }
+.chat-option-btn:disabled { opacity: .5; cursor: default; }
+.chat-option-btn.picked { background: #ede9fe; border-color: var(--accent); color: #5b21b6; font-weight: 500; }
+.chat-options-q { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; font-weight: 500; }
 .chat-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 @media (max-width: 600px) {
   .chat-layout { flex-direction: column; padding: 0 12px 12px; gap: 8px; }
@@ -4182,6 +4189,44 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
   newBtn?.addEventListener('click', () => createNewConversation());
 
+  // ── Parser de cards de alternativas: ?[opção 1|opção 2|opção 3] ──
+  // Quando o Claude termina uma mensagem, parseia o texto procurando esse padrão e
+  // renderiza botões clicáveis. Click envia a opção como user msg.
+  function parseOptionsFromText(text) {
+    if (!text) return null;
+    // Pega o ÚLTIMO bloco ?[...] no texto (caso tenha múltiplos)
+    const matches = [...text.matchAll(/\?\[([^\]]+)\]/g)];
+    if (matches.length === 0) return null;
+    const last = matches[matches.length - 1];
+    const opts = last[1].split('|').map(s => s.trim()).filter(Boolean);
+    if (opts.length < 2) return null;
+    return {
+      options: opts,
+      // Texto sem o bloco ?[...]
+      cleanText: text.replace(last[0], '').trim(),
+    };
+  }
+
+  function renderOptionsBelow(bubble, options) {
+    const container = document.createElement('div');
+    container.className = 'chat-options';
+    container.innerHTML = '<div class="chat-options-q">Toca pra responder:</div>' + options.map((opt, i) =>
+      `<button class="chat-option-btn" data-opt-idx="${i}" type="button">${escapeHtml(opt)}</button>`
+    ).join('');
+    bubble.parentElement.appendChild(container);
+    container.querySelectorAll('.chat-option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = options[parseInt(btn.dataset.optIdx, 10)];
+        // Marca todos como desabilitados, destaca o escolhido
+        container.querySelectorAll('.chat-option-btn').forEach(b => b.disabled = true);
+        btn.classList.add('picked');
+        // Envia como nova mensagem do user
+        input.value = text;
+        form.requestSubmit();
+      });
+    });
+  }
+
   function addBubble(role, content, opts = {}) {
     // content pode ser string OU array [{type:'image',...}, {type:'text', text:'...'}]
     const wrap = document.createElement('div');
@@ -4452,10 +4497,12 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
       if (!acumulado) acumulado = '(resposta vazia)';
       replyBubble.parentElement.classList.remove('thinking');
-      replyBubble.textContent = acumulado;
+      const parsed = parseOptionsFromText(acumulado);
+      replyBubble.textContent = parsed ? parsed.cleanText : acumulado;
       history.push({ role: 'assistant', content: acumulado });
       // Salva resposta do assistant no banco
       saveMessage('assistant', acumulado).catch(e => console.warn('[chat] save assistant:', e));
+      if (parsed) renderOptionsBelow(replyBubble, parsed.options);
     } catch (err) {
       replyBubble.parentElement.classList.remove('thinking');
       replyBubble.textContent = 'Erro: ' + err.message;
