@@ -144,19 +144,6 @@
       background: #EDE8DF url('hero-poster.jpg') center/cover no-repeat;
     }
 
-    .hero-video {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      z-index: 0;
-      filter: blur(1px);
-      transform: scale(1.02);
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    .hero-video.is-playing { opacity: 1; }
-    .hero-video { pointer-events: none !important; }
     .hero-yt {
       position: absolute;
       top: 50%; left: 50%;
@@ -167,14 +154,9 @@
       z-index: 0;
       border: 0;
       filter: blur(1px);
-      display: none;
-      opacity: 0;
-      transition: opacity 0.8s ease;
     }
-    html.is-safari .hero-yt { display: block; }
-    .hero-yt.is-ready { opacity: 1; }
-    /* Camada invisível por cima do iframe — absorve hovers pra YouTube nunca
-       mostrar os controles depois que o vídeo já tá rodando. */
+    /* Camada invisível por cima do iframe — absorve hovers para o player não
+       mostrar controles depois que o vídeo já está rodando. */
     .hero-yt-shield {
       position: absolute;
       top: 0; left: 0;
@@ -182,22 +164,7 @@
       z-index: 1;
       background: transparent;
       pointer-events: auto;
-      display: none;
     }
-    html.is-safari .hero-yt-shield { display: block; }
-    .hero-video::-webkit-media-controls,
-    .hero-video::-webkit-media-controls-panel,
-    .hero-video::-webkit-media-controls-start-playback-button,
-    .hero-video::-webkit-media-controls-overlay-play-button,
-    .hero-video::-webkit-media-controls-overlay-enclosure,
-    .hero-video::-webkit-media-controls-enclosure,
-    .hero-video::-internal-media-controls-overlay-cast-button {
-      display: none !important;
-      -webkit-appearance: none !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-    .hero-video-mobile { display: none; }
 
     .hero-overlay {
       position: absolute;
@@ -1068,26 +1035,6 @@
         height: 30px;
       }
 
-      .hero-video-desktop { display: none; }
-      .hero-video-mobile {
-        display: block;
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: cover;
-        filter: none;
-        transform: none;
-      }
-      .hero-img-desktop { display: none !important; }
-      html.is-safari .hero-img-mobile {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: cover;
-        filter: none;
-        transform: none;
-      }
-
       /* Section headers mobile */
       .section-header {
         padding: 48px 20px 24px;
@@ -1352,80 +1299,13 @@
 
   <!-- HERO -->
   <section id="hero">
-    <!-- VIDEO: mp4 para Chrome/Firefox, YouTube para Safari -->
-    <video id="heroDesktop" class="hero-video hero-video-desktop" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
-      <source src="hero-720.mp4#t=0.001" type="video/mp4">
-    </video>
-    <video id="heroMobile" class="hero-video hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
-      <source src="hero-720-v.mp4#t=0.001" type="video/mp4">
-    </video>
+    <!-- VIDEO: Vimeo background mode (mesmo player pra Chrome, Safari, Firefox, etc) -->
     <iframe id="heroYT" class="hero-yt is-ready" title="" tabindex="-1" aria-hidden="true"
       allow="autoplay; fullscreen; picture-in-picture"
       frameborder="0"
       loading="eager"
-      src=""
-      data-src="https://player.vimeo.com/video/1188375830?background=1&autoplay=1&loop=1&muted=1&dnt=1&quality=720p"></iframe>
+      src="https://player.vimeo.com/video/1188375830?background=1&autoplay=1&loop=1&muted=1&dnt=1&quality=1080p"></iframe>
     <div class="hero-yt-shield" aria-hidden="true"></div>
-    <script>
-    // Inline imediato pra começar a baixar o Vimeo no Safari assim que o
-    // iframe é parseado (antes mesmo do resto do JS rodar).
-    (function(){
-      var ua = navigator.userAgent;
-      var isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
-      var f = document.getElementById('heroYT');
-      if(isSafari){
-        document.documentElement.classList.add('is-safari');
-        if(f && f.dataset.src) f.src = f.dataset.src;
-      } else if(f && f.parentNode){
-        f.parentNode.removeChild(f);
-      }
-    })();
-    </script>
-    <script>
-    (function(){
-      var isSafari = document.documentElement.classList.contains('is-safari');
-      var videos = [document.getElementById('heroDesktop'), document.getElementById('heroMobile')];
-      if(isSafari){
-        // Safari já está usando o iframe Vimeo (setado no script inline acima).
-        // Remove os <video> que não vão tocar mesmo.
-        videos.forEach(function(v){ if(v && v.parentNode) v.parentNode.removeChild(v); });
-        return;
-      }
-      // Chrome/Firefox/Edge: usa o <video> mp4
-
-      videos.forEach(function(v){
-        if(!v) return;
-        v.muted = true;
-        v.defaultMuted = true;
-        v.controls = false;
-        v.removeAttribute('controls');
-        function onPlaying(){
-          v.controls = false;
-          v.removeAttribute('controls');
-          v.classList.add('is-playing');
-        }
-        function onPause(){
-          v.classList.remove('is-playing');
-        }
-        v.addEventListener('playing', onPlaying);
-        v.addEventListener('pause', onPause);
-        var retries = 0;
-        function tryPlay(){
-          if(retries++ > 40) return;
-          v.muted = true;
-          v.controls = false;
-          var p = v.play();
-          if(p && typeof p.then === 'function'){
-            p.then(onPlaying).catch(function(){ setTimeout(tryPlay, 250); });
-          }
-        }
-        v.addEventListener('canplay', tryPlay);
-        v.addEventListener('loadeddata', tryPlay);
-        if(v.readyState >= 2) tryPlay();
-        setTimeout(tryPlay, 100);
-      });
-    })();
-    </script>
     <div class="hero-overlay"></div>
     <div class="hero-vignette"></div>
     <div class="hero-grain"></div>
