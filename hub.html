@@ -966,11 +966,16 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev .bd.rc { opacity: .85; }
 /* SEMANA (S4 — cards grandes preenchidos) */
 .calW-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 4px; }
-.calW-day { min-height: 220px; }
+.calW-day { min-height: 220px; padding: 0 4px; border-radius: 8px; transition: background .15s; }
+.calW-day.is-today { background: #faf7ff; }
+.calW-day.is-past { opacity: 0.78; }
+.calW-day:not(:last-child) { border-right: 1px solid var(--border-soft); }
+.calW-empty { font-size: 12px; color: var(--text-faint); text-align: center; padding: 8px 0; opacity: 0.5; }
 .calW-head { font-size: 10px; color: #6b7280; padding: 4px 6px 8px; border-bottom: 1.5px solid #c8c8cc; margin-bottom: 8px; font-weight: 700; }
 .calW-head .calW-num { font-size: 18px; color: #1f2937; font-weight: 700; display: block; margin-top: 2px; }
 .calW-head.is-today .calW-num { color: #7c3aed; }
-.calW-card { padding: 8px 10px; border-radius: 6px; margin-bottom: 5px; color: #fff; }
+.calW-card { padding: 8px 10px; border-radius: 6px; margin-bottom: 5px; color: #fff; cursor: pointer; transition: transform .12s, box-shadow .12s; }
+.calW-card:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 .calW-card .ti { font-size: 12px; font-weight: 600; line-height: 1.3; }
 .calW-card .hr { font-size: 10px; opacity: .8; margin-top: 2px; font-weight: 500; }
 .calW-card.proj-pessoal       { background: #fecaca; color: #7f1d1d; border-left: 3px solid #dc2626; }
@@ -6841,9 +6846,19 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     let html = '<div class="calW-grid">';
     days.forEach(d => {
       const isToday = isSameDay(d, today);
+      const isPast = d < today;
       const items = itemsForDate(d);
-      const cards = items.map(it => `<div class="calW-card proj-${it.project}"><div class="ti">${escHtml(it.title)}</div>${it.has_time ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('');
-      html += `<div class="calW-day">
+      // Ordena: all-day primeiro, depois com hora em ordem cronológica
+      const sorted = items.slice().sort((a, b) => {
+        if (!a.has_time && b.has_time) return -1;
+        if (a.has_time && !b.has_time) return 1;
+        if (a.has_time && b.has_time) return (a.hr || '').localeCompare(b.hr || '');
+        return 0;
+      });
+      const cards = sorted.length
+        ? sorted.map(it => `<div class="calW-card proj-${it.project}" data-item-id="${it.id}" title="${escHtml(it.title)}"><div class="ti">${escHtml(it.title)}</div>${it.has_time ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
+        : '<div class="calW-empty">—</div>';
+      html += `<div class="calW-day ${isToday?'is-today':''} ${isPast?'is-past':''}" data-date="${ymd(d)}">
         <div class="calW-head ${isToday?'is-today':''}">
           ${DOW_SHORT[(d.getDay()+6)%7]}<span class="calW-num">${d.getDate()}</span>
         </div>
@@ -6854,6 +6869,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     container.innerHTML = html;
     const last = days[6];
     document.getElementById('calLabel').textContent = `${monday.getDate()} ${MESES_LONG[monday.getMonth()].slice(0,3)} — ${last.getDate()} ${MESES_LONG[last.getMonth()].slice(0,3)} ${last.getFullYear()}`;
+    // Cards clicáveis abrem popup
+    container.querySelectorAll('.calW-card[data-item-id]').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.itemId;
+        if (id && window.openTaskPopup) window.openTaskPopup(id);
+      });
+    });
   }
 
   function render() { (view === 'month' ? renderMonth : renderWeek)(); }
