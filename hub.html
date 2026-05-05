@@ -7025,24 +7025,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const cell = e.target.closest('.calM-cell');
     if (cell && !cell.contains(e.relatedTarget)) cell.style.outline = '';
   });
-  container.addEventListener('drop', async e => {
-    stopDragAutoScroll();
-    const cell = e.target.closest('.calM-cell:not(.is-out)');
-    if (!cell) return;
-    e.preventDefault();
+  // Função compartilhada — desktop drop + mobile touchend usam a mesma.
+  async function aplicarDropEmCelula(id, cell) {
     document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
-    const id = e.dataTransfer.getData('text/plain');
-    const newDate = cell.dataset.date;
+    const newDate = cell?.dataset?.date;
     if (!id || !newDate) return;
     const item = itemsCache.find(i => i.id === id);
     if (!item || !item.raw) return;
 
-    // CASO 1: drop na MESMA célula → reordenar items do dia (order_manual)
+    // CASO 1: drop na MESMA célula → reordenar (order_manual)
     if (item.date === newDate) {
-      // O DOM já foi reordenado durante o dragover; basta ler a ordem visual
       const orderedIds = Array.from(cell.querySelectorAll('.calM-ev')).map(el => el.dataset.itemId);
       const orderedItems = orderedIds.map(eid => itemsCache.find(i => i.id === eid)).filter(Boolean);
-      // Optimistic local
       orderedItems.forEach((it, idx) => { if (it.raw) it.raw.order_manual = idx; });
       render();
       if (sb && session) {
@@ -7062,13 +7056,142 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (sb && session) {
       item.date = newDate;
       item.raw.date_start = newD.toISOString();
-      // Limpa order_manual ao mudar de dia (pra cair na ordem natural do dia novo)
       item.raw.order_manual = null;
       render();
       const { error } = await sb.from('items').update({ date_start: newD.toISOString(), order_manual: null }).eq('id', id);
       if (error) { await reloadItemsForCursor(); render(); }
     }
+  }
+
+  container.addEventListener('drop', async e => {
+    stopDragAutoScroll();
+    const cell = e.target.closest('.calM-cell:not(.is-out)');
+    if (!cell) return;
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    await aplicarDropEmCelula(id, cell);
   });
+
+  // ── Drag MOBILE (touch) ──
+  // Long-press 500ms num card → ativa drag. Clone fantasma segue o dedo.
+  // Detecta célula sob o dedo via elementFromPoint. Touchend dropa.
+  let _touchDrag = null; // { id, startX, startY, ghost, srcEv, longPressTimer, active }
+  function cleanupTouchDrag() {
+    if (!_touchDrag) return;
+    if (_touchDrag.longPressTimer) clearTimeout(_touchDrag.longPressTimer);
+    if (_touchDrag.ghost && _touchDrag.ghost.parentNode) _touchDrag.ghost.parentNode.removeChild(_touchDrag.ghost);
+    if (_touchDrag.srcEv) _touchDrag.srcEv.classList.remove('is-dragging');
+    document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
+    document.body.style.userSelect = '';
+    document.body.style.touchAction = '';
+    stopDragAutoScroll();
+    _touchDrag = null;
+    window.__hubMobileDragActive = false;
+  }
+
+  container.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    const ev = e.target.closest('.calM-ev');
+    if (!ev) return;
+    // Ignora se tocou em botão de ação dentro do card
+    if (e.target.closest('.eb-actions, .eb-btn, .calM-act')) return;
+    const t = e.touches[0];
+    _touchDrag = {
+      id: ev.dataset.itemId,
+      srcEv: ev,
+      startX: t.clientX,
+      startY: t.clientY,
+      ghost: null,
+      active: false,
+      longPressTimer: setTimeout(() => {
+        if (!_touchDrag) return;
+        _touchDrag.active = true;
+        window.__hubMobileDragActive = true;
+        ev.classList.add('is-dragging');
+        // Vibração curta como feedback (se suportado)
+        if (navigator.vibrate) navigator.vibrate(15);
+        // Cria fantasma
+        const rect = ev.getBoundingClientRect();
+        const ghost = ev.cloneNode(true);
+        ghost.classList.remove('is-dragging');
+        ghost.style.position = 'fixed';
+        ghost.style.left = rect.left + 'px';
+        ghost.style.top  = rect.top + 'px';
+        ghost.style.width = rect.width + 'px';
+        ghost.style.pointerEvents = 'none';
+        ghost.style.opacity = '0.85';
+        ghost.style.transform = 'scale(1.06)';
+        ghost.style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
+        ghost.style.zIndex = '9999';
+        ghost.style.transition = 'none';
+        document.body.appendChild(ghost);
+        _touchDrag.ghost = ghost;
+        _touchDrag.ghostOffsetX = _touchDrag.startX - rect.left;
+        _touchDrag.ghostOffsetY = _touchDrag.startY - rect.top;
+        // Bloqueia scroll/seleção durante drag
+        document.body.style.userSelect = 'none';
+        document.body.style.touchAction = 'none';
+        startDragAutoScroll();
+      }, 500),
+    };
+  }, { passive: true });
+
+  container.addEventListener('touchmove', e => {
+    if (!_touchDrag) return;
+    const t = e.touches[0];
+    // Antes de virar drag: se mover muito, cancela (passa pra scroll normal)
+    if (!_touchDrag.active) {
+      const dx = Math.abs(t.clientX - _touchDrag.startX);
+      const dy = Math.abs(t.clientY - _touchDrag.startY);
+      if (dx > 8 || dy > 8) {
+        cleanupTouchDrag();
+      }
+      return;
+    }
+    // Drag ativo: previne scroll, move ghost, detecta célula
+    e.preventDefault();
+    _dragLastY = t.clientY;
+    _touchDrag.ghost.style.left = (t.clientX - _touchDrag.ghostOffsetX) + 'px';
+    _touchDrag.ghost.style.top  = (t.clientY - _touchDrag.ghostOffsetY) + 'px';
+    // Esconde ghost momentaneamente pra elementFromPoint pegar a célula
+    const prevDisp = _touchDrag.ghost.style.display;
+    _touchDrag.ghost.style.display = 'none';
+    const under = document.elementFromPoint(t.clientX, t.clientY);
+    _touchDrag.ghost.style.display = prevDisp;
+    const cell = under?.closest?.('.calM-cell:not(.is-out)');
+    document.querySelectorAll('.calM-cell').forEach(c => { if (c !== cell) c.style.outline = ''; });
+    if (cell) {
+      cell.style.outline = '2px solid #7c3aed';
+      cell.style.outlineOffset = '-2px';
+      // Reordena DOM em tempo real
+      const dragged = _touchDrag.srcEv;
+      const siblings = Array.from(cell.querySelectorAll('.calM-ev:not(.is-dragging)'));
+      let inserted = false;
+      for (const sib of siblings) {
+        const r = sib.getBoundingClientRect();
+        if (t.clientY < r.top + r.height / 2) {
+          cell.insertBefore(dragged, sib);
+          inserted = true; break;
+        }
+      }
+      if (!inserted) cell.appendChild(dragged);
+    }
+  }, { passive: false });
+
+  container.addEventListener('touchend', async e => {
+    if (!_touchDrag) return;
+    if (!_touchDrag.active) { cleanupTouchDrag(); return; }
+    const t = e.changedTouches[0];
+    // Esconde ghost, pega célula sob o ponto
+    if (_touchDrag.ghost) _touchDrag.ghost.style.display = 'none';
+    const under = document.elementFromPoint(t.clientX, t.clientY);
+    const cell = under?.closest?.('.calM-cell:not(.is-out)');
+    const id = _touchDrag.id;
+    cleanupTouchDrag();
+    if (cell && id) await aplicarDropEmCelula(id, cell);
+  });
+
+  container.addEventListener('touchcancel', () => cleanupTouchDrag());
 
   // ── Swipe mobile (vertical = mês, horizontal = semana) ──
   let _ts = { x: 0, y: 0, t: 0 };
@@ -7076,6 +7199,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     _ts = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
   }, { passive: true });
   container.addEventListener('touchend', async e => {
+    // Não dispara swipe se acabou um drag mobile
+    if (window.__hubMobileDragActive || _touchDrag) return;
     const t = e.changedTouches[0];
     const dx = t.clientX - _ts.x;
     const dy = t.clientY - _ts.y;
@@ -7669,6 +7794,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     touchHadLongPress = false;
     if (touchTimer) clearTimeout(touchTimer);
     touchTimer = setTimeout(() => {
+      // Se o drag mobile já pegou esse card, não mostra a caixinha (conflito).
+      if (ev.classList.contains('is-dragging')) return;
       touchHadLongPress = true;
       // Fecha outras caixinhas
       document.querySelectorAll('.event-block.show-actions').forEach(b => { if (b !== ev) b.classList.remove('show-actions'); });
