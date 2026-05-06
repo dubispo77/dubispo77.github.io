@@ -6316,12 +6316,34 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       virtual_parent_id: parent.id,
     };
   }
+  // Item multi-dia: tem date_end no dia seguinte+ ao date_start (ignora hora)
+  function itemSpansDay(item, target) {
+    const raw = item.raw;
+    if (!raw?.date_end) return false;
+    const start = new Date(raw.date_start); start.setHours(0,0,0,0);
+    const end = new Date(raw.date_end); end.setHours(0,0,0,0);
+    if (end <= start) return false; // mesmo dia ou inválido
+    const t = new Date(target); t.setHours(0,0,0,0);
+    if (t.getTime() === start.getTime()) return false; // já incluído como direct
+    return t > start && t <= end;
+  }
+  function makeSpanOccurrence(parent, target) {
+    return {
+      ...parent,
+      id: `${parent.id}#span-${ymd(target)}`,
+      date: ymd(target),
+      is_span: true,
+      span_parent_id: parent.id,
+    };
+  }
   function itemsForDate(d) {
     const t = ymd(d);
     const direct = itemsCache.filter(i => i.date === t);
     const recurring = itemsCache.filter(i => i.is_recurring && recurrenceMatchesDay(i, d))
       .map(p => makeVirtualOccurrence(p, d));
-    return sortItemsForDay([...direct, ...recurring]);
+    const spans = itemsCache.filter(i => itemSpansDay(i, d))
+      .map(p => makeSpanOccurrence(p, d));
+    return sortItemsForDay([...direct, ...recurring, ...spans]);
   }
   function escHtml(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -6386,10 +6408,17 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         .eq('is_roadmap', false)
         .not('recurrence', 'is', null)
         .lt('date_start', end.toISOString());
+      // Items multi-dia que terminam na janela (mas começam antes)
+      const { data: spanData } = await sb.from('items')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence')
+        .eq('is_roadmap', false)
+        .lt('date_start', start.toISOString())
+        .gte('date_end', start.toISOString());
       if (!error) {
         const all = [...(data || [])];
         const seen = new Set(all.map(i => i.id));
-        for (const r of (recurData || [])) if (!seen.has(r.id)) all.push(r);
+        for (const r of (recurData || [])) if (!seen.has(r.id)) { all.push(r); seen.add(r.id); }
+        for (const s of (spanData || [])) if (!seen.has(s.id)) { all.push(s); seen.add(s.id); }
         itemsCache = all.map(normalizeItem);
       }
     } else {
@@ -7875,7 +7904,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // Expor pra outros módulos
   window.openTaskPopup = async function(itemId) {
     if (!sb || !itemId) return;
-    // Se for ID virtual de ocorrência recorrente (formato 'parent#yyyy-mm-dd'), abre o parent
+    // Se for ID virtual (recorrência ou multi-dia, formato 'parent#yyyy-mm-dd' ou 'parent#span-...'), abre o parent
     const realId = itemId.includes('#') ? itemId.split('#')[0] : itemId;
     const { data, error } = await sb.from('items').select('*').eq('id', realId).maybeSingle();
     if (error || !data) { console.error('[tdm] item não encontrado', realId, error); return; }
