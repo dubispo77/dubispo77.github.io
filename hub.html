@@ -6289,7 +6289,40 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       return 0;
     });
   }
-  function itemsForDate(d) { const t = ymd(d); return sortItemsForDay(itemsCache.filter(i => i.date === t)); }
+  // Expansão de recorrências: quando um item tem .raw.recurrence ('daily'|'weekly'|'monthly'|'yearly'),
+  // gera "ocorrências virtuais" pros dias futuros. Virtual herda tudo do parent mas com id "parent#ymd".
+  function recurrenceMatchesDay(item, target) {
+    const rec = item.raw?.recurrence;
+    if (!rec) return false;
+    const start = new Date(item.raw.date_start); start.setHours(0,0,0,0);
+    const t = new Date(target); t.setHours(0,0,0,0);
+    if (t < start) return false;
+    if (t.getTime() === start.getTime()) return false; // a instância original já está como item normal
+    switch (rec) {
+      case 'daily':   return true;
+      case 'weekly':  return start.getDay() === t.getDay();
+      case 'monthly': return start.getDate() === t.getDate();
+      case 'yearly':  return start.getDate() === t.getDate() && start.getMonth() === t.getMonth();
+      default: return false;
+    }
+  }
+  function makeVirtualOccurrence(parent, target) {
+    const ymdStr = ymd(target);
+    return {
+      ...parent,
+      id: `${parent.id}#${ymdStr}`,
+      date: ymdStr,
+      is_virtual: true,
+      virtual_parent_id: parent.id,
+    };
+  }
+  function itemsForDate(d) {
+    const t = ymd(d);
+    const direct = itemsCache.filter(i => i.date === t);
+    const recurring = itemsCache.filter(i => i.is_recurring && recurrenceMatchesDay(i, d))
+      .map(p => makeVirtualOccurrence(p, d));
+    return sortItemsForDay([...direct, ...recurring]);
+  }
   function escHtml(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   function fmtTime(d) {
@@ -6347,7 +6380,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         .gte('date_start', start.toISOString())
         .lt('date_start', end.toISOString())
         .order('date_start');
-      if (!error) itemsCache = (data || []).map(normalizeItem);
+      // Carrega TAMBÉM todos items recorrentes (independente da data) pra expandir em virtuais
+      const { data: recurData } = await sb.from('items')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence')
+        .eq('is_roadmap', false)
+        .not('recurrence', 'is', null)
+        .lt('date_start', end.toISOString());
+      if (!error) {
+        const all = [...(data || [])];
+        const seen = new Set(all.map(i => i.id));
+        for (const r of (recurData || [])) if (!seen.has(r.id)) all.push(r);
+        itemsCache = all.map(normalizeItem);
+      }
     } else {
       // Modo demo (sem login): usa mock
       itemsCache = CAL_MOCK_ITEMS;
@@ -7618,7 +7662,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
     // Lembrete + Recorrência + Tempo (row de 2)
     const hasReminder = i.reminder_minutes != null || activeFields.has('reminder_minutes');
-    const hasRecurrence = !!i.recurrence;
+    const hasRecurrence = !!i.recurrence || activeFields.has('recurrence');
     const hasEstimated = i.estimated_minutes != null;
 
     if (hasReminder || hasRecurrence || hasEstimated) {
@@ -7638,7 +7682,19 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           : fmtReminder(i.reminder_minutes);
         cells.push(field('Lembrete', 'reminder', inner, { editable: editMode }));
       }
-      if (hasRecurrence) cells.push(field('Recorrência', 'recurrence', escHtml(i.recurrence)));
+      if (hasRecurrence) {
+        const RECUR_LABEL = { daily: 'Diário', weekly: 'Semanal', monthly: 'Mensal', yearly: 'Anual' };
+        const innerR = editMode
+          ? `<select data-edit="recurrence">
+              <option value="">Não repete</option>
+              <option value="daily"   ${i.recurrence==='daily'?'selected':''}>Diário</option>
+              <option value="weekly"  ${i.recurrence==='weekly'?'selected':''}>Semanal (mesmo dia da semana)</option>
+              <option value="monthly" ${i.recurrence==='monthly'?'selected':''}>Mensal (mesmo dia do mês)</option>
+              <option value="yearly"  ${i.recurrence==='yearly'?'selected':''}>Anual</option>
+            </select>`
+          : (RECUR_LABEL[i.recurrence] || escHtml(i.recurrence));
+        cells.push(field('Recorrência', 'recurrence', innerR, { editable: editMode }));
+      }
       if (hasEstimated)  cells.push(field('Tempo', 'estimated', fmtMinutes(i.estimated_minutes)));
       html += cells.length === 1 ? cells[0] : `<div class="tdm-row">${cells.join('')}</div>`;
     }
@@ -7651,6 +7707,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         { key: 'link_url', label: 'Link', icon: ICONS.link },
         { key: 'attachment_url', label: 'Anexo', icon: ICONS.attachment },
         { key: 'reminder_minutes', label: 'Lembrete', icon: ICONS.reminder },
+        { key: 'recurrence', label: 'Recorrência', icon: ICONS.recurrence },
       ];
       const available = optional.filter(o => {
         const cur = i[o.key];
@@ -7818,8 +7875,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // Expor pra outros módulos
   window.openTaskPopup = async function(itemId) {
     if (!sb || !itemId) return;
-    const { data, error } = await sb.from('items').select('*').eq('id', itemId).maybeSingle();
-    if (error || !data) { console.error('[tdm] item não encontrado', itemId, error); return; }
+    // Se for ID virtual de ocorrência recorrente (formato 'parent#yyyy-mm-dd'), abre o parent
+    const realId = itemId.includes('#') ? itemId.split('#')[0] : itemId;
+    const { data, error } = await sb.from('items').select('*').eq('id', realId).maybeSingle();
+    if (error || !data) { console.error('[tdm] item não encontrado', realId, error); return; }
     open(data);
   };
 
