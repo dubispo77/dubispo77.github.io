@@ -3014,7 +3014,89 @@ function makeBar(start, end, color, colorSoft, depth, parentItem) {
     });
   }
 
+  // ── Tooltip de parent (envelope) — mostra resumo dos filhos
+  if (isEnvelope) {
+    let _hoverTimer = null;
+    bar.addEventListener('mouseenter', () => {
+      clearTimeout(_hoverTimer);
+      _hoverTimer = setTimeout(() => _showParentTooltip(bar, parentItem, color), 250);
+    });
+    bar.addEventListener('mouseleave', () => {
+      clearTimeout(_hoverTimer);
+      _hideParentTooltip();
+    });
+  }
+
   return bar;
+}
+
+// Conta milestones recursivamente (done / total)
+function _countDescendentes(item) {
+  let done = 0, total = 0;
+  if (item.milestones?.length) {
+    for (const m of item.milestones) {
+      total++;
+      if (m.status === 'done') done++;
+    }
+  }
+  if (item.subs?.length) {
+    for (const s of item.subs) {
+      const c = _countDescendentes(s);
+      done += c.done; total += c.total;
+    }
+  }
+  return { done, total };
+}
+
+function _showParentTooltip(bar, parentItem, color) {
+  const tt = document.getElementById('rmIndicatorTip') || (() => {
+    const t = document.createElement('div'); t.id = 'rmIndicatorTip'; document.body.appendChild(t); return t;
+  })();
+  const cnt = _countDescendentes(parentItem);
+  const pct = cnt.total ? Math.round((cnt.done / cnt.total) * 100) : 0;
+  const status = parentItem.status || 'planned';
+  const STATUS_LABEL = { planned: 'Planejado', active: 'Ativo', done: 'Concluído', todo: 'A fazer', doing: 'Em curso' };
+  const dotColor = status === 'done' ? '#16a34a' : status === 'active' || status === 'doing' ? '#f59e0b' : '#6b7280';
+  // Data prevista de fim: usa parentItem.end (em meses desde START_DATE) se disponível
+  let dataFim = '';
+  if (typeof parentItem.end === 'number' && window.ROADMAP_ANCHOR && window.ROADMAP_DAYS_PER_M) {
+    const dt = new Date(window.ROADMAP_ANCHOR.getTime() + parentItem.end * window.ROADMAP_DAYS_PER_M * 24 * 3600 * 1000);
+    dataFim = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;
+  }
+  tt.innerHTML = `
+    <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;font-weight:800;margin-bottom:4px">${parentItem.subs?.length ? '📁 Sub' : '📦 Envelope'}</div>
+    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:7px">${(parentItem.name || '').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.85);margin-bottom:5px">
+      <span style="width:7px;height:7px;border-radius:50%;background:${dotColor};display:inline-block"></span>
+      ${STATUS_LABEL[status] || status}
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.85);margin-bottom:5px">
+      <strong style="color:${color}">${pct}%</strong> · ${cnt.done} de ${cnt.total} milestone${cnt.total === 1 ? '' : 's'} concluído${cnt.done === 1 ? '' : 's'}
+    </div>
+    ${dataFim ? `<div style="font-size:11px;color:rgba(255,255,255,.6)">📅 Fim previsto: ${dataFim}</div>` : ''}
+  `;
+  // Posicionamento
+  const r = bar.getBoundingClientRect();
+  tt.style.position = 'fixed';
+  tt.style.background = '#1a1828';
+  tt.style.color = '#fff';
+  tt.style.padding = '10px 14px';
+  tt.style.borderRadius = '10px';
+  tt.style.boxShadow = '0 6px 20px rgba(0,0,0,.25)';
+  tt.style.minWidth = '200px';
+  tt.style.maxWidth = '280px';
+  tt.style.zIndex = '99999';
+  tt.style.fontFamily = 'inherit';
+  tt.style.left = (r.left + r.width / 2) + 'px';
+  tt.style.top  = (r.bottom + 8) + 'px';
+  tt.style.transform = 'translateX(-50%)';
+  tt.style.opacity = '1';
+  tt.style.visibility = 'visible';
+  tt.style.transition = 'opacity .15s';
+}
+function _hideParentTooltip() {
+  const tt = document.getElementById('rmIndicatorTip');
+  if (tt) { tt.style.opacity = '0'; tt.style.visibility = 'hidden'; }
 }
 
 function makeLevel4Row(l4, color, isLast) {
