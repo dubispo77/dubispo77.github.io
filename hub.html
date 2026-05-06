@@ -5577,6 +5577,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         <div class="event-title" style="${done?'text-decoration:line-through':''}">${TYPE_ICON[i.type]||'•'} ${esc(i.title)}</div>
         <div class="event-cal">${PILL_STATUS[i.status] || PILL_STATUS['planned']}</div>
         <div class="eb-actions">
+          <button class="eb-btn eb-saude-edit" title="Editar (popup)">${window.ICONS.edit || '<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M4 20h4l10-10-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>'}</button>
           <button class="eb-btn eb-saude-copy" title="Copiar ID">${window.ICONS.link}</button>
           <button class="eb-btn eb-saude-del" title="Apagar">${window.ICONS.x}</button>
         </div>
@@ -5598,6 +5599,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // Delegação de cliques
     wrap.querySelectorAll('.event-block[data-saude-id]').forEach(block => {
       block.addEventListener('click', async e => {
+        if (e.target.closest('.eb-saude-edit')) {
+          e.stopPropagation();
+          const id = block.dataset.saudeId;
+          if (id && window.openTaskPopup) window.openTaskPopup(id);
+          return;
+        }
         if (e.target.closest('.eb-saude-copy')) {
           e.stopPropagation();
           window.copyItemId(block.dataset.saudeId, e.target.closest('.eb-saude-copy'));
