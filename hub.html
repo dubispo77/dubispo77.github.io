@@ -1265,19 +1265,13 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="section-body">
         <!-- Snapshot agenda hoje · atualizado por tarefa agendada (agenda-hub-update) -->
         <div id="agendaHojeSnapshot" style="margin-bottom:22px">
-          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Hoje · terça-feira, 5 de maio de 2026</div>
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Hoje · quarta-feira, 6 de maio de 2026</div>
           <div class="kpi-row">
-            <div class="kpi"><div class="kpi-value" style="color:#2563eb">1</div><div class="kpi-label">Eventos hoje</div></div>
+            <div class="kpi"><div class="kpi-value" style="color:#2563eb">0</div><div class="kpi-label">Eventos hoje</div></div>
             <div class="kpi"><div class="kpi-value" style="color:#7c3aed">11</div><div class="kpi-label">Esta semana</div></div>
-            <div class="kpi"><div class="kpi-value" style="color:#f59e0b">6</div><div class="kpi-label">Vencimentos</div></div>
+            <div class="kpi"><div class="kpi-value" style="color:#f59e0b">8</div><div class="kpi-label">Vencimentos</div></div>
           </div>
-          <div style="padding-left:64px">
-            <div class="event-block" style="border-color:#7c3aed;color:#7c3aed">
-              <div class="event-time">21h</div>
-              <div class="event-title">DEP x SAN</div>
-              <div class="event-cal">Santos FC · 21:30–23:30</div>
-            </div>
-          </div>
+          <div class="empty-day" style="padding:32px 24px"><div class="ei">🌤️</div><div>Nenhum evento hoje</div></div>
         </div>
         <div id="calContainer" class="cal-container"></div>
         <div class="agenda-add-wrap">
@@ -1466,6 +1460,16 @@ table.data-table tr:hover td { background: var(--bg); }
             <div class="setup-group-header">🔐 Biometria</div>
             <div id="bioList"><div class="setup-row" style="color:var(--text-faint)">Carregando...</div></div>
             <button id="bioRegisterCurrent" type="button" style="margin-top:8px;padding:8px 12px;border:0.5px solid var(--border);background:var(--card);border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text);width:100%;display:none">＋ Cadastrar este dispositivo</button>
+          </div>
+          <div class="setup-group" id="gcalGroup">
+            <div class="setup-group-header">📆 Google Calendar (sync)</div>
+            <div id="gcalStatus" class="setup-row" style="color:var(--text-faint)">Verificando...</div>
+            <div style="display:flex;gap:6px;padding:8px 14px">
+              <button id="gcalConnectBtn" type="button" style="flex:1;padding:8px 12px;border:none;background:#7c3aed;color:#fff;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;display:none">Conectar Google</button>
+              <button id="gcalSyncBtn" type="button" style="flex:1;padding:8px 12px;border:0.5px solid var(--border);background:var(--card);border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text);display:none">↻ Sincronizar agora</button>
+              <button id="gcalDisconnectBtn" type="button" style="padding:8px 12px;border:0.5px solid var(--border);background:var(--card);border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;color:#dc2626;display:none" title="Desconectar">✕</button>
+            </div>
+            <div id="gcalSyncResult" style="font-size:11px;color:var(--text-faint);padding:0 14px 8px;line-height:1.5"></div>
           </div>
         </div>
       </div>
@@ -1902,6 +1906,107 @@ window.WebAuthnHelpers = (function() {
   });
 })();
 
+// ── Google Calendar OAuth + sync (Item 13) ──
+(async function setupGcalUI() {
+  const sb = window.sbClient;
+  if (!sb) return;
+  const statusEl  = document.getElementById('gcalStatus');
+  const connectBtn = document.getElementById('gcalConnectBtn');
+  const syncBtn = document.getElementById('gcalSyncBtn');
+  const disconnectBtn = document.getElementById('gcalDisconnectBtn');
+  const resultEl = document.getElementById('gcalSyncResult');
+  if (!statusEl) return;
+
+  function fmtDt(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function refreshStatus() {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) { statusEl.innerHTML = '<span style="color:var(--text-faint)">Faça login primeiro</span>'; return; }
+    const { data: tok } = await sb.from('google_oauth_tokens').select('last_sync_at, scope').eq('user_id', user.id).maybeSingle();
+    if (!tok) {
+      statusEl.innerHTML = '<span style="color:var(--text-faint)">Não conectado</span>';
+      connectBtn.style.display = 'block';
+      syncBtn.style.display = 'none';
+      disconnectBtn.style.display = 'none';
+    } else {
+      statusEl.innerHTML = `<span style="color:#16a34a">✓ Conectado</span> <span style="color:var(--text-faint);font-size:11px;margin-left:6px">última sync: ${fmtDt(tok.last_sync_at)}</span>`;
+      connectBtn.style.display = 'none';
+      syncBtn.style.display = 'block';
+      disconnectBtn.style.display = 'block';
+    }
+  }
+
+  connectBtn.addEventListener('click', async () => {
+    const { data: { user } } = await sb.auth.getUser();
+    const { data: { session } } = await sb.auth.getSession();
+    if (!user || !session) { alert('Sessão expirou. Recarrega a página.'); return; }
+    connectBtn.disabled = true; connectBtn.textContent = 'Abrindo...';
+    try {
+      const resp = await fetch(`${window.SUPABASE_URL || 'https://bpyoaxdmejnnyixrjxel.supabase.co'}/functions/v1/gcal-oauth-init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': sb.supabaseKey || 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1' },
+        body: '{}',
+      });
+      const data = await resp.json();
+      if (data.error || !data.url) throw new Error(data.error || 'sem URL');
+      const fullUrl = data.url + '&state=' + encodeURIComponent(user.id);
+      window.open(fullUrl, 'gcal-oauth', 'width=500,height=700');
+    } catch (e) {
+      alert('Erro: ' + e.message);
+    } finally {
+      connectBtn.disabled = false; connectBtn.textContent = 'Conectar Google';
+    }
+  });
+
+  // Listener: callback fechou janela e mandou postMessage
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'gcal-oauth-success') {
+      resultEl.textContent = '✓ Conectado! Clica em "Sincronizar agora" pra puxar eventos.';
+      refreshStatus();
+    }
+  });
+
+  syncBtn.addEventListener('click', async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { alert('Sessão expirou.'); return; }
+    syncBtn.disabled = true; syncBtn.textContent = '⏳ Sincronizando...';
+    resultEl.textContent = '';
+    try {
+      const resp = await fetch(`${window.SUPABASE_URL || 'https://bpyoaxdmejnnyixrjxel.supabase.co'}/functions/v1/gcal-sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': sb.supabaseKey || 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1' },
+        body: '{}',
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      const totals = Object.values(data.stats || {}).reduce((acc, s) => {
+        acc.fetched += s.fetched || 0; acc.upserted += s.upserted || 0; acc.deleted += s.deleted || 0; return acc;
+      }, { fetched: 0, upserted: 0, deleted: 0 });
+      resultEl.innerHTML = `✓ ${totals.upserted} eventos sincronizados de ${data.totalCals || 0} calendários (${totals.deleted} cancelados removidos)`;
+      refreshStatus();
+    } catch (e) {
+      resultEl.innerHTML = '<span style="color:#dc2626">⚠ ' + e.message + '</span>';
+    } finally {
+      syncBtn.disabled = false; syncBtn.textContent = '↻ Sincronizar agora';
+    }
+  });
+
+  disconnectBtn.addEventListener('click', async () => {
+    if (!confirm('Desconectar do Google Calendar? Os eventos já sincronizados ficam, mas não atualizam mais.')) return;
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    await sb.from('google_oauth_tokens').delete().eq('user_id', user.id);
+    resultEl.textContent = 'Desconectado.';
+    refreshStatus();
+  });
+
+  await refreshStatus();
+})();
+
 // ── Gerenciamento de biometria (lista de dispositivos cadastrados em Setup)
 (async function setupBiometryManager() {
   const sb = window.sbClient;
@@ -1987,7 +2092,7 @@ window.WebAuthnHelpers = (function() {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-05-05 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-05-06 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG', m:1.03, pos:'bot', status:'done', cal:'Tarefas pessoais' },
