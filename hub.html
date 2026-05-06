@@ -6688,8 +6688,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const ICO_X = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg>';
         const actions = `<div class="eb-actions">
           <button class="eb-btn calM-act" data-act="toggle" data-id="${it.id}" title="${it.is_done ? 'Desfazer' : 'Concluir'}">${it.is_done ? ICO_UNDO : ICO_CHECK}</button>
-          <button class="eb-btn calM-act" data-act="copy"   data-id="${it.id}" title="Copiar ID">${ICO_LINK}</button>
-          <button class="eb-btn calM-act" data-act="del"    data-id="${it.id}" title="Apagar">${ICO_X}</button>
         </div>`;
         return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
           ${overdueBadge}
