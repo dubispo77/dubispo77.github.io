@@ -330,6 +330,9 @@
     .section-header-sobre {
       padding-left: calc(2.5% + 50px) !important;
     }
+    .section-header-portfolio {
+      padding-left: calc(5% + 50px) !important;
+    }
 
     .section-title {
       font-family: var(--font-cond);
@@ -465,7 +468,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 3px;
-      padding: 0;
+      padding: 0 2.5%;
     }
 
     .work-card {
@@ -1070,6 +1073,7 @@
         align-items: flex-start;
         gap: 8px;
       }
+      .section-header-portfolio { padding-left: 40px !important; }
 
       /* DESTAQUE mobile */
       #destaque { padding: 0 20px 60px; }
@@ -1108,7 +1112,7 @@
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
         gap: 12px;
-        padding: 0 0 24px;
+        padding: 0 20px 24px;
         scrollbar-width: none;
       }
 
@@ -1370,7 +1374,7 @@
   </section>
 
   <!-- PORTFÓLIO (swipe no mobile) -->
-  <div class="section-header reveal">
+  <div class="section-header section-header-portfolio reveal">
     <span class="section-num">01</span>
     <h2 class="section-title">Portfólio</h2>
   </div>
