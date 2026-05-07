@@ -981,6 +981,45 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev .bd.dn { color: #bbf7d0; }
 .calM-ev .bd.rc { opacity: .85; }
 .calM-ev .bd.gc { opacity: .75; font-size: 8px; vertical-align: 1px; }
+/* Eventos multi-dia (span): visual de faixa atravessando dias */
+.calM-ev.calM-ev-span {
+  border-radius: 0;
+  padding: 2px 8px;
+  font-size: 11px;
+  position: relative;
+  margin-left: -3px;
+  margin-right: -3px;
+  border-left: 0;
+  border-right: 0;
+}
+.calM-ev.calM-ev-span-start {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+  margin-left: 0;
+}
+.calM-ev.calM-ev-span-end {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  margin-right: 0;
+}
+.calM-ev.calM-ev-span-mid::before,
+.calM-ev.calM-ev-span-end::before {
+  /* Esconde título no meio/fim — só na faixa start aparece */
+  content: '';
+  position: absolute; inset: 0;
+  background: inherit;
+}
+.calM-ev.calM-ev-span-mid .ti,
+.calM-ev.calM-ev-span-end .ti,
+.calM-ev.calM-ev-span-mid .hr,
+.calM-ev.calM-ev-span-end .hr {
+  visibility: hidden;
+}
+.calM-ev.calM-ev-span-end::after {
+  content: '▸';
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: rgba(0,0,0,0.4); z-index: 1;
+}
 .badge-gcal {
   position: absolute; top: 4px; right: 6px;
   font-size: 11px; opacity: 0.6; pointer-events: none;
@@ -6749,12 +6788,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     return t > start && t <= end;
   }
   function makeSpanOccurrence(parent, target) {
+    const targetYmd = ymd(target);
+    const endYmd = parent.raw?.date_end ? ymd(new Date(parent.raw.date_end)) : null;
     return {
       ...parent,
-      id: `${parent.id}#span-${ymd(target)}`,
-      date: ymd(target),
+      id: `${parent.id}#span-${targetYmd}`,
+      date: targetYmd,
       is_span: true,
       span_parent_id: parent.id,
+      span_position: targetYmd === endYmd ? 'end' : 'mid',
     };
   }
   function itemsForDate(d) {
@@ -6802,6 +6844,17 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       is_recurring: isRecurring,
       from_gcal: !!it.google_event_id,
       recurrence_done_dates: Array.isArray(it.recurrence_done_dates) ? it.recurrence_done_dates : [],
+      // Multi-dia: marca como 'start' do span (a barra contínua começa aqui)
+      is_span: !!it.date_end && (() => {
+        const s = new Date(it.date_start); s.setHours(0,0,0,0);
+        const e = new Date(it.date_end); e.setHours(0,0,0,0);
+        return e > s;
+      })(),
+      span_position: !!it.date_end && (() => {
+        const s = new Date(it.date_start); s.setHours(0,0,0,0);
+        const e = new Date(it.date_end); e.setHours(0,0,0,0);
+        return e > s ? 'start' : null;
+      })(),
       raw: it,
     };
   }
@@ -6899,7 +6952,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const visible = items.slice(0, 5);
       const extra = items.length - visible.length;
       const evHtml = visible.map(it => {
-        const klass = `calM-ev event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}`;
+        const spanClass = it.is_span ? ` calM-ev-span calM-ev-span-${it.span_position || 'mid'}` : '';
+        const klass = `calM-ev event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}${spanClass}`;
         const badges = [
           it.is_done ? '<span class="bd dn">✓</span>' : '',
           it.is_recurring ? '<span class="bd rc">♻</span>' : '',
