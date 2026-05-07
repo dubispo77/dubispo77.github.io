@@ -819,6 +819,37 @@
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
   }
+  .edu-grid .edu-item:nth-child(n+3) { display: none; }
+  .edu-grid.expanded .edu-item:nth-child(n+3) { display: flex; flex-direction: column; }
+  .edu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 14px auto 0;
+    padding: 8px 0;
+    background: transparent;
+    border: 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(26,44,62,0.7);
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    cursor: pointer;
+  }
+  .edu-toggle::after {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translate(-1px, -1px);
+    transition: transform 0.3s ease;
+  }
+  .edu-grid.expanded ~ .edu-toggle::after {
+    transform: rotate(-135deg) translate(-1px, -1px);
+  }
   .edu-item {
     position: relative;
     border-left: 3px solid var(--line);
@@ -1282,6 +1313,8 @@
         grid-template-columns: 1fr !important;
         gap: 8px !important;
       }
+      .edu-grid .edu-item:nth-child(n+3) { display: flex !important; }
+      .edu-toggle { display: none !important; }
       .edu-item { padding: 15px 117px 15px 18px !important; min-height: 99px !important; }
       .edu-logo-wrap { width: 79px !important; height: 79px !important; right: 29px !important; }
       .edu-logo { width: 54px !important; height: 54px !important; }
@@ -1856,6 +1889,7 @@
             <img src="assets/logos-claude/Alura.png" alt="Alura" class="edu-logo edu-logo-alura">
           </div>
         </div>
+      <button class="edu-toggle" type="button" onclick="document.querySelector('.edu-grid').classList.toggle('expanded'); this.textContent = this.textContent.trim() === 'ver mais' ? 'ver menos' : 'ver mais';">ver mais</button>
       </div>
       </div>
 
