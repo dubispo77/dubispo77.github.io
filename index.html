@@ -147,14 +147,15 @@
     .hero-yt {
       position: absolute;
       top: 50%; left: 50%;
-      width: max(calc(100% + 200px), calc(100vh * 16 / 9));
-      height: max(calc(100% + 200px), calc(100vw * 9 / 16));
+      width: calc(100% + 200px);
+      height: calc(100% + 200px);
       transform: translate(-50%, -50%);
       pointer-events: none;
       z-index: 0;
       border: 0;
       filter: blur(1px);
     }
+    .hero-video-mobile { display: none; }
     /* Camada invisível por cima do iframe — absorve hovers para o player não
        mostrar controles depois que o vídeo já está rodando. */
     .hero-yt-shield {
@@ -1059,6 +1060,18 @@
         height: 30px;
       }
 
+      /* Hero mobile: esconde iframe Vimeo, mostra mp4 vertical */
+      .hero-yt, .hero-yt-shield { display: none !important; }
+      .hero-video-mobile {
+        display: block;
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        pointer-events: none;
+      }
+
       /* Section headers mobile */
       .section-header {
         padding: 48px 20px 24px;
@@ -1323,13 +1336,16 @@
 
   <!-- HERO -->
   <section id="hero">
-    <!-- VIDEO: Vimeo background mode (mesmo player pra Chrome, Safari, Firefox, etc) -->
+    <!-- VIDEO: Vimeo (desktop) + mp4 vertical (mobile) -->
     <iframe id="heroYT" class="hero-yt is-ready" title="" tabindex="-1" aria-hidden="true"
       allow="autoplay; fullscreen; picture-in-picture"
       frameborder="0"
       loading="eager"
       src="https://player.vimeo.com/video/1188375830?background=1&autoplay=1&loop=1&muted=1&dnt=1&quality=1080p"></iframe>
     <div class="hero-yt-shield" aria-hidden="true"></div>
+    <video id="heroMobile" class="hero-video-mobile" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="hero-poster.jpg">
+      <source src="hero-720-v.mp4#t=0.001" type="video/mp4">
+    </video>
     <div class="hero-overlay"></div>
     <div class="hero-vignette"></div>
     <div class="hero-grain"></div>
