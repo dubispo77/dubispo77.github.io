@@ -1984,9 +1984,18 @@ window.WebAuthnHelpers = (function() {
       const data = await resp.json();
       if (data.error) throw new Error(data.error);
       const totals = Object.values(data.stats || {}).reduce((acc, s) => {
-        acc.fetched += s.fetched || 0; acc.upserted += s.upserted || 0; acc.deleted += s.deleted || 0; return acc;
-      }, { fetched: 0, upserted: 0, deleted: 0 });
-      resultEl.innerHTML = `✓ ${totals.upserted} eventos sincronizados de ${data.totalCals || 0} calendários (${totals.deleted} cancelados removidos)`;
+        acc.fetched += s.fetched || 0;
+        acc.inserted += s.inserted || s.upserted || 0;
+        acc.updated += s.updated || 0;
+        acc.deleted += s.deleted || 0;
+        return acc;
+      }, { fetched: 0, inserted: 0, updated: 0, deleted: 0 });
+      const total = totals.inserted + totals.updated;
+      const breakdown = [];
+      if (totals.inserted) breakdown.push(`${totals.inserted} novos`);
+      if (totals.updated) breakdown.push(`${totals.updated} atualizados`);
+      if (totals.deleted) breakdown.push(`${totals.deleted} cancelados`);
+      resultEl.innerHTML = `✓ ${total} eventos de ${data.totalCals || 0} calendários${breakdown.length ? ' (' + breakdown.join(' · ') + ')' : ''}`;
       refreshStatus();
     } catch (e) {
       resultEl.innerHTML = '<span style="color:#dc2626">⚠ ' + e.message + '</span>';
