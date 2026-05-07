@@ -2044,6 +2044,142 @@ window.WebAuthnHelpers = (function() {
   await refreshStatus();
 })();
 
+// ── Lembretes (notificações in-app) ──
+// MVP: enquanto o hub estiver aberto (PWA, aba, etc), checa items com reminder_minutes
+// e dispara Notification API quando chega o instante. Push real (com hub fechado)
+// é outro item — exige Service Worker + VAPID + Edge function periodica.
+(async function setupReminders() {
+  const sb = window.sbClient;
+  if (!sb) return;
+  if (!('Notification' in window)) return; // navegador sem suporte
+
+  const NOTIFIED_KEY = 'hub_reminders_notified';
+  const CHECK_INTERVAL_MS = 30_000; // checa a cada 30s
+
+  function loadNotified() {
+    try { return new Set(JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '[]')); }
+    catch { return new Set(); }
+  }
+  function saveNotified(set) {
+    // Mantém só os últimos 200 pra não crescer infinito
+    const arr = [...set].slice(-200);
+    localStorage.setItem(NOTIFIED_KEY, JSON.stringify(arr));
+  }
+
+  async function ensurePermission() {
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') return false;
+    // Não pede permissão automaticamente — só quando user interage com algo
+    return null;
+  }
+
+  async function checkReminders() {
+    if (Notification.permission !== 'granted') return;
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
+    const now = new Date();
+    const lookahead = new Date(now.getTime() + 24 * 3600 * 1000); // próximas 24h
+
+    const { data: items } = await sb.from('items')
+      .select('id, title, area, date_start, has_time, reminder_minutes')
+      .eq('user_id', user.id)
+      .neq('status', 'done')
+      .not('reminder_minutes', 'is', null)
+      .gte('date_start', now.toISOString())
+      .lte('date_start', lookahead.toISOString());
+
+    if (!items?.length) return;
+
+    const notified = loadNotified();
+    for (const it of items) {
+      const ds = new Date(it.date_start);
+      const reminderAt = new Date(ds.getTime() - (it.reminder_minutes || 0) * 60_000);
+      const key = `${it.id}|${ds.toISOString().slice(0,16)}`; // id + minuto
+
+      // Janela de 90s pra disparar (em caso do checker pular um tick)
+      if (reminderAt <= now && now - reminderAt < 90_000 && !notified.has(key)) {
+        try {
+          const minsLabel = it.reminder_minutes === 0 ? 'agora' : `em ${it.reminder_minutes} min`;
+          const timeLabel = it.has_time
+            ? `às ${String(ds.getHours()).padStart(2,'0')}:${String(ds.getMinutes()).padStart(2,'0')}`
+            : 'hoje';
+          const n = new Notification(`🔔 ${it.title}`, {
+            body: `${timeLabel} (${minsLabel})`,
+            tag: `hub-${it.id}`,
+            icon: '/icon-192.png', // se existir
+            requireInteraction: false,
+          });
+          n.onclick = () => {
+            window.focus();
+            if (window.openTaskPopup) window.openTaskPopup(it.id);
+            n.close();
+          };
+          notified.add(key);
+        } catch (e) {
+          console.warn('[reminders] falha ao notificar:', e);
+        }
+      }
+    }
+    saveNotified(notified);
+  }
+
+  // Botão de teste / pedir permissão (na aba Setup)
+  const setupSection = document.getElementById('setup');
+  if (setupSection) {
+    const wrap = document.createElement('div');
+    wrap.className = 'setup-group';
+    wrap.id = 'remindersGroup';
+    wrap.innerHTML = `
+      <div class="setup-group-header">🔔 Notificações de lembretes</div>
+      <div class="setup-row" id="remindersStatus" style="color:var(--text-faint)">Verificando...</div>
+      <div style="display:flex;gap:6px;padding:8px 14px">
+        <button id="remindersEnableBtn" type="button" style="flex:1;padding:8px 12px;border:none;background:#7c3aed;color:#fff;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;display:none">Ativar notificações</button>
+        <button id="remindersTestBtn" type="button" style="padding:8px 12px;border:0.5px solid var(--border);background:var(--card);border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text);display:none">Testar</button>
+      </div>
+    `;
+    const grid = setupSection.querySelector('.setup-grid');
+    if (grid) grid.appendChild(wrap);
+
+    const statusEl = document.getElementById('remindersStatus');
+    const enableBtn = document.getElementById('remindersEnableBtn');
+    const testBtn = document.getElementById('remindersTestBtn');
+
+    function refreshUi() {
+      const p = Notification.permission;
+      if (p === 'granted') {
+        statusEl.innerHTML = '<span style="color:#16a34a">✓ Ativadas</span> <span style="color:var(--text-faint);font-size:11px;margin-left:6px">checa a cada 30s enquanto o hub estiver aberto</span>';
+        enableBtn.style.display = 'none';
+        testBtn.style.display = 'block';
+      } else if (p === 'denied') {
+        statusEl.innerHTML = '<span style="color:#dc2626">✗ Bloqueadas</span> <span style="color:var(--text-faint);font-size:11px">libera nas permissões do navegador</span>';
+        enableBtn.style.display = 'none';
+        testBtn.style.display = 'none';
+      } else {
+        statusEl.innerHTML = '<span style="color:var(--text-faint)">Não ativadas</span>';
+        enableBtn.style.display = 'block';
+        testBtn.style.display = 'none';
+      }
+    }
+
+    enableBtn.addEventListener('click', async () => {
+      const result = await Notification.requestPermission();
+      if (result === 'granted') {
+        new Notification('🔔 Hub Eduardo', { body: 'Notificações ativadas! Vou te avisar dos lembretes.' });
+      }
+      refreshUi();
+    });
+    testBtn.addEventListener('click', () => {
+      new Notification('🔔 Teste — Hub Eduardo', { body: 'Notificações estão funcionando ✓', tag: 'hub-test' });
+    });
+    refreshUi();
+  }
+
+  // Loop de check
+  await checkReminders();
+  setInterval(checkReminders, CHECK_INTERVAL_MS);
+})();
+
 // ── Gerenciamento de biometria (lista de dispositivos cadastrados em Setup)
 (async function setupBiometryManager() {
   const sb = window.sbClient;
