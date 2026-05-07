@@ -2044,6 +2044,32 @@ window.WebAuthnHelpers = (function() {
   await refreshStatus();
 })();
 
+// ── Helper global pra sync hub → Google Calendar (write) ──
+// Fire-and-forget. Não bloqueia UI. Loga erros no console.
+window.syncToGcal = async function(action, itemId) {
+  if (!action || !itemId) return;
+  const sb = window.sbClient;
+  if (!sb) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    fetch(`${window.SUPABASE_URL || 'https://bpyoaxdmejnnyixrjxel.supabase.co'}/functions/v1/gcal-write`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': sb.supabaseKey || 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1',
+      },
+      body: JSON.stringify({ action, item_id: itemId }),
+    }).then(r => r.json()).then(j => {
+      if (j.error) console.warn('[gcal-write]', action, j.error);
+      else console.log('[gcal-write]', action, j);
+    }).catch(e => console.warn('[gcal-write] falhou:', e));
+  } catch (e) {
+    console.warn('[gcal-write] sessao:', e);
+  }
+};
+
 // ── Lembretes (notificações in-app) ──
 // MVP: enquanto o hub estiver aberto (PWA, aba, etc), checa items com reminder_minutes
 // e dispara Notification API quando chega o instante. Push real (com hub fechado)
@@ -6475,15 +6501,22 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         title, type: document.getElementById('aafType').value,
         project_id: projId, area, date_start, has_time: hasTime,
       };
-      let error;
+      let error, savedId = editingItemId;
       if (editingItemId) {
         ({ error } = await sb.from('items').update(payload).eq('id', editingItemId));
       } else {
         payload.status = 'planned'; payload.currency = 'BRL';
-        ({ error } = await sb.from('items').insert(payload));
+        const { data: inserted, error: insErr } = await sb.from('items').insert(payload).select('id').single();
+        error = insErr;
+        if (inserted) savedId = inserted.id;
       }
       if (error) { alert('Erro ao salvar: ' + error.message); }
       else {
+        // Sync hub → Google (fire-and-forget, só pra events)
+        if (payload.type === 'event' && savedId && window.syncToGcal) {
+          window.syncToGcal(editingItemId ? 'update' : 'update', savedId);
+          // 'update' lida com ambos os casos: cria se sem google_event_id, atualiza se já tem
+        }
         addForm.style.display = 'none';
         resetForm();
         await loadItems(); render();
@@ -8345,6 +8378,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     btnSave.disabled = false;
     if (error) { alert('Erro ao salvar: ' + error.message); return; }
     Object.assign(currentItem, updates);
+    // Sync hub → Google Calendar (fire-and-forget, só pra items 'event')
+    if (currentItem.type === 'event') {
+      window.syncToGcal && window.syncToGcal('update', currentItem.id);
+    }
     editMode = false;
     btnEdit.style.display = 'inline-block';
     btnSave.style.display = 'none';
@@ -8353,9 +8390,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   btnDel.addEventListener('click', async () => {
     if (!currentItem) return;
-    if (!confirm('Apagar este item?')) return;
-    const { error } = await sb.from('items').delete().eq('id', currentItem.id);
-    if (error) { alert('Erro: ' + error.message); return; }
+    if (!confirm('Apagar este item? (também remove do Google Calendar se tiver evento lá)')) return;
+    // Pra items com google_event_id, gcal-write faz delete no Google + no banco
+    if (currentItem.google_event_id && window.syncToGcal) {
+      window.syncToGcal('delete', currentItem.id);
+    } else {
+      const { error } = await sb.from('items').delete().eq('id', currentItem.id);
+      if (error) { alert('Erro: ' + error.message); return; }
+    }
     close();
   });
 
