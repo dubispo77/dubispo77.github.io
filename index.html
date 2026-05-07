@@ -147,8 +147,8 @@
     .hero-yt {
       position: absolute;
       top: 50%; left: 50%;
-      width: calc(100% + 200px);
-      height: calc(100% + 200px);
+      width: max(calc(100% + 200px), calc(100vh * 16 / 9));
+      height: max(calc(100% + 200px), calc(100vw * 9 / 16));
       transform: translate(-50%, -50%);
       pointer-events: none;
       z-index: 0;
