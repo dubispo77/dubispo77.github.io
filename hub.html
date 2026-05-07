@@ -964,6 +964,11 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev .bd.ov { color: #fecaca; }
 .calM-ev .bd.dn { color: #bbf7d0; }
 .calM-ev .bd.rc { opacity: .85; }
+.calM-ev .bd.gc { opacity: .75; font-size: 8px; vertical-align: 1px; }
+.badge-gcal {
+  position: absolute; top: 4px; right: 6px;
+  font-size: 11px; opacity: 0.6; pointer-events: none;
+}
 /* SEMANA (S4 — cards grandes preenchidos) */
 .calW-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 4px; }
 .calW-day { min-height: 220px; padding: 0 4px; border-radius: 8px; transition: background .15s; }
@@ -6582,6 +6587,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       is_done: isDone,
       is_overdue: isOverdue,
       is_recurring: isRecurring,
+      from_gcal: !!it.google_event_id,
       raw: it,
     };
   }
@@ -6600,20 +6606,20 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const end   = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1);
     if (sb && session) {
       const { data, error } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id')
         .eq('is_roadmap', false)
         .gte('date_start', start.toISOString())
         .lt('date_start', end.toISOString())
         .order('date_start');
       // Carrega TAMBÉM todos items recorrentes (independente da data) pra expandir em virtuais
       const { data: recurData } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id')
         .eq('is_roadmap', false)
         .not('recurrence', 'is', null)
         .lt('date_start', end.toISOString());
       // Items multi-dia que terminam na janela (mas começam antes)
       const { data: spanData } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id')
         .eq('is_roadmap', false)
         .lt('date_start', start.toISOString())
         .gte('date_end', start.toISOString());
@@ -6683,6 +6689,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const badges = [
           it.is_done ? '<span class="bd dn">✓</span>' : '',
           it.is_recurring ? '<span class="bd rc">♻</span>' : '',
+          it.from_gcal ? '<span class="bd gc" title="Sincronizado do Google Calendar">📆</span>' : '',
         ].join('');
         let overdueBadge = '';
         if (it.is_overdue && it.raw && it.raw.date_start) {
@@ -6926,6 +6933,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           }
           return `<div class="${klass}" data-item-id="${it.id}">
             ${overdueBadge}
+            ${it.from_gcal ? '<span class="badge-gcal" title="Sincronizado do Google Calendar">📆</span>' : ''}
             ${it.has_time ? `<div class="hr">${escHtml(it.hr)}</div>` : '<div class="hr">dia inteiro</div>'}
             <div class="ti">${escHtml(it.title)}</div>
           </div>`;
