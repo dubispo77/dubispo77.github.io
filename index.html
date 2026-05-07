@@ -1150,7 +1150,7 @@
         grid-template-columns: 1fr;
         gap: 48px;
       }
-      .sobre-text p { font-size: 20px; }
+      .sobre-text p { font-size: 17px; }
       .sobre-text-content {
         display: block !important;
         max-height: 360px;
@@ -1173,20 +1173,35 @@
         display: none;
       }
       .sobre-text-toggle {
-        display: inline-block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         align-self: center;
         margin: 14px auto 18px;
-        padding: 10px 22px;
-        background: rgba(26,44,62,0.08);
-        border: 1px solid rgba(26,44,62,0.15);
-        border-radius: 100px;
+        padding: 6px 0;
+        background: transparent;
+        border: 0;
         font-family: 'Outfit', sans-serif;
         font-size: 13px;
         font-weight: 600;
-        color: var(--white);
+        color: rgba(26,44,62,0.7);
         letter-spacing: 0.06em;
         text-transform: lowercase;
         cursor: pointer;
+      }
+      .sobre-text-toggle::after {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor;
+        transform: rotate(45deg) translate(-1px, -1px);
+        transition: transform 0.3s ease;
+      }
+      .sobre-text-content.expanded ~ .sobre-text-toggle::after {
+        transform: rotate(-135deg) translate(-1px, -1px);
       }
 
       /* TIMELINE mobile — uma coluna só */
