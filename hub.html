@@ -443,6 +443,22 @@ table.data-table tr:hover td { background: var(--bg); }
   flex: 1; overflow-y: auto; padding: 18px 0; display: flex; flex-direction: column; gap: 12px;
 }
 .chat-empty { text-align: center; padding-top: 60px; max-width: 420px; margin: 0 auto; }
+.chat-quickbar {
+  display: flex; gap: 6px; padding: 8px 0 6px; overflow-x: auto;
+  border-bottom: 1px solid var(--border-soft); margin-bottom: 6px;
+  scrollbar-width: none;
+}
+.chat-quickbar::-webkit-scrollbar { display: none; }
+.chat-qchip {
+  flex-shrink: 0; padding: 6px 11px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 16px;
+  font-size: 12px; color: var(--text-dim); cursor: pointer;
+  white-space: nowrap; font-family: inherit; transition: all .15s;
+}
+.chat-qchip:hover {
+  background: #ede9fe; border-color: var(--accent); color: #5b21b6;
+}
+.chat-qchip:active { transform: scale(0.96); }
 .chat-msg { display: flex; max-width: 78%; }
 .chat-msg.user { align-self: flex-end; }
 .chat-msg.assistant { align-self: flex-start; }
@@ -1508,6 +1524,13 @@ table.data-table tr:hover td { background: var(--bg); }
           <div class="chat-list" id="chatList"></div>
         </aside>
         <div id="chatBody" class="chat-body">
+          <div id="chatQuickbar" class="chat-quickbar">
+            <button type="button" class="chat-qchip" data-q="O que eu tenho hoje?">📅 Hoje?</button>
+            <button type="button" class="chat-qchip" data-q="Quais tarefas pendentes da Recolocação?">💼 Recolocação</button>
+            <button type="button" class="chat-qchip" data-q="Sincroniza o Google Calendar">↻ Sync GCal</button>
+            <button type="button" class="chat-qchip" data-q="Cria uma tarefa: ">＋ Tarefa</button>
+            <button type="button" class="chat-qchip" data-q="Cria um evento: ">＋ Evento</button>
+          </div>
           <div id="chatMessages" class="chat-messages"></div>
           <div id="chatPreviews" class="chat-previews" style="display:none"></div>
           <form id="chatForm" class="chat-input-row">
@@ -4416,6 +4439,24 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   let pendingImages = [];
   let currentConversationId = null;
   let conversations = [];
+
+  // Atalhos rápidos (chips no topo do chat)
+  document.querySelectorAll('.chat-qchip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.dataset.q || '';
+      // Se termina com ': ' (templates pra completar), só preenche input pra user terminar
+      if (text.endsWith(': ')) {
+        input.value = text;
+        input.focus();
+        // Posiciona cursor no fim
+        input.setSelectionRange(input.value.length, input.value.length);
+      } else {
+        // Senão dispara a pergunta direto
+        input.value = text;
+        form.requestSubmit();
+      }
+    });
+  });
 
   // ── Web Speech (modo voz) ──
   // Mostra botão de mic só se navegador suporta. iOS Safari usa webkit; Chrome Android idem.
