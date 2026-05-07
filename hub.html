@@ -6726,12 +6726,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
   function makeVirtualOccurrence(parent, target) {
     const ymdStr = ymd(target);
+    const isDoneAtThisDate = (parent.recurrence_done_dates || []).includes(ymdStr);
     return {
       ...parent,
       id: `${parent.id}#${ymdStr}`,
       date: ymdStr,
       is_virtual: true,
       virtual_parent_id: parent.id,
+      is_done: isDoneAtThisDate,
+      status: isDoneAtThisDate ? 'done' : parent.status,
     };
   }
   // Item multi-dia: tem date_end no dia seguinte+ ao date_start (ignora hora)
@@ -6798,6 +6801,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       is_overdue: isOverdue,
       is_recurring: isRecurring,
       from_gcal: !!it.google_event_id,
+      recurrence_done_dates: Array.isArray(it.recurrence_done_dates) ? it.recurrence_done_dates : [],
       raw: it,
     };
   }
@@ -6816,20 +6820,20 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const end   = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1);
     if (sb && session) {
       const { data, error } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,recurrence_done_dates')
         .eq('is_roadmap', false)
         .gte('date_start', start.toISOString())
         .lt('date_start', end.toISOString())
         .order('date_start');
       // Carrega TAMBÉM todos items recorrentes (independente da data) pra expandir em virtuais
       const { data: recurData } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,recurrence_done_dates')
         .eq('is_roadmap', false)
         .not('recurrence', 'is', null)
         .lt('date_start', end.toISOString());
       // Items multi-dia que terminam na janela (mas começam antes)
       const { data: spanData } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,recurrence_done_dates')
         .eq('is_roadmap', false)
         .lt('date_start', start.toISOString())
         .gte('date_end', start.toISOString());
@@ -7473,6 +7477,23 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       return;
     }
     if (act === 'toggle') {
+      // Item virtual (recorrência): id formato 'parent#yyyy-mm-dd'
+      // Toggle adiciona/remove a date do array recurrence_done_dates do parent — não muda status do parent
+      if (id.includes('#') && !id.includes('#span-')) {
+        const [parentId, ymdStr] = id.split('#');
+        const parent = itemsCache.find(i => i.id === parentId);
+        if (!parent) return;
+        const cur = Array.isArray(parent.recurrence_done_dates) ? [...parent.recurrence_done_dates] : [];
+        const idx = cur.indexOf(ymdStr);
+        if (idx === -1) cur.push(ymdStr);
+        else cur.splice(idx, 1);
+        parent.recurrence_done_dates = cur;
+        if (parent.raw) parent.raw.recurrence_done_dates = cur;
+        render();
+        await sb.from('items').update({ recurrence_done_dates: cur }).eq('id', parentId);
+        return;
+      }
+      // Item normal (instância original ou não recorrente): toggle status
       const item = itemsCache.find(i => i.id === id);
       if (!item) return;
       const newStatus = item.is_done ? 'planned' : 'done';
