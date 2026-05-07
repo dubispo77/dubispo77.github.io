@@ -566,6 +566,8 @@
     }
     .sobre-text { display: flex; flex-direction: column; }
     .sobre-text .skills-list { margin-top: auto; }
+    .sobre-text-content { display: contents; }
+    .sobre-text-toggle { display: none; }
 
     .sobre-subtitle, .tl-title, .sobre-timeline h2 {
       font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
@@ -1148,7 +1150,44 @@
         grid-template-columns: 1fr;
         gap: 48px;
       }
-      .sobre-text p { font-size: 15px; }
+      .sobre-text p { font-size: 20px; }
+      .sobre-text-content {
+        display: block !important;
+        max-height: 360px;
+        overflow: hidden;
+        position: relative;
+        transition: max-height 0.4s ease;
+      }
+      .sobre-text-content::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 80px;
+        background: linear-gradient(to bottom, transparent, #F4F1EB);
+        pointer-events: none;
+      }
+      .sobre-text-content.expanded {
+        max-height: none;
+      }
+      .sobre-text-content.expanded::after {
+        display: none;
+      }
+      .sobre-text-toggle {
+        display: inline-block;
+        align-self: center;
+        margin: 14px auto 18px;
+        padding: 10px 22px;
+        background: rgba(26,44,62,0.08);
+        border: 1px solid rgba(26,44,62,0.15);
+        border-radius: 100px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--white);
+        letter-spacing: 0.06em;
+        text-transform: lowercase;
+        cursor: pointer;
+      }
 
       /* TIMELINE mobile — uma coluna só */
       .tl-wrap {
@@ -1547,6 +1586,7 @@
 
       <div class="sobre-text">
         <div class="sobre-subtitle">perfil</div>
+<div class="sobre-text-content">
         <p>
           Sou um <strong>videomaker</strong> e&nbsp;<strong>pós-produtor</strong> especializado em <strong>criação audiovisual</strong> política e&nbsp;esportiva, com bacharelado em jornalismo pela <strong>Oakland University</strong> (Michigan, EUA) e&nbsp;mais de&nbsp;<strong>15 anos de&nbsp;carreira</strong> — 12&nbsp;deles no Brasil, transitando entre comunicação política, telejornalismo e&nbsp;cobertura esportiva nas <strong>maiores emissoras do&nbsp;país</strong>.
         </p>
@@ -1562,6 +1602,9 @@
         <p>
           Já&nbsp;integrei <strong>produções internacionais</strong> e&nbsp;campanhas voltadas para a&nbsp;<strong>América Latina</strong>. Busco sempre combinar meu <strong>olhar jornalístico</strong> com <strong>domínio técnico</strong> e&nbsp;<strong>pensamento estratégico</strong> para entregar conteúdo que realmente se&nbsp;conecta com a&nbsp;audiência e&nbsp;gera um <strong>resultado memorável</strong>.
         </p>
+        </div>
+        <button class="sobre-text-toggle" type="button" onclick="document.querySelector('.sobre-text-content').classList.toggle('expanded'); this.textContent = this.textContent.trim() === 'ler mais' ? 'ler menos' : 'ler mais';">ler mais</button>
+
 
         <div class="skills-list">
           <span class="skill-tag">Premiere Pro</span>
