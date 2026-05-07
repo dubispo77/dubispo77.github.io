@@ -155,7 +155,6 @@
       border: 0;
       filter: blur(1px);
     }
-    .hero-video-mobile { display: none; }
     /* Camada invisível por cima do iframe — absorve hovers para o player não
        mostrar controles depois que o vídeo já está rodando. */
     .hero-yt-shield {
@@ -166,6 +165,7 @@
       background: transparent;
       pointer-events: auto;
     }
+    .hero-video-mobile { display: none; }
 
     .hero-overlay {
       position: absolute;
@@ -320,7 +320,7 @@
       justify-content: flex-start;
       align-items: baseline;
       gap: 16px;
-      padding: 30px calc(2.5% + 50px) 16px;
+      padding: 30px calc(2.5% + 20px) 16px;
       border-top: 1px solid rgba(0,0,0,0.1);
     }
 
@@ -339,7 +339,7 @@
 
     /* ─── DESTAQUE — GUILHERME CORTEZ ─── */
     #destaque {
-      padding: 0 calc(2.5% + 50px) 80px;
+      padding: 0 calc(2.5% + 20px) 80px;
     }
 
     .destaque-card {
@@ -455,14 +455,14 @@
 
     /* ─── TRABALHOS — SWIPE CAROUSEL ─── */
     #trabalhos {
-      padding: 0 calc(2.5% + 50px) 40px;
+      padding: 0 calc(2.5% + 20px) 40px;
     }
 
     .works-track {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 3px;
-      padding: 0;
+      padding: 0 2.5%;
     }
 
     .work-card {
@@ -548,7 +548,7 @@
 
     /* ─── SOBRE ─── */
     #sobre {
-      padding: 0 calc(2.5% + 50px) 0;
+      padding: 0 calc(2.5% + 20px) 0;
       margin-bottom: 0;
     }
 
@@ -578,7 +578,7 @@
     .bracket-r { display: inline-block; width: 3px; height: 22px; border: 2.5px solid rgba(26,44,62,0.15); border-left: none; border-radius: 1px; flex-shrink: 0; }
 
     .sobre-text p {
-      font-size: 18px;
+      font-size: 17px;
       line-height: 1.85;
       color: rgba(26,44,62,0.6);
       margin-bottom: 22px;
@@ -634,7 +634,7 @@
   }
 
   .tl-wrap {
-    background: rgba(26,44,62,0.05);
+    background: rgba(26,44,62,0.029);
     border-radius: 0;
     padding: 24px 0 20px 0;
     margin-top: 2px;
@@ -1060,18 +1060,6 @@
         height: 30px;
       }
 
-      /* Hero mobile: esconde iframe Vimeo, mostra mp4 vertical */
-      .hero-yt, .hero-yt-shield { display: none !important; }
-      .hero-video-mobile {
-        display: block;
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: cover;
-        z-index: 0;
-        pointer-events: none;
-      }
-
       /* Section headers mobile */
       .section-header {
         padding: 48px 20px 24px;
@@ -1082,6 +1070,16 @@
       /* DESTAQUE mobile */
       #destaque { padding: 0 20px 60px; }
       #trabalhos { padding: 0 0 40px; }
+      .hero-yt, .hero-yt-shield { display: none !important; }
+      .hero-video-mobile {
+        display: block;
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        pointer-events: none;
+      }
 
       .destaque-card {
         grid-template-columns: 1fr;
@@ -1141,7 +1139,7 @@
         grid-template-columns: 1fr;
         gap: 48px;
       }
-      .sobre-text p { font-size: 17px; }
+      .sobre-text p { font-size: 15px; }
 
       /* TIMELINE mobile — uma coluna só */
       .tl-wrap {
@@ -1150,42 +1148,37 @@
       .tl-grid {
         grid-template-columns: 1fr !important;
         gap: 0 !important;
-        justify-items: center !important;
-      }
-      .tl-col {
-        width: max-content !important;
-        margin: 0 auto !important;
       }
       .tl-place {
         white-space: normal !important;
       }
       .tl-circle {
-        width: 72px !important;
-        height: 72px !important;
+        width: 60px !important;
+        height: 60px !important;
         flex-shrink: 0;
       }
       .tl-circle img {
-        width: 48px !important;
-        height: 48px !important;
+        width: 40px !important;
+        height: 40px !important;
       }
       .tl-year {
-        width: 48px !important;
-        font-size: 15px !important;
+        width: 40px !important;
+        font-size: 13px !important;
       }
       .tl-col::before {
-        left: 59px !important;
+        left: 51px !important;
       }
       .tl-dot {
-        left: 54px !important;
+        left: 46px !important;
       }
       .tl-item {
-        gap: 12px !important;
+        gap: 10px !important;
       }
       .tl-place {
-        font-size: 15px !important;
+        font-size: 13px !important;
       }
       .tl-role {
-        font-size: 14px !important;
+        font-size: 12px !important;
       }
 
       /* OVERFLOW — nada vaza pro lado */
@@ -1342,7 +1335,7 @@
 
   <!-- HERO -->
   <section id="hero">
-    <!-- VIDEO: Vimeo (desktop) + mp4 vertical (mobile) -->
+    <!-- VIDEO: Vimeo background mode (mesmo player pra Chrome, Safari, Firefox, etc) -->
     <iframe id="heroYT" class="hero-yt is-ready" title="" tabindex="-1" aria-hidden="true"
       allow="autoplay; fullscreen; picture-in-picture"
       frameborder="0"
@@ -1569,6 +1562,7 @@
           <span class="skill-tag">Captação</span>
           <span class="skill-tag">Direção de Fotografia</span>
           <span class="skill-tag">Lives & Transmissões</span>
+          <span class="skill-tag">Estratégia Digital</span>
         </div>
       </div>
 
@@ -1713,7 +1707,7 @@
         <div class="edu-item">
           <div class="edu-meta">2011–2012</div>
           <div class="edu-name">Specs Howard School</div>
-          <div class="edu-desc">Produção<br>audiovisual</div>
+          <div class="edu-desc">Produção audiovisual</div>
           <div class="edu-loc">
             <svg class="edu-loc-pin" viewBox="0 0 24 24" fill="rgba(214,48,49,0.50)" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
             <span class="edu-loc-text">Detroit, Michigan</span>
