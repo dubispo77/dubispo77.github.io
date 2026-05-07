@@ -1150,7 +1150,7 @@
         grid-template-columns: 1fr;
         gap: 48px;
       }
-      .sobre-text p { font-size: 19px; line-height: 1.48; }
+      .sobre-text p { font-size: 19px; line-height: 1.2; }
       .sobre-text-content {
         display: block !important;
         max-height: 360px;
@@ -1214,9 +1214,13 @@
         justify-items: center !important;
       }
       .tl-col {
-        width: 100% !important;
-        max-width: 380px !important;
+        width: fit-content !important;
+        max-width: calc(100vw - 40px) !important;
         margin: 0 auto !important;
+      }
+      .tl-info {
+        flex: 0 0 200px !important;
+        min-width: 0 !important;
       }
       .tl-col::before {
         top: 0 !important;
