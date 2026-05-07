@@ -1374,11 +1374,39 @@
       }
       #contato .contato-links {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 6px;
       }
       #contato .contato-link {
         min-width: 0;
-        flex: 1 1 calc(50% - 5px);
+        flex: 1 1 0;
+        padding: 10px 4px;
+      }
+      #contato .contato-link-label {
+        font-size: 11px;
+        letter-spacing: 0.02em;
+      }
+      .contato-arrows { display: none !important; }
+      .contato-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .contato-title::before, .contato-title::after {
+        content: '';
+        display: inline-block;
+        width: 0; height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 9px solid rgba(244,241,235,0.55);
+        flex-shrink: 0;
+        animation: contato-arrow-bounce 2.4s ease-in-out infinite;
+      }
+      .contato-title::after { animation-delay: 1.2s; }
+      @keyframes contato-arrow-bounce {
+        0%, 100% { transform: translateY(0); opacity: 0.35; }
+        50% { transform: translateY(4px); opacity: 0.9; }
       }
 
       footer {
