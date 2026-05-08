@@ -1168,7 +1168,6 @@
       .work-card {
         flex: 0 0 82vw;
         scroll-snap-align: start;
-        scroll-snap-stop: always;
         aspect-ratio: 3/4;
         border-radius: 12px;
       }
@@ -2099,6 +2098,53 @@
     }, { threshold: 0.15 });
 
     revealEls.forEach(el => revealObserver.observe(el));
+
+    // ─── SWIPE THROTTLE — limita o portfolio mobile a no máx 2 cards por swipe ───
+    (function() {
+      const track = document.getElementById('worksTrack');
+      if (!track) return;
+
+      let startX = 0, startScroll = 0, touching = false;
+      const MAX_CARDS = 2;
+
+      function getCardStep() {
+        const card = track.querySelector('.work-card');
+        if (!card) return 0;
+        return card.offsetWidth + 12; // gap entre cards
+      }
+
+      track.addEventListener('touchstart', (e) => {
+        if (window.innerWidth > 768) return;
+        startX = e.touches[0].clientX;
+        startScroll = track.scrollLeft;
+        touching = true;
+      }, { passive: true });
+
+      track.addEventListener('touchend', (e) => {
+        if (!touching) return;
+        touching = false;
+        if (window.innerWidth > 768) return;
+
+        const step = getCardStep();
+        if (!step) return;
+
+        // Espera momentum nativo decantar e então corrige se passou do limite
+        setTimeout(() => {
+          const moved = track.scrollLeft - startScroll;
+          const movedCards = moved / step;
+          const direction = Math.sign(movedCards) || 0;
+          const absCards = Math.abs(movedCards);
+
+          if (absCards > MAX_CARDS) {
+            const targetCards = direction * MAX_CARDS;
+            track.scrollTo({
+              left: startScroll + targetCards * step,
+              behavior: 'smooth'
+            });
+          }
+        }, 120);
+      }, { passive: true });
+    })();
   </script>
 
   <!-- anotação removida -->
