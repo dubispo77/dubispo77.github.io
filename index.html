@@ -1150,7 +1150,7 @@
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
-        scroll-snap-type: x proximity;
+        scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch;
         gap: 12px;
@@ -1163,6 +1163,7 @@
       .work-card {
         flex: 0 0 82vw;
         scroll-snap-align: start;
+        scroll-snap-stop: always;
         aspect-ratio: 3/4;
         border-radius: 12px;
       }
