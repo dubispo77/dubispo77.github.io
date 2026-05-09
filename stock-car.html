@@ -196,8 +196,27 @@
   @media(max-width:720px){
     .showcase{padding:16px 0 28px}
     .showcase .showcase-title{padding:0 22px}
-    .track-h{grid-template-columns:1fr;gap:10px}
-    .track-v{grid-template-columns:repeat(3,1fr);gap:10px}
+
+    /* CARROSSEL — vídeos viram swipe horizontal no mobile */
+    .track-h, .track-v{
+      display:flex !important;
+      grid-template-columns:none !important;
+      gap:12px;
+      overflow-x:auto;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+      padding:0 22px 8px;
+      margin:0 -22px;
+    }
+    .track-h::-webkit-scrollbar, .track-v::-webkit-scrollbar{display:none}
+    .track-h .card, .track-v .card{
+      flex:0 0 86%;
+      scroll-snap-align:start;
+      scroll-snap-stop:always;
+    }
+    .track-v .card{flex-basis:62%}
+
     .card .meta h4{font-size:17px}
     .card .play{width:58px;height:58px}
   }
