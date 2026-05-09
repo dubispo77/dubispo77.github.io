@@ -965,6 +965,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.proj-administracao { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
 .calM-ev.proj-casa          { background: #fcd34d; border-color: #d97706; color: #78350f; }
 .calM-ev.proj-eventos       { background: #fed7aa; border-color: #ea580c; color: #7c2d12; }
+.calM-ev.proj-santos        { background: #ffffff; border-color: #000000; color: #000000; }
 /* Aliases retrocompat — strings antigas mapeadas pras cores novas */
 .calM-ev.proj-financas      { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
 .calM-ev.proj-rotina        { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
@@ -1044,6 +1045,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calW-card.proj-administracao { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
 .calW-card.proj-casa          { background: #fcd34d; color: #78350f; border-left: 3px solid #d97706; }
 .calW-card.proj-eventos       { background: #fed7aa; color: #7c2d12; border-left: 3px solid #ea580c; }
+.calW-card.proj-santos        { background: #ffffff; color: #000000; border: 1px solid #000000; border-left: 3px solid #000000; }
 .calW-card.proj-financas      { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
 .calW-card.proj-rotina        { background: #fecaca; color: #7f1d1d; border-left: 3px solid #dc2626; }
 /* Dropdown ao clicar no dia */
@@ -1091,6 +1093,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calMM-card.proj-administracao { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
 .calMM-card.proj-casa          { background: #fcd34d; border-color: #d97706; color: #78350f; }
 .calMM-card.proj-eventos       { background: #fed7aa; border-color: #ea580c; color: #7c2d12; }
+.calMM-card.proj-santos        { background: #ffffff; border-color: #000000; color: #000000; }
 .calMM-card.proj-financas      { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
 .calMM-card.proj-rotina        { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
 
@@ -1325,13 +1328,16 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="section-body">
         <!-- Snapshot agenda hoje · atualizado por tarefa agendada (agenda-hub-update) -->
         <div id="agendaHojeSnapshot" style="margin-bottom:22px">
-          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Hoje · quarta-feira, 6 de maio de 2026</div>
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Hoje · sábado, 9 de maio de 2026</div>
           <div class="kpi-row">
             <div class="kpi"><div class="kpi-value" style="color:#2563eb">0</div><div class="kpi-label">Eventos hoje</div></div>
-            <div class="kpi"><div class="kpi-value" style="color:#7c3aed">11</div><div class="kpi-label">Esta semana</div></div>
-            <div class="kpi"><div class="kpi-value" style="color:#f59e0b">8</div><div class="kpi-label">Vencimentos</div></div>
+            <div class="kpi"><div class="kpi-value" style="color:#7c3aed">12</div><div class="kpi-label">Esta semana</div></div>
+            <div class="kpi"><div class="kpi-value" style="color:#f59e0b">0</div><div class="kpi-label">Vencimentos</div></div>
           </div>
-          <div class="empty-day" style="padding:32px 24px"><div class="ei">🌤️</div><div>Nenhum evento hoje</div></div>
+          <div class="empty-day" style="padding:24px;margin-top:12px">
+            <div class="ei">📭</div>
+            <div>Nenhum evento hoje</div>
+          </div>
         </div>
         <div id="calContainer" class="cal-container"></div>
         <div class="agenda-add-wrap">
@@ -2330,7 +2336,7 @@ window.syncToGcal = async function(action, itemId) {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-05-06 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-05-09 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG', m:1.03, pos:'bot', status:'done', cal:'Tarefas pessoais' },
@@ -6831,13 +6837,17 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const isDone = it.status === 'done';
     const isOverdue = !isDone && (window.isOverdue ? window.isOverdue(it.date_start, it.status) : false);
     const isRecurring = !!it.recurrence;
+    // Project token: usa nome do project (slug) se conhecido, senão a área. Ex: 'santos' pra Santos F.C.
+    const projInfo = it.project_id && projectsMap[it.project_id] ? projectsMap[it.project_id] : null;
+    let projectToken = it.area || 'pessoal';
+    if (projInfo && /santos/i.test(projInfo.name || '')) projectToken = 'santos';
     return {
       id: it.id,
       date: ymd(d),
       has_time: it.has_time,
       hr,
       title: it.title,
-      project: it.area || 'pessoal',
+      project: projectToken,
       status: it.status,
       is_done: isDone,
       is_overdue: isOverdue,
