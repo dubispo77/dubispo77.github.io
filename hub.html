@@ -1617,6 +1617,41 @@ window.sbClient = (typeof supabase !== 'undefined')
   ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } })
   : null;
 
+// ── Subs do roadmap (items is_roadmap=true) ──
+// Cache global pra preencher dropdown "Sub do Roadmap" no popup.
+// Cada entrada: { id, title, area, parent_id, depth, path }
+window.roadmapSubs = [];
+window.loadRoadmapSubs = async function() {
+  if (!window.sbClient) return [];
+  const { data, error } = await window.sbClient.from('items')
+    .select('id, title, area, parent_id')
+    .eq('is_roadmap', true)
+    .eq('type', 'milestone')
+    .order('area');
+  if (error) { console.warn('[subs] load falhou', error); return []; }
+  const subs = data || [];
+  // Calcula depth e path (chain de titles do topo até o sub)
+  const byId = {};
+  subs.forEach(s => byId[s.id] = s);
+  function pathOf(s) {
+    const chain = [];
+    let cur = s, hops = 0;
+    while (cur && hops < 5) {
+      chain.unshift(cur.title);
+      cur = cur.parent_id ? byId[cur.parent_id] : null;
+      hops++;
+    }
+    return chain;
+  }
+  subs.forEach(s => {
+    const p = pathOf(s);
+    s.depth = p.length - 1;
+    s.path = p; // array tipo ['Recolocação', 'Portfólio', 'Terminar Portfólio']
+  });
+  window.roadmapSubs = subs;
+  return subs;
+};
+
 // ── isOverdue (regra única de "atrasado") ──────────────────────────────────
 // Usar em QUALQUER view do hub que renderize items (Agenda, Finanças, Saúde,
 // Rotina, Pessoal, Roadmap, e abas futuras). NÃO duplicar essa lógica em outro
@@ -4266,7 +4301,8 @@ async function loadRoadmapFromItems() {
   if (!sb) throw new Error('sbClient indisponível');
   const [pq, iq] = await Promise.all([
     sb.from('projects').select('*').eq('archived', false).eq('show_in_roadmap', true).order('ordem', { ascending: true }),
-    sb.from('items').select('*').eq('is_roadmap', true)
+    // Inclui items com is_roadmap=true (estrutura subs/marcos) E items com parent_id (cards "subidos" pro roadmap pela agenda)
+    sb.from('items').select('*').or('is_roadmap.eq.true,parent_id.not.is.null')
   ]);
   if (pq.error) throw pq.error;
   if (iq.error) throw iq.error;
@@ -8202,6 +8238,44 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       html += field('Anexo', 'attachment', inner, { editable: editMode });
     }
 
+    // Sub do Roadmap — sempre presente. Determina se o card aparece no roadmap.
+    {
+      const subs = (window.roadmapSubs || []).filter(s => !i.area || s.area === i.area);
+      // Agrupa por path (depth visual via indent)
+      const currentSub = (window.roadmapSubs || []).find(s => s.id === i.parent_id);
+      const AREA_LABELS = {
+        pessoal: 'Pessoal', trabalho: 'Trabalho', saude: 'Saúde',
+        administracao: 'Administração', casa: 'Casa', eventos: 'Eventos',
+      };
+      const innerSub = editMode
+        ? (() => {
+            const optionTags = ['<option value="">— Só na agenda (sem sub do roadmap) —</option>'];
+            // Agrupa por area (caso item.area seja vazio, mostra tudo)
+            const byArea = {};
+            (subs || []).forEach(s => {
+              byArea[s.area] = byArea[s.area] || [];
+              byArea[s.area].push(s);
+            });
+            for (const area of Object.keys(byArea)) {
+              optionTags.push(`<optgroup label="${escHtml(AREA_LABELS[area] || area)}">`);
+              for (const s of byArea[area]) {
+                const indent = '— '.repeat(s.depth || 0);
+                const sel = s.id === i.parent_id ? 'selected' : '';
+                optionTags.push(`<option value="${s.id}" ${sel}>${indent}${escHtml(s.title)}</option>`);
+              }
+              optionTags.push('</optgroup>');
+            }
+            return `<select data-edit="parent_id">${optionTags.join('')}</select>`;
+          })()
+        : (currentSub
+            ? `<span>${escHtml((currentSub.path || []).join(' › '))}</span>`
+            : '<span class="tdm-field-empty">Só na agenda</span>');
+      html += `<div class="tdm-field" data-field="parent_id">
+        <div class="tdm-field-label">📍 Sub do Roadmap</div>
+        <div class="tdm-field-value ${editMode ? 'editable' : ''}">${innerSub}</div>
+      </div>`;
+    }
+
     // Lembrete + Recorrência + Tempo (row de 2)
     const hasReminder = i.reminder_minutes != null || activeFields.has('reminder_minutes');
     const hasRecurrence = !!i.recurrence || activeFields.has('recurrence');
@@ -8421,6 +8495,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const realId = itemId.includes('#') ? itemId.split('#')[0] : itemId;
     const { data, error } = await sb.from('items').select('*').eq('id', realId).maybeSingle();
     if (error || !data) { console.error('[tdm] item não encontrado', realId, error); return; }
+    // Recarrega subs do roadmap (em background) pra dropdown estar atualizado
+    if (window.loadRoadmapSubs) window.loadRoadmapSubs().catch(() => {});
     open(data);
   };
 
