@@ -1338,41 +1338,15 @@ table.data-table tr:hover td { background: var(--bg); }
         </div>
       </div>
       <div class="section-body">
-        <!-- Snapshot agenda hoje · atualizado por tarefa agendada (agenda-hub-update) -->
-        <div id="agendaHojeSnapshot" style="margin-bottom:22px">
-          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Hoje · domingo, 10 de maio de 2026</div>
+        <!-- Snapshot agenda hoje · atualizado por tarefa agendada (agenda-hub-update). Escondido por preferência do Eduardo: events ficam só nas células. -->
+        <div id="agendaHojeSnapshot" style="display:none;margin-bottom:22px">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Hoje · segunda-feira, 11 de maio de 2026</div>
           <div class="kpi-row">
-            <div class="kpi"><div class="kpi-value" style="color:#2563eb">5</div><div class="kpi-label">Eventos hoje</div></div>
-            <div class="kpi"><div class="kpi-value" style="color:#7c3aed">10</div><div class="kpi-label">Esta semana</div></div>
+            <div class="kpi"><div class="kpi-value" style="color:#2563eb">0</div><div class="kpi-label">Eventos hoje</div></div>
+            <div class="kpi"><div class="kpi-value" style="color:#7c3aed">2</div><div class="kpi-label">Esta semana</div></div>
             <div class="kpi"><div class="kpi-value" style="color:#f59e0b">0</div><div class="kpi-label">Vencimentos</div></div>
           </div>
-          <div style="margin-top:14px;padding-left:60px;position:relative">
-            <div class="event-block" style="border-left-color:#f59e0b;color:#f59e0b">
-              <div class="event-time">Dia todo</div>
-              <div class="event-title" style="color:var(--text)">Aluguel</div>
-              <div class="event-cal">Administração</div>
-            </div>
-            <div class="event-block" style="border-left-color:#f59e0b;color:#f59e0b">
-              <div class="event-time">Dia todo</div>
-              <div class="event-title" style="color:var(--text)">Terapia</div>
-              <div class="event-cal">Administração</div>
-            </div>
-            <div class="event-block" style="border-left-color:#f59e0b;color:#f59e0b">
-              <div class="event-time">Dia todo</div>
-              <div class="event-title" style="color:var(--text)">Aluguel</div>
-              <div class="event-cal">Administração</div>
-            </div>
-            <div class="event-block" style="border-left-color:#7c3aed;color:#7c3aed">
-              <div class="event-time">18h30</div>
-              <div class="event-title" style="color:var(--text)">SAN x BRA — Santos x Red Bull Bragantino</div>
-              <div class="event-cal">Jogos Santos FC</div>
-            </div>
-            <div class="event-block" style="border-left-color:#7c3aed;color:#7c3aed">
-              <div class="event-time">18h45</div>
-              <div class="event-title" style="color:var(--text)">Brasileirão — Grêmio x Flamengo</div>
-              <div class="event-cal">Trabalho</div>
-            </div>
-          </div>
+          <div class="empty-day" style="margin-top:14px;padding:24px"><div class="ei">📭</div><div>Nenhum evento hoje</div></div>
         </div>
         <div id="calContainer" class="cal-container"></div>
         <div class="agenda-add-wrap">
@@ -2371,7 +2345,7 @@ window.syncToGcal = async function(action, itemId) {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-05-10 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-05-11 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG', m:1.03, pos:'bot', status:'done', cal:'Tarefas pessoais' },
