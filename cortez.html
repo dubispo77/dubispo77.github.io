@@ -390,8 +390,13 @@
     .showcase .showcase-title{padding:0 22px}
     .carousel{padding:0}
     .track{gap:12px;padding:0 22px 14px;scroll-padding-left:22px}
-    /* Mobile: altura comum forçada via width fixa + aspect 9:16 */
-    .card.v-reel{width:min(70vw,320px);height:calc(min(70vw,320px) * 16 / 9);aspect-ratio:auto}
+    /* Mobile: TODOS os cards mesma altura (width fixa + aspect 9:16) */
+    .card.v-reel{
+      width:min(70vw,320px) !important;
+      height:auto !important;
+      aspect-ratio:9/16 !important;
+      flex:0 0 min(70vw,320px) !important;
+    }
     .card .card-meta h4{font-size:17px}
     .card .play{width:58px;height:58px}
     .arrow{display:none}
