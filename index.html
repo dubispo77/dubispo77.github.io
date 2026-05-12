@@ -37,11 +37,16 @@
 
     html { scroll-behavior: smooth; }
 
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
     body {
       font-family: var(--font);
       color: var(--white);
       background: linear-gradient(160deg, #EDE8DF 0%, #F4F1EB 50%, #F8F6F2 100%) fixed;
-      overflow-x: hidden;
+      margin: 0;
     }
 
     /* ─── NAVIGATION ─── */
