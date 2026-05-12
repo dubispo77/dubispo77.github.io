@@ -2100,7 +2100,7 @@
 
     revealEls.forEach(el => revealObserver.observe(el));
 
-    // ─── SWIPE THROTTLE — limita o portfolio mobile a no máx 2 cards por swipe ───
+    // ─── SWIPE THROTTLE + SUAVIZAÇÃO 25% — portfolio mobile ───
     (function() {
       const track = document.getElementById('worksTrack');
       if (!track) return;
@@ -2111,7 +2111,20 @@
       function getCardStep() {
         const card = track.querySelector('.work-card');
         if (!card) return 0;
-        return card.offsetWidth + 12; // gap entre cards
+        return card.offsetWidth + 12;
+      }
+
+      // Smooth scroll custom com easing 25% mais lento que nativo (~700ms vs ~500ms)
+      function smoothScrollTo(el, targetLeft, duration) {
+        const start = el.scrollLeft;
+        const t0 = performance.now();
+        function ease(t){ return 1 - Math.pow(1 - t, 3); }
+        function step(now){
+          const t = Math.min(1, (now - t0) / duration);
+          el.scrollLeft = start + (targetLeft - start) * ease(t);
+          if (t < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
       }
 
       track.addEventListener('touchstart', (e) => {
@@ -2129,7 +2142,6 @@
         const step = getCardStep();
         if (!step) return;
 
-        // Espera momentum nativo decantar e então corrige se passou do limite
         setTimeout(() => {
           const moved = track.scrollLeft - startScroll;
           const movedCards = moved / step;
@@ -2138,12 +2150,9 @@
 
           if (absCards > MAX_CARDS) {
             const targetCards = direction * MAX_CARDS;
-            track.scrollTo({
-              left: startScroll + targetCards * step,
-              behavior: 'smooth'
-            });
+            smoothScrollTo(track, startScroll + targetCards * step, 700);
           }
-        }, 120);
+        }, 150);
       }, { passive: true });
     })();
   </script>
