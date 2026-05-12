@@ -2126,21 +2126,35 @@
 
     // ─── DEBUG OVERFLOW — abra com ?debug=1 pra ver elementos que estouram a viewport ───
     if (new URLSearchParams(location.search).get('debug') === '1') {
-      const w = window.innerWidth;
-      let found = [];
-      document.querySelectorAll('*').forEach(el => {
-        const r = el.getBoundingClientRect();
-        if (r.right > w + 1 || r.left < -1) {
-          el.style.outline = '3px solid red';
-          el.style.outlineOffset = '-3px';
-          found.push({tag: el.tagName, cls: el.className, w: r.width, left: r.left, right: r.right});
-        }
-      });
-      const panel = document.createElement('div');
-      panel.style.cssText = 'position:fixed;top:0;right:0;background:red;color:white;padding:8px;font-size:11px;z-index:99999;max-width:200px;font-family:monospace';
-      panel.textContent = `viewport=${w}px · ${found.length} elementos estourando`;
-      document.body.appendChild(panel);
-      console.log('DEBUG OVERFLOW:', found);
+      function runDebug(){
+        const w = window.innerWidth;
+        let found = [];
+        // Só pega o ROOT do overflow (não filhos que herdam) — agrupa por elemento pai mais alto que vaza
+        document.querySelectorAll('*').forEach(el => {
+          const r = el.getBoundingClientRect();
+          if (r.right > w + 1) {
+            // Só conta se o PAI não estoura — assim listamos só a CAUSA
+            const p = el.parentElement;
+            const pr = p ? p.getBoundingClientRect() : null;
+            const isRoot = !pr || pr.right <= w + 1;
+            if (isRoot) {
+              const id = el.id ? '#'+el.id : '';
+              const cls = (el.className && typeof el.className === 'string') ? '.'+el.className.split(' ').slice(0,2).join('.') : '';
+              found.push({label: el.tagName.toLowerCase()+id+cls, left: Math.round(r.left), right: Math.round(r.right), w: Math.round(r.width)});
+              el.style.outline = '3px solid red';
+            }
+          }
+        });
+        const old = document.getElementById('dbg-panel');
+        if (old) old.remove();
+        const panel = document.createElement('div');
+        panel.id = 'dbg-panel';
+        panel.style.cssText = 'position:fixed;top:0;left:0;right:0;background:rgba(220,0,0,0.95);color:white;padding:10px;font-size:11px;z-index:99999;font-family:monospace;max-height:50vh;overflow-y:auto;line-height:1.4';
+        const lines = found.slice(0, 30).map(f => `${f.label}<br>&nbsp;&nbsp;left=${f.left} right=${f.right} w=${f.w}`).join('<hr style="border:none;border-top:1px dotted rgba(255,255,255,0.3);margin:4px 0">');
+        panel.innerHTML = `<b>viewport=${w}px · ${found.length} CAUSAS de overflow:</b><br><br>${lines}<br><br><button onclick="document.getElementById('dbg-panel').remove()" style="background:white;color:red;border:0;padding:4px 8px">fechar</button>`;
+        document.body.appendChild(panel);
+      }
+      setTimeout(runDebug, 600);
     }
   </script>
 
