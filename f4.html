@@ -149,7 +149,7 @@
   /* F4 — TODOS os vídeos num carrossel único (desktop + mobile)
      Cards têm ALTURA COMUM, larguras derivadas pelo aspect ratio.
      --card-h = altura comum dos cards (variável CSS). */
-  :root{ --card-h: clamp(220px, 22vw, 320px); }
+  :root{ --card-h: clamp(264px, 26.4vw, 384px); }
   .tracks-wrap{
     display:flex;flex-direction:row;align-items:stretch;gap:14px;
     overflow-x:auto;scroll-snap-type:x mandatory;
@@ -163,7 +163,7 @@
   .card.h{width:calc(var(--card-h) * 16 / 9)}
   .card.v{width:calc(var(--card-h) * 9 / 16)}
   @media(max-width:720px){
-    :root{ --card-h: 200px; }
+    :root{ --card-h: 240px; }
   }
 
   .card{
