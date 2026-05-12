@@ -2116,6 +2116,25 @@
     revealEls.forEach(el => revealObserver.observe(el));
 
     // Swipe portfolio mobile usa scroll-snap nativo (CSS). Sem JS custom.
+
+    // ─── DEBUG OVERFLOW — abra com ?debug=1 pra ver elementos que estouram a viewport ───
+    if (new URLSearchParams(location.search).get('debug') === '1') {
+      const w = window.innerWidth;
+      let found = [];
+      document.querySelectorAll('*').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.right > w + 1 || r.left < -1) {
+          el.style.outline = '3px solid red';
+          el.style.outlineOffset = '-3px';
+          found.push({tag: el.tagName, cls: el.className, w: r.width, left: r.left, right: r.right});
+        }
+      });
+      const panel = document.createElement('div');
+      panel.style.cssText = 'position:fixed;top:0;right:0;background:red;color:white;padding:8px;font-size:11px;z-index:99999;max-width:200px;font-family:monospace';
+      panel.textContent = `viewport=${w}px · ${found.length} elementos estourando`;
+      document.body.appendChild(panel);
+      console.log('DEBUG OVERFLOW:', found);
+    }
   </script>
 
   <!-- anotação removida -->
