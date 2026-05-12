@@ -257,8 +257,9 @@
 
   .carousel{position:relative;padding:0 32px}
   .track{
-    display:flex;gap:14px;overflow-x:auto;align-items:stretch;
-    scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:14px;
+    display:flex;gap:14px;overflow-x:auto;align-items:flex-start;
+    scroll-snap-type:x mandatory;padding-bottom:14px;
+    /* scroll-behavior controlado por JS pra suavizar */
   }
   .track::-webkit-scrollbar{height:8px}
   .track::-webkit-scrollbar-track{background:rgba(26,44,62,.08);border-radius:4px}
@@ -390,11 +391,11 @@
     .showcase .showcase-title{padding:0 22px}
     .carousel{padding:0}
     .track{gap:12px;padding:0 22px 14px;scroll-padding-left:22px}
-    /* Mobile: TODOS os cards mesma altura (width fixa + aspect 9:16) */
+    /* Mobile: TODOS os cards com MESMA altura via vw fixo (resolve sem aspect-ratio) */
     .card.v-reel{
       width:min(70vw,320px) !important;
-      height:auto !important;
-      aspect-ratio:9/16 !important;
+      height:calc(min(70vw,320px) * 1.7777) !important; /* 16/9 = 1.7777 */
+      aspect-ratio:auto !important;
       flex:0 0 min(70vw,320px) !important;
     }
     .card .card-meta h4{font-size:17px}
@@ -770,9 +771,22 @@ track.innerHTML = REELS.map((r,i)=>`
   </div>
 `).join('');
 
+/* Custom smooth scroll com easing ~25% mais lento que o nativo do browser */
 function scrollTrack(dir){
   const amount = track.clientWidth * 0.7 * dir;
-  track.scrollBy({left: amount, behavior:'smooth'});
+  smoothScrollBy(track, amount, 700); // 700ms = ~25% mais lento que o smooth nativo
+}
+function smoothScrollBy(el, dx, duration){
+  const start = el.scrollLeft;
+  const target = start + dx;
+  const t0 = performance.now();
+  function ease(t){ return 1 - Math.pow(1 - t, 3); } // ease-out cubic
+  function step(now){
+    const t = Math.min(1, (now - t0) / duration);
+    el.scrollLeft = start + (target - start) * ease(t);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
 /* ═══ LIGHTBOX REELS ═══ */
