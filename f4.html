@@ -146,18 +146,22 @@
   }
   .showcase .showcase-title::before{content:'';width:28px;height:1px;background:var(--ink);opacity:.4}
 
-  /* F4 — TODOS os vídeos num carrossel único (desktop + mobile) */
+  /* F4 — TODOS os vídeos num carrossel único (desktop + mobile)
+     Estratégia: altura fixa do carrossel — cards horizontais e vertical
+     ficam com a MESMA altura, sem espaço vazio embaixo. */
   .tracks-wrap{
-    display:flex;flex-direction:row;align-items:flex-start;gap:14px;
+    display:flex;flex-direction:row;align-items:stretch;gap:14px;
     overflow-x:auto;scroll-snap-type:x mandatory;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;
     padding-bottom:8px;
+    height:min(40vw, 460px); /* altura comum dos cards */
   }
   .tracks-wrap::-webkit-scrollbar{display:none}
   .track-h,.track-v{display:contents}
-  /* Larguras dos cards no carrossel */
-  .card.h{flex:0 0 calc(50% - 7px);scroll-snap-align:start}
-  .card.v{flex:0 0 calc(28% - 7px);scroll-snap-align:start}
+  /* Mesma altura pros 3, largura derivada do aspect */
+  .card.h,.card.v{height:100%;aspect-ratio:auto;flex:0 0 auto;scroll-snap-align:start}
+  .card.h{width:calc(min(40vw, 460px) * 16 / 9)}
+  .card.v{width:calc(min(40vw, 460px) * 9 / 16)}
 
   .card{
     background:var(--bg-alt);border:1px solid var(--line);
