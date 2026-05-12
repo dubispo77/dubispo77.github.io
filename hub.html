@@ -8123,7 +8123,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (item.date_end) {
       const de = new Date(item.date_end);
       const hre = `${String(de.getHours()).padStart(2,'0')}h${de.getMinutes() ? String(de.getMinutes()).padStart(2,'0') : ''}`;
-      return `${dia} · ${hr} — ${hre}`;
+      const durMin = Math.round((de - d) / 60000);
+      const durStr = fmtMinutes(durMin);
+      return `${dia} · ${hr} — ${hre} (${durStr})`;
     }
     return `${dia} · ${hr}`;
   }
