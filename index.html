@@ -1155,12 +1155,12 @@
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
+        /* scroll-snap-type e scroll-behavior controlados via JS pra suavização */
+        -webkit-overflow-scrolling: auto;
         gap: 12px;
         padding: 0 0 24px;
         scrollbar-width: none;
+        touch-action: pan-y; /* deixa pan vertical normal, swipe horizontal vai pro JS */
       }
 
       .works-track::-webkit-scrollbar { display: none; }
@@ -2100,59 +2100,75 @@
 
     revealEls.forEach(el => revealObserver.observe(el));
 
-    // ─── SWIPE THROTTLE + SUAVIZAÇÃO 25% — portfolio mobile ───
+    // ─── SWIPE CUSTOM — portfolio mobile (controle total via JS) ───
     (function() {
       const track = document.getElementById('worksTrack');
       if (!track) return;
 
-      let startX = 0, startScroll = 0, touching = false;
-      const MAX_CARDS = 2;
+      let startX = 0, lastX = 0, startScroll = 0, startT = 0, lastT = 0;
+      let touching = false, velocity = 0;
+      let animFrame = null;
 
-      function getCardStep() {
+      function getStep() {
         const card = track.querySelector('.work-card');
-        if (!card) return 0;
-        return card.offsetWidth + 12;
+        return card ? card.offsetWidth + 12 : 0;
       }
 
-      // Smooth scroll custom com easing 25% mais lento que nativo (~700ms vs ~500ms)
-      function smoothScrollTo(el, targetLeft, duration) {
-        const start = el.scrollLeft;
+      // Easing cubic-out
+      function ease(t){ return 1 - Math.pow(1 - t, 3); }
+
+      function animateTo(targetLeft, duration) {
+        if (animFrame) cancelAnimationFrame(animFrame);
+        const start = track.scrollLeft;
         const t0 = performance.now();
-        function ease(t){ return 1 - Math.pow(1 - t, 3); }
         function step(now){
           const t = Math.min(1, (now - t0) / duration);
-          el.scrollLeft = start + (targetLeft - start) * ease(t);
-          if (t < 1) requestAnimationFrame(step);
+          track.scrollLeft = start + (targetLeft - start) * ease(t);
+          if (t < 1) animFrame = requestAnimationFrame(step);
+          else animFrame = null;
         }
-        requestAnimationFrame(step);
+        animFrame = requestAnimationFrame(step);
       }
 
       track.addEventListener('touchstart', (e) => {
         if (window.innerWidth > 768) return;
-        startX = e.touches[0].clientX;
+        if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+        startX = lastX = e.touches[0].clientX;
         startScroll = track.scrollLeft;
+        startT = lastT = performance.now();
+        velocity = 0;
         touching = true;
       }, { passive: true });
 
-      track.addEventListener('touchend', (e) => {
+      track.addEventListener('touchmove', (e) => {
+        if (!touching || window.innerWidth > 768) return;
+        const x = e.touches[0].clientX;
+        const now = performance.now();
+        const dx = x - lastX;
+        const dt = Math.max(1, now - lastT);
+        velocity = dx / dt; // px/ms
+        // Move o scroll manualmente — sem momentum nativo
+        track.scrollLeft -= dx;
+        lastX = x; lastT = now;
+        e.preventDefault();
+      }, { passive: false });
+
+      track.addEventListener('touchend', () => {
         if (!touching) return;
         touching = false;
-        if (window.innerWidth > 768) return;
-
-        const step = getCardStep();
+        const step = getStep();
         if (!step) return;
 
-        setTimeout(() => {
-          const moved = track.scrollLeft - startScroll;
-          const movedCards = moved / step;
-          const direction = Math.sign(movedCards) || 0;
-          const absCards = Math.abs(movedCards);
-
-          if (absCards > MAX_CARDS) {
-            const targetCards = direction * MAX_CARDS;
-            smoothScrollTo(track, startScroll + targetCards * step, 700);
-          }
-        }, 150);
+        // Decide o card alvo: distância percorrida + impulso da velocidade
+        const moved = track.scrollLeft - startScroll;
+        const baseCards = Math.round(moved / step);
+        const direction = Math.sign(velocity) ? -Math.sign(velocity) : Math.sign(moved);
+        // Adiciona 0–1 card extra baseado em velocidade do flick
+        const absV = Math.abs(velocity);
+        const extra = absV > 0.6 ? 1 : 0;
+        const finalCards = Math.max(-2, Math.min(2, baseCards + direction * extra));
+        const target = startScroll + finalCards * step;
+        animateTo(target, 600); // 600ms = suave
       }, { passive: true });
     })();
   </script>
