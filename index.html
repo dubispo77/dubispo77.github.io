@@ -1155,12 +1155,16 @@
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
-        /* scroll-snap-type e scroll-behavior controlados via JS pra suavização */
-        -webkit-overflow-scrolling: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
         gap: 12px;
         padding: 0 0 24px;
         scrollbar-width: none;
-        touch-action: pan-y; /* deixa pan vertical normal, swipe horizontal vai pro JS */
+      }
+      .works-track .work-card {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
       }
 
       .works-track::-webkit-scrollbar { display: none; }
@@ -2100,77 +2104,7 @@
 
     revealEls.forEach(el => revealObserver.observe(el));
 
-    // ─── SWIPE CUSTOM — portfolio mobile (controle total via JS) ───
-    (function() {
-      const track = document.getElementById('worksTrack');
-      if (!track) return;
-
-      let startX = 0, lastX = 0, startScroll = 0, startT = 0, lastT = 0;
-      let touching = false, velocity = 0;
-      let animFrame = null;
-
-      function getStep() {
-        const card = track.querySelector('.work-card');
-        return card ? card.offsetWidth + 12 : 0;
-      }
-
-      // Easing cubic-out
-      function ease(t){ return 1 - Math.pow(1 - t, 3); }
-
-      function animateTo(targetLeft, duration) {
-        if (animFrame) cancelAnimationFrame(animFrame);
-        const start = track.scrollLeft;
-        const t0 = performance.now();
-        function step(now){
-          const t = Math.min(1, (now - t0) / duration);
-          track.scrollLeft = start + (targetLeft - start) * ease(t);
-          if (t < 1) animFrame = requestAnimationFrame(step);
-          else animFrame = null;
-        }
-        animFrame = requestAnimationFrame(step);
-      }
-
-      track.addEventListener('touchstart', (e) => {
-        if (window.innerWidth > 768) return;
-        if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-        startX = lastX = e.touches[0].clientX;
-        startScroll = track.scrollLeft;
-        startT = lastT = performance.now();
-        velocity = 0;
-        touching = true;
-      }, { passive: true });
-
-      track.addEventListener('touchmove', (e) => {
-        if (!touching || window.innerWidth > 768) return;
-        const x = e.touches[0].clientX;
-        const now = performance.now();
-        const dx = x - lastX;
-        const dt = Math.max(1, now - lastT);
-        velocity = dx / dt; // px/ms
-        // Move o scroll manualmente — sem momentum nativo
-        track.scrollLeft -= dx;
-        lastX = x; lastT = now;
-        e.preventDefault();
-      }, { passive: false });
-
-      track.addEventListener('touchend', () => {
-        if (!touching) return;
-        touching = false;
-        const step = getStep();
-        if (!step) return;
-
-        // Decide o card alvo: distância percorrida + impulso da velocidade
-        const moved = track.scrollLeft - startScroll;
-        const baseCards = Math.round(moved / step);
-        const direction = Math.sign(velocity) ? -Math.sign(velocity) : Math.sign(moved);
-        // Adiciona 0–1 card extra baseado em velocidade do flick
-        const absV = Math.abs(velocity);
-        const extra = absV > 0.6 ? 1 : 0;
-        const finalCards = Math.max(-2, Math.min(2, baseCards + direction * extra));
-        const target = startScroll + finalCards * step;
-        animateTo(target, 600); // 600ms = suave
-      }, { passive: true });
-    })();
+    // Swipe portfolio mobile usa scroll-snap nativo (CSS). Sem JS custom.
   </script>
 
   <!-- anotação removida -->
