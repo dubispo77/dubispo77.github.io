@@ -142,27 +142,29 @@
     text-transform:uppercase;color:var(--subtle);margin-bottom:16px;
     display:flex;align-items:center;gap:14px;padding:0 4px;
   }
-  .showcase .showcase-title::before{content:'';width:28px;height:1px;background:var(--ink);opacity:.4}
+  .showcase .showcase-title::before{display:none}
 
-  /* Row de horizontais */
-  .track-h{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
-    margin-bottom:14px;
+  /* TODOS os cards com a mesma altura. Larguras derivadas pelo aspect ratio. */
+  :root{ --card-h: 320px; }
+  .tracks-wrap{
+    display:flex;flex-direction:row;align-items:stretch;gap:14px;
+    overflow-x:auto;scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    padding-bottom:8px;height:var(--card-h);
   }
-  /* Row de verticais */
-  .track-v{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
-  }
+  .tracks-wrap::-webkit-scrollbar{display:none}
+  .track-h,.track-v{display:contents}
 
   .card{
     background:var(--bg-alt);border:1px solid var(--line);
     border-radius:8px;position:relative;
-    overflow:hidden;cursor:pointer;
+    overflow:hidden;cursor:pointer;flex:0 0 auto;
+    height:100%;scroll-snap-align:start;
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(26,44,62,.16)}
-  .card.h{aspect-ratio:16/9}
-  .card.v{aspect-ratio:9/16}
+  .card.h{width:calc(var(--card-h) * 16 / 9)}
+  .card.v{width:calc(var(--card-h) * 9 / 16)}
 
   /* Ajustes individuais por card (gerados pelo form portfolio-case) */
   /* Desktop preserva transform do passo anterior */
