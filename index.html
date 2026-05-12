@@ -1271,6 +1271,13 @@
       /* TIMELINE mobile — uma coluna só */
       .tl-wrap {
         padding: 16px 0 25px 0 !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+      }
+      /* Força tudo dentro da timeline a respeitar largura */
+      .tl-wrap *, .tl-item, .tl-col, .tl-info, .tl-place, .tl-role {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
       }
       .tl-grid {
         grid-template-columns: 1fr !important;
