@@ -220,9 +220,10 @@
       scroll-snap-type:x mandatory;
       -webkit-overflow-scrolling:touch;
       scrollbar-width:none;
-      padding:0 22px 8px;
-      margin:0 -22px;
+      padding:0 0 8px; /* sem padding lateral — elimina overflow no body */
+      margin:0;
       height:var(--card-h);
+      scroll-padding-left:0;
     }
     .tracks-wrap::-webkit-scrollbar{display:none}
     .track-h, .track-v{display:contents}
