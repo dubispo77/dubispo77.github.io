@@ -1114,18 +1114,41 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-overlay.open { display: flex; opacity: 1; }
 .tdm { width: 520px; max-width: calc(100vw - 32px); max-height: calc(100vh - 60px); background: #fff; border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,.32); display: flex; flex-direction: column; overflow: hidden; transform: scale(.95); transition: transform .22s cubic-bezier(.34, 1.56, .64, 1); }
 .tdm-overlay.open .tdm { transform: scale(1); }
-.tdm-head { padding: 18px 22px 12px; border-bottom: 0.5px solid #f3f4f6; flex-shrink: 0; position: relative; }
-.tdm-area-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
-.tdm-area-pill.area-pessoal       { background: #fecaca; color: #7f1d1d; }
-.tdm-area-pill.area-trabalho      { background: #93c5fd; color: #1e3a8a; }
-.tdm-area-pill.area-saude         { background: #86efac; color: #14532d; }
-.tdm-area-pill.area-administracao { background: #c4b5fd; color: #3b0764; }
-.tdm-area-pill.area-casa          { background: #fcd34d; color: #78350f; }
-.tdm-area-pill.area-eventos       { background: #fed7aa; color: #7c2d12; }
-.tdm-area-pill.area-financas      { background: #c4b5fd; color: #3b0764; }
-.tdm-area-pill.area-rotina        { background: #fecaca; color: #7f1d1d; }
-.tdm-title { font-size: 20px; font-weight: 600; margin: 8px 0 0; line-height: 1.3; word-break: break-word; }
-.tdm-when { font-size: 13px; color: #6b7280; margin-top: 4px; }
+.tdm-head { padding: 18px 70px 16px 22px; flex-shrink: 0; position: relative; color: #fff; }
+.tdm-head.area-pessoal       { background: linear-gradient(135deg, #dc2626, #991b1b); }
+.tdm-head.area-trabalho      { background: linear-gradient(135deg, #2563eb, #1e40af); }
+.tdm-head.area-saude         { background: linear-gradient(135deg, #16a34a, #15803d); }
+.tdm-head.area-administracao { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+.tdm-head.area-casa          { background: linear-gradient(135deg, #d97706, #92400e); }
+.tdm-head.area-eventos       { background: linear-gradient(135deg, #ea580c, #9a3412); }
+.tdm-head.area-financas      { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+.tdm-head.area-rotina        { background: linear-gradient(135deg, #dc2626, #991b1b); }
+.tdm-area-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.18); color: #fff; border: none;
+  font-size: 12px; font-weight: 700; padding: 6px 12px;
+  border-radius: 999px; cursor: pointer; font-family: inherit;
+  text-transform: uppercase; letter-spacing: .04em;
+  margin-bottom: 10px;
+}
+.tdm-area-pill:hover { background: rgba(255,255,255,0.28); }
+.tdm-title { font-size: 22px; font-weight: 600; margin: 6px 0 0; line-height: 1.25; word-break: break-word; color: #fff; }
+.tdm-when { font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 4px; font-weight: 500; }
+/* Duração no canto sup-direito do header, abaixo do X */
+.tdm-duration {
+  position: absolute; top: 50px; right: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  z-index: 5;
+}
+.tdm-duration-label { font-size: 10px; opacity: 0.85; font-weight: 600; color: #fff; }
+.tdm-duration-value {
+  background: rgba(255,255,255,0.18); color: #fff;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 16px; font-weight: 700;
+  min-width: 56px; text-align: center;
+  border: none; cursor: pointer; font-family: inherit;
+}
+.tdm-duration-value:hover { background: rgba(255,255,255,0.28); }
 .tdm-close { position: absolute; top: 14px; right: 14px; background: #f3f4f6; border: none; width: 30px; height: 30px; border-radius: 999px; cursor: pointer; color: #6b7280; font-size: 14px; display: flex; align-items: center; justify-content: center; }
 .tdm-close:hover { background: #e5e7eb; color: #1f2937; }
 .tdm-body { padding: 14px 22px 18px; overflow-y: auto; flex: 1; }
@@ -8089,10 +8112,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 <div class="tdm-overlay" id="tdmOverlay" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="tdm" id="tdm" role="document">
     <button class="tdm-close" id="tdmClose" type="button" aria-label="Fechar">✕</button>
-    <div class="tdm-head">
-      <span class="tdm-area-pill" id="tdmAreaPill">—</span>
+    <div class="tdm-head" id="tdmHead">
+      <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button>
       <h2 class="tdm-title" id="tdmTitle">—</h2>
       <div class="tdm-when" id="tdmWhen">—</div>
+      <div class="tdm-duration" id="tdmDurationWrap" style="display:none">
+        <div class="tdm-duration-label">Duração</div>
+        <button class="tdm-duration-value" id="tdmDuration" type="button">—</button>
+      </div>
     </div>
     <div class="tdm-body" id="tdmBody"></div>
     <div class="tdm-foot">
@@ -8526,8 +8553,25 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     activeFields = new Set();
     elTitle.textContent = item.title || '(sem título)';
     elWhen.textContent = formatWhen(item);
-    elArea.className = 'tdm-area-pill area-' + (item.area || 'pessoal');
+    // Header colorido pela área
+    const head = document.getElementById('tdmHead');
+    head.className = 'tdm-head area-' + (item.area || 'pessoal');
     elArea.textContent = item.area || 'pessoal';
+    // Duração — só mostra se tem hora + data_end calculável
+    const durWrap = document.getElementById('tdmDurationWrap');
+    const durBtn = document.getElementById('tdmDuration');
+    if (item.has_time && item.date_start && item.date_end) {
+      const ds = new Date(item.date_start), de = new Date(item.date_end);
+      const mins = Math.round((de - ds) / 60000);
+      if (mins > 0) {
+        durBtn.textContent = fmtMinutes(mins) + ' ▾';
+        durWrap.style.display = 'flex';
+      } else {
+        durWrap.style.display = 'none';
+      }
+    } else {
+      durWrap.style.display = 'none';
+    }
     btnEdit.style.display = 'inline-block';
     btnSave.style.display = 'none';
     renderBody();
