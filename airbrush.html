@@ -205,7 +205,31 @@
     .showcase{padding:16px 0 28px}
     .showcase .showcase-title{padding:0 22px}
     .carousel{padding:0}
-    .track{grid-template-columns:repeat(3,1fr);gap:10px;padding:0}
+    /* CARROSSEL mobile — todos os cards na mesma altura via height comum */
+    :root{ --card-h: clamp(360px, 100vw, 480px); }
+    .track{
+      display:flex !important;
+      flex-direction:row;
+      align-items:stretch;
+      grid-template-columns:none !important;
+      gap:12px;
+      overflow-x:auto;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+      padding:0 22px 8px !important;
+      margin:0 -22px;
+      height:var(--card-h);
+    }
+    .track::-webkit-scrollbar{display:none}
+    .card{
+      height:100% !important;
+      aspect-ratio:auto !important;
+      flex:0 0 auto !important;
+      width:calc(var(--card-h) * 9 / 16) !important;
+      scroll-snap-align:start;
+      scroll-snap-stop:always;
+    }
     .card .meta h4{font-size:17px}
     .card .play{width:58px;height:58px}
     .arrow{display:none}
