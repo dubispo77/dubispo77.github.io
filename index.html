@@ -1159,20 +1159,18 @@
         scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch;
-        gap: 12px;
+        gap: 0;
         padding: 0 0 24px;
         scrollbar-width: none;
-      }
-      .works-track .work-card {
-        scroll-snap-align: start;
-        scroll-snap-stop: always;
       }
 
       .works-track::-webkit-scrollbar { display: none; }
 
       .work-card {
-        flex: 0 0 82vw;
+        flex: 0 0 100%;
+        width: 100%;
         scroll-snap-align: start;
+        scroll-snap-stop: always;
         aspect-ratio: 3/4;
         border-radius: 12px;
       }
