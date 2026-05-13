@@ -1158,8 +1158,35 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-map-actions { display: flex; gap: 8px; margin-top: 10px; }
 .tdm-map-btn { background: #fff; border: 0.5px solid #c8c8cc; border-radius: 6px; padding: 5px 10px; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-family: inherit; color: #374151; }
 .tdm-map-btn:hover { background: #f3f4f6; }
-.tdm-map-btn.tdm-waze { background: #33ccff; color: #fff; border-color: #33ccff; }
+.tdm-map-btn.tdm-waze { background: #33ccff; color: #fff; border-color: #33ccff; padding: 5px 12px 5px 6px; }
 .tdm-map-btn.tdm-waze:hover { background: #1eb8ec; border-color: #1eb8ec; }
+.tdm-map-btn.tdm-gmaps { background: #fff; color: #111; border-color: #e5e7eb; padding: 5px 12px 5px 6px; }
+.tdm-map-btn.tdm-gmaps:hover { background: #f3f4f6; }
+.tdm-map-btn img { vertical-align: middle; }
+/* SAIR DE CASA — bloco destacado em vermelho */
+.tdm-leave-box {
+  background: #fef2f2;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 10px;
+}
+.tdm-leave-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 10px;
+}
+.tdm-leave-label {
+  font-size: 12px; color: #991b1b; font-weight: 700; letter-spacing: 0.06em;
+}
+.tdm-leave-info { font-size: 10px; color: #991b1b; opacity: 0.7; }
+.tdm-leave-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+}
+.tdm-leave-mode {
+  background: #fff; border-radius: 10px; padding: 12px 6px; text-align: center;
+}
+.tdm-leave-mode-emoji { font-size: 26px; }
+.tdm-leave-mode-time { font-size: 17px; color: #dc2626; font-weight: 700; margin-top: 3px; }
+.tdm-leave-mode-travel { font-size: 11px; color: #991b1b; margin-top: 1px; }
 .tdm-map-cache-info { font-size: 10px; color: #9ca3af; margin-left: auto; align-self: center; }
 
 /* Chips de endereços favoritos (abaixo do input Local) */
@@ -1340,13 +1367,19 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="section-body">
         <!-- Snapshot agenda hoje · atualizado por tarefa agendada (agenda-hub-update). Escondido por preferência do Eduardo: events ficam só nas células. -->
         <div id="agendaHojeSnapshot" style="display:none;margin-bottom:22px">
-          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Hoje · segunda-feira, 11 de maio de 2026</div>
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Hoje · quarta-feira, 13 de maio de 2026</div>
           <div class="kpi-row">
-            <div class="kpi"><div class="kpi-value" style="color:#2563eb">0</div><div class="kpi-label">Eventos hoje</div></div>
-            <div class="kpi"><div class="kpi-value" style="color:#7c3aed">2</div><div class="kpi-label">Esta semana</div></div>
+            <div class="kpi"><div class="kpi-value" style="color:#2563eb">1</div><div class="kpi-label">Eventos hoje</div></div>
+            <div class="kpi"><div class="kpi-value" style="color:#7c3aed">4</div><div class="kpi-label">Esta semana</div></div>
             <div class="kpi"><div class="kpi-value" style="color:#f59e0b">0</div><div class="kpi-label">Vencimentos</div></div>
           </div>
-          <div class="empty-day" style="margin-top:14px;padding:24px"><div class="ei">📭</div><div>Nenhum evento hoje</div></div>
+          <div style="margin-top:14px;padding-left:60px">
+            <div class="event-block" style="color:#7c3aed">
+              <div class="event-time">19h</div>
+              <div class="event-title" style="color:var(--text)">CFC x SAN</div>
+              <div class="event-cal">Santos FC · Copa do Brasil · 19:30–21:30</div>
+            </div>
+          </div>
         </div>
         <div id="calContainer" class="cal-container"></div>
         <div class="agenda-add-wrap">
@@ -2380,7 +2413,7 @@ window.syncToGcal = async function(action, itemId) {
 // areaId + subId + subsubId → ponto na barra nível 3 (ex: Entrevistas)
 // subsubId + level:4   → ponto nível 4 (mesmo local nível 3, tag mais específica)
 // Tags: [T][F][S][R][P] | [T-rec][T-ent][F-res][S-aca]... | [T-rec-ent]
-// Última atualização: 2026-05-11 — sincronizado pelo roadmap-calendar-sync
+// Última atualização: 2026-05-13 — sincronizado pelo roadmap-calendar-sync
 let CALENDAR_EVENTS = [
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar favicon', m:0.87, pos:'top', status:'done', cal:'Tarefas pessoais' },
   { areaId:'trabalho', subId:'recolocacao', subsubId:'portfolio', label:'Mudar capa OG', m:1.03, pos:'bot', status:'done', cal:'Tarefas pessoais' },
@@ -8163,9 +8196,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
     // Local
     if (i.address || activeFields.has('address')) {
-      const wazeBtn = (i.address_lat && i.address_lng)
-        ? `<a class="tdm-map-btn tdm-waze" href="waze://?ll=${i.address_lat},${i.address_lng}&navigate=yes" target="_blank">Waze ↗</a>`
-        : '';
+      // Botões Waze + Maps com logos reais (universal URLs — funcionam mobile + desktop)
+      const addrEnc = encodeURIComponent(i.address || '');
+      const wazeUrl = (i.address_lat && i.address_lng)
+        ? `https://waze.com/ul?ll=${i.address_lat},${i.address_lng}&navigate=yes`
+        : `https://waze.com/ul?q=${addrEnc}&navigate=yes`;
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${addrEnc}`;
+      const wazeBtn = i.address ? `<a class="tdm-map-btn tdm-waze" href="${wazeUrl}" target="_blank"><img src="https://eduardobispo.com.br/logos/apps/waze.png" width="18" height="18" alt=""> Waze</a>` : '';
+      const mapsBtn = i.address ? `<a class="tdm-map-btn tdm-gmaps" href="${mapsUrl}" target="_blank"><img src="https://eduardobispo.com.br/logos/apps/gmaps.svg" width="18" height="18" alt=""> Maps</a>` : '';
       const inner = editMode
         ? `<input type="text" data-edit="address" value="${escHtml(i.address || '')}" placeholder="Rua, número, bairro, cidade">`
         : escHtml(i.address || '<span class="tdm-field-empty">Sem local</span>');
@@ -8191,8 +8229,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           <div class="tdm-map-times" id="tdmMapTimes"><span class="tdm-loading">Carregando trajeto...</span></div>
           <div class="tdm-map-leave" id="tdmMapLeave" style="display:none"></div>
           <div class="tdm-map-actions">
-            <button class="tdm-map-btn" id="tdmMapRefresh" type="button">↻ Atualizar agora</button>
             ${wazeBtn}
+            ${mapsBtn}
+            <button class="tdm-map-btn" id="tdmMapRefresh" type="button" title="Atualizar tempo">↻</button>
             <span class="tdm-map-cache-info" id="tdmMapCacheInfo"></span>
           </div>
         </div>
@@ -8431,31 +8470,46 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       });
       if (error) throw error;
       const modes = [
-        { key: 'driving', emoji: '🚗', label: 'carro' },
-        { key: 'transit', emoji: '🚌', label: 'transporte' },
-        { key: 'walking', emoji: '🚶', label: 'a pé' },
+        { key: 'driving', emoji: '🚗' },
+        { key: 'transit', emoji: '🚌' },
+        { key: 'walking', emoji: '🚲' }, // emoji bicicleta no card (API ainda retorna a pé)
       ];
-      times.innerHTML = modes.map(m => {
-        const r = data[m.key];
-        if (!r || r.minutes == null) return '';
-        return `<div class="tdm-map-time"><span class="tdm-mode-emoji">${m.emoji}</span><span class="tdm-map-time-min">${fmtMinutes(r.minutes)}</span></div>`;
-      }).join('');
+      times.innerHTML = ''; // limpa o container antigo — agora tudo vai pro leave
 
-      // Horários de saída (se item tem hora)
+      // Bloco SAIR DE CASA com cards
       if (currentItem.has_time && currentItem.date_start) {
         const start = new Date(currentItem.date_start);
-        const buffer = 15;
-        const lines = modes.map(m => {
+        const buffer = 15; // 15 min de antecedência (padrão)
+        const cards = modes.map(m => {
           const r = data[m.key];
           if (!r || r.minutes == null) return null;
           const leaveAt = new Date(start.getTime() - (r.minutes + buffer) * 60000);
-          const hr = `${String(leaveAt.getHours()).padStart(2,'0')}h${String(leaveAt.getMinutes()).padStart(2,'0')}`;
-          return `${m.emoji} <strong>${hr}</strong>`;
+          const hr = `${String(leaveAt.getHours()).padStart(2,'0')}:${String(leaveAt.getMinutes()).padStart(2,'0')}`;
+          return `<div class="tdm-leave-mode">
+            <div class="tdm-leave-mode-emoji">${m.emoji}</div>
+            <div class="tdm-leave-mode-time">${hr}</div>
+            <div class="tdm-leave-mode-travel">${r.minutes}min</div>
+          </div>`;
         }).filter(Boolean);
-        if (lines.length) {
-          leave.innerHTML = `Sair pra chegar 15min antes: ${lines.join(' · ')}`;
+        if (cards.length) {
+          const cacheTxt = data.cached ? `atualizado há ${Math.round(data.age_seconds/60)} min` : 'atualizado agora';
+          leave.innerHTML = `<div class="tdm-leave-box">
+            <div class="tdm-leave-header">
+              <div class="tdm-leave-label">⏰ SAIR DE CASA ÀS</div>
+              <div class="tdm-leave-info">${cacheTxt}</div>
+            </div>
+            <div class="tdm-leave-grid">${cards.join('')}</div>
+          </div>`;
           leave.style.display = 'block';
         }
+      } else {
+        // Sem hora — só mostra os tempos como antes
+        const lines = modes.map(m => {
+          const r = data[m.key];
+          if (!r || r.minutes == null) return '';
+          return `<div class="tdm-map-time"><span class="tdm-mode-emoji">${m.emoji}</span><span class="tdm-map-time-min">${fmtMinutes(r.minutes)}</span></div>`;
+        });
+        times.innerHTML = lines.join('');
       }
 
       if (cacheInfo) {
