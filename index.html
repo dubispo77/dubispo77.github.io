@@ -1159,7 +1159,7 @@
         scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch;
-        gap: 0;
+        gap: 12px;
         padding: 0 0 24px;
         scrollbar-width: none;
       }
@@ -1167,9 +1167,9 @@
       .works-track::-webkit-scrollbar { display: none; }
 
       .work-card {
-        flex: 0 0 100%;
-        width: 100%;
-        scroll-snap-align: start;
+        flex: 0 0 calc(100vw - 24px); /* viewport - margem lateral (12+12) */
+        width: calc(100vw - 24px);
+        scroll-snap-align: center;
         scroll-snap-stop: always;
         aspect-ratio: 3/4;
         border-radius: 12px;
