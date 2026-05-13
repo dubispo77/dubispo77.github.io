@@ -1154,34 +1154,17 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-brasi-dropdown-item:hover { background: #f3f4f6; }
 .tdm-brasi-dropdown-item img { width: 22px; height: 22px; object-fit: contain; }
 .tdm-brasi-dropdown-item.selected { background: #ecfdf5; font-weight: 700; }
+.tdm-head { padding: 14px 22px 18px !important; }
 .tdm-area-pill {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 6px;
   background: rgba(255,255,255,0.18); color: #fff; border: none;
-  font-size: 12px; font-weight: 700; padding: 6px 12px;
+  font-size: 13px; font-weight: 700; padding: 8px 14px;
   border-radius: 999px; cursor: pointer; font-family: inherit;
-  text-transform: uppercase; letter-spacing: .04em;
   margin-bottom: 10px;
 }
 .tdm-area-pill:hover { background: rgba(255,255,255,0.28); }
-.tdm-title { font-size: 22px; font-weight: 600; margin: 6px 0 0; line-height: 1.25; word-break: break-word; color: #fff; }
-.tdm-when { font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 4px; font-weight: 500; }
-/* Duração no canto sup-direito do header, abaixo do X */
-.tdm-duration {
-  position: absolute; top: 50px; right: 14px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  z-index: 5;
-}
-.tdm-duration-label { font-size: 10px; opacity: 0.85; font-weight: 600; color: #fff; }
-.tdm-duration-value {
-  background: rgba(255,255,255,0.18); color: #fff;
-  padding: 6px 12px; border-radius: 8px;
-  font-size: 16px; font-weight: 700;
-  min-width: 56px; text-align: center;
-  border: none; cursor: pointer; font-family: inherit;
-}
-.tdm-duration-value:hover { background: rgba(255,255,255,0.28); }
-/* When row — data + hora */
-.tdm-when-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+/* When — data em cima + hora MUITO grande embaixo, igual card-padrao */
+.tdm-when-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 2px; }
 .tdm-when-date-btn {
   background: none; border: none; color: #fff; padding: 0;
   font-size: 13px; font-weight: 600; font-family: inherit;
@@ -1189,19 +1172,55 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .tdm-when-date-btn:hover { opacity: 1; text-decoration: underline; }
 .tdm-when-time-input {
-  background: rgba(255,255,255,0.18); color: #fff; border: none;
-  font-size: 22px; font-weight: 700; padding: 4px 10px;
-  border-radius: 8px; font-family: inherit;
-  width: 100px; cursor: pointer;
+  background: none; color: #fff; border: none;
+  font-size: 34px; font-weight: 700; padding: 0;
+  font-family: inherit; line-height: 1;
+  width: 110px; cursor: text;
   -webkit-appearance: none; appearance: none;
 }
 .tdm-when-time-input::-webkit-calendar-picker-indicator {
-  cursor: pointer; opacity: 0.5; filter: invert(1);
+  cursor: pointer; opacity: 0.4; filter: invert(1); margin-left: 4px;
 }
 .tdm-when-time-label {
-  font-size: 22px; font-weight: 700; cursor: pointer;
+  font-size: 34px; font-weight: 700; cursor: pointer; line-height: 1;
 }
 .tdm-when-time-label:hover { opacity: 0.85; }
+/* Duração no canto sup-direito do header, abaixo do X */
+.tdm-duration {
+  position: absolute; top: 54px; right: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  z-index: 5;
+}
+.tdm-duration-label { font-size: 10px; opacity: 0.85; font-weight: 600; color: #fff; text-align: center; }
+.tdm-duration-value {
+  background: rgba(255,255,255,0.18); color: #fff;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 20px; font-weight: 700;
+  min-width: 60px; text-align: center;
+  border: none; cursor: pointer; font-family: inherit;
+}
+.tdm-duration-value:hover { background: rgba(255,255,255,0.28); }
+/* Título FORA do header, em seção branca separada */
+.tdm-title-wrap { padding: 14px 22px; border-bottom: 1px solid #f3f4f6; flex-shrink: 0; }
+.tdm-title { font-size: 22px; font-weight: 600; margin: 0; line-height: 1.25; word-break: break-word; color: #111; display: block; }
+/* Local: nome rose + endereço cinza + botões Waze/Maps */
+.tdm-local-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 14px;
+  padding: 14px 22px; border-bottom: 1px solid #f3f4f6;
+}
+.tdm-local-info { flex: 1; min-width: 0; }
+.tdm-local-section-label { font-size: 10px; color: #9ca3af; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.tdm-local-name { font-size: 16px; color: #fb7185; margin-top: 4px; font-weight: 600; outline: none; }
+.tdm-local-addr { font-size: 13px; color: #6b7280; outline: none; margin-top: 2px; }
+.tdm-local-actions { display: flex; gap: 7px; flex-shrink: 0; }
+.tdm-local-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 14px; border-radius: 999px;
+  font-size: 13px; text-decoration: none; font-weight: 600;
+  border: none; cursor: pointer;
+}
+.tdm-local-btn.tdm-loc-waze { background: #33ccff; color: #fff; }
+.tdm-local-btn.tdm-loc-maps { background: #fff; border: 1px solid #e5e7eb; color: #111; }
 /* Dropdown da área */
 .tdm-area-dropdown {
   position: absolute; top: 54px; left: 22px;
@@ -1285,7 +1304,15 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-leave-label {
   font-size: 12px; color: #991b1b; font-weight: 700; letter-spacing: 0.06em;
 }
-.tdm-leave-info { font-size: 10px; color: #991b1b; opacity: 0.7; }
+.tdm-leave-info { font-size: 10px; color: #991b1b; opacity: 0.7; display: inline-flex; align-items: center; gap: 6px; }
+.tdm-leave-refresh {
+  background: transparent; border: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #991b1b; opacity: 0.6; cursor: pointer;
+  padding: 0; font-size: 13px;
+}
+.tdm-leave-refresh:hover { opacity: 1; }
 .tdm-leave-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
 }
@@ -8200,7 +8227,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     <div class="tdm-head" id="tdmHead">
       <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button>
       <div class="tdm-area-dropdown" id="tdmAreaDropdown" style="display:none"></div>
-      <h2 class="tdm-title" id="tdmTitle">—</h2>
       <div class="tdm-when-row">
         <button class="tdm-when-date-btn" id="tdmWhenDateBtn" type="button">—</button>
         <input type="date" class="tdm-when-date-input" id="tdmWhenDateInput" style="display:none">
@@ -8212,6 +8238,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         <button class="tdm-duration-value" id="tdmDuration" type="button">—</button>
         <div class="tdm-duration-dropdown" id="tdmDurationDropdown" style="display:none"></div>
       </div>
+    </div>
+    <div class="tdm-title-wrap" id="tdmTitleWrap"><h2 class="tdm-title" id="tdmTitle">—</h2></div>
+    <div class="tdm-local-row" id="tdmLocalRow" style="display:none">
+      <div class="tdm-local-info">
+        <div class="tdm-local-section-label">Local</div>
+        <div class="tdm-local-name" id="tdmLocalName"></div>
+        <div class="tdm-local-addr" id="tdmLocalAddr"></div>
+      </div>
+      <div class="tdm-local-actions" id="tdmLocalActions"></div>
+    </div>
+    <div id="tdmLeaveSection" style="display:none;padding:0 22px 8px">
+      <div class="tdm-leave-box" id="tdmLeaveBox"></div>
     </div>
     <div class="tdm-body" id="tdmBody"></div>
     <div class="tdm-foot">
@@ -8313,8 +8351,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const i = currentItem;
     let html = '';
 
-    // Local
-    if (i.address || activeFields.has('address')) {
+    // Local — só renderiza no body em MODO EDIÇÃO (visualização vai na .tdm-local-row externa)
+    if ((i.address || activeFields.has('address')) && editMode) {
       // Botões Waze + Maps com logos reais (universal URLs — funcionam mobile + desktop)
       const addrEnc = encodeURIComponent(i.address || '');
       const wazeUrl = (i.address_lat && i.address_lng)
@@ -8365,8 +8403,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       html += field('Notas', 'notes', inner, { editable: editMode });
     }
 
-    // Link com preview
-    if (i.link_url || activeFields.has('link_url')) {
+    // Link com preview — esconde link do GCal (poluiria o card) salvo em editMode
+    if ((i.link_url && !isGcalLink(i.link_url)) || activeFields.has('link_url') || (i.link_url && editMode)) {
       let inner;
       if (editMode) {
         inner = `<input type="url" data-edit="link_url" value="${escHtml(i.link_url || '')}" placeholder="https://...">`;
@@ -8398,8 +8436,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       html += field('Anexo', 'attachment', inner, { editable: editMode });
     }
 
-    // Sub do Roadmap — sempre presente. Determina se o card aparece no roadmap.
-    {
+    // Sub do Roadmap — só em editMode ou se já estiver setado
+    if (editMode || i.parent_id) {
       const subs = (window.roadmapSubs || []).filter(s => !i.area || s.area === i.area);
       // Agrupa por path (depth visual via indent)
       const currentSub = (window.roadmapSubs || []).find(s => s.id === i.parent_id);
@@ -8563,20 +8601,23 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   async function loadTravelTimes(force) {
+    // Quando tá no body (modo edição), usa a versão antiga; senão usa a externalizada
     const card = document.getElementById('tdmMapCard');
     const times = document.getElementById('tdmMapTimes');
     const leave = document.getElementById('tdmMapLeave');
     const cacheInfo = document.getElementById('tdmMapCacheInfo');
-    if (!card || !times) return;
+    const leaveSection = document.getElementById('tdmLeaveSection');
+    const leaveBox = document.getElementById('tdmLeaveBox');
 
     // Busca endereço de casa em user_settings
     const { data: settings } = await sb.from('user_settings').select('home_lat, home_lng, home_address').maybeSingle();
     if (!settings || !settings.home_lat || !settings.home_lng) {
-      times.innerHTML = '<span style="color:#9ca3af;font-size:12px">Cadastre o endereço de casa nas configurações pra ver o tempo de trajeto</span>';
+      if (times) times.innerHTML = '<span style="color:#9ca3af;font-size:12px">Cadastre o endereço de casa nas configurações pra ver o tempo de trajeto</span>';
+      if (leaveSection) leaveSection.style.display = 'none';
       return;
     }
 
-    times.innerHTML = '<span class="tdm-loading">Carregando trajeto...</span>';
+    if (times) times.innerHTML = '<span class="tdm-loading">Carregando trajeto...</span>';
     try {
       const { data, error } = await sb.functions.invoke('maps-proxy', {
         body: {
@@ -8593,12 +8634,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         { key: 'transit', emoji: '🚌' },
         { key: 'walking', emoji: '🚲' }, // emoji bicicleta no card (API ainda retorna a pé)
       ];
-      times.innerHTML = ''; // limpa o container antigo — agora tudo vai pro leave
+      if (times) times.innerHTML = ''; // limpa o container antigo — agora tudo vai pro leave
 
       // Bloco SAIR DE CASA com cards
+      const isBrasi = !!(currentItem.metadata && currentItem.metadata.brasileirao);
+      const buffer = isBrasi ? 60 : 15; // 1h antes pra Brasileirão, 15min pro resto
       if (currentItem.has_time && currentItem.date_start) {
         const start = new Date(currentItem.date_start);
-        const buffer = 15; // 15 min de antecedência (padrão)
         const cards = modes.map(m => {
           const r = data[m.key];
           if (!r || r.minutes == null) return null;
@@ -8612,30 +8654,46 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         }).filter(Boolean);
         if (cards.length) {
           const cacheTxt = data.cached ? `atualizado há ${Math.round(data.age_seconds/60)} min` : 'atualizado agora';
-          leave.innerHTML = `<div class="tdm-leave-box">
+          const labelTxt = isBrasi ? '⏰ SAIR DE CASA ÀS (1h antes)' : '⏰ SAIR DE CASA ÀS';
+          const boxHtml = `
             <div class="tdm-leave-header">
-              <div class="tdm-leave-label">⏰ SAIR DE CASA ÀS</div>
-              <div class="tdm-leave-info">${cacheTxt}</div>
+              <div class="tdm-leave-label">${labelTxt}</div>
+              <div class="tdm-leave-info">
+                <span>${cacheTxt}</span>
+                <button class="tdm-leave-refresh" type="button" title="Atualizar" aria-label="Atualizar">↻</button>
+              </div>
             </div>
-            <div class="tdm-leave-grid">${cards.join('')}</div>
-          </div>`;
-          leave.style.display = 'block';
+            <div class="tdm-leave-grid">${cards.join('')}</div>`;
+          // Escreve no container externalizado (modo view) e/ou no antigo (modo edição)
+          if (leaveBox) {
+            leaveBox.innerHTML = boxHtml;
+            leaveSection.style.display = 'block';
+            const rb = leaveBox.querySelector('.tdm-leave-refresh');
+            if (rb) rb.addEventListener('click', () => loadTravelTimes(true));
+          }
+          if (leave) {
+            leave.innerHTML = `<div class="tdm-leave-box">${boxHtml}</div>`;
+            leave.style.display = 'block';
+          }
         }
       } else {
-        // Sem hora — só mostra os tempos como antes
-        const lines = modes.map(m => {
-          const r = data[m.key];
-          if (!r || r.minutes == null) return '';
-          return `<div class="tdm-map-time"><span class="tdm-mode-emoji">${m.emoji}</span><span class="tdm-map-time-min">${fmtMinutes(r.minutes)}</span></div>`;
-        });
-        times.innerHTML = lines.join('');
+        // Sem hora — só mostra os tempos como antes (modo edição)
+        if (times) {
+          const lines = modes.map(m => {
+            const r = data[m.key];
+            if (!r || r.minutes == null) return '';
+            return `<div class="tdm-map-time"><span class="tdm-mode-emoji">${m.emoji}</span><span class="tdm-map-time-min">${fmtMinutes(r.minutes)}</span></div>`;
+          });
+          times.innerHTML = lines.join('');
+        }
+        if (leaveSection) leaveSection.style.display = 'none';
       }
 
       if (cacheInfo) {
         cacheInfo.textContent = data.cached ? `cache ${data.age_seconds}s` : 'agora';
       }
     } catch (e) {
-      times.innerHTML = `<span style="color:#dc2626;font-size:12px">Erro: ${escHtml(String(e))}</span>`;
+      if (times) times.innerHTML = `<span style="color:#dc2626;font-size:12px">Erro: ${escHtml(String(e))}</span>`;
     }
   }
 
@@ -8665,7 +8723,61 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   function areaPillLabel(item) {
     if (item && item.metadata && item.metadata.brasileirao) return '⚽ Brasileirão Play ▾';
     const a = TDM_AREAS.find(x => x.slug === (item && item.area)) || TDM_AREAS[0];
-    return `${a.emoji} ${a.name} ▾`;
+    // Inclui sub do roadmap se existir: "🏥 Saúde › Consultas ▾"
+    let subTxt = '';
+    if (item && item.parent_id && window.roadmapSubs) {
+      const sub = window.roadmapSubs.find(s => s.id === item.parent_id);
+      if (sub) subTxt = ` › ${sub.title}`;
+    }
+    return `${a.emoji} ${a.name}${subTxt} ▾`;
+  }
+
+  // Parse "Nome — Endereço" ou "Nome · Endereço" pra separar nome e endereço
+  function parseLocal(addr) {
+    if (!addr) return { name: '', addr: '' };
+    const seps = [' — ', ' · ', ' - ', ', '];
+    for (const s of seps) {
+      const idx = addr.indexOf(s);
+      if (idx > 0 && idx < 60) {
+        return { name: addr.slice(0, idx).trim(), addr: addr.slice(idx + s.length).trim() };
+      }
+    }
+    return { name: '', addr: addr };
+  }
+
+  // Renderiza a Local row externa (fora do body)
+  function renderLocalRow(item) {
+    const row = document.getElementById('tdmLocalRow');
+    if (!item.address) {
+      row.style.display = 'none';
+      return;
+    }
+    row.style.display = 'flex';
+    const nameEl = document.getElementById('tdmLocalName');
+    const addrEl = document.getElementById('tdmLocalAddr');
+    const actEl  = document.getElementById('tdmLocalActions');
+    const { name, addr } = parseLocal(item.address);
+    nameEl.textContent = name || 'Local';
+    addrEl.textContent = addr || item.address;
+    // Botões Waze/Maps com logos
+    const addrEnc = encodeURIComponent(item.address);
+    const wazeUrl = (item.address_lat && item.address_lng)
+      ? `https://waze.com/ul?ll=${item.address_lat},${item.address_lng}&navigate=yes`
+      : `https://waze.com/ul?q=${addrEnc}&navigate=yes`;
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${addrEnc}`;
+    actEl.innerHTML = `
+      <a class="tdm-local-btn tdm-loc-waze" href="${wazeUrl}" target="_blank" rel="noopener">
+        <img src="https://eduardobispo.com.br/logos/apps/waze.png" width="20" height="20" alt="">Waze
+      </a>
+      <a class="tdm-local-btn tdm-loc-maps" href="${mapsUrl}" target="_blank" rel="noopener">
+        <img src="https://eduardobispo.com.br/logos/apps/gmaps.svg" width="20" height="20" alt="">Maps
+      </a>
+    `;
+  }
+
+  // True se o link é o link do GCal (esconde por padrão, pra não poluir o card)
+  function isGcalLink(url) {
+    return url && /calendar\.google\.com\/calendar\/event\?/i.test(url);
   }
 
   async function open(item) {
@@ -8722,6 +8834,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     btnEdit.style.display = 'inline-block';
     btnSave.style.display = 'none';
     renderBody();
+    renderLocalRow(item);
+    // SAIR DE CASA externalizado (também em view mode)
+    const leaveSection = document.getElementById('tdmLeaveSection');
+    if (leaveSection) leaveSection.style.display = 'none';
+    if (item.address && item.address_lat && item.address_lng && item.has_time) {
+      loadTravelTimes(false);
+    }
     // Se item está em modo Brasileirão, carrega times e renderiza a row
     if (isBrasi) {
       ensureTeamsLoaded().then(() => renderBrasileiraoUI()).catch(() => {});
@@ -8935,9 +9054,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   function renderBrasileiraoUI() {
-    // Esconde/mostra a row de times no header, e ajusta título
-    const head = document.getElementById('tdmHead');
-    let row = head.querySelector('.tdm-brasi-row');
+    // Esconde/mostra a row de times no title-wrap, e ajusta título
+    const wrap = document.getElementById('tdmTitleWrap');
+    let row = wrap.querySelector('.tdm-brasi-row');
     const isBrasi = !!(currentItem && currentItem.metadata && currentItem.metadata.brasileirao);
     if (!isBrasi) {
       if (row) row.remove();
@@ -8949,8 +9068,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (!row) {
       row = document.createElement('div');
       row.className = 'tdm-brasi-row';
-      // Inserir depois do título (h2)
-      elTitle.insertAdjacentElement('afterend', row);
+      wrap.appendChild(row);
     }
     const b = currentItem.metadata.brasileirao;
     const mand = TDM_TEAMS.find(t => t.id === b.mandante_team_id);
