@@ -1123,6 +1123,37 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-head.area-eventos       { background: linear-gradient(135deg, #ea580c, #9a3412); }
 .tdm-head.area-financas      { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
 .tdm-head.area-rotina        { background: linear-gradient(135deg, #dc2626, #991b1b); }
+.tdm-head.area-brasileirao   { background: linear-gradient(135deg, #059669, #064e3b); }
+/* Brasileirão: par de times + dropdowns */
+.tdm-brasi-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.tdm-brasi-team {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.15);
+  border: none; color: #fff;
+  padding: 8px 12px; border-radius: 10px;
+  cursor: pointer; font-size: 15px; font-weight: 600;
+  font-family: inherit;
+}
+.tdm-brasi-team:hover { background: rgba(255,255,255,0.25); }
+.tdm-brasi-team img { width: 24px; height: 24px; object-fit: contain; }
+.tdm-brasi-vs { font-size: 18px; font-weight: 700; color: #fff; opacity: 0.85; }
+.tdm-brasi-dropdown {
+  position: absolute;
+  background: #fff; color: #111;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  z-index: 60;
+  max-height: 300px; overflow-y: auto;
+  min-width: 220px;
+  padding: 4px 0;
+}
+.tdm-brasi-dropdown-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; cursor: pointer; font-size: 14px;
+}
+.tdm-brasi-dropdown-item:hover { background: #f3f4f6; }
+.tdm-brasi-dropdown-item img { width: 22px; height: 22px; object-fit: contain; }
+.tdm-brasi-dropdown-item.selected { background: #ecfdf5; font-weight: 700; }
 .tdm-area-pill {
   display: inline-flex; align-items: center; gap: 5px;
   background: rgba(255,255,255,0.18); color: #fff; border: none;
@@ -1149,6 +1180,60 @@ table.data-table tr:hover td { background: var(--bg); }
   border: none; cursor: pointer; font-family: inherit;
 }
 .tdm-duration-value:hover { background: rgba(255,255,255,0.28); }
+/* When row — data + hora */
+.tdm-when-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.tdm-when-date-btn {
+  background: none; border: none; color: #fff; padding: 0;
+  font-size: 13px; font-weight: 600; font-family: inherit;
+  opacity: 0.9; cursor: pointer; text-align: left;
+}
+.tdm-when-date-btn:hover { opacity: 1; text-decoration: underline; }
+.tdm-when-time-input {
+  background: rgba(255,255,255,0.18); color: #fff; border: none;
+  font-size: 22px; font-weight: 700; padding: 4px 10px;
+  border-radius: 8px; font-family: inherit;
+  width: 100px; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+}
+.tdm-when-time-input::-webkit-calendar-picker-indicator {
+  cursor: pointer; opacity: 0.5; filter: invert(1);
+}
+.tdm-when-time-label {
+  font-size: 22px; font-weight: 700; cursor: pointer;
+}
+.tdm-when-time-label:hover { opacity: 0.85; }
+/* Dropdown da área */
+.tdm-area-dropdown {
+  position: absolute; top: 54px; left: 22px;
+  background: #fff; color: #111;
+  border: 0.5px solid #e5e7eb; border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  min-width: 240px; max-height: 360px; overflow-y: auto;
+  z-index: 30; padding: 6px;
+}
+.tdm-area-dropdown-section { font-size: 9px; color: #9ca3af; font-weight: 700; padding: 8px 10px 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+.tdm-area-dropdown-item {
+  padding: 8px 10px; font-size: 13px;
+  cursor: pointer; border-radius: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.tdm-area-dropdown-item:hover { background: #f3f4f6; }
+.tdm-area-dropdown-item.selected { background: #ede9fe; color: #7c3aed; font-weight: 600; }
+/* Dropdown da duração */
+.tdm-duration-dropdown {
+  position: absolute; top: 100%; right: 0; margin-top: 4px;
+  background: #fff; color: #111;
+  border: 0.5px solid #e5e7eb; border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  min-width: 130px; z-index: 30; overflow: hidden;
+}
+.tdm-duration-dropdown-item {
+  padding: 8px 12px; font-size: 13px; cursor: pointer;
+}
+.tdm-duration-dropdown-item:hover { background: #f3f4f6; }
+.tdm-duration-dropdown-item.selected { background: #7c3aed; color: #fff; font-weight: 700; }
+.tdm-duration-dropdown-item.conflict { color: #dc2626; }
+.tdm-duration-dropdown-item.conflict::after { content: ' ⚠'; }
 .tdm-close { position: absolute; top: 14px; right: 14px; background: #f3f4f6; border: none; width: 30px; height: 30px; border-radius: 999px; cursor: pointer; color: #6b7280; font-size: 14px; display: flex; align-items: center; justify-content: center; }
 .tdm-close:hover { background: #e5e7eb; color: #1f2937; }
 .tdm-body { padding: 14px 22px 18px; overflow-y: auto; flex: 1; }
@@ -8114,11 +8199,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     <button class="tdm-close" id="tdmClose" type="button" aria-label="Fechar">✕</button>
     <div class="tdm-head" id="tdmHead">
       <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button>
+      <div class="tdm-area-dropdown" id="tdmAreaDropdown" style="display:none"></div>
       <h2 class="tdm-title" id="tdmTitle">—</h2>
-      <div class="tdm-when" id="tdmWhen">—</div>
+      <div class="tdm-when-row">
+        <button class="tdm-when-date-btn" id="tdmWhenDateBtn" type="button">—</button>
+        <input type="date" class="tdm-when-date-input" id="tdmWhenDateInput" style="display:none">
+        <input type="time" class="tdm-when-time-input" id="tdmWhenTimeInput" style="display:none">
+        <span class="tdm-when-time-label" id="tdmWhenTimeLabel"></span>
+      </div>
       <div class="tdm-duration" id="tdmDurationWrap" style="display:none">
         <div class="tdm-duration-label">Duração</div>
         <button class="tdm-duration-value" id="tdmDuration" type="button">—</button>
+        <div class="tdm-duration-dropdown" id="tdmDurationDropdown" style="display:none"></div>
       </div>
     </div>
     <div class="tdm-body" id="tdmBody"></div>
@@ -8547,17 +8639,71 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
   }
 
+  function fmtDateLong(iso) {
+    if (!iso) return 'Sem data';
+    const d = new Date(iso.length === 10 ? iso + 'T12:00:00' : iso);
+    const DOW = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+    const MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    return `${DOW[d.getDay()]}, ${d.getDate()} de ${MES[d.getMonth()]}`;
+  }
+  function fmtTimeHHMM(iso) {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+  function ymdLocal(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  // ── Áreas + label da pílula ──
+  const TDM_AREAS = [
+    { slug: 'pessoal',       name: 'Pessoal',       emoji: '🙋' },
+    { slug: 'trabalho',      name: 'Trabalho',      emoji: '💼' },
+    { slug: 'saude',         name: 'Saúde',         emoji: '🏥' },
+    { slug: 'administracao', name: 'Administração', emoji: '💰' },
+    { slug: 'casa',          name: 'Casa',          emoji: '🏡' },
+    { slug: 'eventos',       name: 'Eventos',       emoji: '🎟️' },
+  ];
+  function areaPillLabel(item) {
+    if (item && item.metadata && item.metadata.brasileirao) return '⚽ Brasileirão Play ▾';
+    const a = TDM_AREAS.find(x => x.slug === (item && item.area)) || TDM_AREAS[0];
+    return `${a.emoji} ${a.name} ▾`;
+  }
+
   async function open(item) {
     currentItem = item;
     editMode = false;
     activeFields = new Set();
     elTitle.textContent = item.title || '(sem título)';
-    elWhen.textContent = formatWhen(item);
-    // Header colorido pela área
+    // Header colorido pela área (ou gradient esmeralda Brasileirão)
     const head = document.getElementById('tdmHead');
-    head.className = 'tdm-head area-' + (item.area || 'pessoal');
-    elArea.textContent = item.area || 'pessoal';
-    // Duração — só mostra se tem hora + data_end calculável
+    const isBrasi = !!(item.metadata && item.metadata.brasileirao);
+    head.className = 'tdm-head area-' + (isBrasi ? 'brasileirao' : (item.area || 'pessoal'));
+    elArea.textContent = areaPillLabel(item);
+
+    // Data + hora (pickers nativos)
+    const dateBtn = document.getElementById('tdmWhenDateBtn');
+    const dateInput = document.getElementById('tdmWhenDateInput');
+    const timeInput = document.getElementById('tdmWhenTimeInput');
+    const timeLabel = document.getElementById('tdmWhenTimeLabel');
+    if (item.date_start) {
+      const ds = new Date(item.date_start);
+      dateBtn.textContent = fmtDateLong(item.date_start);
+      dateInput.value = ymdLocal(ds);
+      if (item.has_time) {
+        timeInput.value = fmtTimeHHMM(item.date_start);
+        timeInput.style.display = '';
+        timeLabel.style.display = 'none';
+      } else {
+        timeInput.style.display = 'none';
+        timeLabel.style.display = '';
+        timeLabel.textContent = '+ hora';
+      }
+    } else {
+      dateBtn.textContent = '+ data';
+      timeInput.style.display = 'none';
+      timeLabel.style.display = 'none';
+    }
+
+    // Duração
     const durWrap = document.getElementById('tdmDurationWrap');
     const durBtn = document.getElementById('tdmDuration');
     if (item.has_time && item.date_start && item.date_end) {
@@ -8572,13 +8718,310 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     } else {
       durWrap.style.display = 'none';
     }
+
     btnEdit.style.display = 'inline-block';
     btnSave.style.display = 'none';
     renderBody();
+    // Se item está em modo Brasileirão, carrega times e renderiza a row
+    if (isBrasi) {
+      ensureTeamsLoaded().then(() => renderBrasileiraoUI()).catch(() => {});
+    } else {
+      renderBrasileiraoUI();
+    }
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
-    // Carrega favoritos em background pra estarem prontos quando entrar em modo edit
     loadFavorites().then(() => { if (editMode) renderBody(); });
+  }
+
+  // ── Handlers do header (data, hora, duração, área) ──
+  async function applyDateTimeChange() {
+    if (!currentItem) return;
+    const dateInput = document.getElementById('tdmWhenDateInput');
+    const timeInput = document.getElementById('tdmWhenTimeInput');
+    const dateBtn = document.getElementById('tdmWhenDateBtn');
+    const ymd = dateInput.value;
+    const hhmm = timeInput.value;
+    if (!ymd) return;
+    // Calcula novo date_start e date_end (preserva duração)
+    const old = currentItem.date_start ? new Date(currentItem.date_start) : null;
+    const oldEnd = currentItem.date_end ? new Date(currentItem.date_end) : null;
+    const durMs = (old && oldEnd) ? (oldEnd - old) : 0;
+    let newStart;
+    let hasTime = !!hhmm;
+    if (hhmm) {
+      newStart = new Date(`${ymd}T${hhmm}:00${tzOffset()}`);
+    } else {
+      newStart = new Date(`${ymd}T00:00:00${tzOffset()}`);
+    }
+    const newEnd = durMs > 0 ? new Date(newStart.getTime() + durMs) : null;
+    currentItem.date_start = newStart.toISOString();
+    currentItem.date_end = newEnd ? newEnd.toISOString() : null;
+    currentItem.has_time = hasTime;
+    dateBtn.textContent = fmtDateLong(newStart.toISOString());
+    // Salva no banco
+    await sb.from('items').update({
+      date_start: currentItem.date_start,
+      date_end: currentItem.date_end,
+      has_time: hasTime,
+    }).eq('id', currentItem.id);
+    if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+  }
+  function tzOffset() {
+    const tz = -new Date().getTimezoneOffset() / 60;
+    const sign = tz >= 0 ? '+' : '-';
+    const abs = Math.abs(tz);
+    return `${sign}${String(Math.floor(abs)).padStart(2,'0')}:${String((abs % 1) * 60).padStart(2,'0')}`;
+  }
+
+  document.getElementById('tdmWhenDateBtn').addEventListener('click', () => {
+    const inp = document.getElementById('tdmWhenDateInput');
+    if (inp.showPicker) inp.showPicker();
+    else { inp.style.display = ''; inp.focus(); }
+  });
+  document.getElementById('tdmWhenDateInput').addEventListener('change', applyDateTimeChange);
+  document.getElementById('tdmWhenTimeInput').addEventListener('change', applyDateTimeChange);
+  document.getElementById('tdmWhenTimeLabel').addEventListener('click', () => {
+    const t = document.getElementById('tdmWhenTimeInput');
+    t.style.display = '';
+    document.getElementById('tdmWhenTimeLabel').style.display = 'none';
+    t.value = t.value || '09:00';
+    if (t.showPicker) t.showPicker();
+    applyDateTimeChange();
+  });
+
+  // ── Duração dropdown ──
+  const DURATIONS = [15,30,45,60,90,120,150,180,240,300,360];
+  document.getElementById('tdmDuration').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const dd = document.getElementById('tdmDurationDropdown');
+    if (dd.style.display === 'block') { dd.style.display = 'none'; return; }
+    if (!currentItem || !currentItem.date_start) return;
+    // Calcula conflitos pra cada duração possível
+    const ds = new Date(currentItem.date_start);
+    const { data: others } = await sb.from('items')
+      .select('id, date_start, date_end, title')
+      .neq('id', currentItem.id)
+      .not('date_start', 'is', null)
+      .gte('date_start', new Date(ds.getTime() - 12 * 3600 * 1000).toISOString())
+      .lte('date_start', new Date(ds.getTime() + 12 * 3600 * 1000).toISOString());
+    const conflicts = new Set();
+    DURATIONS.forEach(m => {
+      const candidateEnd = new Date(ds.getTime() + m * 60000);
+      for (const o of (others || [])) {
+        const os = new Date(o.date_start);
+        const oe = o.date_end ? new Date(o.date_end) : new Date(os.getTime() + 60 * 60000);
+        if (os < candidateEnd && oe > ds) { conflicts.add(m); break; }
+      }
+    });
+    const curMins = currentItem.date_end ? Math.round((new Date(currentItem.date_end) - ds) / 60000) : 60;
+    dd.innerHTML = DURATIONS.map(m => {
+      const cls = (m === curMins ? 'selected' : '') + (conflicts.has(m) ? ' conflict' : '');
+      return `<div class="tdm-duration-dropdown-item ${cls}" data-mins="${m}">${fmtMinutes(m)}</div>`;
+    }).join('');
+    dd.style.display = 'block';
+    dd.querySelectorAll('.tdm-duration-dropdown-item').forEach(el => {
+      el.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const m = parseInt(el.dataset.mins, 10);
+        const newEnd = new Date(ds.getTime() + m * 60000).toISOString();
+        currentItem.date_end = newEnd;
+        document.getElementById('tdmDuration').textContent = fmtMinutes(m) + ' ▾';
+        dd.style.display = 'none';
+        await sb.from('items').update({ date_end: newEnd }).eq('id', currentItem.id);
+        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+      });
+    });
+  });
+  document.addEventListener('click', () => {
+    const dd = document.getElementById('tdmDurationDropdown');
+    if (dd) dd.style.display = 'none';
+    const ad = document.getElementById('tdmAreaDropdown');
+    if (ad) ad.style.display = 'none';
+  });
+
+  // ── Área pílula dropdown ──
+  document.getElementById('tdmAreaPill').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const ad = document.getElementById('tdmAreaDropdown');
+    if (ad.style.display === 'block') { ad.style.display = 'none'; return; }
+    if (!currentItem) return;
+    const isBrasi = !!(currentItem.metadata && currentItem.metadata.brasileirao);
+    let html = '<div class="tdm-area-dropdown-section">Área</div>';
+    html += TDM_AREAS.map(a => {
+      const sel = (!isBrasi && currentItem.area === a.slug) ? 'selected' : '';
+      return `<div class="tdm-area-dropdown-item ${sel}" data-area="${a.slug}">${a.emoji} ${a.name}</div>`;
+    }).join('');
+    html += '<div class="tdm-area-dropdown-section" style="border-top:1px solid #e5e7eb;margin-top:4px;padding-top:6px">Modo especial</div>';
+    html += `<div class="tdm-area-dropdown-item ${isBrasi ? 'selected' : ''}" data-brasi="${isBrasi ? '0' : '1'}">⚽ ${isBrasi ? 'Desativar Brasileirão' : 'Brasileirão Play'}</div>`;
+    ad.innerHTML = html;
+    ad.style.display = 'block';
+    ad.querySelectorAll('[data-area]').forEach(el => {
+      el.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const slug = el.dataset.area;
+        currentItem.area = slug;
+        // Se estava em brasileirão, sai do modo
+        if (currentItem.metadata && currentItem.metadata.brasileirao) {
+          delete currentItem.metadata.brasileirao;
+        }
+        document.getElementById('tdmHead').className = 'tdm-head area-' + slug;
+        document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
+        ad.style.display = 'none';
+        await sb.from('items').update({ area: slug, metadata: currentItem.metadata || {} }).eq('id', currentItem.id);
+        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+        // Re-render pra esconder Brasi UI
+        renderBrasileiraoUI();
+      });
+    });
+    ad.querySelectorAll('[data-brasi]').forEach(el => {
+      el.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        ad.style.display = 'none';
+        const enable = el.dataset.brasi === '1';
+        if (enable) {
+          // Ativa modo Brasileirão: carrega times, abre seletor inicial
+          await ensureTeamsLoaded();
+          currentItem.metadata = currentItem.metadata || {};
+          currentItem.metadata.brasileirao = {
+            mandante_team_id: TDM_TEAMS[0]?.id || null,
+            visitante_team_id: TDM_TEAMS[1]?.id || null,
+          };
+          // Default Brasileirão: 2h duração, sair 1h antes, endereço estúdio
+          const updates = {
+            address: 'Estúdio Brasileirão Play · R. Conselheiro Ramalho, 789 · Bela Vista, São Paulo',
+            metadata: currentItem.metadata,
+          };
+          if (currentItem.date_start && currentItem.has_time) {
+            const ds = new Date(currentItem.date_start);
+            const newEnd = new Date(ds.getTime() + 120 * 60000);
+            updates.date_end = newEnd.toISOString();
+            currentItem.date_end = updates.date_end;
+          }
+          // Título auto-gerado
+          const m = TDM_TEAMS.find(t => t.id === currentItem.metadata.brasileirao.mandante_team_id);
+          const v = TDM_TEAMS.find(t => t.id === currentItem.metadata.brasileirao.visitante_team_id);
+          if (m && v) {
+            updates.title = `${m.name} × ${v.name}`;
+            currentItem.title = updates.title;
+            elTitle.textContent = updates.title;
+          }
+          currentItem.address = updates.address;
+          await sb.from('items').update(updates).eq('id', currentItem.id);
+        } else {
+          // Desativa
+          if (currentItem.metadata) delete currentItem.metadata.brasileirao;
+          await sb.from('items').update({ metadata: currentItem.metadata || {} }).eq('id', currentItem.id);
+        }
+        // Re-render UI
+        document.getElementById('tdmHead').className = 'tdm-head area-' + (currentItem.metadata && currentItem.metadata.brasileirao ? 'brasileirao' : (currentItem.area || 'pessoal'));
+        document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
+        renderBrasileiraoUI();
+        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+      });
+    });
+  });
+
+  // ── Times do Brasileirão (cache em memória) ──
+  let TDM_TEAMS = [];
+  let TDM_TEAMS_LOADING = null;
+  async function ensureTeamsLoaded() {
+    if (TDM_TEAMS.length) return;
+    if (TDM_TEAMS_LOADING) return TDM_TEAMS_LOADING;
+    TDM_TEAMS_LOADING = sb.from('teams').select('id, slug, name, logo_url').eq('league', 'brasileirao-a').eq('active', true).order('name').then(r => {
+      TDM_TEAMS = r.data || [];
+      TDM_TEAMS_LOADING = null;
+    });
+    return TDM_TEAMS_LOADING;
+  }
+
+  function renderBrasileiraoUI() {
+    // Esconde/mostra a row de times no header, e ajusta título
+    const head = document.getElementById('tdmHead');
+    let row = head.querySelector('.tdm-brasi-row');
+    const isBrasi = !!(currentItem && currentItem.metadata && currentItem.metadata.brasileirao);
+    if (!isBrasi) {
+      if (row) row.remove();
+      elTitle.style.display = '';
+      return;
+    }
+    // Esconde título normal (vamos exibir os times como protagonistas)
+    elTitle.style.display = 'none';
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'tdm-brasi-row';
+      // Inserir depois do título (h2)
+      elTitle.insertAdjacentElement('afterend', row);
+    }
+    const b = currentItem.metadata.brasileirao;
+    const mand = TDM_TEAMS.find(t => t.id === b.mandante_team_id);
+    const vis  = TDM_TEAMS.find(t => t.id === b.visitante_team_id);
+    row.innerHTML = `
+      <button class="tdm-brasi-team" type="button" data-side="mand">
+        ${mand && mand.logo_url ? `<img src="${mand.logo_url}" alt="">` : '⚽'}
+        <span>${mand ? mand.name : 'Mandante'}</span> ▾
+      </button>
+      <span class="tdm-brasi-vs">×</span>
+      <button class="tdm-brasi-team" type="button" data-side="vis">
+        ${vis && vis.logo_url ? `<img src="${vis.logo_url}" alt="">` : '⚽'}
+        <span>${vis ? vis.name : 'Visitante'}</span> ▾
+      </button>
+    `;
+    row.querySelectorAll('[data-side]').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        openTeamPicker(btn, btn.dataset.side);
+      });
+    });
+  }
+
+  function openTeamPicker(anchorBtn, side) {
+    // Remove qualquer dropdown anterior
+    document.querySelectorAll('.tdm-brasi-dropdown').forEach(d => d.remove());
+    const b = currentItem.metadata.brasileirao;
+    const otherId = side === 'mand' ? b.visitante_team_id : b.mandante_team_id;
+    const currentId = side === 'mand' ? b.mandante_team_id : b.visitante_team_id;
+    const dd = document.createElement('div');
+    dd.className = 'tdm-brasi-dropdown';
+    dd.innerHTML = TDM_TEAMS.filter(t => t.id !== otherId).map(t => `
+      <div class="tdm-brasi-dropdown-item ${t.id === currentId ? 'selected' : ''}" data-team-id="${t.id}">
+        ${t.logo_url ? `<img src="${t.logo_url}" alt="">` : '⚽'}
+        <span>${t.name}</span>
+      </div>
+    `).join('');
+    // Posicionar relativo ao botão
+    const rect = anchorBtn.getBoundingClientRect();
+    dd.style.top  = `${rect.bottom + 6 + window.scrollY}px`;
+    dd.style.left = `${rect.left + window.scrollX}px`;
+    document.body.appendChild(dd);
+    dd.querySelectorAll('[data-team-id]').forEach(item => {
+      item.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const id = item.dataset.teamId;
+        if (side === 'mand') b.mandante_team_id = id;
+        else b.visitante_team_id = id;
+        // Atualiza título automaticamente
+        const m = TDM_TEAMS.find(t => t.id === b.mandante_team_id);
+        const v = TDM_TEAMS.find(t => t.id === b.visitante_team_id);
+        if (m && v) {
+          currentItem.title = `${m.name} × ${v.name}`;
+          elTitle.textContent = currentItem.title;
+        }
+        dd.remove();
+        renderBrasileiraoUI();
+        await sb.from('items').update({
+          title: currentItem.title,
+          metadata: currentItem.metadata,
+        }).eq('id', currentItem.id);
+        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+      });
+    });
+    // Fechar ao clicar fora
+    setTimeout(() => {
+      document.addEventListener('click', function closeDD() {
+        dd.remove();
+        document.removeEventListener('click', closeDD);
+      }, { once: true });
+    }, 0);
   }
 
   function close() {
