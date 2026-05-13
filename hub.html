@@ -8777,7 +8777,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   // True se o link é o link do GCal (esconde por padrão, pra não poluir o card)
   function isGcalLink(url) {
-    return url && /calendar\.google\.com\/calendar\/event\?/i.test(url);
+    return url && /(calendar\.google\.com|google\.com\/calendar)\/(calendar\/)?event\?/i.test(url);
   }
 
   async function open(item) {
@@ -8838,8 +8838,37 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // SAIR DE CASA externalizado (também em view mode)
     const leaveSection = document.getElementById('tdmLeaveSection');
     if (leaveSection) leaveSection.style.display = 'none';
-    if (item.address && item.address_lat && item.address_lng && item.has_time) {
-      loadTravelTimes(false);
+    if (item.address && item.has_time) {
+      if (item.address_lat && item.address_lng) {
+        loadTravelTimes(false);
+      } else {
+        // Sem lat/lng: geocodifica em background e tenta de novo
+        const leaveBox = document.getElementById('tdmLeaveBox');
+        if (leaveBox && leaveSection) {
+          leaveBox.innerHTML = '<div style="font-size:12px;color:#991b1b;padding:8px">Localizando endereço…</div>';
+          leaveSection.style.display = 'block';
+        }
+        (async () => {
+          try {
+            const { data: geo } = await sb.functions.invoke('geocode', { body: { address: item.address } });
+            if (geo && geo.lat) {
+              await sb.from('items').update({
+                address_lat: geo.lat, address_lng: geo.lng, address_formatted: geo.formatted_address,
+              }).eq('id', item.id);
+              item.address_lat = geo.lat;
+              item.address_lng = geo.lng;
+              currentItem.address_lat = geo.lat;
+              currentItem.address_lng = geo.lng;
+              loadTravelTimes(false);
+            } else {
+              if (leaveSection) leaveSection.style.display = 'none';
+            }
+          } catch (e) {
+            console.warn('[tdm] geocode falhou', e);
+            if (leaveSection) leaveSection.style.display = 'none';
+          }
+        })();
+      }
     }
     // Se item está em modo Brasileirão, carrega times e renderiza a row
     if (isBrasi) {
