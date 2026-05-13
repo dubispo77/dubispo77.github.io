@@ -1164,22 +1164,28 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .tdm-area-pill:hover { background: rgba(255,255,255,0.28); }
 /* When — data em cima + hora MUITO grande embaixo, igual card-padrao */
-.tdm-when-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 2px; }
+.tdm-when-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 2px; position: relative; }
 .tdm-when-date-btn {
   background: none; border: none; color: #fff; padding: 0;
   font-size: 13px; font-weight: 600; font-family: inherit;
   opacity: 0.9; cursor: pointer; text-align: left;
 }
 .tdm-when-date-btn:hover { opacity: 1; text-decoration: underline; }
+/* Input de data: tem que estar renderizado pro showPicker() funcionar.
+   Truque: posição absoluta + opacidade 0 + tamanho mínimo. */
+.tdm-when-date-input {
+  position: absolute; opacity: 0; pointer-events: none;
+  left: 0; top: 0; width: 1px; height: 1px;
+  border: 0; padding: 0; margin: 0;
+}
 .tdm-when-time-input {
   background: none; color: #fff; border: none;
   font-size: 34px; font-weight: 700; padding: 0;
   font-family: inherit; line-height: 1;
-  width: 110px; cursor: text;
-  -webkit-appearance: none; appearance: none;
+  width: 130px; cursor: pointer;
 }
 .tdm-when-time-input::-webkit-calendar-picker-indicator {
-  cursor: pointer; opacity: 0.4; filter: invert(1); margin-left: 4px;
+  cursor: pointer; opacity: 0.5; filter: invert(1); margin-left: 4px;
 }
 .tdm-when-time-label {
   font-size: 34px; font-weight: 700; cursor: pointer; line-height: 1;
@@ -8254,7 +8260,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       <div class="tdm-area-dropdown" id="tdmAreaDropdown" style="display:none"></div>
       <div class="tdm-when-row">
         <button class="tdm-when-date-btn" id="tdmWhenDateBtn" type="button">—</button>
-        <input type="date" class="tdm-when-date-input" id="tdmWhenDateInput" style="display:none">
+        <input type="date" class="tdm-when-date-input" id="tdmWhenDateInput">
         <input type="time" class="tdm-when-time-input" id="tdmWhenTimeInput" style="display:none">
         <span class="tdm-when-time-label" id="tdmWhenTimeLabel"></span>
       </div>
@@ -8946,19 +8952,32 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     return `${sign}${String(Math.floor(abs)).padStart(2,'0')}:${String((abs % 1) * 60).padStart(2,'0')}`;
   }
 
-  document.getElementById('tdmWhenDateBtn').addEventListener('click', () => {
+  document.getElementById('tdmWhenDateBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
     const inp = document.getElementById('tdmWhenDateInput');
-    if (inp.showPicker) inp.showPicker();
-    else { inp.style.display = ''; inp.focus(); }
+    try {
+      if (inp.showPicker) inp.showPicker();
+      else inp.click();
+    } catch (err) {
+      // Fallback: foca pra teclado/datalist
+      inp.focus();
+    }
   });
   document.getElementById('tdmWhenDateInput').addEventListener('change', applyDateTimeChange);
   document.getElementById('tdmWhenTimeInput').addEventListener('change', applyDateTimeChange);
-  document.getElementById('tdmWhenTimeLabel').addEventListener('click', () => {
+  // Click direto no input de hora também tenta abrir o picker (Chrome faz nativo, mas garantimos)
+  document.getElementById('tdmWhenTimeInput').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const t = e.currentTarget;
+    try { if (t.showPicker) t.showPicker(); } catch {}
+  });
+  document.getElementById('tdmWhenTimeLabel').addEventListener('click', (e) => {
+    e.stopPropagation();
     const t = document.getElementById('tdmWhenTimeInput');
     t.style.display = '';
     document.getElementById('tdmWhenTimeLabel').style.display = 'none';
     t.value = t.value || '09:00';
-    if (t.showPicker) t.showPicker();
+    try { if (t.showPicker) t.showPicker(); } catch {}
     applyDateTimeChange();
   });
 
