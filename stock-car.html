@@ -208,11 +208,13 @@
     .showcase{padding:16px 0 28px}
     .showcase .showcase-title{padding:0 22px}
 
-    /* CARROSSEL ÚNICO — todos os 6 vídeos no mesmo carrossel no mobile */
+    /* CARROSSEL ÚNICO — todos os 6 vídeos com MESMA ALTURA no mobile.
+       Altura comum --card-h; larguras derivadas pelo aspect ratio. */
+    :root{ --card-h: clamp(260px, 60vw, 400px); }
     .tracks-wrap{
       display:flex;
       flex-direction:row;
-      align-items:flex-start; /* impede stretch — preserva aspect-ratio de cada card */
+      align-items:stretch;
       gap:12px;
       overflow-x:auto;
       scroll-snap-type:x mandatory;
@@ -220,18 +222,19 @@
       scrollbar-width:none;
       padding:0 22px 8px;
       margin:0 -22px;
+      height:var(--card-h);
     }
     .tracks-wrap::-webkit-scrollbar{display:none}
-    /* track-h e track-v viram passthrough no mobile */
-    .track-h, .track-v{
-      display:contents;
-    }
+    .track-h, .track-v{display:contents}
     .card.h, .card.v{
-      flex:0 0 86%;
+      height:100% !important;
+      aspect-ratio:auto !important;
+      flex:0 0 auto !important;
       scroll-snap-align:start;
       scroll-snap-stop:always;
     }
-    .card.v{flex-basis:62%}
+    .card.h{width:calc(var(--card-h) * 16 / 9) !important}
+    .card.v{width:calc(var(--card-h) * 9 / 16) !important}
 
     .card .meta h4{font-size:17px}
     .card .play{width:58px;height:58px}
