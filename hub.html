@@ -1235,9 +1235,34 @@ table.data-table tr:hover td { background: var(--bg); }
   padding: 8px 10px; font-size: 13px;
   cursor: pointer; border-radius: 6px;
   display: flex; align-items: center; gap: 8px;
+  position: relative;
 }
 .tdm-area-dropdown-item:hover { background: #f3f4f6; }
 .tdm-area-dropdown-item.selected { background: #ede9fe; color: #7c3aed; font-weight: 600; }
+.tdm-area-dropdown-item.area { font-weight: 600; }
+.tdm-area-dropdown-item.sub {
+  font-size: 12px; color: #4b5563;
+  padding-top: 5px; padding-bottom: 5px;
+}
+.tdm-area-dropdown-item.sub::before { content: '↳'; color: #9ca3af; margin-right: 2px; }
+.tdm-area-dropdown-item.sub.selected { background: #ede9fe; color: #7c3aed; }
+.tdm-area-dropdown-item .add-child {
+  margin-left: auto; opacity: 0;
+  background: none; border: none;
+  color: #7c3aed; font-size: 14px; cursor: pointer;
+  padding: 2px 6px; border-radius: 4px;
+  font-family: inherit; font-weight: 700;
+}
+.tdm-area-dropdown-item:hover .add-child { opacity: 1; }
+.tdm-area-dropdown-item .add-child:hover { background: #ede9fe; }
+.tdm-area-dropdown-add {
+  padding: 6px 10px; font-size: 11px;
+  color: #7c3aed; cursor: pointer;
+  border-radius: 6px;
+  font-style: italic;
+}
+.tdm-area-dropdown-add:hover { background: #ede9fe; }
+.tdm-area-dropdown-divider { height: 1px; background: #f3f4f6; margin: 4px 0; }
 /* Dropdown da duração */
 .tdm-duration-dropdown {
   position: absolute; top: 100%; right: 0; margin-top: 4px;
@@ -8987,40 +9012,104 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (ad) ad.style.display = 'none';
   });
 
-  // ── Área pílula dropdown ──
-  document.getElementById('tdmAreaPill').addEventListener('click', async (e) => {
-    e.stopPropagation();
+  // ── Área pílula dropdown — agora com subs do roadmap ──
+  async function renderAreaDropdown() {
     const ad = document.getElementById('tdmAreaDropdown');
-    if (ad.style.display === 'block') { ad.style.display = 'none'; return; }
     if (!currentItem) return;
+    // Garante que subs do roadmap estão carregados
+    if ((!window.roadmapSubs || !window.roadmapSubs.length) && window.loadRoadmapSubs) {
+      await window.loadRoadmapSubs().catch(() => {});
+    }
     const isBrasi = !!(currentItem.metadata && currentItem.metadata.brasileirao);
+    const allSubs = window.roadmapSubs || [];
     let html = '<div class="tdm-area-dropdown-section">Área</div>';
-    html += TDM_AREAS.map(a => {
-      const sel = (!isBrasi && currentItem.area === a.slug) ? 'selected' : '';
-      return `<div class="tdm-area-dropdown-item ${sel}" data-area="${a.slug}">${a.emoji} ${a.name}</div>`;
-    }).join('');
-    html += '<div class="tdm-area-dropdown-section" style="border-top:1px solid #e5e7eb;margin-top:4px;padding-top:6px">Modo especial</div>';
+    TDM_AREAS.forEach(a => {
+      const areaSel = (!isBrasi && currentItem.area === a.slug && !currentItem.parent_id) ? 'selected' : '';
+      html += `<div class="tdm-area-dropdown-item area ${areaSel}" data-area="${a.slug}" data-parent-id="">${a.emoji} ${a.name}</div>`;
+      // Renderiza árvore de subs dessa área (DFS)
+      const areaSubs = allSubs.filter(s => s.area === a.slug);
+      function renderChildren(parentId, depth) {
+        areaSubs.filter(s => (s.parent_id || null) === parentId).forEach(s => {
+          const subSel = (!isBrasi && currentItem.parent_id === s.id) ? 'selected' : '';
+          const indent = 16 + depth * 14;
+          html += `<div class="tdm-area-dropdown-item sub ${subSel}" data-area="${a.slug}" data-parent-id="${s.id}" style="padding-left:${indent}px">
+            <span>${escHtml(s.title)}</span>
+            <button class="add-child" type="button" data-add-parent="${s.id}" data-add-area="${a.slug}" title="Adicionar sub aqui">+</button>
+          </div>`;
+          renderChildren(s.id, depth + 1);
+        });
+      }
+      renderChildren(null, 0);
+      // "+ Adicionar sub em <Area>"
+      html += `<div class="tdm-area-dropdown-add" data-add-area="${a.slug}" data-add-parent="">+ Novo sub em ${a.name}</div>`;
+      html += '<div class="tdm-area-dropdown-divider"></div>';
+    });
+    html += '<div class="tdm-area-dropdown-section" style="border-top:1px solid #e5e7eb;padding-top:6px">Modo especial</div>';
     html += `<div class="tdm-area-dropdown-item ${isBrasi ? 'selected' : ''}" data-brasi="${isBrasi ? '0' : '1'}">⚽ ${isBrasi ? 'Desativar Brasileirão' : 'Brasileirão Play'}</div>`;
     ad.innerHTML = html;
-    ad.style.display = 'block';
+
+    // Handler de seleção (área OU sub)
     ad.querySelectorAll('[data-area]').forEach(el => {
       el.addEventListener('click', async (ev) => {
         ev.stopPropagation();
+        // Ignora cliques no "+ Add child" filho
+        if (ev.target.matches('.add-child')) return;
         const slug = el.dataset.area;
+        const parentId = el.dataset.parentId || null;
         currentItem.area = slug;
-        // Se estava em brasileirão, sai do modo
-        if (currentItem.metadata && currentItem.metadata.brasileirao) {
-          delete currentItem.metadata.brasileirao;
-        }
+        currentItem.parent_id = parentId;
+        // Sai de brasileirão se tava
+        if (currentItem.metadata && currentItem.metadata.brasileirao) delete currentItem.metadata.brasileirao;
         document.getElementById('tdmHead').className = 'tdm-head area-' + slug;
         document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
         ad.style.display = 'none';
-        await sb.from('items').update({ area: slug, metadata: currentItem.metadata || {} }).eq('id', currentItem.id);
+        await sb.from('items').update({
+          area: slug,
+          parent_id: parentId,
+          metadata: currentItem.metadata || {},
+        }).eq('id', currentItem.id);
         if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
-        // Re-render pra esconder Brasi UI
         renderBrasileiraoUI();
+        renderBody(); // pra atualizar o Sub do Roadmap exibido no body
       });
     });
+
+    // Handler de "+ Novo sub em X" e "+ Adicionar child"
+    ad.querySelectorAll('[data-add-area]').forEach(el => {
+      el.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const slug = el.dataset.addArea;
+        const parentId = el.dataset.addParent || null;
+        const parentTitle = parentId ? (allSubs.find(s => s.id === parentId)?.title || 'sub') : (TDM_AREAS.find(a => a.slug === slug)?.name || slug);
+        const title = window.prompt(`Novo sub em "${parentTitle}":`, '');
+        if (!title || !title.trim()) return;
+        // Cria item is_roadmap=true type=milestone
+        const { data, error } = await sb.from('items').insert({
+          title: title.trim(),
+          area: slug,
+          type: 'milestone',
+          is_roadmap: true,
+          parent_id: parentId,
+          status: 'planned',
+        }).select().single();
+        if (error) { alert('Erro ao criar sub: ' + error.message); return; }
+        // Atualiza cache global e seleciona o novo sub no item atual
+        if (window.loadRoadmapSubs) await window.loadRoadmapSubs();
+        currentItem.area = slug;
+        currentItem.parent_id = data.id;
+        document.getElementById('tdmHead').className = 'tdm-head area-' + slug;
+        document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
+        await sb.from('items').update({ area: slug, parent_id: data.id }).eq('id', currentItem.id);
+        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+        // Re-render dropdown pra mostrar o novo sub e atualizar o body
+        ad.style.display = 'none';
+        renderBody();
+        // Notifica o roadmap pra recarregar (se a view tiver função própria de refresh)
+        if (window.refreshRoadmap) window.refreshRoadmap();
+      });
+    });
+
+    // Handler do Brasileirão
     ad.querySelectorAll('[data-brasi]').forEach(el => {
       el.addEventListener('click', async (ev) => {
         ev.stopPropagation();
@@ -9067,6 +9156,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
       });
     });
+  }
+
+  // Click na pílula → abre/fecha o dropdown
+  document.getElementById('tdmAreaPill').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const ad = document.getElementById('tdmAreaDropdown');
+    if (ad.style.display === 'block') { ad.style.display = 'none'; return; }
+    await renderAreaDropdown();
+    ad.style.display = 'block';
   });
 
   // ── Times do Brasileirão (cache em memória) ──
