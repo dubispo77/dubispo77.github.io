@@ -1246,6 +1246,16 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-area-dropdown-item:hover { background: #f3f4f6; }
 .tdm-area-dropdown-item.selected { background: #ede9fe; color: #7c3aed; font-weight: 600; }
 .tdm-area-dropdown-item.area { font-weight: 600; }
+.tdm-area-dropdown-item.area .chev { margin-left: auto; font-size: 11px; opacity: 0.6; transition: transform .15s; }
+.tdm-area-dropdown-item.area.expanded .chev { transform: rotate(90deg); }
+.tdm-area-subs { display: none; padding-bottom: 4px; }
+.tdm-area-subs.expanded { display: block; }
+.tdm-area-pick-root {
+  padding: 5px 10px 5px 26px; font-size: 11px; color: #6b7280;
+  cursor: pointer; border-radius: 6px; font-style: italic;
+}
+.tdm-area-pick-root:hover { background: #f3f4f6; }
+.tdm-area-pick-root.selected { background: #ede9fe; color: #7c3aed; font-style: normal; }
 .tdm-area-dropdown-item.sub {
   font-size: 12px; color: #4b5563;
   padding-top: 5px; padding-bottom: 5px;
@@ -9031,7 +9041,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (ad) ad.style.display = 'none';
   });
 
-  // ── Área pílula dropdown — agora com subs do roadmap ──
+  // ── Área pílula dropdown — colapsável, com subs do roadmap ──
+  // Guarda quais áreas estão expandidas entre re-renders
+  let tdmExpandedAreas = new Set();
   async function renderAreaDropdown() {
     const ad = document.getElementById('tdmAreaDropdown');
     if (!currentItem) return;
@@ -9041,16 +9053,28 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     const isBrasi = !!(currentItem.metadata && currentItem.metadata.brasileirao);
     const allSubs = window.roadmapSubs || [];
+    // Por padrão, expande a área do item atual (só na 1ª abertura)
+    if (!tdmExpandedAreas.size && currentItem.area && !isBrasi) {
+      tdmExpandedAreas.add(currentItem.area);
+    }
     let html = '<div class="tdm-area-dropdown-section">Área</div>';
     TDM_AREAS.forEach(a => {
-      const areaSel = (!isBrasi && currentItem.area === a.slug && !currentItem.parent_id) ? 'selected' : '';
-      html += `<div class="tdm-area-dropdown-item area ${areaSel}" data-area="${a.slug}" data-parent-id="">${a.emoji} ${a.name}</div>`;
-      // Renderiza árvore de subs dessa área (DFS)
+      const expanded = tdmExpandedAreas.has(a.slug);
+      const areaActive = (!isBrasi && currentItem.area === a.slug);
+      html += `<div class="tdm-area-dropdown-item area ${expanded ? 'expanded' : ''} ${areaActive ? 'selected' : ''}" data-toggle-area="${a.slug}">
+        ${a.emoji} ${a.name}<span class="chev">▸</span>
+      </div>`;
+      // Container dos subs (escondido se não expandido)
+      html += `<div class="tdm-area-subs ${expanded ? 'expanded' : ''}" data-subs-area="${a.slug}">`;
+      // Opção "selecionar só a área (sem sub)"
+      const rootSel = (areaActive && !currentItem.parent_id) ? 'selected' : '';
+      html += `<div class="tdm-area-pick-root ${rootSel}" data-area="${a.slug}" data-parent-id="">Sem sub — só em ${a.name}</div>`;
+      // Árvore de subs (DFS)
       const areaSubs = allSubs.filter(s => s.area === a.slug);
       function renderChildren(parentId, depth) {
         areaSubs.filter(s => (s.parent_id || null) === parentId).forEach(s => {
           const subSel = (!isBrasi && currentItem.parent_id === s.id) ? 'selected' : '';
-          const indent = 16 + depth * 14;
+          const indent = 26 + depth * 14;
           html += `<div class="tdm-area-dropdown-item sub ${subSel}" data-area="${a.slug}" data-parent-id="${s.id}" style="padding-left:${indent}px">
             <span>${escHtml(s.title)}</span>
             <button class="add-child" type="button" data-add-parent="${s.id}" data-add-area="${a.slug}" title="Adicionar sub aqui">+</button>
@@ -9059,15 +9083,28 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         });
       }
       renderChildren(null, 0);
-      // "+ Adicionar sub em <Area>"
       html += `<div class="tdm-area-dropdown-add" data-add-area="${a.slug}" data-add-parent="">+ Novo sub em ${a.name}</div>`;
-      html += '<div class="tdm-area-dropdown-divider"></div>';
+      html += '</div>'; // .tdm-area-subs
     });
     html += '<div class="tdm-area-dropdown-section" style="border-top:1px solid #e5e7eb;padding-top:6px">Modo especial</div>';
     html += `<div class="tdm-area-dropdown-item ${isBrasi ? 'selected' : ''}" data-brasi="${isBrasi ? '0' : '1'}">⚽ ${isBrasi ? 'Desativar Brasileirão' : 'Brasileirão Play'}</div>`;
     ad.innerHTML = html;
 
-    // Handler de seleção (área OU sub)
+    // Handler: clique no header da área → expande/colapsa (não fecha o dropdown)
+    ad.querySelectorAll('[data-toggle-area]').forEach(el => {
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const slug = el.dataset.toggleArea;
+        if (tdmExpandedAreas.has(slug)) tdmExpandedAreas.delete(slug);
+        else tdmExpandedAreas.add(slug);
+        // Toggle visual sem re-render completo
+        el.classList.toggle('expanded');
+        const subsEl = ad.querySelector(`[data-subs-area="${slug}"]`);
+        if (subsEl) subsEl.classList.toggle('expanded');
+      });
+    });
+
+    // Handler de seleção (sub OU "sem sub")
     ad.querySelectorAll('[data-area]').forEach(el => {
       el.addEventListener('click', async (ev) => {
         ev.stopPropagation();
