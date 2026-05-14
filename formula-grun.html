@@ -228,6 +228,17 @@
     position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
     background:linear-gradient(135deg,#2a3f56 0%,#0d1824 100%);
   }
+  /* Ajustes individuais por card (gerados pelo form portfolio-case) */
+  .card-fg-1 .thumb{transform:translate(0.18%, 0.31%) scale(1.090);transform-origin:center center}
+  .card-fg-2 .thumb{transform:translate(4.23%, -1.88%) scale(1.540);transform-origin:center center}
+  .card-fg-3 .thumb{transform:translate(11.67%, 1.56%) scale(1.240);transform-origin:center center}
+  .card-fg-4 .thumb{transform:translate(2.22%, 0.00%) scale(1.070);transform-origin:center center}
+  @media(max-width:720px){
+    .card-fg-1 .thumb{transform:translate(0.00%, -1.10%) scale(1.130);transform-origin:center center}
+    .card-fg-2 .thumb{transform:translate(0.00%, 0.00%) scale(1.270);transform-origin:center center}
+    .card-fg-3 .thumb{transform:translate(3.88%, 0.00%) scale(1.120);transform-origin:center center}
+    .card-fg-4 .thumb{transform:translate(3.02%, 0.00%) scale(1.100);transform-origin:center center}
+  }
   .card .scrim{
     position:absolute;inset:0;
     background:linear-gradient(to top,rgba(26,44,62,.85) 0%, rgba(26,44,62,.35) 45%, rgba(26,44,62,0) 70%);
@@ -485,29 +496,29 @@
     </button>
     <div class="track" id="track">
       <!-- card 0 - Eric Granado (horizontal) -->
-      <div class="card h" onclick="openLB(0)">
-        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_v2.jpg" alt="Eric Granado" loading="lazy"/>
+      <div class="card h card-fg-1" onclick="openLB(0)">
+        <img class="thumb" src="https://dubispo77.github.io/assets/formula-grun/fg-1_thumb_24.jpg" alt="Eric Granado" loading="lazy"/>
         <div class="scrim"></div>
         <div class="play">▶</div>
         <div class="meta"><span>EP · 2023</span><h4>Eric Granado</h4></div>
       </div>
       <!-- card 1 - Lucas Moraes (horizontal) -->
-      <div class="card h" onclick="openLB(1)">
-        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/Lucas_Moraes_v7.jpg" alt="Lucas Moraes" loading="lazy"/>
+      <div class="card h card-fg-2" onclick="openLB(1)">
+        <img class="thumb" src="https://dubispo77.github.io/assets/formula-grun/fg-2_thumb_7.jpg" alt="Lucas Moraes" loading="lazy"/>
         <div class="scrim"></div>
         <div class="play">▶</div>
         <div class="meta"><span>EP · 2023</span><h4>Lucas Moraes</h4></div>
       </div>
       <!-- card 2 - Granado VER01 (vertical/reel) -->
-      <div class="card v" onclick="openLB(2)">
-        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_VER01.jpg" alt="Granado · v01" loading="lazy"/>
+      <div class="card v card-fg-3" onclick="openLB(2)">
+        <img class="thumb" src="https://dubispo77.github.io/assets/formula-grun/fg-3_thumb_17.jpg" alt="Granado · v01" loading="lazy"/>
         <div class="scrim"></div>
         <div class="play">▶</div>
         <div class="meta"><span>REEL · 2022</span><h4>Granado · v01</h4></div>
       </div>
       <!-- card 3 - Granado VER02 (vertical/reel) -->
-      <div class="card v" onclick="openLB(3)">
-        <img class="thumb" src="https://pub-e176345130b44b0eb25ef8dd9ca68c28.r2.dev/formula-grun/FG_Eric_Granado_VER02.jpg" alt="Granado · v02" loading="lazy"/>
+      <div class="card v card-fg-4" onclick="openLB(3)">
+        <img class="thumb" src="https://dubispo77.github.io/assets/formula-grun/fg-4_thumb_18.jpg" alt="Granado · v02" loading="lazy"/>
         <div class="scrim"></div>
         <div class="play">▶</div>
         <div class="meta"><span>REEL · 2022</span><h4>Granado · v02</h4></div>
@@ -564,28 +575,28 @@
   const VIDEOS = [
     {
       src: R2_BASE + 'FG_Eric_Granado_v2_220323.mp4',
-      poster: R2_BASE + 'FG_Eric_Granado_v2.jpg',
+      poster: 'https://dubispo77.github.io/assets/formula-grun/fg-1_thumb_24.jpg',
       title: 'Eric Granado',
       eyebrow: 'EP · MARÇO 2023',
       orient: 'horizontal'
     },
     {
       src: R2_BASE + 'Lucas_Moraes_v7_070323.mp4',
-      poster: R2_BASE + 'Lucas_Moraes_v7.jpg',
+      poster: 'https://dubispo77.github.io/assets/formula-grun/fg-2_thumb_7.jpg',
       title: 'Lucas Moraes',
       eyebrow: 'EP · MARÇO 2023',
       orient: 'horizontal'
     },
     {
       src: R2_BASE + 'FG_Eric_Granado_VER01_v2_040522.mp4',
-      poster: R2_BASE + 'FG_Eric_Granado_VER01.jpg',
+      poster: 'https://dubispo77.github.io/assets/formula-grun/fg-3_thumb_17.jpg',
       title: 'Granado · versão 01',
       eyebrow: 'REEL · MAIO 2022',
       orient: 'vertical'
     },
     {
       src: R2_BASE + 'FG_Eric_Granado_VER02_v2_040522.mp4',
-      poster: R2_BASE + 'FG_Eric_Granado_VER02.jpg',
+      poster: 'https://dubispo77.github.io/assets/formula-grun/fg-4_thumb_18.jpg',
       title: 'Granado · versão 02',
       eyebrow: 'REEL · MAIO 2022',
       orient: 'vertical'
