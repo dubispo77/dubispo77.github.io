@@ -6761,7 +6761,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   // ── CRUD ──
   function setupCRUD() {
-    const timeline  = document.getElementById('agendaTimeline');
+    const timeline  = document.getElementById('agendaTimeline'); // pode ser null (legado)
     const addBtn    = document.getElementById('agendaAddBtn');
     const addForm   = document.getElementById('agendaAddForm');
     const aafTitle  = document.getElementById('aafTitle');
@@ -6769,7 +6769,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const aafTime   = document.getElementById('aafTime');
     const aafSave   = document.getElementById('aafSave');
     const aafCancel = document.getElementById('aafCancel');
-    if (!timeline || !addBtn) return;
+    // Antes baliava aqui se timeline fosse null — mas timeline é legado e foi removido do HTML.
+    // Sem o addBtn / addForm não dá pra continuar.
+    if (!addBtn || !addForm) return;
 
     populateProjectSelect();
 
@@ -6894,7 +6896,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     });
 
     // ── Long press no mobile (500ms) → abre edição ──
+    // (Só se a timeline legacy ainda existir; senão pula essa parte.)
     let lpTimer = null, lpFired = false, lpStartXY = null;
+    if (timeline) {
     timeline.addEventListener('touchstart', e => {
       const block = e.target.closest('.event-block');
       if (!block || e.target.closest('.eb-actions')) return;
@@ -6978,6 +6982,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       }).eq('id', id);
       if (error) { item.status = newStatus === 'done' ? 'planned' : 'done'; render(); }
     });
+    } // fim if(timeline)
   }
 
   // ── Init ──
