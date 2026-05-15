@@ -9446,9 +9446,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
             mandante_team_id: TDM_TEAMS[0]?.id || null,
             visitante_team_id: TDM_TEAMS[1]?.id || null,
           };
-          // Default Brasileirão: 2h duração, sair 1h antes, endereço estúdio
+          // Default Brasileirão: 2h duração, sair 1h antes, endereço real do estúdio
+          // SÓ o endereço (nunca inventar nome de lugar — regra Eduardo)
           const updates = {
-            address: 'Estúdio Brasileirão Play · R. Conselheiro Ramalho, 789 · Bela Vista, São Paulo',
+            address: 'R. Conselheiro Ramalho, 789, Bela Vista, São Paulo',
             metadata: currentItem.metadata,
           };
           if (currentItem.date_start && currentItem.has_time) {
