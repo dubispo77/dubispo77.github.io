@@ -6796,31 +6796,60 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       aafSave.textContent = 'Salvar';
     }
 
-    // Toggle formulário (modo criar)
-    addBtn.addEventListener('click', () => {
-      const open = addForm.style.display !== 'none';
-      if (open) { addForm.style.display = 'none'; resetForm(); return; }
-      resetForm();
-      addForm.style.display = 'block';
+    // ── Modal: transforma o form em overlay centralizado ──
+    function ensureBackdrop() {
+      let b = document.getElementById('aafBackdrop');
+      if (b) return b;
+      b = document.createElement('div');
+      b.id = 'aafBackdrop';
+      b.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9998;display:none;';
+      b.addEventListener('click', () => closeAddForm());
+      document.body.appendChild(b);
+      return b;
+    }
+    function openAddForm() {
+      ensureBackdrop().style.display = 'block';
+      // Aplica estilos de modal direto via inline (sobrepõe layout original)
+      addForm.style.cssText = `
+        display:block;
+        position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+        z-index:9999; background:var(--card,#fff); color:var(--text,#111);
+        padding:22px 22px 18px; border-radius:14px;
+        box-shadow:0 24px 60px rgba(0,0,0,.32);
+        width:min(540px, calc(100vw - 32px));
+        max-height:calc(100vh - 60px); overflow-y:auto;
+      `;
       aafDate.value = new Date(selectedDayTs || Date.now()).toISOString().slice(0, 10);
-      // Rola até o formulário (que fica abaixo do calendário e sai da tela)
-      addForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => aafTitle.focus({ preventScroll: true }), 350);
+      setTimeout(() => aafTitle.focus({ preventScroll: true }), 50);
+    }
+    function closeAddForm() {
+      addForm.style.cssText = 'display:none;position:relative';
+      const b = document.getElementById('aafBackdrop');
+      if (b) b.style.display = 'none';
+      resetForm();
+    }
+    // Toggle formulário (modo criar) — agora abre como MODAL
+    addBtn.addEventListener('click', () => {
+      const isOpen = (addForm.style.display === 'block') && !!document.getElementById('aafBackdrop') && document.getElementById('aafBackdrop').style.display === 'block';
+      if (isOpen) { closeAddForm(); return; }
+      resetForm();
+      openAddForm();
     });
     // O "+" pequeno do header da Agenda delega pro botão original
-    document.getElementById('calAddBtn')?.addEventListener('click', () => addBtn.click());
-
-    aafCancel.addEventListener('click', () => {
-      addForm.style.display = 'none';
-      resetForm();
+    document.getElementById('calAddBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      addBtn.click();
     });
+    // Esc fecha o modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('aafBackdrop')?.style.display === 'block') closeAddForm();
+    });
+
+    aafCancel.addEventListener('click', () => closeAddForm());
 
     // X no canto superior direito — equivalente a Cancelar
     const aafCloseX = document.getElementById('aafCloseX');
-    if (aafCloseX) aafCloseX.addEventListener('click', () => {
-      addForm.style.display = 'none';
-      resetForm();
-    });
+    if (aafCloseX) aafCloseX.addEventListener('click', () => closeAddForm());
 
     aafTitle.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); aafSave.click(); }
@@ -6858,8 +6887,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           window.syncToGcal(editingItemId ? 'update' : 'update', savedId);
           // 'update' lida com ambos os casos: cria se sem google_event_id, atualiza se já tem
         }
-        addForm.style.display = 'none';
-        resetForm();
+        closeAddForm();
         await loadItems(); render();
       }
       aafSave.disabled = false;
