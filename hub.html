@@ -9337,12 +9337,20 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   document.getElementById('tdmWhenDateBtn').addEventListener('click', (e) => {
     e.stopPropagation();
     const inp = document.getElementById('tdmWhenDateInput');
-    try {
-      if (inp.showPicker) inp.showPicker();
-      else inp.click();
-    } catch (err) {
-      // Fallback: foca pra teclado/datalist
-      inp.focus();
+    const btn = document.getElementById('tdmWhenDateBtn');
+    btn.setAttribute('data-hdp-anchor', '1');
+    if (window.hubDatePicker) {
+      window.hubDatePicker.open({
+        anchor: btn,
+        value: inp.value || null,
+        onSelect: (ymd) => {
+          inp.value = ymd;
+          // Dispara o handler que persiste a mudança
+          applyDateTimeChange();
+        },
+      });
+    } else if (inp.showPicker) {
+      inp.showPicker();
     }
   });
   document.getElementById('tdmWhenDateInput').addEventListener('change', applyDateTimeChange);
@@ -10267,6 +10275,217 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     renderCalendar();
     setTimeout(() => $('hqaTitle').focus(), 60);
   };
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     CALENDÁRIO POPUP CUSTOM (design 3 — pílula central + setas em quadradinhos)
+     Uso: window.hubDatePicker.open({ anchor, value, onSelect })
+     ═══════════════════════════════════════════════════════════════════════ -->
+<style>
+.hdp-pop {
+  position: fixed; z-index: 9999; display: none;
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+  padding: 14px 16px; width: 280px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+.hdp-pop.open { display: block; }
+.hdp-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.hdp-nav {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: #f3f4f6; color: #6b7280;
+  border: none; cursor: pointer; font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: inherit;
+}
+.hdp-nav:hover { background: #e5e7eb; color: #111; }
+.hdp-pill {
+  padding: 6px 18px; background: #ede9fe; color: #7c3aed;
+  border-radius: 999px; font-weight: 600; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px;
+  border: none; cursor: pointer; font-family: inherit;
+}
+.hdp-pill:hover { background: #ddd6fe; }
+.hdp-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.hdp-dh { font-size: 9px; color: #9ca3af; text-align: center; font-weight: 700; letter-spacing: 0.05em; padding: 4px 0 8px; }
+.hdp-d {
+  font-size: 12px; padding: 6px 0; text-align: center;
+  color: #374151; cursor: pointer; border-radius: 999px; margin: 1px;
+  border: none; background: none; font-family: inherit;
+}
+.hdp-d:hover { background: #f3f4f6; }
+.hdp-d.sel { background: #7c3aed; color: #fff; font-weight: 600; }
+.hdp-d.today { color: #7c3aed; font-weight: 600; }
+.hdp-d.out { color: #d4d4d8; }
+/* Lista de meses/anos (quando clica na pílula) */
+.hdp-mylist {
+  max-height: 230px; overflow-y: auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+  margin-bottom: 4px;
+}
+.hdp-myitem {
+  padding: 7px 10px; font-size: 12px;
+  color: #374151; cursor: pointer; border-radius: 8px;
+  border: none; background: none; font-family: inherit; text-align: center;
+}
+.hdp-myitem:hover { background: #f3f4f6; }
+.hdp-myitem.sel { background: #ede9fe; color: #7c3aed; font-weight: 600; }
+</style>
+<div class="hdp-pop" id="hubDatePickerPop" role="dialog" aria-modal="false" aria-label="Calendário">
+  <div class="hdp-hdr">
+    <button class="hdp-nav" id="hdpPrev" type="button" aria-label="Mês anterior">‹</button>
+    <button class="hdp-pill" id="hdpLabel" type="button" aria-label="Escolher mês">— <span style="font-size:10px">▾</span></button>
+    <button class="hdp-nav" id="hdpNext" type="button" aria-label="Próximo mês">›</button>
+  </div>
+  <div id="hdpBody"></div>
+</div>
+<script>
+(function setupHubDatePicker() {
+  const MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const DOW = ['D','S','T','Q','Q','S','S'];
+  const pop = document.getElementById('hubDatePickerPop');
+  const body = document.getElementById('hdpBody');
+  const lbl = document.getElementById('hdpLabel');
+  const btnPrev = document.getElementById('hdpPrev');
+  const btnNext = document.getElementById('hdpNext');
+  let state = { y: 0, m: 0, sel: null, onSelect: null, mode: 'days' /* 'days' | 'months' */ };
+
+  function ymd(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function renderDays() {
+    state.mode = 'days';
+    lbl.innerHTML = `${MES[state.m]} ${state.y} <span style="font-size:10px">▾</span>`;
+    btnPrev.style.visibility = '';
+    btnNext.style.visibility = '';
+    const first = new Date(state.y, state.m, 1);
+    const last = new Date(state.y, state.m + 1, 0);
+    const firstDow = first.getDay();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayYmd = ymd(today);
+    let html = '<div class="hdp-grid">';
+    DOW.forEach(d => { html += `<div class="hdp-dh">${d}</div>`; });
+    // Dias do mês anterior (out)
+    const prevLast = new Date(state.y, state.m, 0).getDate();
+    for (let i = firstDow - 1; i >= 0; i--) {
+      html += `<button class="hdp-d out" type="button" disabled>${prevLast - i}</button>`;
+    }
+    // Dias do mês
+    for (let day = 1; day <= last.getDate(); day++) {
+      const d = new Date(state.y, state.m, day);
+      const ds = ymd(d);
+      const cls = ['hdp-d'];
+      if (state.sel === ds) cls.push('sel');
+      else if (todayYmd === ds) cls.push('today');
+      html += `<button class="${cls.join(' ')}" type="button" data-ymd="${ds}">${day}</button>`;
+    }
+    body.innerHTML = html + '</div>';
+    body.querySelectorAll('[data-ymd]').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        state.sel = b.dataset.ymd;
+        if (state.onSelect) state.onSelect(b.dataset.ymd);
+        close();
+      });
+    });
+  }
+
+  function renderMonths() {
+    state.mode = 'months';
+    btnPrev.style.visibility = 'hidden';
+    btnNext.style.visibility = 'hidden';
+    lbl.innerHTML = `${state.y} <span style="font-size:10px">▾</span>`;
+    const cur = `${state.y}-${state.m}`;
+    let html = '<div class="hdp-mylist">';
+    // 2 anos: state.y-1, state.y, state.y+1 — mostra cada mês como item
+    // Mas pra economizar espaço, só ano atual + meses (12 itens). Setas de ano embaixo.
+    for (let m = 0; m < 12; m++) {
+      const sel = (state.y + '-' + m) === cur ? 'sel' : '';
+      html += `<button class="hdp-myitem ${sel}" type="button" data-mth="${m}">${MES[m]}</button>`;
+    }
+    html += '</div>';
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px 0;border-top:0.5px solid #f3f4f6;margin-top:4px;">
+      <button class="hdp-nav" type="button" id="hdpYearPrev" aria-label="Ano anterior">‹</button>
+      <span style="font-size:13px;font-weight:600;color:#111">${state.y}</span>
+      <button class="hdp-nav" type="button" id="hdpYearNext" aria-label="Próximo ano">›</button>
+    </div>`;
+    body.innerHTML = html;
+    body.querySelectorAll('[data-mth]').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        state.m = parseInt(b.dataset.mth, 10);
+        renderDays();
+      });
+    });
+    document.getElementById('hdpYearPrev').addEventListener('click', e => { e.stopPropagation(); state.y--; renderMonths(); });
+    document.getElementById('hdpYearNext').addEventListener('click', e => { e.stopPropagation(); state.y++; renderMonths(); });
+  }
+
+  btnPrev.addEventListener('click', e => {
+    e.stopPropagation();
+    state.m--; if (state.m < 0) { state.m = 11; state.y--; }
+    renderDays();
+  });
+  btnNext.addEventListener('click', e => {
+    e.stopPropagation();
+    state.m++; if (state.m > 11) { state.m = 0; state.y++; }
+    renderDays();
+  });
+  lbl.addEventListener('click', e => {
+    e.stopPropagation();
+    if (state.mode === 'days') renderMonths(); else renderDays();
+  });
+  // Clica fora → fecha
+  document.addEventListener('mousedown', e => {
+    if (!pop.classList.contains('open')) return;
+    if (!pop.contains(e.target) && !e.target.closest('[data-hdp-anchor]')) close();
+  });
+  // Esc → fecha
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && pop.classList.contains('open')) close();
+  });
+
+  function open(opts) {
+    const anchor = opts.anchor;
+    const value = opts.value; // 'yyyy-mm-dd' ou null
+    state.onSelect = opts.onSelect || null;
+    if (value) {
+      const [y,m,d] = value.split('-').map(n => parseInt(n, 10));
+      state.y = y; state.m = m - 1; state.sel = value;
+    } else {
+      const today = new Date();
+      state.y = today.getFullYear(); state.m = today.getMonth();
+      state.sel = null;
+    }
+    renderDays();
+    pop.classList.add('open');
+    // Posicionar abaixo do anchor (ou no centro da tela)
+    if (anchor && anchor.getBoundingClientRect) {
+      const r = anchor.getBoundingClientRect();
+      let top = r.bottom + 6;
+      let left = r.left;
+      // Ajusta pra não sair da viewport
+      const w = pop.offsetWidth || 280;
+      const h = pop.offsetHeight || 320;
+      if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+      if (top + h > window.innerHeight - 8) top = r.top - h - 6;
+      if (left < 8) left = 8;
+      if (top < 8) top = 8;
+      pop.style.top = top + 'px';
+      pop.style.left = left + 'px';
+    } else {
+      pop.style.top = '50%';
+      pop.style.left = '50%';
+      pop.style.transform = 'translate(-50%,-50%)';
+    }
+  }
+  function close() {
+    pop.classList.remove('open');
+    pop.style.transform = '';
+  }
+  window.hubDatePicker = { open, close };
 })();
 </script>
 
