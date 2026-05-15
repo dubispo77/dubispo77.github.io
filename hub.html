@@ -1375,11 +1375,13 @@ table.data-table tr:hover td { background: var(--bg); }
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
 }
 .tdm-leave-mode {
-  background: #fff; border-radius: 10px; padding: 12px 6px; text-align: center;
+  background: #fff; border-radius: 10px; padding: 14px 6px; text-align: center;
 }
-.tdm-leave-mode-emoji { font-size: 26px; }
-.tdm-leave-mode-time { font-size: 17px; color: #dc2626; font-weight: 700; margin-top: 3px; }
-.tdm-leave-mode-travel { font-size: 11px; color: #991b1b; margin-top: 1px; }
+/* Eduardo prefere ícones menores e texto maior */
+.tdm-leave-mode-emoji { font-size: 20px; }
+.tdm-leave-mode-time { font-size: 22px; color: #dc2626; font-weight: 700; margin-top: 6px; line-height: 1; }
+.tdm-leave-mode-travel { font-size: 13px; color: #991b1b; margin-top: 4px; }
+@keyframes tdmSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .tdm-map-cache-info { font-size: 10px; color: #9ca3af; margin-left: auto; align-self: center; }
 
 /* Autocomplete de endereço (Google Places) */
@@ -8887,6 +8889,30 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     });
   }
 
+  // Anexa handler de refresh com feedback visual (spin + "atualizando...")
+  function attachRefreshHandler(container) {
+    const rb = container.querySelector('.tdm-leave-refresh');
+    if (!rb) return;
+    rb.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      // Spin
+      rb.style.animation = 'tdmSpin 0.6s linear infinite';
+      const span = container.querySelector('.tdm-leave-info span');
+      const orig = span ? span.textContent : '';
+      if (span) span.textContent = 'atualizando…';
+      try {
+        await loadTravelTimes(true);
+      } finally {
+        // Não precisamos parar manualmente — loadTravelTimes re-renderiza tudo.
+        // Mas se algo der errado e re-render não acontecer, restauramos:
+        setTimeout(() => {
+          rb.style.animation = '';
+          if (span && span.textContent === 'atualizando…') span.textContent = orig;
+        }, 200);
+      }
+    });
+  }
+
   async function loadTravelTimes(force) {
     // Quando tá no body (modo edição), usa a versão antiga; senão usa a externalizada
     const card = document.getElementById('tdmMapCard');
@@ -8928,18 +8954,43 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const buffer = isBrasi ? 60 : 15; // 1h antes pra Brasileirão, 15min pro resto
       if (currentItem.has_time && currentItem.date_start) {
         const start = new Date(currentItem.date_start);
-        const cards = modes.map(m => {
+        // Caso especial: trajeto = 0 (endereço == casa). Mostra mensagem em vez dos 3 cards.
+        const allZero = ['driving','transit','walking'].every(k => {
+          const r = data[k]; return r && r.minutes === 0;
+        });
+        const someValid = ['driving','transit','walking'].some(k => {
+          const r = data[k]; return r && r.minutes != null;
+        });
+        const cards = allZero ? [] : modes.map(m => {
           const r = data[m.key];
-          if (!r || r.minutes == null) return null;
-          const leaveAt = new Date(start.getTime() - (r.minutes + buffer) * 60000);
-          const hr = `${String(leaveAt.getHours()).padStart(2,'0')}:${String(leaveAt.getMinutes()).padStart(2,'0')}`;
-          return `<div class="tdm-leave-mode">
+          // Renderiza card mesmo se minutes for null — usa "—"
+          const mins = (r && r.minutes != null) ? r.minutes : null;
+          const leaveAt = mins != null ? new Date(start.getTime() - (mins + buffer) * 60000) : null;
+          const hr = leaveAt ? `${String(leaveAt.getHours()).padStart(2,'0')}:${String(leaveAt.getMinutes()).padStart(2,'0')}` : '—';
+          const travel = mins != null ? `${mins}min` : 'sem rota';
+          return `<div class="tdm-leave-mode" ${mins == null ? 'style="opacity:0.45"' : ''}>
             <div class="tdm-leave-mode-emoji">${m.emoji}</div>
             <div class="tdm-leave-mode-time">${hr}</div>
-            <div class="tdm-leave-mode-travel">${r.minutes}min</div>
+            <div class="tdm-leave-mode-travel">${travel}</div>
           </div>`;
-        }).filter(Boolean);
-        if (cards.length) {
+        });
+        if (allZero) {
+          const cacheTxt = data.cached ? `atualizado há ${Math.round(data.age_seconds/60)} min` : 'atualizado agora';
+          const boxHtml = `
+            <div class="tdm-leave-header">
+              <div class="tdm-leave-label">📍 ENDEREÇO É AQUI</div>
+              <div class="tdm-leave-info">
+                <span>${cacheTxt}</span>
+                <button class="tdm-leave-refresh" type="button" title="Atualizar" aria-label="Atualizar">↻</button>
+              </div>
+            </div>
+            <div style="font-size:13px;color:#7f1d1d;padding:8px 4px;">Esse local é o mesmo endereço cadastrado como sua casa — não precisa sair.</div>`;
+          if (leaveBox) {
+            leaveBox.innerHTML = boxHtml;
+            leaveSection.style.display = 'block';
+            attachRefreshHandler(leaveBox);
+          }
+        } else if (someValid) {
           const cacheTxt = data.cached ? `atualizado há ${Math.round(data.age_seconds/60)} min` : 'atualizado agora';
           const labelTxt = isBrasi ? '⏰ SAIR DE CASA ÀS (1h antes)' : '⏰ SAIR DE CASA ÀS';
           const boxHtml = `
@@ -8951,12 +9002,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
               </div>
             </div>
             <div class="tdm-leave-grid">${cards.join('')}</div>`;
-          // Escreve no container externalizado (modo view) e/ou no antigo (modo edição)
           if (leaveBox) {
             leaveBox.innerHTML = boxHtml;
             leaveSection.style.display = 'block';
-            const rb = leaveBox.querySelector('.tdm-leave-refresh');
-            if (rb) rb.addEventListener('click', () => loadTravelTimes(true));
+            attachRefreshHandler(leaveBox);
           }
           if (leave) {
             leave.innerHTML = `<div class="tdm-leave-box">${boxHtml}</div>`;
