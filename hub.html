@@ -1160,23 +1160,68 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-brasi-dropdown-item:hover { background: #f3f4f6; }
 .tdm-brasi-dropdown-item img { width: 22px; height: 22px; object-fit: contain; }
 .tdm-brasi-dropdown-item.selected { background: #ecfdf5; font-weight: 700; }
-.tdm-head { padding: 14px 22px 18px !important; }
+.tdm-head { padding: 12px 22px 14px !important; }
 .tdm-area-pill {
   display: inline-flex; align-items: center; gap: 6px;
   background: rgba(255,255,255,0.18); color: #fff; border: none;
-  font-size: 13px; font-weight: 700; padding: 8px 14px;
+  font-size: 13px; font-weight: 700; padding: 6px 12px;
   border-radius: 999px; cursor: pointer; font-family: inherit;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .tdm-area-pill:hover { background: rgba(255,255,255,0.28); }
-/* When — data em cima + hora MUITO grande embaixo, igual card-padrao */
-.tdm-when-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 2px; position: relative; }
-.tdm-when-date-btn {
-  background: none; border: none; color: #fff; padding: 0;
-  font-size: 13px; font-weight: 600; font-family: inherit;
-  opacity: 0.9; cursor: pointer; text-align: left;
+/* When — "página de calendário" + hora gigante ao lado */
+.tdm-when-row { display: flex; flex-direction: row; align-items: center; gap: 14px; margin-top: 6px; position: relative; }
+/* Quadradinho de calendário (substitui o botão de data) */
+.tdm-when-date-card {
+  background: #fff;
+  color: #991b1b;
+  border: none;
+  border-radius: 10px;
+  width: 88px;
+  text-align: center;
+  overflow: hidden;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: transform .15s;
 }
-.tdm-when-date-btn:hover { opacity: 1; text-decoration: underline; }
+.tdm-when-date-card:hover { transform: scale(1.03); }
+.tdm-wdc-month {
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  color: #dc2626;
+  padding: 4px 0 2px;
+}
+.tdm-wdc-day {
+  background: #f9fafb;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.05;
+  padding: 4px 0;
+  color: #111;
+}
+.tdm-wdc-dow {
+  background: #f9fafb;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 0 0 5px;
+  text-transform: lowercase;
+}
+/* Adapta a cor do mês conforme área (cor mais escura sobre o quadradinho branco) */
+.tdm-head.area-pessoal .tdm-wdc-month       { color: #991b1b; }
+.tdm-head.area-trabalho .tdm-wdc-month      { color: #1e40af; }
+.tdm-head.area-saude .tdm-wdc-month         { color: #15803d; }
+.tdm-head.area-administracao .tdm-wdc-month { color: #5b21b6; }
+.tdm-head.area-casa .tdm-wdc-month          { color: #92400e; }
+.tdm-head.area-eventos .tdm-wdc-month       { color: #9a3412; }
+.tdm-head.area-brasileirao .tdm-wdc-month   { color: #064e3b; }
 /* Input de data: tem que estar renderizado pro showPicker() funcionar.
    Truque: posição absoluta + opacidade 0 + tamanho mínimo. */
 .tdm-when-date-input {
@@ -8428,7 +8473,11 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button>
       <div class="tdm-area-dropdown" id="tdmAreaDropdown" style="display:none"></div>
       <div class="tdm-when-row">
-        <button class="tdm-when-date-btn" id="tdmWhenDateBtn" type="button">—</button>
+        <button class="tdm-when-date-card" id="tdmWhenDateBtn" type="button">
+          <span class="tdm-wdc-month" id="tdmWdcMonth">—</span>
+          <span class="tdm-wdc-day" id="tdmWdcDay">—</span>
+          <span class="tdm-wdc-dow" id="tdmWdcDow">—</span>
+        </button>
         <input type="date" class="tdm-when-date-input" id="tdmWhenDateInput">
         <input type="time" class="tdm-when-time-input" id="tdmWhenTimeInput" style="display:none">
         <span class="tdm-when-time-label" id="tdmWhenTimeLabel"></span>
@@ -9040,6 +9089,22 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
     return `${DOW[d.getDay()]}, ${d.getDate()} de ${MES[d.getMonth()]}`;
   }
+  // Preenche o quadradinho de calendário (mês por extenso, dia grande, dia da semana por extenso)
+  function fillDateCard(d) {
+    const mEl = document.getElementById('tdmWdcMonth');
+    const dEl = document.getElementById('tdmWdcDay');
+    const wEl = document.getElementById('tdmWdcDow');
+    if (!mEl || !dEl || !wEl) return;
+    if (!d) {
+      mEl.textContent = '—'; dEl.textContent = '+'; wEl.textContent = 'sem data';
+      return;
+    }
+    const DOW = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+    const MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    mEl.textContent = MES[d.getMonth()];
+    dEl.textContent = d.getDate();
+    wEl.textContent = DOW[d.getDay()];
+  }
   function fmtTimeHHMM(iso) {
     const d = new Date(iso);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -9146,7 +9211,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const timeLabel = document.getElementById('tdmWhenTimeLabel');
     if (item.date_start) {
       const ds = new Date(item.date_start);
-      dateBtn.textContent = fmtDateLong(item.date_start);
+      fillDateCard(ds);
       dateInput.value = ymdLocal(ds);
       if (item.has_time) {
         timeInput.value = fmtTimeHHMM(item.date_start);
@@ -9158,7 +9223,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         timeLabel.textContent = '+ hora';
       }
     } else {
-      dateBtn.textContent = '+ data';
+      fillDateCard(null);
       timeInput.style.display = 'none';
       timeLabel.style.display = 'none';
     }
@@ -9253,7 +9318,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     currentItem.date_start = newStart.toISOString();
     currentItem.date_end = newEnd ? newEnd.toISOString() : null;
     currentItem.has_time = hasTime;
-    dateBtn.textContent = fmtDateLong(newStart.toISOString());
+    fillDateCard(newStart);
     // Salva no banco
     await sb.from('items').update({
       date_start: currentItem.date_start,
