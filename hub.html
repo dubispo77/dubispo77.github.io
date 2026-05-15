@@ -6605,11 +6605,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     itemsCache = Object.values(map);
 
     // ── Auto-mark Santos games passados como concluídos (regra Eduardo) ──
+    // Usa helpers do setupCalendar via window (IIFE separada). Se não tiver carregado ainda, pula.
+    const _strip = window.hubStripTagPrefix || (s => s);
+    const _expand = window.hubExpandTeamCodes || (s => s);
+    const _isSan = window.hubIsSantosGame || (() => false);
     const now = Date.now();
     const santosToDone = itemsCache.filter(it => {
       if (it.status === 'done') return false;
-      const expanded = expandTeamCodes(stripTagPrefix(it.title || ''));
-      if (!isSantosGame(expanded)) return false;
+      const expanded = _expand(_strip(it.title || ''));
+      if (!_isSan(expanded)) return false;
       const start = it.date_start ? new Date(it.date_start).getTime() : 0;
       return start > 0 && start < now;
     });
@@ -7091,10 +7095,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
   // Ordem dentro do dia: order_manual (se houver) → timed primeiro → hora crescente
   // Strip prefixo de tag/código (ex: "[T-rec-por] Mudar capa OG" → "Mudar capa OG")
+  // Exposto global pra outras IIFEs (setupAgenda etc) reusarem
   function stripTagPrefix(title) {
     if (!title) return title;
     return title.replace(/^\[[^\]]+\]\s*/, '');
   }
+  window.hubStripTagPrefix = stripTagPrefix;
   // Mapa siglas → nomes pra times do Brasileirão e adversários comuns (Copa do Brasil/Sul-Am)
   const TEAM_ABBREVS = {
     // Série A 2026 + reservas conhecidas
@@ -7131,6 +7137,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (!title) return false;
     return /\b(SAN|Santos)\b/.test(title);
   }
+  window.hubExpandTeamCodes = expandTeamCodes;
+  window.hubIsSantosGame = isSantosGame;
   function sortItemsForDay(items) {
     return items.slice().sort((a, b) => {
       // 1. Items completos sempre por último (regra Eduardo)
