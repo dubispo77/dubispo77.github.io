@@ -8644,8 +8644,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       html += field('Anexo', 'attachment', inner, { editable: editMode });
     }
 
-    // Sub do Roadmap — só em editMode ou se já estiver setado
-    if (editMode || i.parent_id) {
+    // Sub do Roadmap — escondido do body (Eduardo se guia pela pílula em cima).
+    // Mantém só em editMode caso ele queira reatribuir manualmente.
+    if (editMode) {
       const subs = (window.roadmapSubs || []).filter(s => !i.area || s.area === i.area);
       // Agrupa por path (depth visual via indent)
       const currentSub = (window.roadmapSubs || []).find(s => s.id === i.parent_id);
