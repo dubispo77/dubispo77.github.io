@@ -936,6 +936,9 @@ table.data-table tr:hover td { background: var(--bg); }
 /* Item completo: opaco e fica no fim do dia (via JS sort por order/status) */
 .calM-ev.is-done { opacity: 0.4; }
 .calM-ev.is-done:hover { opacity: 0.7; }
+/* Regra Eduardo: cards do Santos completos NÃO desbotam — escurecem 30% (filter brightness) */
+.calM-ev.proj-santos.is-done { opacity: 1; filter: brightness(0.7); }
+.calM-ev.proj-santos.is-done:hover { filter: brightness(0.85); }
 .calM-ev::before { display: none; }
 .calW-card::before { display: none; }
 /* Tooltip de ações no calendário: opção 16 — cápsulas brancas circulares separadas
@@ -1576,7 +1579,7 @@ table.data-table tr:hover td { background: var(--bg); }
             <button class="cal-nav-btn cal-today-btn" id="calToday" type="button">Hoje</button>
             <button class="cal-nav-btn" id="calNext" type="button" aria-label="Próximo">›</button>
             <span class="cal-label" id="calLabel">abril 2026</span>
-            <button class="cal-add-btn" id="calAddBtn" type="button" title="Adicionar item" aria-label="Adicionar item">＋</button>
+            <button class="cal-add-btn" id="calAddBtn" type="button" title="Adicionar item" aria-label="Adicionar item" onclick="window.__hubOpenAddForm && window.__hubOpenAddForm()">＋</button>
           </div>
         </div>
       </div>
@@ -6600,6 +6603,24 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const map = {};
     [...(weekItems || []), ...(billItems || []), ...(overdueItems || [])].forEach(i => { map[i.id] = i; });
     itemsCache = Object.values(map);
+
+    // ── Auto-mark Santos games passados como concluídos (regra Eduardo) ──
+    const now = Date.now();
+    const santosToDone = itemsCache.filter(it => {
+      if (it.status === 'done') return false;
+      const expanded = expandTeamCodes(stripTagPrefix(it.title || ''));
+      if (!isSantosGame(expanded)) return false;
+      const start = it.date_start ? new Date(it.date_start).getTime() : 0;
+      return start > 0 && start < now;
+    });
+    if (santosToDone.length) {
+      const ids = santosToDone.map(i => i.id);
+      // Update local immediately (UI já reflete)
+      santosToDone.forEach(i => { i.status = 'done'; });
+      // Persist no banco em background — não bloqueia render
+      sb.from('items').update({ status: 'done', done_at: new Date().toISOString() }).in('id', ids)
+        .then(({ error }) => { if (error) console.warn('[santos] auto-done falhou', error); });
+    }
   }
 
   // ── Build week nav ──
@@ -6799,6 +6820,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
 
     // ── Modal: transforma o form em overlay centralizado ──
+    // Expõe handlers ao window pra garantir que onclick inline também funciona
+    window.__hubOpenAddForm = () => openAddForm();
+    window.__hubCloseAddForm = () => closeAddForm();
     function ensureBackdrop() {
       let b = document.getElementById('aafBackdrop');
       if (b) return b;
@@ -7071,6 +7095,42 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (!title) return title;
     return title.replace(/^\[[^\]]+\]\s*/, '');
   }
+  // Mapa siglas → nomes pra times do Brasileirão e adversários comuns (Copa do Brasil/Sul-Am)
+  const TEAM_ABBREVS = {
+    // Série A 2026 + reservas conhecidas
+    'SAN': 'Santos', 'PAL': 'Palmeiras', 'COR': 'Corinthians', 'SAO': 'São Paulo', 'SPO': 'São Paulo',
+    'FLA': 'Flamengo', 'FLU': 'Fluminense', 'BOT': 'Botafogo', 'VAS': 'Vasco',
+    'GRE': 'Grêmio', 'INT': 'Internacional',
+    'CRU': 'Cruzeiro', 'CAM': 'Atlético-MG', 'AME': 'América-MG',
+    'BAH': 'Bahia', 'VIT': 'Vitória',
+    'BRA': 'Bragantino', 'RBB': 'Bragantino',
+    'CFC': 'Coritiba', 'CAP': 'Athletico-PR', 'ATH': 'Athletico-PR',
+    'CHA': 'Chapecoense',
+    'MIR': 'Mirassol', 'REM': 'Remo',
+    'FOR': 'Fortaleza', 'CEA': 'Ceará',
+    'JUV': 'Juventude', 'GOI': 'Goiás',
+    // Adversários comuns de Copa do Brasil / Sul-Americana
+    'NAU': 'Náutico', 'CRB': 'CRB', 'PAY': 'Paysandu', 'OPE': 'Operário',
+    'AVA': 'Avaí', 'PON': 'Ponte Preta', 'GUA': 'Guarani',
+    'CLU': 'Clube', 'DEP': 'Deportivo', 'SLZ': 'Sampaio Corrêa',
+  };
+  // Expande "PAL x SAN" → "Palmeiras x Santos" preservando ordem e separadores
+  function expandTeamCodes(title) {
+    if (!title) return title;
+    // Aceita "X x Y", "X vs Y", "X × Y" com 2-4 letras maiúsculas
+    return title.replace(/\b([A-Z]{2,4})\b(\s*[x×]\s*)\b([A-Z]{2,4})\b/g, (m, a, sep, b) => {
+      const nA = TEAM_ABBREVS[a] || a;
+      const nB = TEAM_ABBREVS[b] || b;
+      // Só substitui se ao menos um for reconhecido (evita falso positivo em texto comum)
+      if (nA === a && nB === b) return m;
+      return `${nA}${sep}${nB}`;
+    });
+  }
+  // Detecta jogo do Santos (pelo título, depois de expansão)
+  function isSantosGame(title) {
+    if (!title) return false;
+    return /\b(SAN|Santos)\b/.test(title);
+  }
   function sortItemsForDay(items) {
     return items.slice().sort((a, b) => {
       // 1. Items completos sempre por último (regra Eduardo)
@@ -7172,19 +7232,29 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         }
       }
     }
-    const isDone = it.status === 'done';
-    const isOverdue = !isDone && (window.isOverdue ? window.isOverdue(it.date_start, it.status) : false);
+    // Título já com prefixo strippado + abreviações expandidas (Santos rule #1)
+    const expandedTitle = expandTeamCodes(stripTagPrefix(it.title));
+    const itIsSantos = isSantosGame(expandedTitle);
+    // Santos rule #3: auto-done quando o jogo já passou
+    const now = Date.now();
+    const startMs = it.date_start ? new Date(it.date_start).getTime() : 0;
+    const endMs = it.date_end ? new Date(it.date_end).getTime() : startMs;
+    const santosAutoDone = itIsSantos && endMs > 0 && endMs < now;
+    const isDone = it.status === 'done' || santosAutoDone;
+    // Santos rule #2: NUNCA badge de atrasado
+    const isOverdue = !isDone && !itIsSantos && (window.isOverdue ? window.isOverdue(it.date_start, it.status) : false);
     const isRecurring = !!it.recurrence;
     // Project token: usa nome do project (slug) se conhecido, senão a área. Ex: 'santos' pra Santos F.C.
     const projInfo = it.project_id && projectsMap[it.project_id] ? projectsMap[it.project_id] : null;
     let projectToken = it.area || 'pessoal';
     if (projInfo && /santos/i.test(projInfo.name || '')) projectToken = 'santos';
+    if (itIsSantos) projectToken = 'santos'; // se o título for jogo do Santos, força projectToken
     return {
       id: it.id,
       date: ymd(d),
       has_time: it.has_time,
       hr,
-      title: stripTagPrefix(it.title), // sem [T-rec-por] etc — preferência Eduardo
+      title: expandedTitle, // sem [tag] + siglas de time expandidas
       project: projectToken,
       status: it.status,
       is_done: isDone,
