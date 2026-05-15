@@ -1579,7 +1579,7 @@ table.data-table tr:hover td { background: var(--bg); }
             <button class="cal-nav-btn cal-today-btn" id="calToday" type="button">Hoje</button>
             <button class="cal-nav-btn" id="calNext" type="button" aria-label="Próximo">›</button>
             <span class="cal-label" id="calLabel">abril 2026</span>
-            <button class="cal-add-btn" id="calAddBtn" type="button" title="Adicionar item" aria-label="Adicionar item" onclick="window.__hubOpenAddForm && window.__hubOpenAddForm()">＋</button>
+            <button class="cal-add-btn" id="hubNewAddBtn" type="button" title="Adicionar item" aria-label="Adicionar item" onclick="window.hubQuickAddOpen()">＋</button>
           </div>
         </div>
       </div>
@@ -7118,7 +7118,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // Adversários comuns de Copa do Brasil / Sul-Americana
     'NAU': 'Náutico', 'CRB': 'CRB', 'PAY': 'Paysandu', 'OPE': 'Operário',
     'AVA': 'Avaí', 'PON': 'Ponte Preta', 'GUA': 'Guarani',
-    'CLU': 'Clube', 'DEP': 'Deportivo', 'SLZ': 'Sampaio Corrêa',
+    // Sul-Americana 2026 Grupo D do Santos (confirmados via ogol.com em 2026-05-15)
+    'SLZ': 'San Lorenzo',     // Argentina
+    'DEP': 'Deportivo Cuenca', // Equador
+    'CLU': 'Recoleta',         // Paraguai (Club Sportivo Recoleta)
   };
   // Expande "PAL x SAN" → "Palmeiras x Santos" preservando ordem e separadores
   function expandTeamCodes(title) {
@@ -9728,6 +9731,116 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   document.addEventListener('touchmove', () => {
     if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
   }, { passive: true });
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     QUICK-ADD: botão "+" da agenda totalmente novo, independente de IIFEs
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function setupHubQuickAdd() {
+  function $(id) { return document.getElementById(id); }
+  function getSb() { return window.sbClient; }
+
+  function buildModal() {
+    if ($('hubQuickAdd')) return $('hubQuickAdd');
+    const wrap = document.createElement('div');
+    wrap.id = 'hubQuickAddBackdrop';
+    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9998;display:none;align-items:center;justify-content:center;';
+    wrap.innerHTML = `
+      <div id="hubQuickAdd" style="background:#fff;color:#111;border-radius:14px;width:min(520px,calc(100vw - 32px));padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.32);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h3 style="margin:0;font-size:17px;font-weight:700">Novo item</h3>
+          <button id="hqaClose" type="button" style="background:#f3f4f6;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:#6b7280">✕</button>
+        </div>
+        <input id="hqaTitle" type="text" placeholder="O que?" style="width:100%;padding:10px 12px;border:1px solid #d4d4d8;border-radius:8px;font-size:14px;margin-bottom:10px;font-family:inherit;outline:none">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <select id="hqaType" style="flex:1;padding:10px;border:1px solid #d4d4d8;border-radius:8px;font-family:inherit">
+            <option value="task">✓ Tarefa</option>
+            <option value="event">📅 Evento</option>
+            <option value="bill">💸 Conta</option>
+            <option value="note">📝 Nota</option>
+          </select>
+          <select id="hqaArea" style="flex:1;padding:10px;border:1px solid #d4d4d8;border-radius:8px;font-family:inherit">
+            <option value="pessoal">🙋 Pessoal</option>
+            <option value="trabalho">💼 Trabalho</option>
+            <option value="saude">🏥 Saúde</option>
+            <option value="administracao">💰 Administração</option>
+            <option value="casa">🏡 Casa</option>
+            <option value="eventos">🎟️ Eventos</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <input id="hqaDate" type="date" style="flex:1;padding:10px;border:1px solid #d4d4d8;border-radius:8px;font-family:inherit">
+          <input id="hqaTime" type="time" style="flex:1;padding:10px;border:1px solid #d4d4d8;border-radius:8px;font-family:inherit" placeholder="Hora">
+        </div>
+        <div id="hqaError" style="color:#dc2626;font-size:12px;margin-bottom:10px;display:none"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button id="hqaCancel" type="button" style="padding:10px 18px;border:1px solid #d4d4d8;background:#fff;border-radius:8px;cursor:pointer;font-family:inherit;color:#374151">Cancelar</button>
+          <button id="hqaSave" type="button" style="padding:10px 18px;border:none;background:#7c3aed;color:#fff;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600">Salvar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    // Listeners
+    wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
+    $('hqaClose').addEventListener('click', close);
+    $('hqaCancel').addEventListener('click', close);
+    $('hqaSave').addEventListener('click', save);
+    $('hqaTitle').addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && wrap.style.display === 'flex') close();
+    });
+    return $('hubQuickAdd');
+  }
+
+  function close() {
+    const bd = $('hubQuickAddBackdrop'); if (bd) bd.style.display = 'none';
+    const err = $('hqaError'); if (err) { err.style.display = 'none'; err.textContent = ''; }
+  }
+
+  async function save() {
+    const sb = getSb();
+    if (!sb) { showError('Conexão Supabase não inicializada'); return; }
+    const title = $('hqaTitle').value.trim();
+    if (!title) { $('hqaTitle').focus(); return; }
+    const type = $('hqaType').value;
+    const area = $('hqaArea').value;
+    const dateStr = $('hqaDate').value;
+    const timeStr = $('hqaTime').value;
+    const hasTime = !!timeStr;
+    let date_start = null;
+    if (dateStr) {
+      date_start = hasTime
+        ? new Date(`${dateStr}T${timeStr}:00`).toISOString()
+        : new Date(`${dateStr}T00:00:00`).toISOString();
+    }
+    const payload = { title, type, area, date_start, has_time: hasTime, status: 'planned' };
+    $('hqaSave').disabled = true;
+    const { data, error } = await sb.from('items').insert(payload).select().single();
+    $('hqaSave').disabled = false;
+    if (error) { showError(error.message); return; }
+    // Sync GCal pra eventos
+    if (type === 'event' && data && window.syncToGcal) window.syncToGcal('update', data.id);
+    close();
+  }
+
+  function showError(msg) {
+    const err = $('hqaError');
+    if (err) { err.textContent = msg; err.style.display = 'block'; }
+  }
+
+  // API pública
+  window.hubQuickAddOpen = function() {
+    const m = buildModal();
+    const bd = $('hubQuickAddBackdrop');
+    bd.style.display = 'flex';
+    // Reset valores
+    $('hqaTitle').value = '';
+    $('hqaTime').value = '';
+    $('hqaError').style.display = 'none';
+    $('hqaDate').value = new Date().toISOString().slice(0, 10);
+    setTimeout(() => $('hqaTitle').focus(), 60);
+  };
 })();
 </script>
 
