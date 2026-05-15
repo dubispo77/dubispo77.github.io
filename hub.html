@@ -9018,17 +9018,29 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     return `${a.emoji} ${a.name}${subTxt} ▾`;
   }
 
-  // Parse "Nome — Endereço" ou "Nome · Endereço" pra separar nome e endereço
+  // Parse "Nome — Endereço" ou "Nome · Endereço" pra separar nome e endereço.
+  // Pra endereço só (sem nome de estabelecimento): "Rua, Número, Bairro, Cidade"
+  //   → linha 1: "Rua, Número" (mantém junto)
+  //   → linha 2: "Bairro, Cidade"
   function parseLocal(addr) {
     if (!addr) return { name: '', addr: '' };
-    const seps = [' — ', ' · ', ' - ', ', '];
+    // 1. Separadores explícitos de nome→endereço (Nome — Endereço)
+    const seps = [' — ', ' · ', ' - '];
     for (const s of seps) {
       const idx = addr.indexOf(s);
       if (idx > 0 && idx < 60) {
         return { name: addr.slice(0, idx).trim(), addr: addr.slice(idx + s.length).trim() };
       }
     }
-    return { name: '', addr: addr };
+    // 2. Sem separador explícito: junta rua + número (até a 2ª vírgula) na 1ª linha
+    const firstComma = addr.indexOf(',');
+    if (firstComma >= 0) {
+      const secondComma = addr.indexOf(',', firstComma + 1);
+      if (secondComma > 0) {
+        return { name: addr.slice(0, secondComma).trim(), addr: addr.slice(secondComma + 1).trim() };
+      }
+    }
+    return { name: addr, addr: '' };
   }
 
   // Renderiza a Local row externa (fora do body)
@@ -9743,42 +9755,94 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   function $(id) { return document.getElementById(id); }
   function getSb() { return window.sbClient; }
 
+  // Áreas (mesmo conjunto do popup do card)
+  const QA_AREAS = [
+    { slug: 'pessoal',       name: 'Pessoal',       emoji: '🙋' },
+    { slug: 'trabalho',      name: 'Trabalho',      emoji: '💼' },
+    { slug: 'saude',         name: 'Saúde',         emoji: '🏥' },
+    { slug: 'administracao', name: 'Administração', emoji: '💰' },
+    { slug: 'casa',          name: 'Casa',          emoji: '🏡' },
+    { slug: 'eventos',       name: 'Eventos',       emoji: '🎟️' },
+  ];
+  const MESES_LONG = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  // Estado do modal
+  let qaSelDate = new Date();           // dia selecionado
+  let qaViewYear  = new Date().getFullYear();
+  let qaViewMonth = new Date().getMonth();
+  let qaArea = 'pessoal';
+  let qaParentId = null;
+  let qaExpandedAreas = new Set();   // áreas expandidas no dropdown
+  let qaExpandedSubs  = new Set();   // subs expandidos no dropdown
+  let qaAddrSession = null;
+  let qaPendingGeo = null;
+
   function buildModal() {
     if ($('hubQuickAdd')) return $('hubQuickAdd');
     const wrap = document.createElement('div');
     wrap.id = 'hubQuickAddBackdrop';
-    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9998;display:none;align-items:center;justify-content:center;';
+    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9998;display:none;align-items:center;justify-content:center;';
     wrap.innerHTML = `
-      <div id="hubQuickAdd" style="background:#fff;color:#111;border-radius:14px;width:min(520px,calc(100vw - 32px));padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.32);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <h3 style="margin:0;font-size:17px;font-weight:700">Novo item</h3>
-          <button id="hqaClose" type="button" style="background:#f3f4f6;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:#6b7280">✕</button>
+      <div id="hubQuickAdd" style="background:#fff;color:#111;border-radius:14px;width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 60px);overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.32);position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:0.5px solid #f3f4f6;">
+          <h3 style="margin:0;font-size:17px;font-weight:600;color:#111;">Novo item</h3>
+          <button id="hqaClose" type="button" style="background:#f3f4f6;border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;color:#6b7280;">✕</button>
         </div>
-        <input id="hqaTitle" type="text" placeholder="O que?" style="width:100%;padding:10px 12px;border:1px solid #d4d4d8;border-radius:8px;font-size:14px;margin-bottom:10px;font-family:inherit;outline:none">
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <select id="hqaType" style="flex:1;padding:10px;border:1px solid #d4d4d8;border-radius:8px;font-family:inherit">
-            <option value="task">✓ Tarefa</option>
-            <option value="event">📅 Evento</option>
-            <option value="bill">💸 Conta</option>
-            <option value="note">📝 Nota</option>
-          </select>
-          <select id="hqaArea" style="flex:1;padding:10px;border:1px solid #d4d4d8;border-radius:8px;font-family:inherit">
-            <option value="pessoal">🙋 Pessoal</option>
-            <option value="trabalho">💼 Trabalho</option>
-            <option value="saude">🏥 Saúde</option>
-            <option value="administracao">💰 Administração</option>
-            <option value="casa">🏡 Casa</option>
-            <option value="eventos">🎟️ Eventos</option>
-          </select>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:14px">
-          <input id="hqaDate" type="date" style="flex:1;padding:10px;border:1px solid #d4d4d8;border-radius:8px;font-family:inherit">
-          <input id="hqaTime" type="time" style="flex:1;padding:10px;border:1px solid #d4d4d8;border-radius:8px;font-family:inherit" placeholder="Hora">
-        </div>
-        <div id="hqaError" style="color:#dc2626;font-size:12px;margin-bottom:10px;display:none"></div>
-        <div style="display:flex;justify-content:flex-end;gap:8px">
-          <button id="hqaCancel" type="button" style="padding:10px 18px;border:1px solid #d4d4d8;background:#fff;border-radius:8px;cursor:pointer;font-family:inherit;color:#374151">Cancelar</button>
-          <button id="hqaSave" type="button" style="padding:10px 18px;border:none;background:#7c3aed;color:#fff;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600">Salvar</button>
+        <div style="display:grid;grid-template-columns:240px 1fr;">
+          <!-- ESQUERDA: mini-calendário + hora + duração -->
+          <div style="padding:14px;border-right:0.5px solid #f3f4f6;background:#fafafb;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <button id="hqaPrevMonth" type="button" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:18px;width:24px;height:24px;border-radius:4px;">‹</button>
+              <span id="hqaMonthLabel" style="font-size:12px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.04em;"></span>
+              <button id="hqaNextMonth" type="button" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:18px;width:24px;height:24px;border-radius:4px;">›</button>
+            </div>
+            <div id="hqaCalendar" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:11px;"></div>
+
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+              <div>
+                <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Hora</div>
+                <input id="hqaTime" type="time" style="width:100%;padding:8px 10px;border:0.5px solid #d4d4d8;border-radius:8px;font-family:inherit;font-size:15px;">
+              </div>
+              <div>
+                <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Duração</div>
+                <select id="hqaDuration" style="width:100%;padding:8px 10px;border:0.5px solid #d4d4d8;border-radius:8px;font-family:inherit;font-size:14px;background:#fff;">
+                  <option value="">— sem duração —</option>
+                  <option value="15">15 min</option>
+                  <option value="30">30 min</option>
+                  <option value="45">45 min</option>
+                  <option value="60" selected>1h</option>
+                  <option value="90">1h30</option>
+                  <option value="120">2h</option>
+                  <option value="180">3h</option>
+                  <option value="240">4h</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- DIREITA: tipo, título, área (dropdown colapsável), local, notas -->
+          <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:8px;align-items:center;position:relative;">
+              <select id="hqaType" style="flex:0 0 110px;padding:8px 10px;border:0.5px solid #d4d4d8;border-radius:8px;font-family:inherit;background:#fff;font-size:13px;">
+                <option value="task">✓ Tarefa</option>
+                <option value="event">📅 Evento</option>
+                <option value="bill">💸 Conta</option>
+                <option value="note">📝 Nota</option>
+              </select>
+              <button id="hqaAreaPill" type="button" style="flex:1;padding:8px 12px;border:0.5px solid #d4d4d8;border-radius:8px;background:#fff;cursor:pointer;font-family:inherit;font-size:13px;text-align:left;color:#374151;">🙋 Pessoal ▾</button>
+              <div id="hqaAreaDropdown" style="display:none;position:absolute;top:100%;left:118px;right:0;margin-top:4px;background:#fff;border:0.5px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:340px;overflow-y:auto;z-index:50;padding:6px;"></div>
+            </div>
+            <input id="hqaTitle" type="text" placeholder="O que?" style="width:100%;padding:10px 12px;border:0.5px solid #d4d4d8;border-radius:8px;font-size:15px;font-family:inherit;outline:none;font-weight:500;">
+            <div style="position:relative;">
+              <input id="hqaAddr" type="text" autocomplete="off" placeholder="Local (digite e escolha)..." style="width:100%;padding:10px 12px;border:0.5px solid #d4d4d8;border-radius:8px;font-size:13px;font-family:inherit;outline:none;">
+              <div id="hqaAddrSuggest" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:2px;background:#fff;border:0.5px solid #d4d4d8;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:40;max-height:200px;overflow-y:auto;"></div>
+            </div>
+            <textarea id="hqaNotes" rows="3" placeholder="Notas..." style="width:100%;padding:10px 12px;border:0.5px solid #d4d4d8;border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;outline:none;"></textarea>
+            <div id="hqaError" style="color:#dc2626;font-size:12px;display:none;"></div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:auto;">
+              <button id="hqaCancel" type="button" style="padding:9px 16px;border:0.5px solid #d4d4d8;background:#fff;border-radius:8px;cursor:pointer;font-family:inherit;color:#374151;font-size:13px;">Cancelar</button>
+              <button id="hqaSave" type="button" style="padding:9px 18px;border:none;background:#7c3aed;color:#fff;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;">Criar</button>
+            </div>
+          </div>
         </div>
       </div>`;
     document.body.appendChild(wrap);
@@ -9787,11 +9851,231 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     $('hqaClose').addEventListener('click', close);
     $('hqaCancel').addEventListener('click', close);
     $('hqaSave').addEventListener('click', save);
-    $('hqaTitle').addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+    $('hqaTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save(); });
+    $('hqaPrevMonth').addEventListener('click', () => navMonth(-1));
+    $('hqaNextMonth').addEventListener('click', () => navMonth(1));
+    $('hqaAreaPill').addEventListener('click', toggleAreaDropdown);
+    $('hqaAddr').addEventListener('input', onAddrInput);
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && wrap.style.display === 'flex') close();
     });
+    // Click fora do dropdown fecha
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#hqaAreaPill') && !e.target.closest('#hqaAreaDropdown')) {
+        const dd = $('hqaAreaDropdown'); if (dd) dd.style.display = 'none';
+      }
+      if (!e.target.closest('#hqaAddr') && !e.target.closest('#hqaAddrSuggest')) {
+        const s = $('hqaAddrSuggest'); if (s) s.style.display = 'none';
+      }
+    });
     return $('hubQuickAdd');
+  }
+
+  function renderCalendar() {
+    const cal = $('hqaCalendar');
+    const lbl = $('hqaMonthLabel');
+    if (!cal || !lbl) return;
+    lbl.textContent = `${MESES_LONG[qaViewMonth]} ${qaViewYear}`;
+    const first = new Date(qaViewYear, qaViewMonth, 1);
+    const last = new Date(qaViewYear, qaViewMonth + 1, 0);
+    const firstDow = first.getDay(); // 0=dom
+    const daysInMonth = last.getDate();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const sel = new Date(qaSelDate); sel.setHours(0,0,0,0);
+    let html = '';
+    ['D','S','T','Q','Q','S','S'].forEach(d => {
+      html += `<div style="font-size:9px;color:#9ca3af;text-align:center;font-weight:600;">${d}</div>`;
+    });
+    for (let i = 0; i < firstDow; i++) html += '<div></div>';
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(qaViewYear, qaViewMonth, day);
+      const isSel = d.getTime() === sel.getTime();
+      const isToday = d.getTime() === today.getTime();
+      const bg = isSel ? '#7c3aed' : (isToday ? '#ede9fe' : 'transparent');
+      const col = isSel ? '#fff' : (isToday ? '#7c3aed' : '#374151');
+      const fw = (isSel || isToday) ? '600' : '400';
+      html += `<button type="button" data-day="${day}" style="padding:5px 0;background:${bg};color:${col};border:none;border-radius:50%;cursor:pointer;font-family:inherit;font-size:11px;font-weight:${fw};width:24px;height:24px;justify-self:center;">${day}</button>`;
+    }
+    cal.innerHTML = html;
+    cal.querySelectorAll('[data-day]').forEach(b => {
+      b.addEventListener('click', () => {
+        qaSelDate = new Date(qaViewYear, qaViewMonth, parseInt(b.dataset.day, 10));
+        renderCalendar();
+      });
+    });
+  }
+  function navMonth(delta) {
+    qaViewMonth += delta;
+    if (qaViewMonth < 0) { qaViewMonth = 11; qaViewYear--; }
+    if (qaViewMonth > 11) { qaViewMonth = 0; qaViewYear++; }
+    renderCalendar();
+  }
+
+  function areaLabel() {
+    const a = QA_AREAS.find(x => x.slug === qaArea) || QA_AREAS[0];
+    let sub = '';
+    if (qaParentId && window.roadmapSubs) {
+      const s = window.roadmapSubs.find(x => x.id === qaParentId);
+      if (s) sub = ` › ${s.title}`;
+    }
+    return `${a.emoji} ${a.name}${sub} ▾`;
+  }
+
+  async function toggleAreaDropdown(e) {
+    e.stopPropagation();
+    const dd = $('hqaAreaDropdown');
+    if (dd.style.display === 'block') { dd.style.display = 'none'; return; }
+    if ((!window.roadmapSubs || !window.roadmapSubs.length) && window.loadRoadmapSubs) {
+      await window.loadRoadmapSubs().catch(() => {});
+    }
+    renderAreaDropdown();
+    dd.style.display = 'block';
+  }
+
+  function renderAreaDropdown() {
+    const dd = $('hqaAreaDropdown');
+    const allSubs = window.roadmapSubs || [];
+    let html = '<div style="font-size:9px;color:#9ca3af;font-weight:600;padding:6px 10px 4px;text-transform:uppercase;letter-spacing:0.06em;">Área</div>';
+    QA_AREAS.forEach(a => {
+      const expanded = qaExpandedAreas.has(a.slug);
+      const isActive = qaArea === a.slug;
+      const areaSubs = allSubs.filter(s => s.area === a.slug);
+      const hasSubs = areaSubs.length > 0;
+      html += `<div data-toggle-area="${a.slug}" style="padding:8px 10px;font-size:13px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:8px;font-weight:600;background:${isActive && !qaParentId ? '#ede9fe' : 'transparent'};color:${isActive && !qaParentId ? '#7c3aed' : '#111'};">
+        ${a.emoji} ${a.name}${hasSubs ? `<span style="margin-left:auto;font-size:11px;color:#9ca3af;${expanded?'transform:rotate(90deg);':''}transition:transform .15s;">▸</span>` : ''}
+      </div>`;
+      if (expanded) {
+        // "selecionar só área"
+        const rootSel = (isActive && !qaParentId) ? 'background:#ede9fe;color:#7c3aed;' : 'color:#6b7280;font-style:italic;';
+        html += `<div data-pick="${a.slug}|" style="padding:5px 10px 5px 26px;font-size:11px;cursor:pointer;border-radius:6px;${rootSel}">Sem sub — só em ${a.name}</div>`;
+        // árvore
+        function renderChildren(parentId, depth) {
+          areaSubs.filter(s => (s.parent_id || null) === parentId).forEach(s => {
+            const sel = (qaArea === a.slug && qaParentId === s.id) ? 'background:#ede9fe;color:#7c3aed;' : 'color:#4b5563;';
+            const childrenOf = areaSubs.filter(x => (x.parent_id || null) === s.id);
+            const subExpanded = qaExpandedSubs.has(s.id);
+            const indent = 26 + depth * 14;
+            html += `<div style="padding:5px 10px 5px ${indent}px;font-size:12px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:6px;${sel}">
+              ${childrenOf.length ? `<button type="button" data-toggle-sub="${s.id}" style="width:18px;height:18px;border:none;background:none;color:#9ca3af;cursor:pointer;font-family:inherit;${subExpanded?'transform:rotate(90deg);':''}transition:transform .15s;font-size:11px;padding:0;">▸</button>` : '<span style="width:18px;display:inline-block;"></span>'}
+              <span data-pick="${a.slug}|${s.id}" style="flex:1;">${escHtmlQA(s.title)}</span>
+              <button type="button" data-add-child="${s.id}|${a.slug}" title="Adicionar sub aqui" style="opacity:0.7;border:none;background:none;color:#7c3aed;cursor:pointer;font-size:14px;padding:2px 6px;font-family:inherit;">+</button>
+            </div>`;
+            if (childrenOf.length && subExpanded) renderChildren(s.id, depth + 1);
+          });
+        }
+        renderChildren(null, 0);
+        html += `<div data-add-root="${a.slug}" style="padding:5px 10px 5px 26px;font-size:11px;color:#7c3aed;cursor:pointer;font-style:italic;border-radius:6px;">+ Novo sub em ${a.name}</div>`;
+        html += '<div style="height:1px;background:#f3f4f6;margin:4px 0;"></div>';
+      }
+    });
+    dd.innerHTML = html;
+
+    // Handlers
+    dd.querySelectorAll('[data-toggle-area]').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('[data-pick]') || e.target.closest('[data-add-root]') || e.target.closest('[data-toggle-sub]') || e.target.closest('[data-add-child]')) return;
+        e.stopPropagation();
+        const slug = el.dataset.toggleArea;
+        if (qaExpandedAreas.has(slug)) qaExpandedAreas.delete(slug); else qaExpandedAreas.add(slug);
+        renderAreaDropdown();
+      });
+    });
+    dd.querySelectorAll('[data-toggle-sub]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = el.dataset.toggleSub;
+        if (qaExpandedSubs.has(id)) qaExpandedSubs.delete(id); else qaExpandedSubs.add(id);
+        renderAreaDropdown();
+      });
+    });
+    dd.querySelectorAll('[data-pick]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const [slug, subId] = el.dataset.pick.split('|');
+        qaArea = slug;
+        qaParentId = subId || null;
+        $('hqaAreaPill').textContent = areaLabel();
+        dd.style.display = 'none';
+      });
+    });
+    dd.querySelectorAll('[data-add-root]').forEach(el => {
+      el.addEventListener('click', async e => {
+        e.stopPropagation();
+        const slug = el.dataset.addRoot;
+        await createSub(slug, null);
+      });
+    });
+    dd.querySelectorAll('[data-add-child]').forEach(el => {
+      el.addEventListener('click', async e => {
+        e.stopPropagation();
+        const [parentId, slug] = el.dataset.addChild.split('|');
+        await createSub(slug, parentId);
+      });
+    });
+  }
+
+  async function createSub(slug, parentId) {
+    const title = window.prompt(`Nome do novo sub em ${QA_AREAS.find(a => a.slug === slug)?.name || slug}:`, '');
+    if (!title || !title.trim()) return;
+    const sb = getSb(); if (!sb) return;
+    const { data, error } = await sb.from('items').insert({
+      title: title.trim(), area: slug, type: 'milestone', is_roadmap: true,
+      parent_id: parentId, status: 'planned',
+    }).select().single();
+    if (error) { alert('Erro: ' + error.message); return; }
+    if (window.loadRoadmapSubs) await window.loadRoadmapSubs();
+    qaArea = slug; qaParentId = data.id;
+    qaExpandedAreas.add(slug);
+    if (parentId) qaExpandedSubs.add(parentId);
+    $('hqaAreaPill').textContent = areaLabel();
+    renderAreaDropdown();
+    if (window.refreshRoadmap) window.refreshRoadmap();
+  }
+
+  function escHtmlQA(s) { return (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // Autocomplete de endereço (mesmo padrão do popup)
+  let qaAddrTimer = null;
+  function onAddrInput() {
+    const inp = $('hqaAddr');
+    const sug = $('hqaAddrSuggest');
+    qaPendingGeo = null;
+    if (qaAddrTimer) clearTimeout(qaAddrTimer);
+    const q = inp.value.trim();
+    if (q.length < 3) { sug.style.display = 'none'; sug.innerHTML = ''; return; }
+    if (!qaAddrSession) qaAddrSession = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+    qaAddrTimer = setTimeout(async () => {
+      const sb = getSb(); if (!sb) return;
+      sug.innerHTML = '<div style="padding:9px 12px;font-size:12px;color:#9ca3af;font-style:italic;">Buscando…</div>';
+      sug.style.display = 'block';
+      try {
+        const { data, error } = await sb.functions.invoke('places-autocomplete', { body: { input: q, session: qaAddrSession } });
+        if (error) throw error;
+        const list = (data && data.suggestions) || [];
+        if (!list.length) { sug.innerHTML = '<div style="padding:9px 12px;font-size:12px;color:#9ca3af;">Nenhum lugar encontrado</div>'; return; }
+        sug.innerHTML = list.map(s => `
+          <div data-place-id="${escHtmlQA(s.place_id)}" data-desc="${escHtmlQA(s.description)}" style="padding:9px 12px;cursor:pointer;border-bottom:0.5px solid #f3f4f6;">
+            <div style="font-size:13px;font-weight:600;color:#111;">${escHtmlQA(s.main)}</div>
+            ${s.secondary ? `<div style="font-size:11px;color:#6b7280;margin-top:1px;">${escHtmlQA(s.secondary)}</div>` : ''}
+          </div>
+        `).join('');
+        sug.querySelectorAll('[data-place-id]').forEach(el => {
+          el.addEventListener('click', async () => {
+            const pid = el.dataset.placeId;
+            const desc = el.dataset.desc;
+            inp.value = desc;
+            sug.style.display = 'none';
+            try {
+              const { data: det } = await sb.functions.invoke('places-autocomplete', { body: { place_id: pid, session: qaAddrSession } });
+              if (det && det.lat != null) qaPendingGeo = { address: desc, lat: det.lat, lng: det.lng, formatted: det.formatted_address || desc };
+            } catch (e) { /* swallow */ }
+            qaAddrSession = null;
+          });
+        });
+      } catch (e) {
+        sug.innerHTML = '<div style="padding:9px 12px;font-size:12px;color:#dc2626;">Erro na busca</div>';
+      }
+    }, 320);
   }
 
   function close() {
@@ -9805,22 +10089,32 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const title = $('hqaTitle').value.trim();
     if (!title) { $('hqaTitle').focus(); return; }
     const type = $('hqaType').value;
-    const area = $('hqaArea').value;
-    const dateStr = $('hqaDate').value;
     const timeStr = $('hqaTime').value;
     const hasTime = !!timeStr;
-    let date_start = null;
-    if (dateStr) {
-      date_start = hasTime
-        ? new Date(`${dateStr}T${timeStr}:00`).toISOString()
-        : new Date(`${dateStr}T00:00:00`).toISOString();
+    const durMin = parseInt($('hqaDuration').value || '0', 10);
+    const ymd = `${qaSelDate.getFullYear()}-${String(qaSelDate.getMonth()+1).padStart(2,'0')}-${String(qaSelDate.getDate()).padStart(2,'0')}`;
+    const date_start = hasTime
+      ? new Date(`${ymd}T${timeStr}:00`).toISOString()
+      : new Date(`${ymd}T00:00:00`).toISOString();
+    const date_end = (hasTime && durMin > 0)
+      ? new Date(new Date(date_start).getTime() + durMin * 60000).toISOString()
+      : null;
+    const address = $('hqaAddr').value.trim() || null;
+    const payload = {
+      title, type, area: qaArea, parent_id: qaParentId,
+      date_start, date_end, has_time: hasTime, status: 'planned',
+      notes: $('hqaNotes').value.trim() || null,
+      address,
+    };
+    if (address && qaPendingGeo && qaPendingGeo.address === address && qaPendingGeo.lat != null) {
+      payload.address_lat = qaPendingGeo.lat;
+      payload.address_lng = qaPendingGeo.lng;
+      payload.address_formatted = qaPendingGeo.formatted;
     }
-    const payload = { title, type, area, date_start, has_time: hasTime, status: 'planned' };
     $('hqaSave').disabled = true;
     const { data, error } = await sb.from('items').insert(payload).select().single();
     $('hqaSave').disabled = false;
     if (error) { showError(error.message); return; }
-    // Sync GCal pra eventos
     if (type === 'event' && data && window.syncToGcal) window.syncToGcal('update', data.id);
     close();
   }
@@ -9832,14 +10126,30 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   // API pública
   window.hubQuickAddOpen = function() {
-    const m = buildModal();
+    buildModal();
     const bd = $('hubQuickAddBackdrop');
     bd.style.display = 'flex';
-    // Reset valores
+    // Reset
+    qaSelDate = new Date();
+    qaViewYear = qaSelDate.getFullYear();
+    qaViewMonth = qaSelDate.getMonth();
+    qaArea = 'pessoal';
+    qaParentId = null;
+    qaExpandedAreas = new Set();
+    qaExpandedSubs = new Set();
+    qaPendingGeo = null;
+    qaAddrSession = null;
     $('hqaTitle').value = '';
     $('hqaTime').value = '';
+    $('hqaDuration').value = '60';
+    $('hqaNotes').value = '';
+    $('hqaAddr').value = '';
+    $('hqaType').value = 'task';
     $('hqaError').style.display = 'none';
-    $('hqaDate').value = new Date().toISOString().slice(0, 10);
+    $('hqaAddrSuggest').style.display = 'none';
+    $('hqaAreaDropdown').style.display = 'none';
+    $('hqaAreaPill').textContent = areaLabel();
+    renderCalendar();
     setTimeout(() => $('hqaTitle').focus(), 60);
   };
 })();
