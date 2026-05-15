@@ -932,7 +932,10 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
 .calM-num { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
-.calM-ev { position: relative; margin-top: 5px; padding: 7px 9px; border-radius: 7px; border-left: 4px solid; color: #fff; cursor: grab; min-height: 32px; margin-bottom: 0; }
+.calM-ev { position: relative; margin-top: 5px; padding: 7px 9px; border-radius: 7px; border-left: 4px solid; color: #fff; cursor: pointer; min-height: 32px; margin-bottom: 0; }
+/* Item completo: opaco e fica no fim do dia (via JS sort por order/status) */
+.calM-ev.is-done { opacity: 0.4; }
+.calM-ev.is-done:hover { opacity: 0.7; }
 .calM-ev::before { display: none; }
 .calW-card::before { display: none; }
 /* Tooltip de ações no calendário: opção 16 — cápsulas brancas circulares separadas
@@ -956,7 +959,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev .eb-actions .eb-btn[data-act="toggle"] { color: #16a34a; }
 .calM-ev .eb-actions .eb-btn[data-act="copy"]   { color: #6366f1; }
 .calM-ev .eb-actions .eb-btn[data-act="del"]    { color: #dc2626; }
-.calM-ev:active { cursor: grabbing; }
+.calM-ev:active { cursor: pointer; }
 .calM-ev .hr { font-size: 9px; opacity: .9; line-height: 1.2; display: block; font-weight: 500; }
 .calM-ev .ti { font-size: 11px; font-weight: 600; line-height: 1.3; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calM-ev.proj-pessoal       { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
@@ -1260,7 +1263,18 @@ table.data-table tr:hover td { background: var(--bg); }
   font-size: 12px; color: #4b5563;
   padding-top: 5px; padding-bottom: 5px;
 }
-.tdm-area-dropdown-item.sub::before { content: '↳'; color: #9ca3af; margin-right: 2px; }
+.tdm-area-dropdown-item.sub::before { content: ''; }
+.tdm-area-dropdown-item.sub .sub-chev {
+  width: 18px; height: 18px; border: none; background: none;
+  color: #9ca3af; font-size: 11px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; margin-right: 2px; border-radius: 4px;
+  transition: transform .15s, background .12s;
+  font-family: inherit;
+}
+.tdm-area-dropdown-item.sub .sub-chev:hover { background: #ede9fe; color: #7c3aed; }
+.tdm-area-dropdown-item.sub.expanded .sub-chev { transform: rotate(90deg); }
+.tdm-area-dropdown-item.sub .sub-chev-spacer { display: inline-block; width: 20px; }
 .tdm-area-dropdown-item.sub.selected { background: #ede9fe; color: #7c3aed; }
 .tdm-area-dropdown-item .add-child {
   margin-left: auto; opacity: 0;
@@ -6789,7 +6803,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       resetForm();
       addForm.style.display = 'block';
       aafDate.value = new Date(selectedDayTs || Date.now()).toISOString().slice(0, 10);
-      setTimeout(() => aafTitle.focus(), 50);
+      // Rola até o formulário (que fica abaixo do calendário e sai da tela)
+      addForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => aafTitle.focus({ preventScroll: true }), 350);
     });
     // O "+" pequeno do header da Agenda delega pro botão original
     document.getElementById('calAddBtn')?.addEventListener('click', () => addBtn.click());
@@ -7017,13 +7033,23 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   function isSameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
   function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
   // Ordem dentro do dia: order_manual (se houver) → timed primeiro → hora crescente
+  // Strip prefixo de tag/código (ex: "[T-rec-por] Mudar capa OG" → "Mudar capa OG")
+  function stripTagPrefix(title) {
+    if (!title) return title;
+    return title.replace(/^\[[^\]]+\]\s*/, '');
+  }
   function sortItemsForDay(items) {
     return items.slice().sort((a, b) => {
+      // 1. Items completos sempre por último (regra Eduardo)
+      if (a.is_done && !b.is_done) return 1;
+      if (!a.is_done && b.is_done) return -1;
+      // 2. Ordem manual se ambos tiverem
       const aM = a.raw?.order_manual;
       const bM = b.raw?.order_manual;
       if (aM != null && bM != null) return aM - bM;
       if (aM != null) return -1;
       if (bM != null) return 1;
+      // 3. Com hora antes de sem hora
       if (a.has_time && !b.has_time) return -1;
       if (!a.has_time && b.has_time) return 1;
       if (a.has_time && b.has_time) {
@@ -7090,9 +7116,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const direct = itemsCache.filter(i => i.date === t);
     const recurring = itemsCache.filter(i => i.is_recurring && recurrenceMatchesDay(i, d))
       .map(p => makeVirtualOccurrence(p, d));
-    const spans = itemsCache.filter(i => itemSpansDay(i, d))
-      .map(p => makeSpanOccurrence(p, d));
-    return sortItemsForDay([...direct, ...recurring, ...spans]);
+    // Regra Eduardo: sem multi-dia. Não geramos mais "spans" — item aparece só no dia de início.
+    return sortItemsForDay([...direct, ...recurring]);
   }
   function escHtml(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -7126,7 +7151,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       date: ymd(d),
       has_time: it.has_time,
       hr,
-      title: it.title,
+      title: stripTagPrefix(it.title), // sem [T-rec-por] etc — preferência Eduardo
       project: projectToken,
       status: it.status,
       is_done: isDone,
@@ -7134,17 +7159,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       is_recurring: isRecurring,
       from_gcal: !!it.google_event_id,
       recurrence_done_dates: Array.isArray(it.recurrence_done_dates) ? it.recurrence_done_dates : [],
-      // Multi-dia: marca como 'start' do span (a barra contínua começa aqui)
-      is_span: !!it.date_end && (() => {
-        const s = new Date(it.date_start); s.setHours(0,0,0,0);
-        const e = new Date(it.date_end); e.setHours(0,0,0,0);
-        return e > s;
-      })(),
-      span_position: !!it.date_end && (() => {
-        const s = new Date(it.date_start); s.setHours(0,0,0,0);
-        const e = new Date(it.date_end); e.setHours(0,0,0,0);
-        return e > s ? 'start' : null;
-      })(),
+      // Regra Eduardo: NÃO renderizar como multi-dia. Item aparece só no dia de início como card normal.
+      is_span: false,
+      span_position: null,
       raw: it,
     };
   }
@@ -9155,9 +9172,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (ad) ad.style.display = 'none';
   });
 
-  // ── Área pílula dropdown — colapsável, com subs do roadmap ──
-  // Guarda quais áreas estão expandidas entre re-renders
-  let tdmExpandedAreas = new Set();
+  // ── Área pílula dropdown — colapsável em todos os níveis (área + cada sub com filhos) ──
+  // Guarda IDs/slugs expandidos entre re-renders
+  let tdmExpandedAreas = new Set();   // slugs de área expandidos
+  let tdmExpandedSubs = new Set();    // IDs de sub expandidos
   async function renderAreaDropdown() {
     const ad = document.getElementById('tdmAreaDropdown');
     if (!currentItem) return;
@@ -9167,33 +9185,40 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     const isBrasi = !!(currentItem.metadata && currentItem.metadata.brasileirao);
     const allSubs = window.roadmapSubs || [];
-    // Por padrão, expande a área do item atual (só na 1ª abertura)
-    if (!tdmExpandedAreas.size && currentItem.area && !isBrasi) {
-      tdmExpandedAreas.add(currentItem.area);
-    }
+    // Padrão: tudo COLAPSADO. Eduardo abre o caminho que quiser.
+    // (Se quiser comportamento "auto-abre o caminho do item atual", expande aqui — por enquanto fica tudo fechado.)
     let html = '<div class="tdm-area-dropdown-section">Área</div>';
     TDM_AREAS.forEach(a => {
       const expanded = tdmExpandedAreas.has(a.slug);
       const areaActive = (!isBrasi && currentItem.area === a.slug);
+      const areaSubs = allSubs.filter(s => s.area === a.slug);
+      const hasSubs = areaSubs.length > 0;
       html += `<div class="tdm-area-dropdown-item area ${expanded ? 'expanded' : ''} ${areaActive ? 'selected' : ''}" data-toggle-area="${a.slug}">
-        ${a.emoji} ${a.name}<span class="chev">▸</span>
+        ${a.emoji} ${a.name}${hasSubs ? `<span class="chev">▸</span>` : ''}
       </div>`;
-      // Container dos subs (escondido se não expandido)
       html += `<div class="tdm-area-subs ${expanded ? 'expanded' : ''}" data-subs-area="${a.slug}">`;
       // Opção "selecionar só a área (sem sub)"
       const rootSel = (areaActive && !currentItem.parent_id) ? 'selected' : '';
       html += `<div class="tdm-area-pick-root ${rootSel}" data-area="${a.slug}" data-parent-id="">Sem sub — só em ${a.name}</div>`;
-      // Árvore de subs (DFS)
-      const areaSubs = allSubs.filter(s => s.area === a.slug);
+      // Árvore de subs (DFS) — cada sub com filhos é colapsável
       function renderChildren(parentId, depth) {
         areaSubs.filter(s => (s.parent_id || null) === parentId).forEach(s => {
           const subSel = (!isBrasi && currentItem.parent_id === s.id) ? 'selected' : '';
           const indent = 26 + depth * 14;
-          html += `<div class="tdm-area-dropdown-item sub ${subSel}" data-area="${a.slug}" data-parent-id="${s.id}" style="padding-left:${indent}px">
+          const childrenOfS = areaSubs.filter(x => (x.parent_id || null) === s.id);
+          const hasChildren = childrenOfS.length > 0;
+          const subExpanded = tdmExpandedSubs.has(s.id);
+          html += `<div class="tdm-area-dropdown-item sub ${subSel} ${subExpanded ? 'expanded' : ''}" data-area="${a.slug}" data-parent-id="${s.id}" style="padding-left:${indent}px">
+            ${hasChildren ? `<button class="sub-chev" type="button" data-toggle-sub="${s.id}" title="Expandir/colapsar">▸</button>` : '<span class="sub-chev-spacer"></span>'}
             <span>${escHtml(s.title)}</span>
             <button class="add-child" type="button" data-add-parent="${s.id}" data-add-area="${a.slug}" title="Adicionar sub aqui">+</button>
           </div>`;
-          renderChildren(s.id, depth + 1);
+          // Filhos colapsáveis — só renderiza se expandido
+          if (hasChildren && subExpanded) {
+            html += `<div class="tdm-area-sub-children expanded">`;
+            renderChildren(s.id, depth + 1);
+            html += `</div>`;
+          }
         });
       }
       renderChildren(null, 0);
@@ -9207,14 +9232,28 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // Handler: clique no header da área → expande/colapsa (não fecha o dropdown)
     ad.querySelectorAll('[data-toggle-area]').forEach(el => {
       el.addEventListener('click', (ev) => {
+        // Se clicou no botão "+" filho não deve togglar
+        if (ev.target.closest('.add-child')) return;
         ev.stopPropagation();
         const slug = el.dataset.toggleArea;
         if (tdmExpandedAreas.has(slug)) tdmExpandedAreas.delete(slug);
         else tdmExpandedAreas.add(slug);
-        // Toggle visual sem re-render completo
         el.classList.toggle('expanded');
         const subsEl = ad.querySelector(`[data-subs-area="${slug}"]`);
         if (subsEl) subsEl.classList.toggle('expanded');
+      });
+    });
+    // Handler: clique no chevron de SUB → expande/colapsa filhos (re-render local)
+    ad.querySelectorAll('[data-toggle-sub]').forEach(el => {
+      el.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const subId = el.dataset.toggleSub;
+        if (tdmExpandedSubs.has(subId)) tdmExpandedSubs.delete(subId);
+        else tdmExpandedSubs.add(subId);
+        // Re-render dropdown mantendo estado de scroll
+        const scrollTop = ad.scrollTop;
+        await renderAreaDropdown();
+        ad.scrollTop = scrollTop;
       });
     });
 
