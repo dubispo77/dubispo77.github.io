@@ -9460,12 +9460,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           const childrenOfS = areaSubs.filter(x => (x.parent_id || null) === s.id);
           const hasChildren = childrenOfS.length > 0;
           const subExpanded = tdmExpandedSubs.has(s.id);
+          const ICO_EDIT = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 2-9 9-3 1 1-3z"/></svg>';
+          const ICO_DEL = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h10M5 5V3.5A1 1 0 016 2.5h4a1 1 0 011 1V5M5.5 5l.7 8a1 1 0 001 .9h2.6a1 1 0 001-.9l.7-8"/></svg>';
+          const ICO_ADD = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>';
           html += `<div class="tdm-area-dropdown-item sub ${subSel} ${subExpanded ? 'expanded' : ''}" data-area="${a.slug}" data-parent-id="${s.id}" style="padding-left:${indent}px">
             ${hasChildren ? `<button class="sub-chev" type="button" data-toggle-sub="${s.id}" title="Expandir/colapsar">▸</button>` : '<span class="sub-chev-spacer"></span>'}
             <span>${escHtml(s.title)}</span>
-            <button class="add-child" type="button" data-edit-sub="${s.id}" title="Renomear" style="color:#6b7280;font-size:12px">✎</button>
-            <button class="add-child" type="button" data-del-sub="${s.id}" title="Apagar" style="color:#dc2626;font-size:13px">🗑</button>
-            <button class="add-child" type="button" data-add-parent="${s.id}" data-add-area="${a.slug}" title="Adicionar sub aqui">+</button>
+            <button class="add-child" type="button" data-edit-sub="${s.id}" title="Renomear" style="color:#6b7280">${ICO_EDIT}</button>
+            <button class="add-child" type="button" data-del-sub="${s.id}" title="Apagar" style="color:#dc2626">${ICO_DEL}</button>
+            <button class="add-child" type="button" data-add-parent="${s.id}" data-add-area="${a.slug}" title="Adicionar sub aqui">${ICO_ADD}</button>
           </div>`;
           // Filhos colapsáveis — só renderiza se expandido
           if (hasChildren && subExpanded) {
@@ -10131,12 +10134,16 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
             const childrenOf = areaSubs.filter(x => (x.parent_id || null) === s.id);
             const subExpanded = qaExpandedSubs.has(s.id);
             const indent = 26 + depth * 14;
-            html += `<div class="qa-sub-row" style="padding:5px 10px 5px ${indent}px;font-size:12px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:4px;${sel}">
+            const ICO_EDIT_Q = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 2-9 9-3 1 1-3z"/></svg>';
+            const ICO_DEL_Q = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h10M5 5V3.5A1 1 0 016 2.5h4a1 1 0 011 1V5M5.5 5l.7 8a1 1 0 001 .9h2.6a1 1 0 001-.9l.7-8"/></svg>';
+            const ICO_ADD_Q = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>';
+            const ACT_STYLE = 'opacity:0;border:none;background:none;cursor:pointer;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;font-family:inherit;padding:0;';
+            html += `<div class="qa-sub-row" style="padding:5px 10px 5px ${indent}px;font-size:12px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:2px;${sel}">
               ${childrenOf.length ? `<button type="button" data-toggle-sub="${s.id}" style="width:18px;height:18px;border:none;background:none;color:#9ca3af;cursor:pointer;font-family:inherit;${subExpanded?'transform:rotate(90deg);':''}transition:transform .15s;font-size:11px;padding:0;">▸</button>` : '<span style="width:18px;display:inline-block;"></span>'}
               <span data-pick="${a.slug}|${s.id}" style="flex:1;">${escHtmlQA(s.title)}</span>
-              <button type="button" class="qa-sub-action" data-edit-sub="${s.id}" title="Renomear" style="opacity:0;border:none;background:none;color:#6b7280;cursor:pointer;font-size:12px;padding:2px 5px;font-family:inherit;">✎</button>
-              <button type="button" class="qa-sub-action" data-del-sub="${s.id}" title="Apagar" style="opacity:0;border:none;background:none;color:#dc2626;cursor:pointer;font-size:13px;padding:2px 5px;font-family:inherit;">🗑</button>
-              <button type="button" class="qa-sub-action" data-add-child="${s.id}|${a.slug}" title="Adicionar sub aqui" style="opacity:0;border:none;background:none;color:#7c3aed;cursor:pointer;font-size:14px;padding:2px 6px;font-family:inherit;">+</button>
+              <button type="button" class="qa-sub-action" data-edit-sub="${s.id}" title="Renomear" style="${ACT_STYLE}color:#6b7280;">${ICO_EDIT_Q}</button>
+              <button type="button" class="qa-sub-action" data-del-sub="${s.id}" title="Apagar" style="${ACT_STYLE}color:#dc2626;">${ICO_DEL_Q}</button>
+              <button type="button" class="qa-sub-action" data-add-child="${s.id}|${a.slug}" title="Adicionar sub aqui" style="${ACT_STYLE}color:#7c3aed;">${ICO_ADD_Q}</button>
             </div>`;
             if (childrenOf.length && subExpanded) renderChildren(s.id, depth + 1);
           });
