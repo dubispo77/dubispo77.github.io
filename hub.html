@@ -2894,7 +2894,10 @@ document.getElementById('rmWrap').addEventListener('wheel', e => {
 }, { passive: false });
 
 // Teclado — ancora sempre na linha de hoje
+// IMPORTANTE: ignorar quando o foco está em input/textarea/contenteditable (senão o usuário não consegue digitar "0", "+", "-" em endereços, valores, etc).
 document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
   if (e.key === '=' || e.key === '+') { e.preventDefault(); setZoom(zoom * 1.3); requestAnimationFrame(centerToday); }
   if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoom / 1.3); requestAnimationFrame(centerToday); }
   if (e.key === '0') { e.preventDefault(); setZoom(3); requestAnimationFrame(centerToday); }
@@ -9945,14 +9948,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           <!-- DIREITA: tipo, título, área (dropdown colapsável), local, notas -->
           <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
             <div style="display:flex;gap:8px;align-items:center;position:relative;">
-              <select id="hqaType" style="flex:0 0 110px;padding:8px 10px;border:0.5px solid #d4d4d8;border-radius:8px;font-family:inherit;background:#fff;font-size:13px;">
-                <option value="task">✓ Tarefa</option>
-                <option value="event">📅 Evento</option>
-                <option value="bill">💸 Conta</option>
-                <option value="note">📝 Nota</option>
-              </select>
               <button id="hqaAreaPill" type="button" style="flex:1;padding:8px 12px;border:0.5px solid #d4d4d8;border-radius:8px;background:#fff;cursor:pointer;font-family:inherit;font-size:13px;text-align:left;color:#374151;">🙋 Pessoal ▾</button>
-              <div id="hqaAreaDropdown" style="display:none;position:absolute;top:100%;left:118px;right:0;margin-top:4px;background:#fff;border:0.5px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:340px;overflow-y:auto;z-index:50;padding:6px;"></div>
+              <div id="hqaAreaDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#fff;border:0.5px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:340px;overflow-y:auto;z-index:50;padding:6px;"></div>
             </div>
             <input id="hqaTitle" type="text" placeholder="O que?" style="width:100%;padding:10px 12px;border:0.5px solid #d4d4d8;border-radius:8px;font-size:15px;font-family:inherit;outline:none;font-weight:500;">
             <div style="position:relative;">
@@ -10211,7 +10208,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (!sb) { showError('Conexão Supabase não inicializada'); return; }
     const title = $('hqaTitle').value.trim();
     if (!title) { $('hqaTitle').focus(); return; }
-    const type = $('hqaType').value;
+    const type = 'task'; // Eduardo: tudo é tarefa, sem diferenciação
     const timeStr = $('hqaTime').value;
     const hasTime = !!timeStr;
     const durMin = parseInt($('hqaDuration').value || '0', 10);
@@ -10267,7 +10264,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     $('hqaDuration').value = '60';
     $('hqaNotes').value = '';
     $('hqaAddr').value = '';
-    $('hqaType').value = 'task';
     $('hqaError').style.display = 'none';
     $('hqaAddrSuggest').style.display = 'none';
     $('hqaAreaDropdown').style.display = 'none';
