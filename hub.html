@@ -9463,6 +9463,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           html += `<div class="tdm-area-dropdown-item sub ${subSel} ${subExpanded ? 'expanded' : ''}" data-area="${a.slug}" data-parent-id="${s.id}" style="padding-left:${indent}px">
             ${hasChildren ? `<button class="sub-chev" type="button" data-toggle-sub="${s.id}" title="Expandir/colapsar">▸</button>` : '<span class="sub-chev-spacer"></span>'}
             <span>${escHtml(s.title)}</span>
+            <button class="add-child" type="button" data-edit-sub="${s.id}" title="Renomear" style="color:#6b7280;font-size:12px">✎</button>
+            <button class="add-child" type="button" data-del-sub="${s.id}" title="Apagar" style="color:#dc2626;font-size:13px">🗑</button>
             <button class="add-child" type="button" data-add-parent="${s.id}" data-add-area="${a.slug}" title="Adicionar sub aqui">+</button>
           </div>`;
           // Filhos colapsáveis — só renderiza se expandido
@@ -9571,6 +9573,55 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         ad.style.display = 'none';
         renderBody();
         // Notifica o roadmap pra recarregar (se a view tiver função própria de refresh)
+        if (window.refreshRoadmap) window.refreshRoadmap();
+      });
+    });
+
+    // Renomear sub
+    ad.querySelectorAll('[data-edit-sub]').forEach(el => {
+      el.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const subId = el.dataset.editSub;
+        const sub = (window.roadmapSubs || []).find(s => s.id === subId);
+        if (!sub) return;
+        const newTitle = window.prompt(`Renomear "${sub.title}":`, sub.title);
+        if (!newTitle || !newTitle.trim() || newTitle.trim() === sub.title) return;
+        const { error } = await sb.from('items').update({ title: newTitle.trim() }).eq('id', subId);
+        if (error) { alert('Erro ao renomear: ' + error.message); return; }
+        if (window.loadRoadmapSubs) await window.loadRoadmapSubs();
+        document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
+        renderAreaDropdown();
+        renderBody();
+        if (window.refreshRoadmap) window.refreshRoadmap();
+      });
+    });
+
+    // Apagar sub
+    ad.querySelectorAll('[data-del-sub]').forEach(el => {
+      el.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const subId = el.dataset.delSub;
+        const sub = (window.roadmapSubs || []).find(s => s.id === subId);
+        if (!sub) return;
+        const all = window.roadmapSubs || [];
+        const directChildren = all.filter(s => s.parent_id === subId);
+        let msg = `Apagar "${sub.title}"?`;
+        if (directChildren.length) msg += `\n\nOs ${directChildren.length} sub(s) filho(s) ficarão soltos (sem pai).`;
+        msg += '\n\nItens (tarefas/eventos) associados a esse sub vão pra "Sem sub".';
+        if (!confirm(msg)) return;
+        // Nullifica parent_id de filhos diretos + items
+        await sb.from('items').update({ parent_id: null }).eq('parent_id', subId);
+        const { error } = await sb.from('items').delete().eq('id', subId);
+        if (error) { alert('Erro ao apagar: ' + error.message); return; }
+        // Se o sub apagado era o do item atual, limpa
+        if (currentItem && currentItem.parent_id === subId) {
+          currentItem.parent_id = null;
+          await sb.from('items').update({ parent_id: null }).eq('id', currentItem.id);
+        }
+        if (window.loadRoadmapSubs) await window.loadRoadmapSubs();
+        document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
+        renderAreaDropdown();
+        renderBody();
         if (window.refreshRoadmap) window.refreshRoadmap();
       });
     });
@@ -10080,10 +10131,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
             const childrenOf = areaSubs.filter(x => (x.parent_id || null) === s.id);
             const subExpanded = qaExpandedSubs.has(s.id);
             const indent = 26 + depth * 14;
-            html += `<div style="padding:5px 10px 5px ${indent}px;font-size:12px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:6px;${sel}">
+            html += `<div class="qa-sub-row" style="padding:5px 10px 5px ${indent}px;font-size:12px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:4px;${sel}">
               ${childrenOf.length ? `<button type="button" data-toggle-sub="${s.id}" style="width:18px;height:18px;border:none;background:none;color:#9ca3af;cursor:pointer;font-family:inherit;${subExpanded?'transform:rotate(90deg);':''}transition:transform .15s;font-size:11px;padding:0;">▸</button>` : '<span style="width:18px;display:inline-block;"></span>'}
               <span data-pick="${a.slug}|${s.id}" style="flex:1;">${escHtmlQA(s.title)}</span>
-              <button type="button" data-add-child="${s.id}|${a.slug}" title="Adicionar sub aqui" style="opacity:0.7;border:none;background:none;color:#7c3aed;cursor:pointer;font-size:14px;padding:2px 6px;font-family:inherit;">+</button>
+              <button type="button" class="qa-sub-action" data-edit-sub="${s.id}" title="Renomear" style="opacity:0;border:none;background:none;color:#6b7280;cursor:pointer;font-size:12px;padding:2px 5px;font-family:inherit;">✎</button>
+              <button type="button" class="qa-sub-action" data-del-sub="${s.id}" title="Apagar" style="opacity:0;border:none;background:none;color:#dc2626;cursor:pointer;font-size:13px;padding:2px 5px;font-family:inherit;">🗑</button>
+              <button type="button" class="qa-sub-action" data-add-child="${s.id}|${a.slug}" title="Adicionar sub aqui" style="opacity:0;border:none;background:none;color:#7c3aed;cursor:pointer;font-size:14px;padding:2px 6px;font-family:inherit;">+</button>
             </div>`;
             if (childrenOf.length && subExpanded) renderChildren(s.id, depth + 1);
           });
@@ -10137,6 +10190,67 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         await createSub(slug, parentId);
       });
     });
+    // Renomear sub
+    dd.querySelectorAll('[data-edit-sub]').forEach(el => {
+      el.addEventListener('click', async e => {
+        e.stopPropagation();
+        await editSub(el.dataset.editSub);
+      });
+    });
+    // Apagar sub
+    dd.querySelectorAll('[data-del-sub]').forEach(el => {
+      el.addEventListener('click', async e => {
+        e.stopPropagation();
+        await deleteSub(el.dataset.delSub);
+      });
+    });
+    // Hover: mostrar botões de ação
+    dd.querySelectorAll('.qa-sub-row').forEach(row => {
+      row.addEventListener('mouseenter', () => {
+        row.querySelectorAll('.qa-sub-action').forEach(b => b.style.opacity = '0.8');
+      });
+      row.addEventListener('mouseleave', () => {
+        row.querySelectorAll('.qa-sub-action').forEach(b => b.style.opacity = '0');
+      });
+    });
+  }
+
+  async function editSub(subId) {
+    const sb = getSb(); if (!sb) return;
+    const sub = (window.roadmapSubs || []).find(s => s.id === subId);
+    if (!sub) return;
+    const newTitle = window.prompt(`Renomear "${sub.title}":`, sub.title);
+    if (!newTitle || !newTitle.trim() || newTitle.trim() === sub.title) return;
+    const { error } = await sb.from('items').update({ title: newTitle.trim() }).eq('id', subId);
+    if (error) { alert('Erro ao renomear: ' + error.message); return; }
+    if (window.loadRoadmapSubs) await window.loadRoadmapSubs();
+    $('hqaAreaPill').textContent = areaLabel();
+    renderAreaDropdown();
+    if (window.refreshRoadmap) window.refreshRoadmap();
+  }
+
+  async function deleteSub(subId) {
+    const sb = getSb(); if (!sb) return;
+    const sub = (window.roadmapSubs || []).find(s => s.id === subId);
+    if (!sub) return;
+    // Conta filhos diretos
+    const allSubs = window.roadmapSubs || [];
+    const directChildren = allSubs.filter(s => s.parent_id === subId);
+    let msg = `Apagar "${sub.title}"?`;
+    if (directChildren.length) msg += `\n\nOs ${directChildren.length} sub(s) filho(s) ficarão soltos (sem pai).`;
+    msg += '\n\nItens (tarefas/eventos) associados a esse sub vão pra "Sem sub".';
+    if (!confirm(msg)) return;
+    // Nullifica parent_id de filhos diretos (subs) + items que apontam pra esse sub
+    await sb.from('items').update({ parent_id: null }).eq('parent_id', subId);
+    // Apaga o sub
+    const { error } = await sb.from('items').delete().eq('id', subId);
+    if (error) { alert('Erro ao apagar: ' + error.message); return; }
+    // Se o sub era o selecionado, limpa
+    if (qaParentId === subId) qaParentId = null;
+    if (window.loadRoadmapSubs) await window.loadRoadmapSubs();
+    $('hqaAreaPill').textContent = areaLabel();
+    renderAreaDropdown();
+    if (window.refreshRoadmap) window.refreshRoadmap();
   }
 
   async function createSub(slug, parentId) {
