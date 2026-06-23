@@ -889,6 +889,10 @@ table.data-table tr:hover td { background: var(--bg); }
 #agenda { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif; }
 .cal-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .cal-header-left { display: flex; align-items: center; gap: 16px; }
+.hub-sync-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: .02em; background: rgba(107,107,122,0.08); color: #6b6b76; cursor: help; user-select: none; white-space: nowrap; }
+.hub-sync-status.ok { background: rgba(34,197,94,0.14); color: #15803d; }
+.hub-sync-status.err { background: rgba(220,38,38,0.14); color: #b91c1c; }
+.hub-sync-status:empty { display: none; }
 .cal-view-toggle { display: inline-flex; background: #eeeef1; border-radius: 8px; padding: 2px; }
 .cv-btn { background: transparent; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #6b7280; cursor: pointer; transition: background .12s, color .12s; font-family: inherit; }
 .cv-btn:hover { color: #1f2937; }
@@ -1615,6 +1619,7 @@ table.data-table tr:hover td { background: var(--bg); }
         <div class="cal-header">
           <div class="cal-header-left">
             <div class="section-title">📅 Agenda</div>
+            <div id="hubSyncStatus" class="hub-sync-status" title=""></div>
             <div class="cal-view-toggle">
               <button class="cv-btn active" data-view="month" type="button">Mês</button>
               <button class="cv-btn" data-view="week" type="button">Semana</button>
@@ -10601,6 +10606,56 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     pop.style.transform = '';
   }
   window.hubDatePicker = { open, close };
+})();
+
+// ── Status da última sincronização Google → Hub ──
+(function setupHubSyncStatus() {
+  const start = Date.now();
+  const tryInit = () => {
+    if (!window.sbClient) {
+      if (Date.now() - start > 15000) return;
+      return setTimeout(tryInit, 500);
+    }
+    const refresh = async () => {
+      try {
+        const { data, error } = await window.sbClient
+          .from('sync_logs')
+          .select('ran_at, ok, error')
+          .eq('task_name', 'gcal-hub-sync')
+          .order('ran_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const el = document.getElementById('hubSyncStatus');
+        if (!el) return;
+        if (error || !data) {
+          el.className = 'hub-sync-status';
+          el.textContent = '';
+          return;
+        }
+        const ran = new Date(data.ran_at);
+        const now = new Date();
+        const sameDay = ran.toDateString() === now.toDateString();
+        const tStr = ran.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const dStr = sameDay
+          ? `hoje ${tStr}`
+          : ran.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + tStr;
+        if (data.ok) {
+          el.className = 'hub-sync-status ok';
+          el.innerHTML = `📡 sync ${dStr}`;
+          el.title = `Sincronização Google → Hub: ${dStr} (OK)`;
+        } else {
+          el.className = 'hub-sync-status err';
+          el.innerHTML = `⚠ sync ${dStr}`;
+          el.title = `Sincronização Google → Hub: ${dStr}\nErro: ${data.error || '(sem detalhe)'}`;
+        }
+      } catch (e) {
+        console.warn('[sync-status]', e);
+      }
+    };
+    refresh();
+    setInterval(refresh, 60000);
+  };
+  tryInit();
 })();
 </script>
 
