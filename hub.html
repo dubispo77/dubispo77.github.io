@@ -2859,14 +2859,14 @@ table.data-table tr:hover td { background: var(--bg); }
 
   <!-- TABS NA NOVA ORDEM -->
   <div class="tabs-nav">
-    <button data-tab="planejamento" class="active">🎯 Planejamento</button>
-    <button data-tab="transacoes">📄 Gastos mensais</button>
+    <button data-tab="transacoes" class="active">📄 Gastos mensais</button>
+    <button data-tab="planejamento">🎯 Planejamento</button>
     <button data-tab="graficos">📊 Gráficos</button>
     <button data-tab="categorias">🏷️ Categorias</button>
   </div>
 
   <!-- ===== PLANEJAMENTO ===== -->
-  <div class="tab-content active" id="tab-planejamento">
+  <div class="tab-content" id="tab-planejamento">
     <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
 
     <!-- 5 KPIs do Planejamento -->
@@ -2890,7 +2890,7 @@ table.data-table tr:hover td { background: var(--bg); }
   </div>
 
   <!-- ===== TRANSAÇÕES ===== -->
-  <div class="tab-content filter-todas" id="tab-transacoes">
+  <div class="tab-content active filter-todas" id="tab-transacoes">
     <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
 
     <div class="accounts-strip" id="accountsStrip"><!-- cards de contas via JS --></div>
