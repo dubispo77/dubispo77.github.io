@@ -1666,26 +1666,1525 @@ table.data-table tr:hover td { background: var(--bg); }
 
     <!-- FINANÇAS -->
     <section id="administracao" class="section">
-      <div class="section-header"><div class="section-title">💰 Administração</div><div class="section-subtitle" id="finSubtitle">Carregando...</div></div>
-      <div class="section-body">
-        <div class="kpi-row">
-          <div class="kpi"><div class="kpi-value" id="finKpiVenc"  style="color:#ef4444">—</div><div class="kpi-label">Vencem em 7 dias</div></div>
-          <div class="kpi"><div class="kpi-value" id="finKpiTotal" style="color:#d97706">—</div><div class="kpi-label">Total pendente</div></div>
-          <div class="kpi"><div class="kpi-value" id="finKpiProx"  style="color:#2563eb">—</div><div class="kpi-label">Próximo em dias</div></div>
-        </div>
-        <div id="finBillsWrap">
-          <div class="empty-day" style="padding:24px"><div class="ei">⏳</div><div>Carregando contas...</div></div>
-        </div>
-        <div style="margin-top:20px;">
-          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">Metas financeiras</div>
-          <table class="data-table">
-            <thead><tr><th>Meta</th><th>Status</th><th>Horizonte</th></tr></thead>
-            <tbody>
-              <tr><td><strong>Dívidas pequenas</strong></td><td><span class="pill" style="background:#dcfce7;color:#16a34a;">🟢 Controlável</span></td><td>Jul/26</td></tr>
-              <tr><td><strong>Reserva emergência</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Set/26</td></tr>
-              <tr><td><strong>Investir (6m+)</strong></td><td><span class="pill" style="background:#dbeafe;color:#2563eb;">🔵 Planejado</span></td><td>Dez/26</td></tr>
-            </tbody>
+      <div class="section-header"><div class="section-title">💰 Administração</div><div class="section-subtitle" id="finSubtitle">Finanças · Supabase</div></div>
+      <div class="section-body" style="padding:0">
+        <style>
+#finapp{
+    --bg: #f7f5f2;
+    --card: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b7280;
+    --faint: #9ca3af;
+    --border: #e5e7eb;
+    --green: #16a34a;
+    --green-soft: #dcfce7;
+    --red: #dc2626;
+    --red-soft: #fee2e2;
+    --blue: #2563eb;
+    --blue-soft: #dbeafe;
+    --orange: #ea580c;
+    --orange-soft: #fed7aa;
+    --purple: #7c3aed;
+    --purple-soft: #ede9fe;
+    --bradesco: #cc092f;
+    --bradesco-soft: #fce7eb;
+    --bradcard: #ad1457;       /* Pink Material 800 — rosa-vermelho elegante pro cartão */
+    --bradcard-soft: #f8bbd0;
+    --nubank: #8a05be;
+    --nubank-soft: #f5e7fc;
+    --nubcard: #bd2bff;        /* magenta-pink vivo (opção #8) */
+    --nubcard-soft: #f5dcff;
+    --nubcax: #5a0480;          /* roxo escuro (volta ao original) */
+    --nubcax-soft: #ecd9f7;
+    --itau: #ec7000;
+    --itau-soft: #ffedd5;
+    --pj: #6d28d9;             /* violet (volta ao original) */
+    --pj-soft: #ede9fe;
+    --yellow-soft: #fef3c7;
+  }
+#finapp *{ box-sizing: border-box; margin: 0; padding: 0; }
+#finapp{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+#finapp .wrap{ max-width: 1500px; margin: 0 auto; padding: 28px 32px; }
+#finapp .hub-shell{ display: flex; min-height: 100vh; }
+#finapp .hub-sidebar{
+    width: 260px;
+    flex-shrink: 0;
+    background: #f1ede6;
+    border-right: 1px solid var(--border);
+    padding: 18px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+#finapp .hub-sidebar .sb-head{ padding: 6px 8px 8px; border-bottom: 1px solid #e5dfd3; }
+#finapp .hub-sidebar .sb-name{ font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+#finapp .hub-sidebar .sb-sub{ font-size: 12px; color: var(--muted); margin-top: 2px; }
+#finapp .hub-sidebar .sb-date{
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 9px;
+    background: var(--purple-soft);
+    color: var(--purple);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 999px;
+  }
+#finapp .hub-sidebar .sb-section-label{
+    font-size: 11px;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 4px 8px;
+    margin-top: 4px;
+  }
+#finapp .hub-sidebar .sb-item{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.12s;
+  }
+#finapp .hub-sidebar .sb-item:hover{ background: rgba(0,0,0,0.04); }
+#finapp .hub-sidebar .sb-item.active{ background: var(--purple-soft); color: var(--purple); font-weight: 600; }
+#finapp .hub-sidebar .sb-item .sb-emoji{ font-size: 16px; }
+#finapp .hub-sidebar .sb-item .sb-badge{
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--red);
+    color: white;
+  }
+#finapp .hub-sidebar .sb-foot{
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid #e5dfd3;
+  }
+#finapp .hub-sidebar .sb-foot button{
+    width: 100%;
+    padding: 9px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+#finapp .hub-main{ flex: 1; min-width: 0; }
+@media (max-width: 900px) {#finapp .hub-shell{ flex-direction: column; }
+#finapp .hub-sidebar{ width: 100%; height: auto; position: static; flex-direction: row; flex-wrap: wrap; gap: 8px; padding: 12px; }
+#finapp .hub-sidebar .sb-head, #finapp .hub-sidebar .sb-section-label, #finapp .hub-sidebar .sb-foot{ display: none; }
+#finapp .hub-sidebar .sb-item{ padding: 6px 10px; font-size: 13px; }}
+#finapp .icon{ width: 18px; height: 18px; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+#finapp .icon-sm{ width: 14px; height: 14px; }
+#finapp .icon-lg{ width: 22px; height: 22px; }
+#finapp .top-kpis{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+#finapp .kpi-card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+#finapp .kpi-card:hover{ border-color: var(--purple); }
+#finapp .kpi-icon-circle{
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+#finapp .kpi-icon-circle.saldo{ background: #7c3aed; }
+#finapp .kpi-icon-circle.rec{ background: #16a34a; }
+#finapp .kpi-icon-circle.des{ background: #dc2626; }
+#finapp .kpi-icon-circle.cart{ background: #2563eb; }
+#finapp .kpi-content{ flex: 1; min-width: 0; }
+#finapp .kpi-label{ font-size: 12px; color: var(--muted); text-transform: capitalize; line-height: 1.2; }
+#finapp .kpi-value{ font-size: 22px; font-weight: 700; margin-top: 4px; line-height: 1.2; }
+#finapp .kpi-arrow{ color: var(--faint); font-size: 18px; }
+#finapp details.coach{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+#finapp details.coach summary{
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+#finapp details.coach summary::-webkit-details-marker{ display: none; }
+#finapp details.coach summary::after{
+    content: '▼';
+    color: var(--muted);
+    font-size: 10px;
+    transition: transform 0.2s;
+  }
+#finapp details.coach[open] summary::after{ transform: rotate(180deg); }
+#finapp .coach-summary-left{ display: flex; align-items: center; gap: 10px; }
+#finapp .coach-title{ font-size: 15px; font-weight: 600; color: var(--purple); }
+#finapp .coach-counter{ font-size: 13px; color: var(--muted); margin-left: 8px; }
+#finapp .insights-grid{
+    padding: 0 20px 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+#finapp .insight{
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+#finapp .insight.green{ background: linear-gradient(135deg, #dcfce7, white); border-color: #86efac; }
+#finapp .insight.orange{ background: linear-gradient(135deg, #fef3c7, white); border-color: #fcd34d; }
+#finapp .insight.blue{ background: linear-gradient(135deg, #dbeafe, white); border-color: #93c5fd; }
+#finapp .insight.purple{ background: linear-gradient(135deg, #ede9fe, white); border-color: #a5b4fc; }
+#finapp .insight.red{ background: linear-gradient(135deg, #fee2e2, white); border-color: #fca5a5; }
+#finapp .insight-tag{ font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+#finapp .insight.green .insight-tag{ color: var(--green); }
+#finapp .insight.orange .insight-tag{ color: var(--orange); }
+#finapp .insight.blue .insight-tag{ color: var(--blue); }
+#finapp .insight.purple .insight-tag{ color: var(--purple); }
+#finapp .insight.red .insight-tag{ color: var(--red); }
+#finapp .insight-body{ margin-top: 4px; }
+#finapp .tabs-nav{
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+#finapp .tabs-nav button{
+    background: transparent;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: inherit;
+    flex: 1;
+    min-width: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+#finapp .tabs-nav button.active{
+    background: #8b5cf6;
+    color: white;
+  }
+#finapp .tabs-nav button:hover:not(.active){
+    background: var(--purple-soft);
+    color: var(--purple);
+  }
+#finapp .tab-content{ display: none; }
+#finapp .tab-content.active{ display: block; }
+#finapp .panel{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+#finapp .panel-title{
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+#finapp .month-selector{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+#finapp .month-selector button{
+    background: transparent;
+    border: 1px solid var(--purple);
+    color: var(--purple);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 17px;
+    font-family: inherit;
+  }
+#finapp .month-pill{
+    background: transparent;
+    border: 1px solid var(--purple);
+    color: var(--purple);
+    padding: 7px 22px;
+    border-radius: 19px;
+    font-weight: 600;
+    font-size: 16px;
+    min-width: 132px;
+    text-align: center;
+  }
+#finapp .chart-anual{
+    height: 360px;
+    position: relative;
+  }
+#finapp .chart-anual svg{ width: 100%; height: 100%; }
+#finapp .chart-tooltip{
+    position: absolute;
+    background: rgba(17,24,39,0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    pointer-events: none;
+    display: none;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+#finapp .chart-tooltip.show{ display: block; }
+#finapp .accounts-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+#finapp .account-card{
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px;
+    border-top: 3px solid;
+  }
+#finapp .account-card.brad-cc{ border-color: var(--bradesco); background: linear-gradient(180deg, var(--bradesco-soft) 0%, white 60%); }
+#finapp .account-card.itau-cc{ border-color: var(--itau); background: linear-gradient(180deg, var(--itau-soft) 0%, white 60%); }
+#finapp .account-card.nub-caixinha{ border-color: var(--nubank); background: linear-gradient(180deg, var(--nubank-soft) 0%, white 60%); }
+#finapp .account-card.nub-cc{ border-color: #c084fc; background: linear-gradient(180deg, #f3e8ff 0%, white 60%); }
+#finapp .account-card.nub-pj{ border-color: var(--pj); background: linear-gradient(180deg, var(--pj-soft) 0%, white 60%); }
+#finapp .acc-card-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+#finapp .acc-bank-info{ display: flex; gap: 10px; align-items: center; }
+#finapp .bank-logo{
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: -0.5px;
+  }
+#finapp .bank-logo.bradesco{ background: var(--bradesco); }
+#finapp .bank-logo.nubank{ background: var(--nubank); }
+#finapp .bank-logo.nubank-pj{ background: var(--pj); }
+#finapp .bank-logo.itau{ background: var(--itau); }
+#finapp .acc-bank-text{ display: flex; flex-direction: column; }
+#finapp .acc-bank-name{ font-size: 13px; font-weight: 700; }
+#finapp .acc-account-name{ font-size: 11px; color: var(--muted); }
+#finapp .acc-balance-row{
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 13px;
+  }
+#finapp .acc-balance-row .label{ color: var(--muted); }
+#finapp .acc-balance-row .val{ font-weight: 700; }
+#finapp .acc-balance-row .val.green{ color: var(--green); }
+#finapp .acc-balance-row .val.red{ color: var(--red); }
+#finapp .acc-balance-row .val.purple{ color: var(--purple); }
+#finapp .acc-last-update{
+    font-size: 11px;
+    color: var(--faint);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+#finapp .add-expense-btn{
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--purple);
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+#finapp .add-expense-btn:hover{ background: var(--purple-soft); }
+#finapp .filter-tabs{
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+#finapp .filter-tabs button{
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 14px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+  }
+#finapp .filter-tabs button.active{
+    background: var(--purple-soft);
+    border-color: var(--purple);
+    color: var(--purple);
+    font-weight: 700;
+  }
+#finapp .filter-dot{ width: 8px; height: 8px; border-radius: 50%; }
+#finapp .fd-all{ background: var(--purple); }
+#finapp .fd-out{ background: var(--red); }
+#finapp .fd-in{ background: var(--green); }
+#finapp .fd-trans{ background: var(--blue); }
+#finapp .trans-table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+#finapp .trans-table th{
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+    position: relative;
+    white-space: nowrap;
+  }
+#finapp .trans-table th .header-content{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+#finapp #tab-transacoes .trans-table th, #finapp #tab-transacoes .trans-table td{ text-align: center !important; }
+#finapp #tab-transacoes .trans-table th .header-content{ justify-content: center; }
+#finapp #tab-transacoes .trans-table .cat-cell{ justify-content: center; }
+#finapp #tab-transacoes .trans-table td .acc-badge{ margin: 0 auto; width: 160px; box-sizing: border-box; justify-content: center; }
+#finapp #tab-transacoes .trans-table th:nth-child(6), #finapp #tab-transacoes .trans-table td:nth-child(6){ text-align: left !important; padding-left: 28px; }
+#finapp #tab-transacoes .trans-table th:nth-child(6) .header-content{ justify-content: flex-start; }
+#finapp #tab-transacoes .trans-table td:nth-child(6) .cat-cell{ justify-content: flex-start; }
+#finapp #tab-transacoes .trans-table th:nth-child(4), #finapp #tab-transacoes .trans-table td:nth-child(4){ text-align: left !important; }
+#finapp #tab-transacoes .trans-table th:nth-child(4) .header-content{ justify-content: flex-start; }
+#finapp #tab-transacoes .trans-table th:nth-child(2), #finapp #tab-transacoes .trans-table td:nth-child(2){ width: 90px; padding-left: 4px; padding-right: 4px; text-align: center !important; vertical-align: middle; }
+#finapp #tab-transacoes .trans-table td:nth-child(2) .status-icon{ margin: 0 auto; display: inline-flex; }
+#finapp #tab-transacoes .trans-table th:nth-child(5), #finapp #tab-transacoes .trans-table td:nth-child(5){ width: 80px; padding-left: 6px; padding-right: 6px; text-align: center !important; }
+#finapp #tab-transacoes .trans-table th:nth-child(8), #finapp #tab-transacoes .trans-table td:nth-child(8){ white-space: nowrap; }
+#finapp #tab-transacoes #trans-total{ white-space: nowrap; }
+#finapp #tab-transacoes .trans-table td[contenteditable="true"], #finapp #tab-transacoes .trans-table td.editable-row{
+    cursor: text;
+    transition: background 220ms ease, box-shadow 220ms ease;
+    border-radius: 4px;
+  }
+#finapp #tab-transacoes .trans-table td[contenteditable="true"]:hover, #finapp #tab-transacoes .trans-table td.editable-row:hover{
+    background: rgba(124,58,237,0.05);
+    box-shadow: inset 0 0 0 1px rgba(124,58,237,0.18);
+  }
+#finapp #tab-transacoes .trans-table td[contenteditable="true"]:focus{
+    background: white;
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--purple);
+  }
+#finapp #tab-transacoes .trans-table td:nth-child(2), #finapp #tab-transacoes .trans-table td:nth-child(3), #finapp #tab-transacoes .trans-table td:nth-child(5), #finapp #tab-transacoes .trans-table td:nth-child(7), #finapp #tab-transacoes .trans-table td:nth-child(8){ cursor: default; }
+#finapp #tab-transacoes .trans-table td:nth-child(2):hover, #finapp #tab-transacoes .trans-table td:nth-child(3):hover, #finapp #tab-transacoes .trans-table td:nth-child(5):hover, #finapp #tab-transacoes .trans-table td:nth-child(7):hover, #finapp #tab-transacoes .trans-table td:nth-child(8):hover{ background: #fafaf8; }
+#finapp .trans-foot-row td{
+    border-top: none !important;
+    background: transparent;
+    padding: 14px 14px !important;
+  }
+#finapp #trans-total{
+    display: inline-block;
+    color: var(--purple);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    background: white;
+    border: 1px solid var(--purple);
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+#finapp #trans-total.has-receita{ color: var(--green); border-color: var(--green); }
+#finapp #trans-total.has-despesa{ color: var(--red); border-color: var(--red); }
+#finapp .toggle-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+#finapp .toggle-label{
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+#finapp .toggle-switch{
+    width: 46px;
+    height: 26px;
+    background: #d1d5db;
+    border: none;
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+#finapp .toggle-switch.on{ background: var(--purple); }
+#finapp .toggle-knob{
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+#finapp .toggle-switch.on .toggle-knob{ left: 23px; }
+#finapp #tab-transacoes:not(.group-card) .row-card-grouped{ display: none; }
+#finapp #tab-transacoes.group-card tr[data-source="card"]:not(.row-card-grouped){ display: none; }
+#finapp .pay-pill{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid;
+  }
+#finapp .pay-pill.pix{ background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
+#finapp .pay-pill.debito{ background: #eff6ff; color: #1d4ed8; border-color: #93c5fd; }
+#finapp .pay-pill.credito{ background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+#finapp .pay-pill.boleto{ background: #fffbeb; color: #92400e; border-color: #fcd34d; }
+#finapp .pay-pill.dinheiro{ background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+#finapp .pay-pill.transf{ background: #f5f3ff; color: #6d28d9; border-color: #c4b5fd; }
+#finapp .parcela-cell{ display: inline-flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; }
+#finapp .parcela-cell .pcl-text{ font-weight: 700; color: var(--ink); }
+#finapp .parcela-cell .pcl-bar{ width: 50px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+#finapp .parcela-cell .pcl-fill{ height: 100%; background: var(--purple); transition: width 0.3s; }
+#finapp .parcela-cell.last .pcl-text{ color: var(--green); }
+#finapp .parcela-cell.last .pcl-fill{ background: var(--green); }
+#finapp .parcela-empty{ color: var(--faint); font-size: 13px; }
+#finapp .var-cell{
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+#finapp .var-cell.up{ color: var(--red); }
+#finapp .var-cell.down{ color: var(--green); }
+#finapp .var-cell.neutral{ color: var(--muted); }
+#finapp .var-cell.new{ color: var(--purple); font-style: italic; }
+#finapp #tab-transacoes .trans-table th:nth-child(4), #finapp #tab-transacoes .trans-table td:nth-child(4){ width: 220px; max-width: 220px; white-space: normal; word-wrap: break-word; }
+#finapp .trans-table th .header-content:hover{ color: var(--purple); }
+#finapp .trans-table th .filter-icon{
+    cursor: pointer;
+    color: var(--faint);
+    margin-left: 4px;
+  }
+#finapp .trans-table th .filter-icon:hover{ color: var(--purple); }
+#finapp .trans-table th.sorted .header-content{ color: var(--purple); }
+#finapp .trans-table th .sort-arrow{ font-size: 11px; }
+#finapp .trans-table td{
+    padding: 9px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+#finapp .trans-table tr:hover td{ background: #fafaf9; }
+#finapp .status-icon{
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+#finapp .status-icon.paid{ background: var(--green); }
+#finapp .status-icon.pending{ background: #f59e0b; }
+#finapp .status-icon.overdue{ background: var(--red); }
+#finapp .status-icon svg.status-svg{ width: 12px; height: 12px; stroke: white; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; display: block; }
+#finapp .cat-icon-classic{
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    flex-shrink: 0;
+    font-size: 13px;
+    line-height: 1;
+  }
+#finapp .ci-pessoais{ background: #06b6d4; }
+#finapp .ci-saude{ background: #b91c1c; }
+#finapp .ci-conveniencia{ background: #94a3b8; }
+#finapp .ci-moradia{ background: #ea580c; }
+#finapp .ci-presentes{ background: #c026d3; }
+#finapp .ci-assinaturas{ background: #94a3b8; }
+#finapp .ci-coisas{ background: #84cc16; }
+#finapp .ci-doacoes{ background: #7c3aed; }
+#finapp .ci-transporte{ background: #2563eb; }
+#finapp .ci-imposto{ background: #0891b2; }
+#finapp .ci-reembolso{ background: #16a34a; }
+#finapp .ci-seguros{ background: #475569; }
+#finapp img.emoji{ height: 1em; width: 1em; margin: 0 0.05em 0 0.1em; vertical-align: -0.1em; display: inline-block; }
+#finapp .cat-icon-classic, #finapp .kpi-icon-circle, #finapp .plan-summary .icon-circle{ color: white; }
+#finapp .cat-icon-classic svg.iconic, #finapp .kpi-icon-circle svg.iconic, #finapp .plan-summary .icon-circle svg.iconic{
+    stroke: white !important;
+    fill: none !important;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.95;
+  }
+#finapp .cat-icon-classic svg.iconic *, #finapp .kpi-icon-circle svg.iconic *, #finapp .plan-summary .icon-circle svg.iconic *{ stroke: white !important; fill: none !important; }
+#finapp .cat-icon-classic svg.iconic{ width: 14px; height: 14px; }
+#finapp .kpi-icon-circle svg.iconic{ width: 22px; height: 22px; }
+#finapp .plan-summary .icon-circle svg.iconic{ width: 20px; height: 20px; }
+#finapp .cat-icon-classic img.emoji, #finapp .kpi-icon-circle img.emoji, #finapp .plan-summary .icon-circle img.emoji{ display: none; }
+#finapp .tabs-nav button img.emoji{ width: 18px; height: 18px; vertical-align: -3px; margin: 0 5px 0 0; }
+#finapp .coach-title img.emoji{ width: 18px; height: 18px; vertical-align: -3px; margin: 0 5px 0 0; }
+#finapp .action-menu button img.emoji{ width: 18px; height: 18px; vertical-align: -3px; margin: 0 5px 0 0; }
+#finapp .cat-cell{ display: flex; align-items: center; }
+#finapp .cat-name{ font-weight: 500; }
+#finapp .acc-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1.5px solid;
+  }
+#finapp .acc-badge .badge-dot{
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+#finapp .acc-badge.brad-cc{ background: var(--bradesco-soft); color: var(--bradesco); border-color: var(--bradesco); }
+#finapp .acc-badge.brad-cc .badge-dot{ background: var(--bradesco); }
+#finapp .acc-badge.brad-card{ background: var(--bradcard-soft); color: var(--bradcard); border-color: var(--bradcard); }
+#finapp .acc-badge.brad-card .badge-dot{ background: var(--bradcard); }
+#finapp .acc-badge.nub-cc{ background: var(--nubank-soft); color: var(--nubank); border-color: var(--nubank); }
+#finapp .acc-badge.nub-cc .badge-dot{ background: var(--nubank); }
+#finapp .acc-badge.nub-card{ background: var(--nubcard-soft); color: var(--nubcard); border-color: var(--nubcard); }
+#finapp .acc-badge.nub-card .badge-dot{ background: var(--nubcard); }
+#finapp .acc-badge.nub-caixinha{ background: var(--nubcax-soft); color: var(--nubcax); border-color: var(--nubcax); }
+#finapp .acc-badge.nub-caixinha .badge-dot{ background: var(--nubcax); }
+#finapp .acc-badge.nub-pj{ background: var(--pj-soft); color: var(--pj); border-color: var(--pj); }
+#finapp .acc-badge.nub-pj .badge-dot{ background: var(--pj); }
+#finapp .acc-badge.itau{ background: var(--itau-soft); color: var(--itau); border-color: var(--itau); }
+#finapp .acc-badge.itau .badge-dot{ background: var(--itau); }
+#finapp .action-menu-btn{
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    color: var(--muted);
+    font-size: 18px;
+    border-radius: 6px;
+    line-height: 1;
+  }
+#finapp .action-menu-btn:hover{ background: #f3f4f6; color: var(--purple); }
+#finapp .action-menu{
+    position: absolute;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 4px 0;
+    min-width: 140px;
+    z-index: 50;
+    display: none;
+  }
+#finapp .action-menu.show{ display: block; }
+#finapp .action-menu button{
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+#finapp .action-menu button:hover{ background: var(--purple-soft); color: var(--purple); }
+#finapp .action-menu button.danger:hover{ background: var(--red-soft); color: var(--red); }
+#finapp .filter-popover{
+    position: absolute;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    padding: 8px;
+    min-width: 200px;
+    z-index: 50;
+    display: none;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+  }
+#finapp .filter-popover.show{ display: block; }
+#finapp .filter-popover .sort-row{
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
+  }
+#finapp .filter-popover .sort-row button{
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+  }
+#finapp .filter-popover .sort-row button:hover{ background: var(--purple-soft); color: var(--purple); }
+#finapp .filter-popover .filter-options{ max-height: 200px; overflow-y: auto; }
+#finapp .filter-popover .filter-options label{ display: flex; gap: 6px; padding: 5px 4px; cursor: pointer; font-size: 12px; align-items: center; }
+#finapp .filter-popover .filter-options label:hover{ background: #fafaf9; }
+#finapp .credit-cards-row{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+#finapp .credit-card-big{
+    color: white;
+    padding: 22px;
+    border-radius: 14px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+#finapp .credit-card-big.brad{ background: linear-gradient(135deg, var(--bradesco), #8b0820); }
+#finapp .credit-card-big.nub{ background: linear-gradient(135deg, var(--nubank), #5a0480); }
+#finapp .cc-bank-name{ font-size: 11px; opacity: 0.85; text-transform: uppercase; letter-spacing: 1px; }
+#finapp .cc-amount{ font-size: 28px; font-weight: 700; margin-top: 2px; }
+#finapp .plan-layout{ display: block; }
+#finapp .plan-summary-row{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+#finapp .plan-summary{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+#finapp .plan-summary .icon-circle{
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    background: #94a3b8;
+    color: white;
+  }
+#finapp .plan-summary.income .icon-circle{ background: #16a34a; }
+#finapp .plan-summary.expenses .icon-circle{ background: #dc2626; }
+#finapp .plan-summary.balance .icon-circle{ background: #7c3aed; }
+#finapp .plan-summary.savings .icon-circle{ background: #2563eb; }
+#finapp .plan-summary.over .icon-circle{ background: #dc2626; }
+#finapp .plan-summary-content .label{ font-size: 11px; color: var(--muted); line-height: 1.2; }
+#finapp .plan-summary-content .val{ font-size: 17px; font-weight: 700; line-height: 1.2; margin-top: 3px; }
+@media (max-width: 1200px) {#finapp .plan-summary-row{ grid-template-columns: repeat(3, 1fr); }}
+@media (max-width: 900px) {#finapp .plan-summary-row{ grid-template-columns: repeat(2, 1fr); }}
+@media (max-width: 500px) {#finapp .plan-summary-row{ grid-template-columns: 1fr; }}
+#finapp .plan-summary.over .val{ color: var(--red); }
+#finapp .plan-summary.cart-balance .icon-circle{ background: #2563eb; }
+#finapp .plan-summary.balance-month .icon-circle{ background: #047857; }
+#finapp #tab-transacoes .trans-kpis-todas, #finapp #tab-transacoes .trans-kpis-despesas, #finapp #tab-transacoes .trans-kpis-receitas, #finapp #tab-transacoes .trans-kpis-transferencias{ display: none; }
+#finapp #tab-transacoes.filter-todas .trans-kpis-todas{ display: grid; }
+#finapp #tab-transacoes.filter-despesas .trans-kpis-despesas{ display: grid; }
+#finapp #tab-transacoes.filter-receitas .trans-kpis-receitas{ display: grid; }
+#finapp #tab-transacoes.filter-transferencias .trans-kpis-transferencias{ display: grid; }
+#finapp .plan-summary.all-red .icon-circle{ background: var(--red); }
+#finapp .plan-summary.all-green .icon-circle{ background: var(--green); }
+#finapp .plan-summary.all-blue .icon-circle{ background: var(--blue); }
+#finapp .restam-cell{ min-width: 220px; }
+#finapp .restam-text{
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+#finapp .restam-text b{ color: var(--ink); font-weight: 700; font-size: 14px; }
+#finapp .restam-bar{
+    position: relative;
+    height: 22px;
+    background: var(--green-soft);
+    border-radius: 11px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+#finapp .restam-bar-fill{
+    height: 100%;
+    background: var(--green);
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 12px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: fit-content;
+  }
+#finapp .restam-cell.over .restam-bar{ background: var(--red-soft); }
+#finapp .restam-cell.over .restam-bar-fill{ background: var(--red); }
+#finapp .restam-legend{
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+#finapp .restam-legend-item{ display: flex; align-items: center; gap: 6px; }
+#finapp .restam-legend-dot{ width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+#finapp .restam-legend-dot.paid{ background: var(--green); }
+#finapp .restam-legend-dot.predicted{ background: #86efac; }
+#finapp .restam-cell.over .restam-legend-dot.paid{ background: var(--red); }
+#finapp .restam-cell.over .restam-legend-dot.predicted{ background: #fca5a5; }
+#finapp .restam-progress{ display: none; }
+#finapp .cat-row{
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+#finapp .donut-wrap{
+    display: flex; justify-content: center; align-items: center;
+    padding: 24px 0;
+    position: relative;
+  }
+#finapp .donut-wrap svg{ max-width: 280px; width: 100%; height: auto; overflow: visible; }
+#finapp .donut-wrap svg .seg{ cursor: pointer; transition: stroke-width 0.15s, opacity 0.15s; }
+#finapp .donut-wrap svg:hover .seg{ opacity: 0.4; }
+#finapp .donut-wrap svg .seg:hover{ opacity: 1; stroke-width: 60; }
+#finapp .donut-tooltip{
+    position: absolute;
+    background: rgba(17,24,39,0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    pointer-events: none;
+    display: none;
+    z-index: 10;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+#finapp .donut-tooltip b{ color: white; font-weight: 700; }
+#finapp .donut-tooltip.show{ display: block; }
+#finapp .donut-with-legend{
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 18px;
+    align-items: center;
+  }
+#finapp .donut-with-legend .donut-wrap{ padding: 12px 0; }
+#finapp .donut-legend{
+    display: grid;
+    grid-template-columns: 14px max-content auto auto;
+    column-gap: 16px;
+    row-gap: 8px;
+    align-items: center;
+    justify-content: start;
+  }
+#finapp .legend-header{ display: contents; }
+#finapp .legend-header > span{
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+#finapp .legend-item{ display: contents; cursor: pointer; }
+#finapp .legend-item > *{ padding: 2px 0; transition: background 0.12s; }
+#finapp .legend-dot{ width: 14px; height: 14px; border-radius: 50%; }
+#finapp .legend-name{ font-weight: 500; color: var(--ink); white-space: nowrap; }
+#finapp .legend-value{ font-weight: 700; color: var(--ink); white-space: nowrap; }
+#finapp .legend-pct{ color: var(--muted); font-size: 12px; text-align: right; white-space: nowrap; }
+@media (max-width: 800px) {#finapp .donut-with-legend{ grid-template-columns: 1fr; }}
+#finapp .cat-list-row{
+    display: flex; justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    align-items: center;
+  }
+#finapp .cat-list-row:hover{ background: #fafaf9; padding-left: 8px; padding-right: 8px; margin: 0 -8px; }
+#finapp .cat-list-row .left{ display: flex; gap: 12px; align-items: center; }
+#finapp .cat-list-row .name{ font-size: 13px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
+#finapp .cat-list-row .pct{ font-size: 11px; color: var(--muted); }
+#finapp .cat-list-row .right{ text-align: right; }
+#finapp .cat-list-row .val{ font-size: 13px; font-weight: 700; }
+@media (max-width: 1000px) {#finapp .top-kpis{ grid-template-columns: repeat(2, 1fr); }
+#finapp .plan-layout{ grid-template-columns: 1fr; }
+#finapp .cat-row{ grid-template-columns: 1fr; }
+#finapp .credit-cards-row{ grid-template-columns: 1fr; }
+#finapp .accounts-grid{ grid-template-columns: 1fr; }
+#finapp .insights-grid{ grid-template-columns: 1fr; }}
+@media (max-width: 600px) {#finapp .top-kpis{ grid-template-columns: 1fr; }
+#finapp .wrap{ padding: 12px; }
+#finapp .peek-wrap{ position: relative; }
+#finapp .trans-table.peek-mobile tbody tr:nth-child(n+5){ display: none; }
+#finapp .trans-table.peek-mobile tbody tr:nth-child(4){
+      opacity: 0.35;
+      filter: blur(0.3px);
+    }
+#finapp .trans-table.peek-mobile tbody tr:nth-child(4) td{
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+#finapp .peek-wrap::after{
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 44px;
+      height: 60px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), var(--card) 90%);
+      pointer-events: none;
+    }
+#finapp .peek-more-btn{
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--purple);
+      background: var(--card);
+      border: none;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+    }
+#finapp .peek-more-btn:hover{ background: var(--purple-soft); }
+#finapp .peek-wrap.expanded::after{ display: none; }
+#finapp .peek-wrap.expanded .trans-table.peek-mobile tbody tr:nth-child(n+5){ display: table-row; }
+#finapp .peek-wrap.expanded .trans-table.peek-mobile tbody tr:nth-child(4){
+      opacity: 1;
+      filter: none;
+    }}
+@media (min-width: 601px) {#finapp .peek-more-btn{ display: none; }}
+#finapp .tab-content-header{
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+#finapp .tab-content-header h2{ font-size: 18px; font-weight: 700; }
+#finapp .ci-salario{ background: #16a34a; }
+#finapp .ci-aluguel{ background: #22c55e; }
+#finapp .ci-mercado{ background: #d97706; }
+#finapp .ci-lazer{ background: #a855f7; }
+#finapp .ci-extras{ background: #6b7280; }
+#finapp .ci-resgate{ background: #10b981; }
+#finapp .ci-alimentacao{ background: #f59e0b; }
+#finapp #tab-transacoes.filter-despesas tbody tr:not(.t-despesa){ display: none; }
+#finapp #tab-transacoes.filter-receitas tbody tr:not(.t-receita){ display: none; }
+#finapp #tab-transacoes.filter-transferencias tbody tr:not(.t-transfer){ display: none; }
+#finapp .empty-state{ text-align: center; padding: 48px 20px; color: var(--muted); font-size: 13px; }
+#finapp .empty-state .es-icon{ font-size: 30px; margin-bottom: 10px; opacity: .5; }
+#finapp .fat-pill{ display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; }
+#finapp .fat-pill.aberta{ background:#ede9fe; color:#7c3aed; }
+#finapp .fat-pill.fechada{ background:#fef3c7; color:#b45309; }
+#finapp .fat-pill.paga{ background:#dcfce7; color:#15803d; }
+#finapp .fat-row{ display:grid; grid-template-columns: 92px 1fr auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; }
+#finapp .fat-row:last-child{ border-bottom:none; }
+#finapp .parc-row{ display:grid; grid-template-columns: 1fr 66px auto; gap:12px; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; }
+#finapp .parc-row:last-child{ border-bottom:none; }
+#finapp .parc-bar{ height:6px; background:#ede9fe; border-radius:3px; overflow:hidden; }
+#finapp .parc-bar i{ display:block; height:100%; background:#7c3aed; }
+#finapp .parc-row.last .parc-bar i{ background:var(--green); }
+#finapp .parc-last-badge{ font-size:10px; font-weight:700; color:var(--green); background:#dcfce7; padding:2px 7px; border-radius:999px; white-space:nowrap; }
+#finapp #transHead th{ position:relative; cursor:pointer; user-select:none; white-space:nowrap; }
+#finapp #transHead th:hover{ background:#f3f0ea; }
+#finapp #transHead .sort-ind{ font-size:10px; color:#7c3aed; margin-left:3px; }
+#finapp #transHead .flt-btn{ display:inline-flex; margin-left:5px; color:#9ca3af; font-size:11px; cursor:pointer; border-radius:4px; padding:0 3px; }
+#finapp #transHead .flt-btn:hover{ background:#ede9fe; color:#7c3aed; }
+#finapp #transHead .flt-btn.on{ color:white; background:#7c3aed; }
+#finapp .col-pop{ position:absolute; top:100%; left:0; z-index:60; background:white; border:1.5px solid #e5e7eb; border-radius:10px;
+             box-shadow:0 10px 30px rgba(0,0,0,.12); padding:10px; min-width:210px; display:none; text-align:left; font-weight:400; text-transform:none; letter-spacing:0; cursor:default; }
+#finapp .col-pop.show{ display:block; }
+#finapp .col-pop .cp-title{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#9ca3af; margin:4px 0 6px; }
+#finapp .col-pop label{ display:flex; align-items:center; gap:8px; font-size:12.5px; padding:5px 6px; border-radius:6px; cursor:pointer; }
+#finapp .col-pop label:hover{ background:#faf9f7; }
+#finapp .col-pop .mini-ci{ width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+#finapp .col-pop .mini-ci svg{ width:11px; height:11px; stroke:white; fill:none; stroke-width:2; }
+#finapp .col-pop input[type=text]{ width:100%; box-sizing:border-box; border:1px solid #e5e7eb; border-radius:6px; padding:6px 8px; font-size:12.5px; margin-bottom:6px; }
+#finapp .col-pop .cp-actions{ display:flex; gap:6px; margin-top:8px; border-top:1px solid #f3f0ea; padding-top:8px; }
+#finapp .col-pop .cp-actions button{ flex:1; font-size:11px; font-weight:600; border:1px solid #e5e7eb; background:white; border-radius:6px; padding:5px 0; cursor:pointer; }
+#finapp .col-pop .cp-actions button.primary{ background:#7c3aed; color:white; border-color:#7c3aed; }
+#finapp .col-pop .acc-badge{ font-size:10px; width:160px; box-sizing:border-box; justify-content:center; }
+#finapp .cat-picker{ position:fixed; z-index:70; background:white; border:1.5px solid #e5e7eb; border-radius:12px;
+                box-shadow:0 14px 40px rgba(0,0,0,.16); padding:8px; width:250px; max-height:340px; overflow:auto; display:none; }
+#finapp .cat-picker.show{ display:block; }
+#finapp .cat-picker .cpk-item{ display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; cursor:pointer; font-size:13px; }
+#finapp .cat-picker .cpk-item:hover{ background:#f5f3ff; }
+#finapp .cat-picker .cpk-item.cur{ background:#ede9fe; font-weight:700; }
+#finapp .cat-picker .mini-ci{ width:24px; height:24px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
+#finapp .cat-picker .mini-ci svg{ width:13px; height:13px; stroke:white; fill:none; stroke-width:2; }
+#finapp .col-pop .desc-sugs{ max-height:180px; overflow:auto; }
+#finapp .col-pop .sug-item{ padding:6px 8px; font-size:12.5px; border-radius:6px; cursor:pointer; }
+#finapp .col-pop .sug-item:hover{ background:#f5f3ff; color:#7c3aed; }
+#finapp .meta-cell{ cursor:text; border-radius:6px; }
+#finapp .meta-cell:hover{ background:rgba(124,58,237,0.05); box-shadow:inset 0 0 0 1px #ddd6fe; }
+#finapp .meta-cell:focus{ outline:2px solid #7c3aed; background:white; }
+#finapp .acc-total-bar{ grid-column: 1 / -1; display: flex; align-items: baseline; gap: 12px;
+    background: white; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 16px; }
+#finapp .atb-label{ font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+#finapp .atb-val{ font-size: 18px; font-weight: 800; color: #7c3aed; }
+#finapp .atb-count{ margin-left: auto; font-size: 11px; color: var(--faint); }
+#finapp .debit-card-big{ color: white; padding: 14px 16px; border-radius: 12px; min-height: 96px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 4px 12px rgba(0,0,0,.10); }
+#finapp .debit-card-big .cc-bank-name{ font-size: 9.5px; letter-spacing: .06em; }
+#finapp .dcb-val{ font-size: 17px; font-weight: 800; margin-top: 10px; white-space: nowrap; }
+#finapp .dcb-tipo{ font-size: 10px; opacity: .8; margin-top: 2px; }
+#finapp .accounts-grid{ grid-template-columns: repeat(6, 1fr); gap: 10px; }
+@media (max-width: 1100px) {#finapp .accounts-grid{ grid-template-columns: repeat(3, 1fr); }}
+#finapp .debit-card-big{ cursor: pointer; transition: transform .12s, box-shadow .12s; }
+#finapp .debit-card-big:hover{ transform: translateY(-2px); }
+#finapp .debit-card-big.sel{ box-shadow: 0 0 0 3px white, 0 0 0 5.5px #7c3aed; }
+#finapp .accounts-strip{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+#finapp .acc-chip-card{ color: white; padding: 10px 12px; border-radius: 10px; min-height: 74px; cursor: pointer;
+    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 3px 8px rgba(0,0,0,.10); transition: transform .12s; }
+#finapp .acc-chip-card:hover{ transform: translateY(-2px); }
+#finapp .acc-chip-card.sel{ box-shadow: 0 0 0 2.5px white, 0 0 0 5px #7c3aed; }
+#finapp .acc-chip-card .cc-bank-name{ font-size: 8.5px; letter-spacing: .05em; }
+#finapp .acc-chip-card .dcb-val{ font-size: 13.5px; font-weight: 800; margin-top: 6px; white-space: nowrap; }
+#finapp .acc-chip-card .dcb-tipo{ font-size: 9px; opacity: .8; }
+@media (max-width: 1200px) {#finapp .accounts-strip{ grid-template-columns: repeat(5, 1fr); }}
+#finapp .acc-chip-card{ min-height: 96px; }
+#finapp .acc-chip-card .cc-bank-name{ font-size: 11.5px; font-weight: 700; letter-spacing: .03em; opacity: 1; }
+#finapp .acc-chip-card.cred{ padding: 10px 12px; }
+#finapp .acc-cred-top{ display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+#finapp .cred-limit-bar{ height: 5px; background: rgba(255,255,255,.25); border-radius: 3px; overflow: hidden; margin: 6px 0 4px; }
+#finapp .cred-limit-bar i{ display: block; height: 100%; background: white; }
+@media (max-width: 1200px) {#finapp .accounts-strip{ grid-template-columns: repeat(3, 1fr); }}
+#finapp .acc-chip-card.tall{ grid-row: span 2; justify-content: center; gap: 8px; }
+#finapp .acc-chip-card.tall .dcb-val{ font-size: 17px; }
+#finapp .cat-color-dot{ width: 22px; height: 22px; border-radius: 50%; display: inline-block; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px var(--border); }
+#finapp .cat-color-dot.big{ width: 28px; height: 28px; }
+#finapp .cat-name-cell:hover{ background: rgba(124,58,237,0.05); box-shadow: inset 0 0 0 1px #ddd6fe; cursor: text; }
+#finapp .cat-name-cell:focus{ outline: 2px solid #7c3aed; background: white; }
+#finapp .cat-del{ cursor: pointer; opacity: .45; font-size: 15px; }
+#finapp .cat-del:hover{ opacity: 1; }
+#finapp .cat-meta-cell:hover{ background: rgba(124,58,237,0.05); box-shadow: inset 0 0 0 1px #ddd6fe; cursor: text; }
+#finapp .cat-meta-cell:focus{ outline: 2px solid #7c3aed; background: white; }
+        </style>
+        <div id="finapp">
+<div class="wrap">
+
+  <!-- SVG SPRITE -->
+  <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="i-bank" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></symbol>
+      <symbol id="i-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+      <symbol id="i-arrow-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
+      <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></symbol>
+      <symbol id="i-house" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+      <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></symbol>
+      <symbol id="i-pill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l10-10a4.95 4.95 0 10-7-7l-10 10a4.95 4.95 0 107 7zM8.5 8.5l7 7"/></symbol>
+      <symbol id="i-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h2v-3.5a2.5 2.5 0 00-2.5-2.5h-13L4 6h11l1.5 4M5 16H3v-3.5"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+      <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></symbol>
+      <symbol id="i-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+      <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+      <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+      <symbol id="i-balance" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8h14M3 8l3 8h-6zM21 8l3 8h-6z"/></symbol>
+      <symbol id="i-chart-bar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4z"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
+      <symbol id="i-shirt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"/></symbol>
+      <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5M3 9v10a1 1 0 001 1h16a1 1 0 001-1V9M3 9h18"/><path d="M9 22V12h6v10"/></symbol>
+      <symbol id="i-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></symbol>
+      <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><line x1="2" y1="2" x2="7.586" y2="7.586"/><circle cx="11" cy="11" r="2"/></symbol>
+      <symbol id="i-fridge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="5" y1="10" x2="19" y2="10"/><line x1="9" y1="6" x2="9" y2="7"/><line x1="9" y1="14" x2="9" y2="15"/></symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></symbol>
+      <symbol id="i-trending-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13 8 8 13 2 7"/><polyline points="16 17 22 17 22 11"/></symbol>
+      <symbol id="i-trending-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13 16 8 11 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="11" x2="21" y2="11"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></symbol>
+      <symbol id="i-gavel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Cabeça do martelo (rotacionada 45°) -->
+        <path d="M2 9l5-5 5 5-5 5z"/>
+        <!-- Cabo conectando ao bloco -->
+        <line x1="9" y1="11" x2="20" y2="22"/>
+        <!-- Bloco de som / bigorna -->
+        <line x1="13" y1="22" x2="22" y2="22"/>
+        <!-- Linha de impacto na cabeça -->
+        <line x1="4.5" y1="6.5" x2="9.5" y2="11.5"/>
+      </symbol>
+      <symbol id="i-dollar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="2" x2="12" y2="22"/>
+        <path d="M17 5H9a3.5 3.5 0 000 7h6a3.5 3.5 0 010 7H7"/>
+      </symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7l4-4 4 4M7 3v18M21 17l-4 4-4-4M17 21V3"/>
+      </symbol>
+      <symbol id="i-percent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="5" x2="5" y2="19"/>
+        <circle cx="6.5" cy="6.5" r="2.5"/>
+        <circle cx="17.5" cy="17.5" r="2.5"/>
+      </symbol>
+      <symbol id="i-beach" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="9" r="3"/>
+        <line x1="12" y1="3" x2="12" y2="5"/>
+        <line x1="3" y1="9" x2="5" y2="9"/>
+        <line x1="19" y1="9" x2="21" y2="9"/>
+        <line x1="6" y1="4" x2="7" y2="5"/>
+        <line x1="17" y1="5" x2="18" y2="4"/>
+        <path d="M2 17q3-2 5 0t5 0t5 0t5 0M2 21q3-2 5 0t5 0t5 0t5 0"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- TOP KPIs -->
+  <div class="top-kpis">
+    <div class="kpi-card">
+      <div class="kpi-icon-circle saldo"><svg class="iconic"><use href="#i-bank"/></svg></div>
+      <div class="kpi-content"><div class="kpi-label">Saldo atual</div><div class="kpi-value">R$ 5.725,44</div></div>
+      <div class="kpi-arrow">›</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-circle rec"><svg class="iconic"><use href="#i-arrow-up"/></svg></div>
+      <div class="kpi-content"><div class="kpi-label">Receitas</div><div class="kpi-value">R$ 14.616,06</div></div>
+      <div class="kpi-arrow">›</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-circle des"><svg class="iconic"><use href="#i-arrow-down"/></svg></div>
+      <div class="kpi-content"><div class="kpi-label">Despesas</div><div class="kpi-value">R$ 9.717,00</div></div>
+      <div class="kpi-arrow">›</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-circle cart"><svg class="iconic"><use href="#i-card"/></svg></div>
+      <div class="kpi-content"><div class="kpi-label">Cartão de crédito</div><div class="kpi-value">R$ 848,64</div></div>
+      <div class="kpi-arrow">›</div>
+    </div>
+  </div>
+
+  <!-- COACH (colapsado) -->
+  <details class="coach">
+    <summary>
+      <div class="coach-summary-left">
+        <span class="coach-title">💡 Insights diários</span>
+        <span class="coach-counter">6 insights · atualizado hoje 06:00</span>
+      </div>
+    </summary>
+    <div class="insights-grid">
+      <div class="insight green"><div class="insight-tag">Insight</div><div class="insight-body">Você está gastando <b>33% menos com Lazer</b> esse mês. Mantém o ritmo!</div></div>
+      <div class="insight orange"><div class="insight-tag">Atenção</div><div class="insight-body">Fatura Bradesco vence em <b>22 dias</b> com R$ 20.587. <b>Falta R$ 6k</b> — programe transferência da Caixinha?</div></div>
+      <div class="insight blue"><div class="insight-tag">Padrão</div><div class="insight-body">14 corridas Uber em maio (R$ 252). <b>Considera Uber One</b>? — economiza ~R$ 50/mês</div></div>
+      <div class="insight purple"><div class="insight-tag">Meta</div><div class="insight-body">Você está <b>33% das receitas</b> em sobra esse mês. Excelente!</div></div>
+      <div class="insight red"><div class="insight-tag">Alerta</div><div class="insight-body">3 contas em <b>Coisas para casa</b> excederam o planejado em 427%</div></div>
+      <div class="insight green"><div class="insight-tag">Tendência</div><div class="insight-body">Despesas <b>caíram 9%</b> vs Abril. Maior queda em Saúde (-12%)</div></div>
+    </div>
+  </details>
+
+  <!-- TABS NA NOVA ORDEM -->
+  <div class="tabs-nav">
+    <button data-tab="planejamento" class="active">🎯 Planejamento</button>
+    <button data-tab="transacoes">📄 Gastos mensais</button>
+    <button data-tab="graficos">📊 Gráficos</button>
+    <button data-tab="categorias">🏷️ Categorias</button>
+  </div>
+
+  <!-- ===== PLANEJAMENTO ===== -->
+  <div class="tab-content active" id="tab-planejamento">
+    <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
+
+    <!-- 5 KPIs do Planejamento -->
+    <div class="plan-summary-row">
+      <div class="plan-summary over"><div class="icon-circle"><svg class="iconic"><use href="#i-trending-down"/></svg></div><div class="plan-summary-content"><div class="label" id="kpiRestamLabel">Restam</div><div class="val" id="kpiRestamVal"></div></div></div>
+      <div class="plan-summary income"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-up"/></svg></div><div class="plan-summary-content"><div class="label">Receitas do mês</div><div class="val" id="kpiPlanRec"></div></div></div>
+      <div class="plan-summary expenses"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-down"/></svg></div><div class="plan-summary-content"><div class="label">Gastos planejados</div><div class="val" id="kpiPlanGastos"></div></div></div>
+      <div class="plan-summary balance"><div class="icon-circle"><svg class="iconic"><use href="#i-balance"/></svg></div><div class="plan-summary-content"><div class="label">Balanço planejado</div><div class="val" id="kpiPlanBal"></div></div></div>
+      <div class="plan-summary savings"><div class="icon-circle"><svg class="iconic"><use href="#i-target"/></svg></div><div class="plan-summary-content"><div class="label">Economia planejada</div><div class="val" id="kpiPlanEco"></div></div></div>
+    </div>
+
+    <div class="plan-layout">
+        <div class="panel peek-wrap" style="padding:0">
+          <table class="trans-table peek-mobile">
+            <thead id="planHead"><!-- renderizado via JS --></thead>
+            <tbody id="planBody"><!-- renderizado via JS (DATA.budgets) --></tbody>
           </table>
+          <button class="peek-more-btn" id="planPeekBtn"></button>
+        </div>
+    </div>
+  </div>
+
+  <!-- ===== TRANSAÇÕES ===== -->
+  <div class="tab-content filter-todas" id="tab-transacoes">
+    <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
+
+    <div class="accounts-strip" id="accountsStrip"><!-- cards de contas via JS --></div>
+
+    <div class="filter-tabs">
+      <button class="active" data-filter="todas"><span class="filter-dot fd-all"></span>Todas as transações</button>
+      <button data-filter="despesas"><span class="filter-dot fd-out"></span>Despesas</button>
+      <button data-filter="receitas"><span class="filter-dot fd-in"></span>Receitas</button>
+      <button data-filter="transferencias"><span class="filter-dot fd-trans"></span>Transferências</button>
+    </div>
+
+    <div class="plan-summary-row trans-kpis-todas" style="grid-template-columns:repeat(4,1fr)">
+      <div class="plan-summary cart-balance"><div class="icon-circle"><svg class="iconic"><use href="#i-bank"/></svg></div><div class="plan-summary-content"><div class="label">Saldo atual</div><div class="val" id="kpiSaldo"></div></div></div>
+      <div class="plan-summary income"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-up"/></svg></div><div class="plan-summary-content"><div class="label">Receitas</div><div class="val" id="kpiRec"></div></div></div>
+      <div class="plan-summary expenses"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-down"/></svg></div><div class="plan-summary-content"><div class="label">Despesas</div><div class="val" id="kpiDesp"></div></div></div>
+      <div class="plan-summary balance-month"><div class="icon-circle"><svg class="iconic"><use href="#i-balance"/></svg></div><div class="plan-summary-content"><div class="label">Balanço mensal</div><div class="val" id="kpiBal"></div></div></div>
+    </div>
+
+    <div class="plan-summary-row trans-kpis-despesas" style="grid-template-columns:repeat(3,1fr)">
+      <div class="plan-summary all-red"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-up"/></svg></div><div class="plan-summary-content"><div class="label">Despesas pendentes</div><div class="val" id="kpiDespPend"></div></div></div>
+      <div class="plan-summary all-red"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-down"/></svg></div><div class="plan-summary-content"><div class="label">Despesas pagas</div><div class="val" id="kpiDespPagas"></div></div></div>
+      <div class="plan-summary all-red"><div class="icon-circle"><svg class="iconic"><use href="#i-balance"/></svg></div><div class="plan-summary-content"><div class="label">Total</div><div class="val" id="kpiDespTotal"></div></div></div>
+    </div>
+
+    <div class="plan-summary-row trans-kpis-receitas" style="grid-template-columns:repeat(3,1fr)">
+      <div class="plan-summary all-green"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-up"/></svg></div><div class="plan-summary-content"><div class="label">Receitas pendentes</div><div class="val" id="kpiRecPend"></div></div></div>
+      <div class="plan-summary all-green"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-down"/></svg></div><div class="plan-summary-content"><div class="label">Receitas recebidas</div><div class="val" id="kpiRecReceb"></div></div></div>
+      <div class="plan-summary all-green"><div class="icon-circle"><svg class="iconic"><use href="#i-balance"/></svg></div><div class="plan-summary-content"><div class="label">Total</div><div class="val" id="kpiRecTotal"></div></div></div>
+    </div>
+
+    <div class="plan-summary-row trans-kpis-transferencias" style="grid-template-columns:repeat(3,1fr)">
+      <div class="plan-summary all-blue"><div class="icon-circle"><svg class="iconic"><use href="#i-refresh"/></svg></div><div class="plan-summary-content"><div class="label">Transferências do mês</div><div class="val" id="kpiTransfCount"></div></div></div>
+      <div class="plan-summary all-blue"><div class="icon-circle"><svg class="iconic"><use href="#i-balance"/></svg></div><div class="plan-summary-content"><div class="label">Total movimentado</div><div class="val" id="kpiTransfTotal"></div></div></div>
+      <div class="plan-summary all-blue"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-down"/></svg></div><div class="plan-summary-content"><div class="label">Resgate Caixinha do mês</div><div class="val" id="kpiTransfResgate"></div></div></div>
+    </div>
+
+<div class="panel" style="padding:0">
+      <table class="trans-table">
+        <thead id="transHead"><!-- renderizado via JS --></thead>
+        <tbody id="transBody"><!-- renderizado via JS (DATA.transactions) --></tbody>
+        <tfoot>
+          <tr class="trans-foot-row">
+            <td colspan="7"></td>
+            <td style="text-align:right">
+              <span id="trans-total">R$ 3.057,59</span>
+            </td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div id="credExtras" style="display:none;margin-top:14px"></div>
+  </div>
+
+  <!-- ===== CONTAS DÉBITO ===== -->
+  <!-- ===== GRÁFICOS ===== -->
+  <div class="tab-content" id="tab-graficos">
+
+    <!-- Seletor de mês interativo dos donuts -->
+    <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
+
+    <!-- 2 donuts lado a lado: Receitas à esquerda, Despesas à direita -->
+    <div class="cat-row" style="grid-template-columns:1fr 1fr;gap:18px">
+      <div class="panel">
+        <div class="panel-title">Receitas por categoria</div>
+        <div class="donut-with-legend">
+          <div class="donut-wrap">
+            <svg viewBox="-15 -15 270 270" preserveAspectRatio="xMidYMid meet">
+              <g transform="translate(120,120)" id="donut-receitas-segs">
+                <circle class="seg" data-name="Salário" data-value="8.583,56" data-pct="58,72" r="100" fill="none" stroke="#16a34a" stroke-width="50" stroke-dasharray="369 628.3" transform="rotate(-90)"/>
+                <circle class="seg" data-name="Aluguel recebido" data-value="6.032,50" data-pct="41,28" r="100" fill="none" stroke="#86efac" stroke-width="50" stroke-dasharray="259.3 628.3" stroke-dashoffset="-369" transform="rotate(-90)"/>
+              </g>
+              <text x="120" y="118" text-anchor="middle" font-size="20" font-weight="700" id="donut-receitas-total">R$ 14.616,06</text>
+              <text x="120" y="138" text-anchor="middle" font-size="11" fill="#6b7280">Total</text>
+            </svg>
+            <div class="donut-tooltip"></div>
+          </div>
+          <div class="donut-legend" id="donut-receitas-legend">
+            <div class="legend-header"><span></span><span>Categoria</span><span>Recebido</span><span>%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#16a34a"></span><span class="legend-name">Salário</span><span class="legend-value">R$ 8.583,56</span><span class="legend-pct">58,72%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#86efac"></span><span class="legend-name">Aluguel recebido</span><span class="legend-value">R$ 6.032,50</span><span class="legend-pct">41,28%</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Despesas por categoria</div>
+        <div class="donut-with-legend">
+          <div class="donut-wrap">
+            <svg viewBox="-15 -15 270 270" preserveAspectRatio="xMidYMid meet">
+              <g transform="translate(120,120)" id="donut-despesas-segs">
+                <circle class="seg" data-name="Moradia" data-value="5.049,99" data-pct="51,97" r="100" fill="none" stroke="#ea580c" stroke-width="50" stroke-dasharray="326.5 628.3" transform="rotate(-90)"/>
+                <circle class="seg" data-name="Imposto" data-value="1.824,60" data-pct="18,78" r="100" fill="none" stroke="#0891b2" stroke-width="50" stroke-dasharray="118 628.3" stroke-dashoffset="-326.5" transform="rotate(-90)"/>
+                <circle class="seg" data-name="Saúde" data-value="1.769,78" data-pct="18,21" r="100" fill="none" stroke="#dc2626" stroke-width="50" stroke-dasharray="114.5 628.3" stroke-dashoffset="-444.5" transform="rotate(-90)"/>
+                <circle class="seg" data-name="Transporte" data-value="656,69" data-pct="6,76" r="100" fill="none" stroke="#2563eb" stroke-width="50" stroke-dasharray="42.5 628.3" stroke-dashoffset="-559" transform="rotate(-90)"/>
+                <circle class="seg" data-name="Outros" data-value="415,94" data-pct="4,28" r="100" fill="none" stroke="#6b7280" stroke-width="50" stroke-dasharray="26.7 628.3" stroke-dashoffset="-601.5" transform="rotate(-90)"/>
+              </g>
+              <text x="120" y="118" text-anchor="middle" font-size="20" font-weight="700" id="donut-despesas-total">R$ 9.717,00</text>
+              <text x="120" y="138" text-anchor="middle" font-size="11" fill="#6b7280">Total</text>
+            </svg>
+            <div class="donut-tooltip"></div>
+          </div>
+          <div class="donut-legend" id="donut-despesas-legend">
+            <div class="legend-header"><span></span><span>Categoria</span><span>Gasto</span><span>%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#ea580c"></span><span class="legend-name">Moradia</span><span class="legend-value">R$ 5.049,99</span><span class="legend-pct">51,97%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#0891b2"></span><span class="legend-name">Imposto</span><span class="legend-value">R$ 1.824,60</span><span class="legend-pct">18,78%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#dc2626"></span><span class="legend-name">Saúde</span><span class="legend-value">R$ 1.769,78</span><span class="legend-pct">18,21%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#2563eb"></span><span class="legend-name">Transporte</span><span class="legend-value">R$ 656,69</span><span class="legend-pct">6,76%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#6b7280"></span><span class="legend-name">Outros</span><span class="legend-value">R$ 415,94</span><span class="legend-pct">4,28%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Receitas e Despesas por ano</div>
+      <div class="chart-anual" id="chartAnnualLine">
+        <svg viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet">
+          <!-- Grid -->
+          <g font-size="9" fill="#9ca3af">
+            <line x1="50" y1="40" x2="690" y2="40" stroke="#f3f4f6"/><text x="0" y="44">R$ 18mil</text>
+            <line x1="50" y1="100" x2="690" y2="100" stroke="#f3f4f6"/><text x="0" y="104">R$ 14mil</text>
+            <line x1="50" y1="160" x2="690" y2="160" stroke="#f3f4f6"/><text x="0" y="164">R$ 10mil</text>
+            <line x1="50" y1="220" x2="690" y2="220" stroke="#f3f4f6"/><text x="0" y="224">R$ 6mil</text>
+            <line x1="50" y1="280" x2="690" y2="280" stroke="#e5e7eb"/><text x="0" y="284">R$ 2mil</text>
+            <line x1="50" y1="320" x2="690" y2="320" stroke="#e5e7eb"/><text x="0" y="324">R$ 0</text>
+          </g>
+          <!-- 2025 RECEITAS — verde-claro -->
+          <polyline points="80,80 130,90 180,90 230,80 280,40 330,90 380,80 430,80 480,90 530,80 580,80 630,40" fill="none" stroke="#86efac" stroke-width="2.5" stroke-dasharray="0"/>
+          <!-- 2025 DESPESAS — vermelho-claro -->
+          <polyline points="80,200 130,220 180,200 230,160 280,160 330,140 380,180 430,200 480,200 530,200 580,180 630,160" fill="none" stroke="#fca5a5" stroke-width="2.5"/>
+          <!-- 2026 RECEITAS — verde forte -->
+          <polyline points="80,100 130,100 180,100 230,100 280,100 330,100" fill="none" stroke="#16a34a" stroke-width="3"/>
+          <!-- 2026 DESPESAS — vermelho forte -->
+          <polyline points="80,180 130,160 180,200 230,200 280,200 330,200" fill="none" stroke="#dc2626" stroke-width="3"/>
+          <!-- Pontos 2025 -->
+          <g class="data-points">
+            <circle cx="80" cy="80" r="4" fill="#86efac" data-month="jan/25" data-type="Receita 2025" data-value="14180"/>
+            <circle cx="80" cy="200" r="4" fill="#fca5a5" data-month="jan/25" data-type="Despesa 2025" data-value="9157"/>
+            <circle cx="130" cy="90" r="4" fill="#86efac" data-month="fev/25" data-type="Receita 2025" data-value="13760"/>
+            <circle cx="130" cy="220" r="4" fill="#fca5a5" data-month="fev/25" data-type="Despesa 2025" data-value="9000"/>
+            <circle cx="180" cy="90" r="4" fill="#86efac" data-month="mar/25" data-type="Receita 2025" data-value="13760"/>
+            <circle cx="180" cy="200" r="4" fill="#fca5a5" data-month="mar/25" data-type="Despesa 2025" data-value="9700"/>
+            <circle cx="230" cy="80" r="4" fill="#86efac" data-month="abr/25" data-type="Receita 2025" data-value="14250"/>
+            <circle cx="230" cy="160" r="4" fill="#fca5a5" data-month="abr/25" data-type="Despesa 2025" data-value="11800"/>
+            <circle cx="280" cy="40" r="4" fill="#86efac" data-month="mai/25" data-type="Receita 2025" data-value="17068"/>
+            <circle cx="280" cy="160" r="4" fill="#fca5a5" data-month="mai/25" data-type="Despesa 2025" data-value="11800"/>
+            <circle cx="330" cy="90" r="4" fill="#86efac" data-month="jun/25" data-type="Receita 2025" data-value="14000"/>
+            <circle cx="330" cy="140" r="4" fill="#fca5a5" data-month="jun/25" data-type="Despesa 2025" data-value="12500"/>
+            <circle cx="380" cy="80" r="4" fill="#86efac" data-month="jul/25" data-type="Receita 2025" data-value="14600"/>
+            <circle cx="380" cy="180" r="4" fill="#fca5a5" data-month="jul/25" data-type="Despesa 2025" data-value="10500"/>
+            <circle cx="430" cy="80" r="4" fill="#86efac" data-month="ago/25" data-type="Receita 2025" data-value="14600"/>
+            <circle cx="430" cy="200" r="4" fill="#fca5a5" data-month="ago/25" data-type="Despesa 2025" data-value="9700"/>
+            <circle cx="480" cy="90" r="4" fill="#86efac" data-month="set/25" data-type="Receita 2025" data-value="13900"/>
+            <circle cx="480" cy="200" r="4" fill="#fca5a5" data-month="set/25" data-type="Despesa 2025" data-value="9700"/>
+            <circle cx="530" cy="80" r="4" fill="#86efac" data-month="out/25" data-type="Receita 2025" data-value="14600"/>
+            <circle cx="530" cy="200" r="4" fill="#fca5a5" data-month="out/25" data-type="Despesa 2025" data-value="9700"/>
+            <circle cx="580" cy="80" r="4" fill="#86efac" data-month="nov/25" data-type="Receita 2025" data-value="14600"/>
+            <circle cx="580" cy="180" r="4" fill="#fca5a5" data-month="nov/25" data-type="Despesa 2025" data-value="10500"/>
+            <circle cx="630" cy="40" r="4" fill="#86efac" data-month="dez/25" data-type="Receita 2025" data-value="17215"/>
+            <circle cx="630" cy="160" r="4" fill="#fca5a5" data-month="dez/25" data-type="Despesa 2025" data-value="11500"/>
+          </g>
+          <!-- Pontos 2026 (jan-jun) -->
+          <g class="data-points">
+            <circle cx="80" cy="100" r="5" fill="#16a34a" data-month="jan/26" data-type="Receita 2026" data-value="14616"/>
+            <circle cx="80" cy="180" r="5" fill="#dc2626" data-month="jan/26" data-type="Despesa 2026" data-value="10500"/>
+            <circle cx="130" cy="100" r="5" fill="#16a34a" data-month="fev/26" data-type="Receita 2026" data-value="14616"/>
+            <circle cx="130" cy="160" r="5" fill="#dc2626" data-month="fev/26" data-type="Despesa 2026" data-value="11700"/>
+            <circle cx="180" cy="100" r="5" fill="#16a34a" data-month="mar/26" data-type="Receita 2026" data-value="14616"/>
+            <circle cx="180" cy="200" r="5" fill="#dc2626" data-month="mar/26" data-type="Despesa 2026" data-value="9717"/>
+            <circle cx="230" cy="100" r="5" fill="#16a34a" data-month="abr/26" data-type="Receita 2026" data-value="14616"/>
+            <circle cx="230" cy="200" r="5" fill="#dc2626" data-month="abr/26" data-type="Despesa 2026" data-value="9717"/>
+            <circle cx="280" cy="100" r="5" fill="#16a34a" data-month="mai/26" data-type="Receita 2026" data-value="14616"/>
+            <circle cx="280" cy="200" r="5" fill="#dc2626" data-month="mai/26" data-type="Despesa 2026" data-value="9717"/>
+            <circle cx="330" cy="100" r="5" fill="#16a34a" data-month="jun/26" data-type="Receita 2026" data-value="14616"/>
+            <circle cx="330" cy="200" r="5" fill="#dc2626" data-month="jun/26" data-type="Despesa 2026" data-value="9717"/>
+          </g>
+          <!-- Eixo X -->
+          <g font-size="10" fill="#6b7280">
+            <text x="80" y="345" text-anchor="middle">jan</text>
+            <text x="130" y="345" text-anchor="middle">fev</text>
+            <text x="180" y="345" text-anchor="middle">mar</text>
+            <text x="230" y="345" text-anchor="middle">abr</text>
+            <text x="280" y="345" text-anchor="middle">mai</text>
+            <text x="330" y="345" text-anchor="middle">jun</text>
+            <text x="380" y="345" text-anchor="middle">jul</text>
+            <text x="430" y="345" text-anchor="middle">ago</text>
+            <text x="480" y="345" text-anchor="middle">set</text>
+            <text x="530" y="345" text-anchor="middle">out</text>
+            <text x="580" y="345" text-anchor="middle">nov</text>
+            <text x="630" y="345" text-anchor="middle">dez</text>
+          </g>
+        </svg>
+        <div class="chart-tooltip" id="tooltipLine"></div>
+      </div>
+      <div style="display:flex;gap:18px;justify-content:center;margin-top:8px;font-size:12px;color:var(--ink);flex-wrap:wrap">
+        <span><span style="color:#86efac">●</span> Receita 2025</span>
+        <span><span style="color:#16a34a">●</span> Receita 2026</span>
+        <span><span style="color:#fca5a5">●</span> Despesa 2025</span>
+        <span><span style="color:#dc2626">●</span> Despesa 2026</span>
+        <span style="color:#9ca3af;font-style:italic">+ próximos anos em novas cores</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Comparativo ano-a-ano</div>
+      <div class="chart-anual" style="height:360px" id="chartCompare">
+        <svg viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet">
+          <g font-size="9" fill="#9ca3af">
+            <line x1="50" y1="40" x2="690" y2="40" stroke="#f3f4f6"/><text x="0" y="44">R$ 18mil</text>
+            <line x1="50" y1="100" x2="690" y2="100" stroke="#f3f4f6"/><text x="0" y="104">R$ 14mil</text>
+            <line x1="50" y1="160" x2="690" y2="160" stroke="#f3f4f6"/><text x="0" y="164">R$ 10mil</text>
+            <line x1="50" y1="220" x2="690" y2="220" stroke="#f3f4f6"/><text x="0" y="224">R$ 6mil</text>
+            <line x1="50" y1="280" x2="690" y2="280" stroke="#e5e7eb"/><text x="0" y="284">R$ 2mil</text>
+            <line x1="50" y1="320" x2="690" y2="320" stroke="#e5e7eb"/><text x="0" y="324">R$ 0</text>
+          </g>
+          <!-- Grupos por mês: 4 barras (Receita 25, Receita 26, Despesa 25, Despesa 26) -->
+          <g class="bar-group" data-month="Janeiro">
+            <rect x="60" y="40" width="14" height="280" fill="#86efac" data-month="Janeiro" data-type="Receita 2025" data-value="13550"/>
+            <rect x="76" y="100" width="14" height="220" fill="#16a34a" data-month="Janeiro" data-type="Receita 2026" data-value="14616"/>
+            <rect x="92" y="160" width="14" height="160" fill="#fca5a5" data-month="Janeiro" data-type="Despesa 2025" data-value="9157"/>
+            <rect x="108" y="180" width="14" height="140" fill="#dc2626" data-month="Janeiro" data-type="Despesa 2026" data-value="11843"/>
+            <text x="83" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Jan</text>
+          </g>
+          <g class="bar-group" data-month="Fevereiro">
+            <rect x="160" y="50" width="14" height="270" fill="#86efac" data-month="Fevereiro" data-type="Receita 2025" data-value="13551"/>
+            <rect x="176" y="100" width="14" height="220" fill="#16a34a" data-month="Fevereiro" data-type="Receita 2026" data-value="14616"/>
+            <rect x="192" y="200" width="14" height="120" fill="#fca5a5" data-month="Fevereiro" data-type="Despesa 2025" data-value="9000"/>
+            <rect x="208" y="190" width="14" height="130" fill="#dc2626" data-month="Fevereiro" data-type="Despesa 2026" data-value="10916"/>
+            <text x="183" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Fev</text>
+          </g>
+          <g class="bar-group" data-month="Março">
+            <rect x="260" y="50" width="14" height="270" fill="#86efac" data-month="Março" data-type="Receita 2025" data-value="14288"/>
+            <rect x="276" y="100" width="14" height="220" fill="#16a34a" data-month="Março" data-type="Receita 2026" data-value="14616"/>
+            <rect x="292" y="100" width="14" height="220" fill="#fca5a5" data-month="Março" data-type="Despesa 2025" data-value="19798"/>
+            <rect x="308" y="200" width="14" height="120" fill="#dc2626" data-month="Março" data-type="Despesa 2026" data-value="10717"/>
+            <text x="283" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Mar</text>
+          </g>
+          <g class="bar-group" data-month="Abril">
+            <rect x="360" y="40" width="14" height="280" fill="#86efac" data-month="Abril" data-type="Receita 2025" data-value="17068"/>
+            <rect x="376" y="100" width="14" height="220" fill="#16a34a" data-month="Abril" data-type="Receita 2026" data-value="14616"/>
+            <rect x="392" y="160" width="14" height="160" fill="#fca5a5" data-month="Abril" data-type="Despesa 2025" data-value="13810"/>
+            <rect x="408" y="200" width="14" height="120" fill="#dc2626" data-month="Abril" data-type="Despesa 2026" data-value="10717"/>
+            <text x="383" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Abr</text>
+          </g>
+          <g class="bar-group" data-month="Maio">
+            <rect x="460" y="50" width="14" height="270" fill="#86efac" data-month="Maio" data-type="Receita 2025" data-value="14169"/>
+            <rect x="476" y="100" width="14" height="220" fill="#16a34a" data-month="Maio" data-type="Receita 2026" data-value="14616"/>
+            <rect x="492" y="140" width="14" height="180" fill="#fca5a5" data-month="Maio" data-type="Despesa 2025" data-value="16519"/>
+            <rect x="508" y="225" width="14" height="95" fill="#dc2626" data-month="Maio" data-type="Despesa 2026" data-value="9717"/>
+            <text x="483" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Mai</text>
+          </g>
+          <g class="bar-group" data-month="Dezembro">
+            <rect x="560" y="50" width="14" height="270" fill="#86efac" data-month="Dezembro" data-type="Receita 2024" data-value="13800"/>
+            <rect x="576" y="40" width="14" height="280" fill="#16a34a" data-month="Dezembro" data-type="Receita 2025" data-value="17215"/>
+            <rect x="592" y="180" width="14" height="140" fill="#fca5a5" data-month="Dezembro" data-type="Despesa 2024" data-value="11000"/>
+            <rect x="608" y="160" width="14" height="160" fill="#dc2626" data-month="Dezembro" data-type="Despesa 2025" data-value="12692"/>
+            <text x="583" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Dez</text>
+          </g>
+        </svg>
+        <div class="chart-tooltip" id="tooltipBars"></div>
+      </div>
+      <div style="display:flex;gap:18px;justify-content:center;margin-top:8px;font-size:12px;color:#374151;flex-wrap:wrap">
+        <span><svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="#86efac"/></svg> Receita ano anterior</span>
+        <span><svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="#16a34a"/></svg> Receita ano atual</span>
+        <span><svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="#fca5a5"/></svg> Despesa ano anterior</span>
+        <span><svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="#dc2626"/></svg> Despesa ano atual</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== CATEGORIAS ===== -->
+  <div class="tab-content" id="tab-categorias">
+    <div class="panel" style="padding:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 0">
+        <div class="panel-title" id="catMgrTitle" style="padding:0"></div>
+        <button id="catMgrNova" style="background:#7c3aed;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer">+ Nova categoria</button>
+      </div>
+      <table class="trans-table"><thead>
+        <tr><th style="width:60px">Ícone</th><th style="width:60px">Cor</th><th>Nome</th><th style="text-align:right">Meta mensal</th><th style="text-align:center">Transações</th><th style="text-align:right">Média/mês</th><th style="text-align:right">Total (ano)</th><th style="text-align:center">% despesas</th><th style="width:50px"></th></tr>
+      </thead><tbody id="catMgrBody"></tbody></table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Action menu (compartilhado) -->
+<div class="action-menu" id="actionMenu">
+  <button>✏️ Editar</button>
+  <button class="danger">🗑️ Deletar</button>
+</div>
+
+
         </div>
       </div>
     </section>
@@ -10659,5 +12158,1324 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 })();
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>
+(function() { // === FINAPP: Finanças na Administração (isolado do resto do hub) ===
+
+// ============================================================
+// CAMADA DE DADOS ÚNICA — trocar DATA por fetch no Supabase
+// mantém exatamente o mesmo shape das tabelas do schema
+// ============================================================
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch(e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+};
+const DATA = {
+  accounts: {
+    'brad-cc':      { name:'Bradesco - Débito',      badge:'brad-cc',      card:'brad-cc',      type:'checking', bank:'Bradesco', logo:'B',  logoCls:'bradesco',  saldo:5725.44,  previsto:8875.32 },
+    'brad-poup':    { name:'Bradesco - Invest Fácil', badge:'brad-cc',      card:'brad-poup',    type:'savings',  bank:'Bradesco', logo:'B',  logoCls:'bradesco',  saldo:12847.05, previsto:12847.05 },
+    'brad-card':    { name:'Bradesco - Crédito',  badge:'brad-card',    card:'brad-card',    type:'credit',   bank:'Bradesco', logo:'B',  logoCls:'bradesco' },
+    'nub-cc':       { name:'Nubank - Débito',        badge:'nub-cc',       card:'nub-cc',       type:'checking', bank:'Nubank',   logo:'nu', logoCls:'nubank',    saldo:1247.33,  previsto:1247.33 },
+    'nub-card':     { name:'Nubank - Crédito',    badge:'nub-card',     card:'nub-card',     type:'credit',   bank:'Nubank',   logo:'nu', logoCls:'nubank' },
+    'nub-pj':       { name:'Nubank - PJ',         badge:'nub-pj',       card:'nub-pj',       type:'checking', bank:'Nubank',   logo:'PJ', logoCls:'nubank-pj', saldo:0.90,     previsto:0.90 },
+    'nub-caixinha': { name:'Nubank - Caixinha',   badge:'nub-caixinha', card:'nub-caixinha', type:'savings',  bank:'Nubank',   logo:'nu', logoCls:'nubank',    saldo:1918.75,  previsto:1918.75 },
+    'itau':         { name:'Itaú - Débito',          badge:'itau',         card:'itau-cc',      type:'checking', bank:'Itaú',     logo:'i',  logoCls:'itau',      saldo:96.80,    previsto:96.80 }
+  },
+  cats: {
+    moradia:     { name:'Moradia',          ci:'ci-moradia',     icon:'i-house',   color:'#ea580c' },
+    imposto:     { name:'Imposto',          ci:'ci-imposto',     icon:'i-percent', color:'#0891b2' },
+    saude:       { name:'Saúde',            ci:'ci-saude',       icon:'i-pill',    color:'#dc2626' },
+    reembolso:   { name:'Reembolso',        ci:'ci-reembolso',   icon:'i-refresh', color:'#16a34a' },
+    coisas:      { name:'Coisas para casa', ci:'ci-coisas',      icon:'i-fridge',  color:'#84cc16' },
+    assinaturas: { name:'Assinaturas',      ci:'ci-assinaturas', icon:'i-pen',     color:'#94a3b8' },
+    pessoais:    { name:'Pessoais',         ci:'ci-pessoais',    icon:'i-shirt',   color:'#06b6d4' },
+    seguros:     { name:'Seguros',          ci:'ci-seguros',     icon:'i-tag',     color:'#475569' }, /* ícone provisório — escolher no preview */
+    transporte:  { name:'Transporte',       ci:'ci-transporte',  icon:'i-car',     color:'#2563eb' },
+    mercado:     { name:'Mercado',          ci:'ci-mercado',     icon:'i-store',   color:'#d97706' },
+    lazer:       { name:'Lazer',            ci:'ci-lazer',       icon:'i-beach',   color:'#a855f7' },
+    alimentacao: { name:'Alimentação',      ci:'ci-alimentacao', icon:'i-store',   color:'#f59e0b' },
+    salario:     { name:'Salário',          ci:'ci-salario',     icon:'i-dollar',  color:'#16a34a' },
+    aluguel:     { name:'Aluguel',          ci:'ci-aluguel',     icon:'i-house',   color:'#86efac' },
+    resgate:     { name:'Resgate',          ci:'ci-resgate',     icon:'i-swap',    color:'#10b981' },
+    extras:      { name:'Extras',           ci:'ci-extras',      icon:'i-box',     color:'#6b7280' }
+  },
+  budgets: { moradia:6427.82, saude:2362.78, pessoais:1200, mercado:900, transporte:800, lazer:600, coisas:600, seguros:380, assinaturas:211.58, imposto:1900 },
+  invoices: {
+    'brad-card': { title:'Bradesco VISA Infinite · ****7385', cls:'brad', limit:27000,
+      hist:[ {m:'2026-06',st:'aberta',total:20587.55,due:'10-julho'}, {m:'2026-05',st:'paga',total:18234.10,due:'10-junho'}, {m:'2026-04',st:'paga',total:16890.45,due:'10-maio'}, {m:'2026-03',st:'paga',total:15210.33,due:'10-abril'} ] },
+    'nub-card': { title:'Nubank Mastercard · ****6351', cls:'nub', limit:11400,
+      hist:[ {m:'2026-06',st:'aberta',total:2599.27,due:'18-junho'}, {m:'2026-05',st:'paga',total:3104.88,due:'18-maio'}, {m:'2026-04',st:'paga',total:2411.02,due:'18-abril'}, {m:'2026-03',st:'paga',total:2870.55,due:'18-março'} ] }
+  },
+  installments: [
+    { name:'Bicicleta Elétrica',       emoji:'🚲', tot:18, val:566.78, cur:{'2026-04':8,'2026-05':9,'2026-06':10}, acc:'brad-card' },
+    { name:'TV TCL',                   emoji:'📺', tot:15, val:156.58, cur:{'2026-04':13,'2026-05':14,'2026-06':15}, acc:'brad-card' },
+    { name:'[Porto Seguro] Bicicleta', emoji:'🌳', tot:12, val:154.98, cur:{'2026-04':7,'2026-05':8,'2026-06':9},   acc:'brad-card' },
+    { name:'Sócio Rei',                emoji:'📦', tot:12, val:80.00,  cur:{'2026-04':3,'2026-05':4,'2026-06':5},   acc:'nub-card' }
+  ],
+  transactions: [
+    // ===== JUNHO 2026 =====
+    { d:'2026-06-21', desc:'Vivo Fibra',             cat:'moradia',     acc:'brad-cc',      val:-109.99,  st:'pending' },
+    { d:'2026-06-20', desc:'MEI',                    cat:'imposto',     acc:'brad-cc',      val:-75.60,   st:'pending' },
+    { d:'2026-06-20', desc:'Cabesp',                 cat:'saude',       acc:'brad-cc',      val:-1269.78, st:'pending' },
+    { d:'2026-06-19', desc:'IPTU',                   cat:'imposto',     acc:'brad-cc',      val:-320.55,  st:'overdue' },
+    { d:'2026-06-18', desc:'Reembolso Cabesp',       cat:'reembolso',   acc:'brad-cc',      val:194.36,   st:'paid' },
+    { d:'2026-06-17', desc:'Enel',                   cat:'moradia',     acc:'brad-cc',      val:-240.00,  st:'pending' },
+    { d:'2026-06-15', desc:'Resgate Caixinha',       cat:'resgate',     acc:'nub-caixinha', val:-420.00,  st:'paid', tr:true },
+    { d:'2026-06-15', desc:'Resgate Caixinha',       cat:'resgate',     acc:'nub-cc',       val:420.00,   st:'paid', tr:true },
+    { d:'2026-06-12', desc:'Casablanca',             cat:'salario',     acc:'nub-pj',       val:1600.00,  st:'paid' },
+    { d:'2026-06-12', desc:'Pix PJ → PF',            cat:'extras',      acc:'nub-pj',       val:-1599.10, st:'paid', tr:true },
+    { d:'2026-06-12', desc:'Pix PJ → PF',            cat:'extras',      acc:'nub-cc',       val:1599.10,  st:'paid', tr:true },
+    { d:'2026-06-11', desc:'TV TCL',                 cat:'coisas',      acc:'brad-card',    val:-156.58,  st:'pending', parc:[15,15] },
+    { d:'2026-06-11', desc:'Bicicleta Elétrica',     cat:'transporte',  acc:'brad-card',    val:-566.78,  st:'pending', parc:[10,18] },
+    { d:'2026-06-10', desc:'Terapia',                cat:'saude',       acc:'brad-cc',      val:-500.00,  st:'paid' },
+    { d:'2026-06-10', desc:'Condomínio Bela Cintra', cat:'moradia',     acc:'brad-cc',      val:-700.00,  st:'paid' },
+    { d:'2026-06-09', desc:'Tokio Marine Auto',      cat:'seguros',     acc:'brad-cc',      val:-208.78,  st:'paid' },
+    { d:'2026-06-08', desc:'Aluguel Guadalest',      cat:'aluguel',     acc:'brad-cc',      val:6032.50,  st:'paid' },
+    { d:'2026-06-07', desc:'Hirota',                 cat:'mercado',     acc:'nub-card',     val:-312.44,  st:'paid' },
+    { d:'2026-06-06', desc:'Claude Pro',             cat:'assinaturas', acc:'brad-card',    val:-442.50,  st:'paid' },
+    { d:'2026-06-06', desc:'Uber',                   cat:'transporte',  acc:'nub-card',     val:-48.90,   st:'paid' },
+    { d:'2026-06-05', desc:'Salário',                cat:'salario',     acc:'brad-cc',      val:8389.20,  st:'paid' },
+    { d:'2026-06-04', desc:'Netflix',                cat:'assinaturas', acc:'brad-card',    val:-20.90,   st:'paid' },
+    { d:'2026-06-04', desc:'[Porto Seguro] Bicicleta', cat:'seguros',   acc:'brad-card',    val:-154.98,  st:'paid', parc:[9,12] },
+    { d:'2026-06-03', desc:'iFood',                  cat:'alimentacao', acc:'nub-card',     val:-89.70,   st:'paid' },
+    { d:'2026-06-02', desc:'Seguro Superprotegido',  cat:'seguros',     acc:'brad-card',    val:-9.99,    st:'paid' },
+    // ===== MAIO 2026 =====
+    { d:'2026-05-21', desc:'Vivo Fibra',             cat:'moradia',     acc:'brad-cc',      val:-109.99,  st:'paid' },
+    { d:'2026-05-20', desc:'MEI',                    cat:'imposto',     acc:'brad-cc',      val:-70.00,   st:'paid' },
+    { d:'2026-05-20', desc:'Cabesp',                 cat:'saude',       acc:'brad-cc',      val:-550.00,  st:'paid' },
+    { d:'2026-05-18', desc:'Reembolso Cabesp',       cat:'reembolso',   acc:'brad-cc',      val:220.86,   st:'paid' },
+    { d:'2026-05-17', desc:'Enel',                   cat:'moradia',     acc:'brad-cc',      val:-196.72,  st:'paid' },
+    { d:'2026-05-12', desc:'Casablanca',             cat:'salario',     acc:'nub-pj',       val:1600.00,  st:'paid' },
+    { d:'2026-05-12', desc:'Pix PJ → PF',            cat:'extras',      acc:'nub-pj',       val:-1599.10, st:'paid', tr:true },
+    { d:'2026-05-12', desc:'Pix PJ → PF',            cat:'extras',      acc:'nub-cc',       val:1599.10,  st:'paid', tr:true },
+    { d:'2026-05-11', desc:'TV TCL',                 cat:'coisas',      acc:'brad-card',    val:-156.58,  st:'paid', parc:[14,15] },
+    { d:'2026-05-11', desc:'Bicicleta Elétrica',     cat:'transporte',  acc:'brad-card',    val:-566.78,  st:'paid', parc:[9,18] },
+    { d:'2026-05-10', desc:'Terapia',                cat:'saude',       acc:'brad-cc',      val:-500.00,  st:'paid' },
+    { d:'2026-05-10', desc:'Condomínio Bela Cintra', cat:'moradia',     acc:'brad-cc',      val:-736.84,  st:'paid' },
+    { d:'2026-05-09', desc:'Tokio Marine Auto',      cat:'seguros',     acc:'brad-cc',      val:-208.78,  st:'paid' },
+    { d:'2026-05-08', desc:'Aluguel Guadalest',      cat:'aluguel',     acc:'brad-cc',      val:6032.50,  st:'paid' },
+    { d:'2026-05-07', desc:'Hirota',                 cat:'mercado',     acc:'nub-card',     val:-289.12,  st:'paid' },
+    { d:'2026-05-06', desc:'Claude Pro',             cat:'assinaturas', acc:'brad-card',    val:-442.50,  st:'paid' },
+    { d:'2026-05-05', desc:'Salário',                cat:'salario',     acc:'brad-cc',      val:8389.20,  st:'paid' },
+    { d:'2026-05-04', desc:'Netflix',                cat:'assinaturas', acc:'brad-card',    val:-20.90,   st:'paid' },
+    { d:'2026-05-04', desc:'[Porto Seguro] Bicicleta', cat:'seguros',   acc:'brad-card',    val:-154.98,  st:'paid', parc:[8,12] },
+    { d:'2026-05-02', desc:'Seguro Superprotegido',  cat:'seguros',     acc:'brad-card',    val:-9.99,    st:'paid' },
+    // ===== ABRIL 2026 =====
+    { d:'2026-04-26', desc:'Magalu',                 cat:'coisas',      acc:'brad-card',    val:-52.80,   st:'paid' },
+    { d:'2026-04-26', desc:'Amazon BR',              cat:'coisas',      acc:'brad-card',    val:-46.84,   st:'paid' },
+    { d:'2026-04-21', desc:'Vivo Fibra',             cat:'moradia',     acc:'brad-cc',      val:-109.99,  st:'paid' },
+    { d:'2026-04-20', desc:'MEI',                    cat:'imposto',     acc:'brad-cc',      val:-70.00,   st:'paid' },
+    { d:'2026-04-20', desc:'Cabesp',                 cat:'saude',       acc:'brad-cc',      val:-1103.42, st:'paid' },
+    { d:'2026-04-17', desc:'Enel',                   cat:'moradia',     acc:'brad-cc',      val:-214.31,  st:'paid' },
+    { d:'2026-04-12', desc:'Casablanca',             cat:'salario',     acc:'nub-pj',       val:1600.00,  st:'paid' },
+    { d:'2026-04-11', desc:'TV TCL',                 cat:'coisas',      acc:'brad-card',    val:-156.58,  st:'paid', parc:[13,15] },
+    { d:'2026-04-11', desc:'Bicicleta Elétrica',     cat:'transporte',  acc:'brad-card',    val:-566.78,  st:'paid', parc:[8,18] },
+    { d:'2026-04-10', desc:'Terapia',                cat:'saude',       acc:'brad-cc',      val:-500.00,  st:'paid' },
+    { d:'2026-04-10', desc:'Condomínio Bela Cintra', cat:'moradia',     acc:'brad-cc',      val:-700.00,  st:'paid' },
+    { d:'2026-04-08', desc:'Aluguel Guadalest',      cat:'aluguel',     acc:'brad-cc',      val:6032.50,  st:'paid' },
+    { d:'2026-04-06', desc:'Claude Pro',             cat:'assinaturas', acc:'brad-card',    val:-442.50,  st:'paid' },
+    { d:'2026-04-05', desc:'Salário',                cat:'salario',     acc:'brad-cc',      val:8389.20,  st:'paid' },
+    { d:'2026-04-04', desc:'Netflix',                cat:'assinaturas', acc:'brad-card',    val:-20.90,   st:'paid' }
+  ]
+};
+
+const MONTHS = ['2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'];
+const MONTH_NAMES = {'01':'janeiro','02':'fevereiro','03':'março','04':'abril','05':'maio','06':'junho','07':'julho','08':'agosto','09':'setembro','10':'outubro','11':'novembro','12':'dezembro'};
+let currentMonth = store.get('hub_financas_month') || '2026-06';
+if (!MONTHS.includes(currentMonth)) currentMonth = '2026-06';
+
+// ── meses futuros: gera contas planejadas (recorrentes + parcelas em curso) ──
+(function gerarPlanejados() {
+  const FIXAS = [
+    { d: 21, desc: 'Vivo Fibra',              cat: 'moradia',     acc: 'brad-cc',  val: -109.99 },
+    { d: 20, desc: 'MEI',                     cat: 'imposto',     acc: 'brad-cc',  val: -75.60 },
+    { d: 20, desc: 'Cabesp',                  cat: 'saude',       acc: 'brad-cc',  val: -1269.78 },
+    { d: 17, desc: 'Enel',                    cat: 'moradia',     acc: 'brad-cc',  val: -240.00 },
+    { d: 10, desc: 'Terapia',                 cat: 'saude',       acc: 'brad-cc',  val: -500.00 },
+    { d: 10, desc: 'Condomínio Bela Cintra',  cat: 'moradia',     acc: 'brad-cc',  val: -700.00 },
+    { d: 9,  desc: 'Tokio Marine Auto',       cat: 'seguros',     acc: 'brad-cc',  val: -208.78 },
+    { d: 8,  desc: 'Aluguel Guadalest (C2+)', cat: 'aluguel',     acc: 'brad-cc',  val: 6032.50 },
+    { d: 5,  desc: 'Salário',                 cat: 'salario',     acc: 'brad-cc',  val: 8389.20 },
+    { d: 12, desc: 'Casablanca',              cat: 'salario',     acc: 'nub-pj',   val: 1600.00 },
+    { d: 6,  desc: 'Claude Pro',              cat: 'assinaturas', acc: 'brad-card', val: -442.50 },
+    { d: 4,  desc: 'Netflix',                 cat: 'assinaturas', acc: 'brad-card', val: -20.90 },
+    { d: 2,  desc: 'Seguro Superprotegido',   cat: 'seguros',     acc: 'brad-card', val: -9.99 },
+  ];
+  const PARCELADAS = [ // base: nº da parcela em junho/2026
+    { d: 11, desc: 'Bicicleta Elétrica',        cat: 'transporte', acc: 'brad-card', val: -566.78, jun: 10, tot: 18 },
+    { d: 4,  desc: '[Porto Seguro] Bicicleta',  cat: 'seguros',    acc: 'brad-card', val: -154.98, jun: 9,  tot: 12 },
+  ];
+  const futuros = MONTHS.filter(m => m > '2026-06');
+  futuros.forEach(m => {
+    const offset = parseInt(m.slice(5), 10) - 6;
+    FIXAS.forEach(f => {
+      DATA.transactions.push({ d: m + '-' + String(f.d).padStart(2, '0'), desc: f.desc, cat: f.cat, acc: f.acc, val: f.val, st: 'pending' });
+    });
+    PARCELADAS.forEach(pc => {
+      const cur = pc.jun + offset;
+      if (cur <= pc.tot) DATA.transactions.push({ d: m + '-' + String(pc.d).padStart(2, '0'), desc: pc.desc, cat: pc.cat, acc: pc.acc, val: pc.val, st: 'pending', parc: [cur, pc.tot] });
+    });
+    // fatura prevista de cada cartão = soma das compras planejadas do mês
+    Object.entries(DATA.invoices).forEach(([key, inv]) => {
+      const total = DATA.transactions.filter(t => t.acc === key && t.d.startsWith(m)).reduce((s2, t) => s2 - t.val, 0);
+      inv.hist.unshift({ m, st: 'prevista', total: Math.round(total * 100) / 100, due: (key === 'brad-card' ? '10' : '18') + '-' + MONTH_NAMES[m.slice(5)] });
+    });
+  });
+})();
+
+const fmt  = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtS = v => (v < 0 ? '-' : '') + fmt(v);
+const monthLabel = m => { const [y,mm] = m.split('-'); const n = MONTH_NAMES[mm]; return n.charAt(0).toUpperCase() + n.slice(1) + ' ' + y; };
+const dayLabel = d => parseInt(d.split('-')[2], 10) + '-' + MONTH_NAMES[d.split('-')[1]];
+const txOf = (m, f) => DATA.transactions.filter(t => t.d.startsWith(m)).filter(f || (() => true));
+const prevMonthOf = m => MONTHS[MONTHS.indexOf(m) - 1] || null;
+
+// data efetiva: compras de cartão aparecem no dia do pagamento na visão geral,
+// e na data real quando o cartão está selecionado (regra Mobills, confirmada 2026-07-13)
+const PAY_DAY = { 'brad-card': '10', 'nub-card': '18' };
+function effDate(t) {
+  if (!PAY_DAY[t.acc]) return t.d;
+  if (SEL_UNI.size && SEL_UNI.has(t.acc)) return t.d; // cartão selecionado → data real
+  return t.d.slice(0, 8) + PAY_DAY[t.acc];
+}
+
+// variação vs mês anterior (mesma descrição)
+function varPrev(t) {
+  const pm = prevMonthOf(t.d.slice(0,7));
+  if (!pm) return null;
+  const prev = DATA.transactions.find(x => x.d.startsWith(pm) && x.desc === t.desc && !x.tr);
+  if (!prev) return null;
+  const a = Math.abs(t.val), b = Math.abs(prev.val);
+  if (b === 0) return null;
+  const pct = Math.round((a - b) / b * 100);
+  return pct;
+}
+
+function catCell(slug) {
+  const c = DATA.cats[slug] || DATA.cats.extras;
+  return '<div class="cat-cell"><span class="cat-icon-classic ' + c.ci + '"><svg class="iconic"><use href="#' + c.icon + '"/></svg></span><span class="cat-name">' + c.name + '</span></div>';
+}
+function accBadge(key) {
+  const a = DATA.accounts[key];
+  return '<span class="acc-badge ' + a.badge + '"><span class="badge-dot"></span>' + a.name + '</span>';
+}
+function statusIcon(st) {
+  if (st === 'paid')    return '<span class="status-icon paid">✓</span>';
+  if (st === 'overdue') return '<span class="status-icon overdue">!</span>';
+  return '<span class="status-icon pending"><svg class="status-svg"><use href="#i-clock"/></svg></span>';
+}
+function parcCell(parc) {
+  if (!parc) return '<span class="parcela-empty">—</span>';
+  const [c, t] = parc, last = c === t;
+  return '<span class="parcela-cell' + (last ? ' last' : '') + '"><span class="pcl-text">' + c + '/' + t + '</span><span class="pcl-bar"><span class="pcl-fill" style="width:' + (c/t*100).toFixed(0) + '%"></span></span></span>';
+}
+
+// ===== TRANSAÇÕES =====
+function renderTrans() {
+  const tbody = document.getElementById('transBody');
+  if (!tbody) return;
+  if (transferMode()) { renderTransfersPaired(tbody); return; }
+  let tx = txOf(currentMonth).filter(t => {
+    if (SEL_UNI.size && !SEL_UNI.has(t.acc)) return false;
+    if (VIEW.st.size && !VIEW.st.has(t.st)) return false;
+    if (VIEW.cat.size && !VIEW.cat.has(t.cat)) return false;
+    if (VIEW.acc.size && !VIEW.acc.has(t.acc)) return false;
+    if (VIEW.q && !t.desc.toLowerCase().includes(VIEW.q.toLowerCase())) return false;
+    return true;
+  });
+  const foot0 = document.querySelector('.trans-foot-row');
+  if (foot0) { foot0.cells[0].colSpan = SEL_UNI.size === 1 ? 6 : 7; foot0.cells[2].style.display = ''; }
+  const dir = VIEW.dir === 'asc' ? 1 : -1;
+  const key = {
+    st:   t => ({paid:0, pending:1, overdue:2})[t.st],
+    date: t => effDate(t),
+    desc: t => t.desc.toLowerCase(),
+    parc: t => t.parc ? t.parc[0]/t.parc[1] : -1,
+    cat:  t => (DATA.cats[t.cat] || {name:''}).name.toLowerCase(),
+    acc:  t => DATA.accounts[t.acc].name.toLowerCase(),
+    val:  t => t.val,
+  }[VIEW.sort] || (t => t.d);
+  tx.sort((a,b) => { const ka = key(a), kb = key(b); return ka < kb ? -dir : ka > kb ? dir : 0; });
+  if (!tx.length) {
+    tbody.innerHTML = '<tr class="t-empty"><td colspan="' + (SEL_UNI.size === 1 ? 8 : 9) + '"><div class="empty-state"><div class="es-icon">📭</div>Nenhuma transação em ' + monthLabel(currentMonth) + '.<br>Os dados reais entram aqui via importador/Pluggy.</div></td></tr>';
+    return;
+  }
+  window.__shownTx = tx;
+  tbody.innerHTML = tx.map(t => {
+    const rowCls = t.tr ? 't-transfer' : (t.val > 0 ? 't-receita' : 't-despesa');
+    const color = t.val > 0 ? 'var(--green)' : 'var(--red)';
+    const v = varPrev(t);
+    const varHtml = t.tr || v === null ? '<span class="var-cell neutral">=</span>'
+      : v > 0 ? '<span class="var-cell up">↑ ' + v + '%</span>'
+      : v < 0 ? '<span class="var-cell down">↓ ' + Math.abs(v) + '%</span>'
+      : '<span class="var-cell neutral">=</span>';
+    return '<tr class="' + rowCls + '">'
+      + '<td><input type="checkbox"></td>'
+      + '<td>' + statusIcon(t.st) + '</td>'
+      + '<td>' + dayLabel(effDate(t)) + '</td>'
+      + '<td>' + t.desc + '</td>'
+      + '<td>' + parcCell(t.parc) + '</td>'
+      + '<td>' + catCell(t.cat) + '</td>'
+      + (SEL_UNI.size === 1 ? '' : '<td>' + accBadge(t.acc) + '</td>')
+      + '<td style="text-align:right;color:' + color + '">' + fmt(t.val) + '</td>'
+      + '<td>' + varHtml + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+// ===== TRANSFERÊNCIAS EM PARES (origem → destino) =====
+function renderTransfersPaired(tbody) {
+  const trs = txOf(currentMonth, t => t.tr);
+  const negs = trs.filter(t => t.val < 0);
+  const pos  = trs.filter(t => t.val > 0);
+  const usados = new Set();
+  let pairs = negs.map(n => {
+    const i = pos.findIndex((p2, idx) => !usados.has(idx) && p2.d === n.d && Math.abs(p2.val + n.val) < 0.005);
+    if (i >= 0) usados.add(i);
+    return { d: n.d, desc: n.desc, cat: n.cat, st: n.st, from: n.acc, to: i >= 0 ? pos[i].acc : null, val: -n.val };
+  });
+  // filtros ativos
+  pairs = pairs.filter(pr => {
+    if (SEL_UNI.size && !(SEL_UNI.has(pr.from) || (pr.to && SEL_UNI.has(pr.to)))) return false;
+    if (VIEW.st.size && !VIEW.st.has(pr.st)) return false;
+    if (VIEW.cat.size && !VIEW.cat.has(pr.cat)) return false;
+    if (VIEW.acc.size && !(VIEW.acc.has(pr.from) || (pr.to && VIEW.acc.has(pr.to)))) return false;
+    if (VIEW.q && !pr.desc.toLowerCase().includes(VIEW.q.toLowerCase())) return false;
+    return true;
+  });
+  const dir = VIEW.dir === 'asc' ? 1 : -1;
+  const key = {
+    st: x => ({paid:0,pending:1,overdue:2})[x.st], date: x => x.d, desc: x => x.desc.toLowerCase(),
+    cat: x => (DATA.cats[x.cat]||{name:''}).name.toLowerCase(),
+    from: x => DATA.accounts[x.from].name.toLowerCase(),
+    to: x => x.to ? DATA.accounts[x.to].name.toLowerCase() : '',
+    val: x => x.val,
+  }[VIEW.sort] || (x => x.d);
+  pairs.sort((a,b) => { const ka = key(a), kb = key(b); return ka < kb ? -dir : ka > kb ? dir : 0; });
+  window.__shownTx = [];
+  if (!pairs.length) {
+    tbody.innerHTML = '<tr class="t-transfer"><td colspan="8"><div class="empty-state"><div class="es-icon">🔁</div>Nenhuma transferência em ' + monthLabel(currentMonth) + '.</div></td></tr>';
+  } else {
+    tbody.innerHTML = pairs.map(pr => '<tr class="t-transfer">'
+      + '<td><input type="checkbox"></td>'
+      + '<td>' + statusIcon(pr.st) + '</td>'
+      + '<td>' + dayLabel(pr.d) + '</td>'
+      + '<td>' + pr.desc + '</td>'
+      + '<td>' + catCell(pr.cat) + '</td>'
+      + '<td>' + accBadge(pr.from) + '</td>'
+      + '<td>' + (pr.to ? accBadge(pr.to) : '<span style="color:var(--faint)">—</span>') + '</td>'
+      + '<td style="text-align:right;font-weight:600">' + fmt(pr.val) + '</td>'
+      + '</tr>').join('');
+  }
+  const tot = document.getElementById('trans-total');
+  if (tot) tot.textContent = fmt(pairs.reduce((s2, pr) => s2 + pr.val, 0));
+  // rodapé alinhado ao novo nº de colunas
+  const foot = document.querySelector('.trans-foot-row');
+  if (foot) { foot.cells[0].colSpan = 7; foot.cells[2].style.display = 'none'; }
+}
+
+// ===== KPIs =====
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function renderKPIs() {
+  const m = currentMonth;
+  const inSel = t => !SEL_UNI.size || SEL_UNI.has(t.acc);
+  const rec  = txOf(m, t => !t.tr && t.val > 0 && inSel(t));
+  const desp = txOf(m, t => !t.tr && t.val < 0 && inSel(t));
+  const trf  = txOf(m, t => t.tr && inSel(t));
+  const sum = a => a.reduce((s,t) => s + t.val, 0);
+  const saldo = Object.entries(DATA.accounts)
+    .filter(([k]) => !SEL_UNI.size || SEL_UNI.has(k))
+    .reduce((s,[k,a]) => s + (a.saldo || 0), 0);
+  setText('kpiSaldo', fmt(saldo));
+  setText('kpiRec', fmt(sum(rec)));
+  setText('kpiDesp', fmt(sum(desp)));
+  setText('kpiBal', fmtS(sum(rec) + sum(desp)));
+  setText('kpiDespPend', fmt(sum(desp.filter(t => t.st !== 'paid'))));
+  setText('kpiDespPagas', fmt(sum(desp.filter(t => t.st === 'paid'))));
+  setText('kpiDespTotal', fmt(sum(desp)));
+  setText('kpiRecPend', fmt(sum(rec.filter(t => t.st !== 'paid'))));
+  setText('kpiRecReceb', fmt(sum(rec.filter(t => t.st === 'paid'))));
+  setText('kpiRecTotal', fmt(sum(rec)));
+  setText('kpiTransfCount', String(trf.length));
+  setText('kpiTransfTotal', fmt(trf.filter(t => t.val > 0).reduce((s,t) => s + t.val, 0)));
+  const resg = trf.filter(t => t.acc === 'nub-caixinha' && t.val < 0).reduce((s,t) => s + t.val, 0);
+  setText('kpiTransfResgate', resg ? fmtS(resg) : 'R$ 0,00');
+}
+
+// ===== PLANEJAMENTO =====
+function renderPlan() {
+  const tbody = document.getElementById('planBody');
+  if (!tbody) return;
+  const m = currentMonth;
+  const gastoSlugs = new Set(txOf(m, t => !t.tr && t.val < 0).map(t => t.cat));
+  const slugs = [...new Set([...Object.keys(DATA.budgets), ...gastoSlugs])];
+  let rows = slugs.map(slug => {
+    const meta = DATA.budgets[slug] || 0;
+    const pagas = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && t.st === 'paid').reduce((s,t) => s + t.val, 0);
+    const prev  = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && t.st !== 'paid').reduce((s,t) => s + t.val, 0);
+    const total = pagas + prev;
+    return { slug, meta, pagas, prev, total, restam: meta - total };
+  });
+  if (PVIEW.cat.size) rows = rows.filter(r => PVIEW.cat.has(r.slug));
+
+  const pdir = PVIEW.dir === 'asc' ? 1 : -1;
+  const pkey = {
+    cat:   r => DATA.cats[r.slug].name.toLowerCase(),
+    meta:  r => r.meta, pagas: r => r.pagas, prev: r => r.prev,
+    total: r => r.total, restam: r => r.restam,
+  }[PVIEW.sort] || (r => r.total);
+  rows.sort((a,b) => { const ka = pkey(a), kb = pkey(b); return ka < kb ? -pdir : ka > kb ? pdir : 0; });
+  renderPlanHead();
+  tbody.innerHTML = rows.map(r => {
+    const pctPaid = r.meta ? (r.pagas / r.meta * 100) : 0;
+    const pctPrev = r.meta ? (r.prev / r.meta * 100) : 0;
+    const pctTotal = pctPaid + pctPrev;
+    const over = r.restam < 0;
+    return '<tr>'
+      + '<td>' + catCell(r.slug) + '</td>'
+      + '<td class="meta-cell" data-slug="' + r.slug + '" contenteditable spellcheck="false" title="Clique pra editar a meta">' + fmt(r.meta) + '</td>'
+      + '<td>' + fmt(r.pagas) + '</td><td>' + fmt(r.prev) + '</td><td>' + fmt(r.total) + '</td>'
+      + '<td class="restam-cell' + (over ? ' over' : '') + '">'
+      +   '<div class="restam-text">' + (over ? 'Excederam' : 'Restam') + ' <b>' + fmt(Math.abs(r.restam)) + '</b></div>'
+      +   '<div class="restam-bar"><div class="restam-bar-fill" style="width:' + Math.min(pctTotal,100).toFixed(2) + '%">' + pctTotal.toFixed(2) + '%</div></div>'
+      +   '<div class="restam-legend">'
+      +     '<span class="restam-legend-item" title="Confirmado pelo banco"><span class="restam-legend-dot paid"></span>pago ' + pctPaid.toFixed(0) + '%</span>'
+      +     '<span class="restam-legend-item" title="Agendado, ainda não confirmado"><span class="restam-legend-dot predicted"></span>previsto ' + pctPrev.toFixed(0) + '%</span>'
+      +   '</div>'
+      + '</td>'
+      + '</tr>';
+  }).join('');
+
+  // KPIs do planejamento
+  const metas = Object.values(DATA.budgets).reduce((s,v) => s + v, 0);
+  const gasto = rows.reduce((s,r) => s + r.total, 0);
+  const rec = txOf(m, t => !t.tr && t.val > 0).reduce((s,t) => s + t.val, 0);
+  const restam = metas - gasto;
+  const pct = metas ? (gasto / metas * 100) : 0;
+  setText('kpiRestamLabel', 'Restam (' + pct.toFixed(2).replace('.', ',') + '%)');
+  setText('kpiRestamVal', fmtS(restam));
+  setText('kpiPlanRec', fmt(rec));
+  setText('kpiPlanGastos', fmt(gasto));
+  setText('kpiPlanBal', fmtS(rec - gasto));
+  setText('kpiPlanEco', rec ? ((rec - gasto) / rec * 100).toFixed(2).replace('.', ',') + '%' : '—');
+  const kpiRestamCard = document.getElementById('kpiRestamVal');
+  if (kpiRestamCard) {
+    const card = kpiRestamCard.closest('.plan-summary');
+    if (card) card.classList.toggle('over', restam < 0);
+  }
+
+  // sem peek: mostra todas as categorias
+  const btn = document.getElementById('planPeekBtn');
+  if (btn) btn.style.display = 'none';
+}
+
+// ===== STRIP DE CONTAS (aba unificada): Todas + débito + crédito =====
+const SEL_UNI = new Set(); // vazio = todas
+const ACC_GRAD = {
+  'brad-cc':      ['#cc092f', '#8b0820'],
+  'brad-poup':    ['#e04a63', '#a01432'],
+  'brad-card':    ['#ad1457', '#7a0e3c'],
+  'nub-cc':       ['#8a05be', '#5a0480'],
+  'nub-card':     ['#bd2bff', '#8a05be'],
+  'nub-pj':       ['#6d28d9', '#4c1d95'],
+  'nub-caixinha': ['#5a0480', '#3b0254'],
+  'itau':         ['#ec7000', '#b35400'],
+};
+const ACC_TYPE_LABEL = { checking:'Conta corrente', savings:'Poupança', credit:'Cartão' };
+function renderAccounts() {
+  const strip = document.getElementById('accountsStrip');
+  if (!strip) return;
+  const ORDER = ['brad-cc', 'brad-poup', 'brad-card', 'itau', 'nub-cc', 'nub-card', 'nub-pj', 'nub-caixinha'];
+  const sel = k => (k === 'all' ? SEL_UNI.size === 0 : SEL_UNI.has(k)) ? ' sel' : '';
+  const totalDeb = ORDER.filter(k => DATA.accounts[k].type !== 'credit')
+    .reduce((s2, k) => s2 + (DATA.accounts[k].saldo || 0), 0);
+  const cardHtml = key => {
+    const a = DATA.accounts[key];
+    const [c1, c2] = ACC_GRAD[key] || ['#7c3aed', '#4c1d95'];
+    if (a.type === 'credit') {
+      const inv = DATA.invoices[key];
+      const cur = inv ? (inv.hist.find(h => h.m === currentMonth) || inv.hist[0]) : null;
+      const pct = cur && inv.limit ? Math.min(cur.total / inv.limit * 100, 100) : 0;
+      const livre = cur ? Math.max(inv.limit - cur.total, 0) : 0;
+      return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
+        + '<div class="cc-bank-name">' + a.name + '</div>'
+        + '<div class="dcb-val">' + (cur ? fmt(cur.total) : '—') + '</div>'
+        + '<div class="cred-limit-bar"><i style="width:' + pct.toFixed(0) + '%"></i></div>'
+        + '<div class="dcb-tipo">' + pct.toFixed(0) + '% limite usado · ' + fmt(livre) + ' livre de ' + fmt(inv ? inv.limit : 0) + '</div>'
+        + '</div>';
+    }
+    const tipo = key === 'nub-caixinha' ? 'Caixinha' : (key === 'nub-pj' ? 'Conta PJ' : (key === 'brad-poup' ? 'Invest Fácil' : ACC_TYPE_LABEL[a.type] || ''));
+    return '<div class="acc-chip-card' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
+      + '<div class="cc-bank-name">' + a.name + '</div>'
+      + '<div class="dcb-val">' + fmtS(a.saldo || 0) + '</div>'
+      + '<div class="dcb-tipo">' + tipo + '</div></div>';
+  };
+  strip.innerHTML =
+    '<div class="acc-chip-card tall' + sel('all') + '" data-selacc="all" style="background:linear-gradient(135deg,#4b5563,#1f2937)">'
+    + '<div class="cc-bank-name">Todas as contas</div><div class="dcb-val">' + fmt(totalDeb) + '</div><div class="dcb-tipo">' + ORDER.length + ' contas</div></div>'
+    + ORDER.map(cardHtml).join('');
+}
+document.addEventListener('click', e => {
+  const card = e.target.closest('.acc-chip-card[data-selacc]');
+  if (!card) return;
+  const k = card.dataset.selacc;
+  if (k === 'all') SEL_UNI.clear();
+  else SEL_UNI.has(k) ? SEL_UNI.delete(k) : SEL_UNI.add(k);
+  renderAccounts();
+  renderCredExtras();
+  renderKPIs();
+  refreshTable();
+});
+
+// ===== EXTRAS DE CRÉDITO (parcelas + histórico) — aparecem com 1 cartão selecionado =====
+function renderCredExtras() {
+  const box = document.getElementById('credExtras');
+  if (!box) return;
+  const selArr = [...SEL_UNI];
+  const key = selArr.length === 1 && DATA.accounts[selArr[0]] && DATA.accounts[selArr[0]].type === 'credit' ? selArr[0] : null;
+  if (!key) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const inv = DATA.invoices[key];
+  const parcs = DATA.installments.filter(it => it.acc === key && it.cur[currentMonth] !== undefined || (it.acc === key && it.cur['2026-06'] !== undefined));
+  // parcelas: usa nº do mês corrente se existir; senão projeta a partir de junho
+  const offset = MONTHS.indexOf(currentMonth) - MONTHS.indexOf('2026-06');
+  const lista = DATA.installments.filter(it => it.acc === key).map(it => {
+    const base = it.cur[currentMonth] !== undefined ? it.cur[currentMonth] : (it.cur['2026-06'] || 0) + Math.max(offset, 0);
+    return { ...it, atual: base };
+  }).filter(it => it.atual >= 1 && it.atual <= it.tot);
+  const parcHtml = lista.length ? lista.map(it => {
+    const last = it.atual === it.tot;
+    const falta = (it.tot - it.atual) * it.val;
+    return '<div class="parc-row' + (last ? ' last' : '') + '">'
+      + '<div>' + it.emoji + ' ' + it.name + ' · <b>' + it.atual + '/' + it.tot + '</b> · ' + fmt(it.val) + '/mês' + (last ? '' : ' · falta ' + fmt(falta)) + '</div>'
+      + '<div class="parc-bar"><i style="width:' + (it.atual / it.tot * 100).toFixed(0) + '%"></i></div>'
+      + '<div>' + (last ? '<span class="parc-last-badge">última parcela!</span>' : '') + '</div></div>';
+  }).join('') : '<div class="empty-state">Nenhuma parcela em curso.</div>';
+  const histHtml = inv.hist.slice(0, 8).map(h =>
+    '<div class="fat-row"><span>' + monthLabel(h.m) + '</span><span style="font-weight:600">' + fmt(h.total) + '</span><span class="fat-pill ' + (h.st === 'prevista' ? 'fechada' : h.st) + '">' + h.st + '</span></div>').join('');
+  box.innerHTML = '<div class="cat-row" style="grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">'
+    + '<div class="panel"><div class="panel-title">Parcelas em curso (' + lista.length + ')</div>' + parcHtml + '</div>'
+    + '<div class="panel"><div class="panel-title">Histórico de faturas · ' + DATA.accounts[key].name + '</div>' + histHtml + '</div>'
+    + '</div>';
+  box.style.display = '';
+  if (window.twemoji) twemoji.parse(box);
+}
+
+// ===== ABA CATEGORIAS: gerenciar nome, cor e ícone =====
+const CAT_ICONS = ['i-shirt','i-pill','i-house','i-pen','i-fridge','i-percent','i-refresh','i-car','i-dollar','i-swap','i-beach','i-store','i-gift','i-box','i-tag','i-heart','i-bank','i-card','i-target','i-bookmark','i-doc','i-gavel','i-calendar','i-chart-bar'];
+const CAT_COLORS = ['#ea580c','#0891b2','#dc2626','#16a34a','#84cc16','#94a3b8','#06b6d4','#475569','#2563eb','#d97706','#a855f7','#f59e0b','#22c55e','#10b981','#6b7280','#c026d3','#7c3aed','#b91c1c','#1e40af','#5a0480'];
+// aplica personalizações salvas
+try {
+  const savedCats = JSON.parse(store.get('hub_cats_custom') || '{}');
+  Object.entries(savedCats).forEach(([slug, c]) => { if (DATA.cats[slug]) Object.assign(DATA.cats[slug], c); });
+} catch(e) {}
+function saveCat(slug) {
+  try {
+    const savedCats = JSON.parse(store.get('hub_cats_custom') || '{}');
+    const c = DATA.cats[slug];
+    savedCats[slug] = { name: c.name, color: c.color, icon: c.icon };
+    store.set('hub_cats_custom', JSON.stringify(savedCats));
+  } catch(e) {}
+}
+function renderCatMgr() {
+  const tbody = document.getElementById('catMgrBody');
+  if (!tbody) return;
+  const stats = {};
+  const mesesComDado = new Set();
+  let totalDesp = 0;
+  DATA.transactions.forEach(t => {
+    if (t.tr) return;
+    mesesComDado.add(t.d.slice(0,7));
+    stats[t.cat] = stats[t.cat] || { n: 0, gasto: 0, ult: '' };
+    stats[t.cat].n++;
+    if (t.val < 0) { stats[t.cat].gasto -= t.val; totalDesp -= t.val; }
+    if (t.d > stats[t.cat].ult) stats[t.cat].ult = t.d;
+  });
+  const nMeses = Math.max(mesesComDado.size, 1);
+  const slugs = Object.keys(DATA.cats).sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
+  document.getElementById('catMgrTitle').textContent = slugs.length + ' categorias';
+  tbody.innerHTML = slugs.map(slug => {
+    const c = DATA.cats[slug];
+    const st2 = stats[slug] || { n: 0, gasto: 0 };
+    const meta = DATA.budgets[slug];
+    const pct = totalDesp && st2.gasto ? (st2.gasto / totalDesp * 100) : 0;
+    return '<tr data-slug="' + slug + '">'
+      + '<td style="text-align:center"><span class="cat-icon-classic" data-edit="icon" title="Trocar ícone" style="background:' + c.color + ';cursor:pointer"><svg class="iconic"><use href="#' + c.icon + '"/></svg></span></td>'
+      + '<td style="text-align:center"><span class="cat-color-dot" data-edit="color" title="Trocar cor" style="background:' + c.color + '"></span></td>'
+      + '<td class="cat-name-cell" data-edit="name" contenteditable spellcheck="false" style="text-align:left;font-weight:600">' + c.name + '</td>'
+      + '<td class="cat-meta-cell" data-slug="' + slug + '" contenteditable spellcheck="false" title="Clique pra editar a meta" style="text-align:right">' + (meta !== undefined ? fmt(meta) : '—') + '</td>'
+      + '<td style="text-align:center;color:var(--muted)">' + st2.n + '</td>'
+      + '<td style="text-align:right;color:var(--muted)">' + (st2.gasto ? fmt(-(st2.gasto / nMeses)) : '—') + '</td>'
+      + '<td style="text-align:right;color:' + (st2.gasto ? 'var(--red)' : 'var(--faint)') + '">' + (st2.gasto ? fmt(-st2.gasto) : '—') + '</td>'
+      + '<td style="text-align:center;color:var(--muted)">' + (pct ? pct.toFixed(1).replace('.', ',') + '%' : '—') + '</td>'
+      + '<td style="text-align:center"><span class="cat-del" data-del="' + slug + '" title="Excluir categoria">🗑</span></td>'
+      + '</tr>';
+  }).join('');
+  if (window.twemoji) twemoji.parse(tbody);
+}
+// nova categoria + exclusão (com realocação se tiver transações)
+let extraSeq = 0;
+try { (JSON.parse(store.get('hub_cats_extra') || '[]')).forEach(c => { DATA.cats[c.slug] = { name: c.name, ci: 'ci-extras', icon: c.icon, color: c.color }; }); } catch(e) {}
+try { (JSON.parse(store.get('hub_cats_deleted') || '[]')).forEach(slug => { delete DATA.cats[slug]; }); } catch(e) {}
+function persistExtras() {
+  try {
+    const extras = Object.entries(DATA.cats).filter(([k]) => k.startsWith('custom-')).map(([slug, c]) => ({ slug, name: c.name, icon: c.icon, color: c.color }));
+    store.set('hub_cats_extra', JSON.stringify(extras));
+  } catch(e) {}
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('#catMgrNova')) {
+    const slug = 'custom-' + Date.now().toString(36);
+    DATA.cats[slug] = { name: 'Nova categoria', ci: 'ci-extras', icon: 'i-tag', color: '#6b7280' };
+    persistExtras();
+    renderCatMgr();
+    const cell = document.querySelector('#catMgrBody tr[data-slug="' + slug + '"] .cat-name-cell');
+    if (cell) { cell.focus(); document.getSelection().selectAllChildren(cell); }
+    return;
+  }
+  const del = e.target.closest('[data-del]');
+  if (del) {
+    e.stopImmediatePropagation();
+    const slug = del.dataset.del;
+    const usadas = DATA.transactions.filter(t => t.cat === slug && !t.tr);
+    if (!usadas.length) {
+      delete DATA.cats[slug];
+      delete DATA.budgets[slug];
+      try { const d2 = JSON.parse(store.get('hub_cats_deleted') || '[]'); d2.push(slug); store.set('hub_cats_deleted', JSON.stringify(d2)); } catch(e2) {}
+      persistExtras();
+      renderCatMgr(); refreshTable(); renderPlan();
+    } else {
+      // tem transações: escolhe destino no picker
+      window.__reassignFrom = slug;
+      openCatPicker(del, { cat: slug });
+    }
+    return;
+  }
+});
+// intercepta a escolha do picker quando é realocação de categoria excluída
+document.addEventListener('click', e => {
+  const it = e.target.closest('.cat-picker .cpk-item');
+  if (!it || !window.__reassignFrom) return;
+  const de = window.__reassignFrom, para = it.dataset.slug;
+  window.__reassignFrom = null;
+  if (de === para) return;
+  DATA.transactions.forEach(t => { if (t.cat === de) t.cat = para; });
+  delete DATA.cats[de];
+  delete DATA.budgets[de];
+  try { const d2 = JSON.parse(store.get('hub_cats_deleted') || '[]'); d2.push(de); store.set('hub_cats_deleted', JSON.stringify(d2)); } catch(e2) {}
+  persistExtras();
+  renderCatMgr(); refreshTable(); renderPlan();
+}, true);
+// meta mensal editável direto na aba
+document.addEventListener('focusout', e => {
+  const cell = e.target.closest && e.target.closest('.cat-meta-cell');
+  if (!cell) return;
+  const slug = cell.dataset.slug;
+  const v = parseFloat(cell.textContent.replace(/[^\d,]/g, '').replace(',', '.'));
+  if (!isNaN(v) && v > 0) {
+    DATA.budgets[slug] = v;
+    try { const sv = JSON.parse(store.get('hub_planej_metas') || '{}'); sv[slug] = v; store.set('hub_planej_metas', JSON.stringify(sv)); } catch(e2) {}
+    renderPlan();
+  }
+  renderCatMgr();
+});
+// popover de escolha (cor/ícone)
+const catMgrPop = document.createElement('div');
+catMgrPop.className = 'cat-picker';
+document.body.appendChild(catMgrPop);
+let catMgrCtx = null;
+document.addEventListener('click', e => {
+  const el = e.target.closest('#catMgrBody [data-edit="color"], #catMgrBody [data-edit="icon"]');
+  if (el) {
+    e.stopImmediatePropagation();
+    const slug = el.closest('tr').dataset.slug;
+    const tipo = el.dataset.edit;
+    catMgrCtx = { slug, tipo };
+    if (tipo === 'color') {
+      catMgrPop.innerHTML = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:6px">'
+        + CAT_COLORS.map(cor => '<span class="cat-color-dot big" data-v="' + cor + '" style="background:' + cor + (DATA.cats[slug].color === cor ? ';box-shadow:0 0 0 2.5px white,0 0 0 5px ' + cor : '') + '"></span>').join('') + '</div>';
+    } else {
+      catMgrPop.innerHTML = '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:6px">'
+        + CAT_ICONS.map(ic => '<span class="cat-icon-classic" data-v="' + ic + '" style="background:' + DATA.cats[slug].color + ';cursor:pointer' + (DATA.cats[slug].icon === ic ? ';box-shadow:0 0 0 2.5px white,0 0 0 4px #7c3aed' : '') + '"><svg class="iconic"><use href="#' + ic + '"/></svg></span>').join('') + '</div>';
+    }
+    const r = el.getBoundingClientRect();
+    catMgrPop.style.left = Math.min(r.left, window.innerWidth - 280) + 'px';
+    catMgrPop.style.top = (r.bottom + 6) + 'px';
+    catMgrPop.classList.add('show');
+    return;
+  }
+  const opt = e.target.closest('.cat-picker [data-v]');
+  if (opt && catMgrCtx) {
+    e.stopImmediatePropagation();
+    DATA.cats[catMgrCtx.slug][catMgrCtx.tipo === 'color' ? 'color' : 'icon'] = opt.dataset.v;
+    if (catMgrCtx.tipo === 'color') {
+      // atualiza a classe ci-* via style inline nos renders (cor vem de DATA.cats agora)
+    }
+    saveCat(catMgrCtx.slug);
+    catMgrCtx = null;
+    catMgrPop.classList.remove('show');
+    renderCatMgr();
+    refreshTable();
+    renderPlan();
+    return;
+  }
+  if (!catMgrPop.contains(e.target)) { catMgrPop.classList.remove('show'); catMgrCtx = null; }
+});
+document.addEventListener('focusout', e => {
+  const cell = e.target.closest && e.target.closest('.cat-name-cell');
+  if (!cell) return;
+  const slug = cell.closest('tr').dataset.slug;
+  const v = cell.textContent.trim();
+  if (v && v !== DATA.cats[slug].name) { DATA.cats[slug].name = v; saveCat(slug); refreshTable(); renderPlan(); }
+  renderCatMgr();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.closest && e.target.closest('.cat-name-cell')) { e.preventDefault(); e.target.blur(); }
+});
+
+// ===== DONUTS (dados p/ renderDonut) =====
+function computeDonut(kind) {
+  const tx = txOf(currentMonth, t => !t.tr && (kind === 'despesas' ? t.val < 0 : t.val > 0));
+  const byCat = {};
+  tx.forEach(t => byCat[t.cat] = (byCat[t.cat] || 0) + Math.abs(t.val));
+  let entries = Object.entries(byCat).sort((a,b) => b[1] - a[1]);
+  if (kind === 'despesas' && entries.length > 5) {
+    const rest = entries.slice(4).reduce((s,e) => s + e[1], 0);
+    entries = entries.slice(0,4).concat([['__outros', rest]]);
+  }
+  const total = entries.reduce((s,e) => s + e[1], 0);
+  const C = 628.3; let off = 0;
+  const segs = entries.map(([slug, v]) => {
+    const pct = total ? v / total * 100 : 0;
+    const name = slug === '__outros' ? 'Outros' : DATA.cats[slug].name;
+    const color = slug === '__outros' ? '#6b7280' : DATA.cats[slug].color;
+    const seg = { name, color, value: Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}), pct: pct.toFixed(2).replace('.', ','), dasharray: (pct/100*C).toFixed(1) + ' 628.3', offset: String(-off.toFixed(1)) };
+    off += pct/100*C;
+    return seg;
+  });
+  return { total: fmt(total), segs };
+}
+
+// ===== MÊS GLOBAL =====
+function updateMonthPills() {
+  document.querySelectorAll('.global-month .gm-label').forEach(el => el.textContent = monthLabel(currentMonth));
+  const idx = MONTHS.indexOf(currentMonth);
+  document.querySelectorAll('.global-month .gm-prev').forEach(b => b.disabled = idx <= 0);
+  document.querySelectorAll('.global-month .gm-next').forEach(b => b.disabled = idx >= MONTHS.length - 1);
+}
+function changeMonth(dir) {
+  const idx = MONTHS.indexOf(currentMonth) + dir;
+  if (idx < 0 || idx >= MONTHS.length) return;
+  currentMonth = MONTHS[idx];
+  store.set('hub_financas_month', currentMonth);
+  renderAll();
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('.gm-prev')) changeMonth(-1);
+  if (e.target.closest('.gm-next')) changeMonth(1);
+});
+
+// ===== PLANEJAMENTO: ordenação + metas editáveis =====
+const PVIEW = { sort:'total', dir:'desc', cat:new Set() };
+const PCOLS = [
+  { id:'cat', label:'Categoria' }, { id:'meta', label:'Meta planejada' },
+  { id:'pagas', label:'Pagas' }, { id:'prev', label:'Previstas' },
+  { id:'total', label:'Total gasto' }, { id:'restam', label:'Restam' },
+];
+function renderPlanHead() {
+  const head = document.getElementById('planHead');
+  if (!head) return;
+  head.innerHTML = '<tr>' + PCOLS.map(c => {
+    const ind = PVIEW.sort === c.id ? (PVIEW.dir === 'asc' ? '↑' : '↓') : '⇅';
+    const flt = c.id === 'cat'
+      ? '<span class="flt-btn' + (PVIEW.cat.size ? ' on' : '') + '" data-pflt="cat" title="Filtrar">⛛</span><div class="col-pop" data-pop="plancat"></div>'
+      : '';
+    return '<th data-pcol="' + c.id + '" style="cursor:pointer;user-select:none;position:relative"><div class="header-content">' + c.label + ' <span class="sort-ind">' + ind + '</span>' + flt + '</div></th>';
+  }).join('') + '</tr>';
+}
+document.addEventListener('click', e => {
+  const pflt = e.target.closest('[data-pflt="cat"]');
+  if (pflt) {
+    e.stopImmediatePropagation();
+    document.querySelectorAll('.col-pop.show').forEach(x => x.classList.remove('show'));
+    const pop = document.querySelector('.col-pop[data-pop="plancat"]');
+    const slugs = [...new Set([...Object.keys(DATA.budgets), ...DATA.transactions.filter(t => !t.tr && t.val < 0).map(t => t.cat)])]
+      .sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
+    pop.innerHTML = '<div class="cp-title">Filtrar categoria</div><div style="max-height:250px;overflow:auto">'
+      + slugs.map(slug => '<label><input type="checkbox" data-v="' + slug + '" ' + (PVIEW.cat.has(slug)?'checked':'') + '>' + miniCi(slug) + ' ' + DATA.cats[slug].name + '</label>').join('') + '</div>'
+      + '<div class="cp-actions"><button data-act="clear">Limpar</button><button class="primary" data-act="ok">Aplicar</button></div>';
+    pop.classList.add('show');
+    return;
+  }
+  const ppop = e.target.closest('.col-pop[data-pop="plancat"]');
+  if (ppop) {
+    e.stopImmediatePropagation();
+    const act = e.target.closest('[data-act]');
+    if (!act) return;
+    if (act.dataset.act === 'clear') PVIEW.cat.clear();
+    else { PVIEW.cat.clear(); ppop.querySelectorAll('input:checked').forEach(cb => PVIEW.cat.add(cb.dataset.v)); }
+    ppop.classList.remove('show');
+    renderPlan();
+    return;
+  }
+  const th = e.target.closest('#planHead th[data-pcol]');
+  if (!th) return;
+  const id = th.dataset.pcol;
+  if (PVIEW.sort === id) PVIEW.dir = PVIEW.dir === 'asc' ? 'desc' : 'asc';
+  else { PVIEW.sort = id; PVIEW.dir = id === 'cat' ? 'asc' : 'desc'; }
+  renderPlan();
+});
+// metas persistidas (mock: localStorage; no hub real vira tabela budgets no Supabase)
+try {
+  const saved = JSON.parse(store.get('hub_planej_metas') || '{}');
+  Object.entries(saved).forEach(([k, v]) => { if (DATA.budgets[k] !== undefined) DATA.budgets[k] = v; });
+} catch(e) {}
+document.addEventListener('focusout', e => {
+  const cell = e.target.closest && e.target.closest('.meta-cell');
+  if (!cell) return;
+  const v = parseFloat(cell.textContent.replace(/[^\d,]/g, '').replace(',', '.'));
+  const slug = cell.dataset.slug;
+  if (!isNaN(v) && v >= 0 && DATA.budgets[slug] !== undefined) {
+    DATA.budgets[slug] = v;
+    try {
+      const saved = JSON.parse(store.get('hub_planej_metas') || '{}');
+      saved[slug] = v;
+      store.set('hub_planej_metas', JSON.stringify(saved));
+    } catch(err) {}
+  }
+  renderPlan();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.closest && e.target.closest('.meta-cell')) { e.preventDefault(); e.target.blur(); }
+});
+
+// ===== ESTADO DA TABELA: ordenação + filtros por coluna =====
+const VIEW = { sort:'date', dir:'desc', st:new Set(), cat:new Set(), acc:new Set(), q:'' };
+
+const COLS = [
+  { id:'check', label:'<input type="checkbox">', sort:null },
+  { id:'st',   label:'Situação',  flt:'st' },
+  { id:'date', label:'Data' },
+  { id:'desc', label:'Descrição', flt:'q' },
+  { id:'parc', label:'Parcela' },
+  { id:'cat',  label:'Categoria', flt:'cat' },
+  { id:'acc',  label:'Conta',     flt:'acc' },
+  { id:'val',  label:'Valor', right:true },
+  { id:'prev', label:'Mês anterior', sort:null },
+];
+function transferMode() {
+  const tab = document.getElementById('tab-transacoes');
+  return tab && tab.classList.contains('filter-transferencias');
+}
+const TCOLS = [
+  { id:'check', label:'<input type="checkbox">', sort:null },
+  { id:'st',   label:'Situação' },
+  { id:'date', label:'Data' },
+  { id:'desc', label:'Descrição' },
+  { id:'cat',  label:'Categoria' },
+  { id:'from', label:'Conta origem' },
+  { id:'to',   label:'Conta destino' },
+  { id:'val',  label:'Valor', right:true },
+];
+function getCols() {
+  return SEL_UNI.size === 1 ? COLS.filter(c => c.id !== 'acc') : COLS;
+}
+function renderHead() {
+  const head = document.getElementById('transHead');
+  if (!head) return;
+  if (transferMode()) {
+    head.innerHTML = '<tr>' + TCOLS.map(c => {
+      if (c.id === 'check') return '<th style="width:30px">' + c.label + '</th>';
+      const ind = VIEW.sort === c.id ? (VIEW.dir === 'asc' ? '↑' : '↓') : '⇅';
+      return '<th data-col="' + c.id + '"' + (c.right ? ' style="text-align:right"' : '') + '><span class="hd-label">' + c.label + '</span>'
+        + (c.sort !== null ? ' <span class="sort-ind">' + ind + '</span>' : '') + '<div class="col-pop"></div></th>';
+    }).join('') + '</tr>';
+    return;
+  }
+  head.innerHTML = '<tr>' + getCols().map(c => {
+    if (c.id === 'check') return '<th style="width:30px">' + c.label + '</th>';
+    const sortable = c.sort !== null;
+    const ind = VIEW.sort === c.id ? (VIEW.dir === 'asc' ? '↑' : '↓') : '⇅';
+    const filtered = c.flt && (c.flt === 'q' ? !!VIEW.q : VIEW[c.flt].size > 0);
+    return '<th data-col="' + c.id + '"' + (c.right ? ' style="text-align:right"' : '') + '>'
+      + '<span class="hd-label">' + c.label + '</span>'
+      + (sortable ? ' <span class="sort-ind">' + ind + '</span>' : '')
+      + (c.flt ? '<span class="flt-btn' + (filtered ? ' on' : '') + '" data-flt="' + c.flt + '" title="Filtrar">⛛</span>' : '')
+      + '<div class="col-pop" data-pop="' + c.id + '"></div>'
+      + '</th>';
+  }).join('') + '</tr>';
+}
+function refreshTable() {
+  renderHead();
+  renderTrans();
+  if (window.setupEditableTable) setupEditableTable();
+  if (window.recalcTotal) recalcTotal();
+  if (window.twemoji) twemoji.parse(document.getElementById('transHead'));
+}
+function miniCi(slug) {
+  const c = DATA.cats[slug];
+  return '<span class="mini-ci ' + c.ci + '"><svg><use href="#' + c.icon + '"/></svg></span>';
+}
+function buildPop(colId) {
+  const pop = document.querySelector('.col-pop[data-pop="' + colId + '"]');
+  if (!pop) return null;
+  if (colId === 'st') {
+    pop.innerHTML = '<div class="cp-title">Filtrar situação</div>'
+      + [['paid','✅ Pago'],['pending','🕓 Planejado'],['overdue','❗ Atrasado']].map(([v,l]) =>
+        '<label><input type="checkbox" data-v="' + v + '" ' + (VIEW.st.has(v)?'checked':'') + '> ' + l + '</label>').join('')
+      + '<div class="cp-actions"><button data-act="clear">Limpar</button><button class="primary" data-act="ok">Aplicar</button></div>';
+  } else if (colId === 'desc') {
+    pop.innerHTML = '<div class="cp-title">Buscar descrição</div>'
+      + '<input type="text" placeholder="contém..." autocomplete="off" value="' + VIEW.q.replace(/"/g,'&quot;') + '">'
+      + '<div class="desc-sugs"></div>'
+      + '<div class="cp-actions"><button data-act="clear">Limpar</button><button class="primary" data-act="ok">Aplicar</button></div>';
+    const inp = pop.querySelector('input');
+    const sugs = pop.querySelector('.desc-sugs');
+    const renderSugs = () => {
+      const q = inp.value.trim().toLowerCase();
+      if (!q) { sugs.innerHTML = ''; return; }
+      const uniq = [...new Set(txOf(currentMonth).map(t => t.desc))]
+        .filter(d => d.toLowerCase().includes(q)).sort().slice(0, 8);
+      sugs.innerHTML = uniq.map(d => '<div class="sug-item">' + d + '</div>').join('');
+    };
+    inp.addEventListener('input', renderSugs);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { VIEW.q = inp.value.trim(); pop.classList.remove('show'); refreshTable(); } });
+    sugs.addEventListener('click', e => {
+      const it = e.target.closest('.sug-item');
+      if (!it) return;
+      VIEW.q = it.textContent;
+      pop.classList.remove('show');
+      refreshTable();
+    });
+    renderSugs();
+    setTimeout(() => inp.focus(), 0);
+  } else if (colId === 'cat') {
+    const usadas = [...new Set(DATA.transactions.map(t => t.cat))].sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
+    pop.innerHTML = '<div class="cp-title">Filtrar categoria</div><div style="max-height:250px;overflow:auto">'
+      + usadas.map(slug => '<label><input type="checkbox" data-v="' + slug + '" ' + (VIEW.cat.has(slug)?'checked':'') + '>'
+        + miniCi(slug) + ' ' + DATA.cats[slug].name + '</label>').join('') + '</div>'
+      + '<div class="cp-actions"><button data-act="clear">Limpar</button><button class="primary" data-act="ok">Aplicar</button></div>';
+  } else if (colId === 'acc') {
+    pop.innerHTML = '<div class="cp-title">Filtrar conta</div>'
+      + Object.entries(DATA.accounts).map(([k,a]) => '<label><input type="checkbox" data-v="' + k + '" ' + (VIEW.acc.has(k)?'checked':'') + '>'
+        + '<span class="acc-badge ' + a.badge + '"><span class="badge-dot"></span>' + a.name + '</span></label>').join('')
+      + '<div class="cp-actions"><button data-act="clear">Limpar</button><button class="primary" data-act="ok">Aplicar</button></div>';
+  }
+  return pop;
+}
+document.addEventListener('click', e => {
+  const flt = e.target.closest('.flt-btn');
+  const pop = e.target.closest('.col-pop');
+  const th = e.target.closest('#transHead th[data-col]');
+  // clique no funil: abre popover
+  if (flt) {
+    e.stopPropagation();
+    const colId = flt.closest('th').dataset.col;
+    document.querySelectorAll('.col-pop.show').forEach(x => x.classList.remove('show'));
+    const p = buildPop(colId);
+    if (p) { p.classList.add('show'); if (window.twemoji) twemoji.parse(p); }
+    return;
+  }
+  // dentro do popover
+  if (pop) {
+    e.stopPropagation();
+    const act = e.target.closest('[data-act]');
+    if (!act) return;
+    const colId = pop.dataset.pop;
+    if (act.dataset.act === 'clear') {
+      if (colId === 'desc') VIEW.q = '';
+      else VIEW[colId === 'st' ? 'st' : colId].clear();
+    } else {
+      if (colId === 'desc') VIEW.q = pop.querySelector('input[type=text]').value.trim();
+      else {
+        const set = VIEW[colId];
+        set.clear();
+        pop.querySelectorAll('input[type=checkbox]:checked').forEach(cb => set.add(cb.dataset.v));
+      }
+    }
+    pop.classList.remove('show');
+    refreshTable();
+    return;
+  }
+  // clique no título: ordena
+  if (th) {
+    const c = (transferMode() ? TCOLS : getCols()).find(x => x.id === th.dataset.col);
+    if (!c || c.sort === null) return;
+    if (VIEW.sort === c.id) VIEW.dir = VIEW.dir === 'asc' ? 'desc' : 'asc';
+    else { VIEW.sort = c.id; VIEW.dir = 'asc'; }
+    refreshTable();
+    return;
+  }
+  document.querySelectorAll('.col-pop.show').forEach(x => x.classList.remove('show'));
+});
+
+// ===== PICKER DE CATEGORIA (clique na célula) =====
+const catPicker = document.createElement('div');
+catPicker.className = 'cat-picker';
+document.body.appendChild(catPicker);
+let pickerRow = null;
+function openCatPicker(cell, t) {
+  pickerRow = t;
+  const slugs = Object.keys(DATA.cats).sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
+  catPicker.innerHTML = slugs.map(slug =>
+    '<div class="cpk-item' + (t.cat === slug ? ' cur' : '') + '" data-slug="' + slug + '">' + miniCi(slug) + DATA.cats[slug].name + '</div>').join('');
+  const r = cell.getBoundingClientRect();
+  catPicker.style.left = Math.min(r.left, window.innerWidth - 270) + 'px';
+  catPicker.style.top = Math.min(r.bottom + 4, window.innerHeight - 350) + 'px';
+  catPicker.classList.add('show');
+}
+catPicker.addEventListener('click', e => {
+  const it = e.target.closest('.cpk-item');
+  if (!it || !pickerRow) return;
+  pickerRow.cat = it.dataset.slug;
+  catPicker.classList.remove('show');
+  refreshTable();
+});
+document.addEventListener('click', e => {
+  if (!catPicker.contains(e.target) && !e.target.closest('.cat-cell')) catPicker.classList.remove('show');
+}, true);
+// delegação: clique numa célula de categoria da tabela de transações
+document.addEventListener('click', e => {
+  const cell = e.target.closest('#transBody .cat-cell');
+  if (!cell) return;
+  e.stopPropagation();
+  const tr = cell.closest('tr');
+  const rows = [...document.querySelectorAll('#transBody tr')];
+  const idx = rows.indexOf(tr);
+  const shown = window.__shownTx || [];
+  if (shown[idx]) openCatPicker(cell, shown[idx]);
+});
+
+renderHead();
+
+function renderAll() {
+  updateMonthPills();
+  renderHead();
+  renderTrans();
+  renderKPIs();
+  renderPlan();
+  renderAccounts();
+  renderCredExtras();
+  renderCatMgr();
+  if (window.applyDonutMonth) applyDonutMonth();
+  if (window.setupEditableTable) setupEditableTable();
+  if (window.recalcTotal) recalcTotal();
+  if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: 'svg', ext: '.svg' });
+}
+renderAll();
+
+
+// === TABS ===
+function activateTab(tabName) {
+  document.querySelectorAll('.tabs-nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const btn = document.querySelector('.tabs-nav button[data-tab="' + tabName + '"]');
+  const content = document.getElementById('tab-' + tabName);
+  if (btn && content) {
+    btn.classList.add('active');
+    content.classList.add('active');
+  }
+}
+document.querySelectorAll('.tabs-nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activateTab(btn.dataset.tab);
+    store.set('hub_financas_active_tab', btn.dataset.tab);
+    window.scrollTo(0, 0);
+  });
+});
+// Ao carregar: restaura a aba ativa do localStorage
+const savedTab = store.get('hub_financas_active_tab');
+if (savedTab && document.getElementById('tab-' + savedTab)) activateTab(savedTab);
+function activateFilter(filterName) {
+  document.querySelectorAll('.filter-tabs button').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector('.filter-tabs button[data-filter="' + filterName + '"]');
+  if (btn) btn.classList.add('active');
+  const tab = document.getElementById('tab-transacoes');
+  if (tab) {
+    tab.classList.remove('filter-todas', 'filter-despesas', 'filter-receitas', 'filter-transferencias');
+    tab.classList.add('filter-' + filterName);
+  }
+  if (window.refreshTable) refreshTable();
+  recalcTotal();
+}
+
+// === EDIÇÃO INLINE DE CÉLULAS ===
+// Situação NÃO é editável manualmente — vem 100% do Pluggy/banco
+// (Verde = Pago / Amarelo = Planejado / Vermelho = Atrasado)
+
+function setupEditableTable() {
+  const rows = document.querySelectorAll('#tab-transacoes tbody tr');
+  rows.forEach(tr => {
+    if (!tr.cells.length) return;
+    // Coluna 4 (Descrição): contenteditable — Eduardo limpa o texto bruto do banco
+    const tdDesc = tr.cells[3];
+    if (tdDesc) {
+      tdDesc.setAttribute('contenteditable', 'true');
+      tdDesc.spellcheck = false;
+      tdDesc.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tdDesc.blur(); } });
+    }
+    // Coluna 6 (Categoria): clique abre o picker com ícones (ver openCatPicker)
+    const tdCat = tr.cells[5];
+    if (tdCat) tdCat.classList.add('editable-row');
+    // Colunas 2/3/5/7/8 (Situação, Data, Parcela, Conta, Valor): NÃO editáveis
+    [1, 2, 4, 6, 7].forEach(i => {
+      const td = tr.cells[i];
+      if (td) td.title = 'Dado vindo do banco (Pluggy/extrato) — não editável';
+    });
+  });
+}
+setupEditableTable();
+
+// === RECALCULA TOTAL VISÍVEL DA TABELA DE TRANSAÇÕES ===
+function recalcTotal() {
+  const totalEl = document.getElementById('trans-total');
+  if (!totalEl) return;
+  const tabEl = document.getElementById('tab-transacoes');
+  if (tabEl && tabEl.classList.contains('filter-transferencias')) return; // total do modo par é calculado no render
+  const rows = document.querySelectorAll('#tab-transacoes tbody tr');
+  let sum = 0;
+  let hasNeg = false, hasPos = false;
+  rows.forEach(tr => {
+    if (getComputedStyle(tr).display === 'none') return;
+    const valCell = tr.cells[tr.cells.length - 2];
+    if (!valCell) return;
+    // Detecta receita pela cor verde da célula (sem depender do prefix "+")
+    const isReceita = (valCell.style.color || '').includes('--green') || valCell.style.color === 'rgb(22, 163, 74)' || /var\(--green\)/.test(valCell.getAttribute('style') || '');
+    const num = parseFloat(valCell.textContent.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    if (isReceita) { sum += num; hasPos = true; }
+    else { sum -= num; hasNeg = true; }
+  });
+  // Regras: nunca mostra "+". Mostra "-" só se saldo final for negativo (filtros mistos com despesa > receita).
+  let prefix = '';
+  let displayValue = Math.abs(sum);
+  if (hasPos && hasNeg && sum < 0) prefix = '-';
+  totalEl.textContent = prefix + 'R$ ' + displayValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  totalEl.classList.toggle('has-receita', hasPos && !hasNeg);
+  totalEl.classList.toggle('has-despesa', hasNeg && !hasPos);
+}
+document.querySelectorAll('.filter-tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!btn.dataset.filter) return;
+    activateFilter(btn.dataset.filter);
+    store.set('hub_financas_active_filter', btn.dataset.filter);
+  });
+});
+// Ao carregar: restaura o filtro ativo
+const savedFilter = store.get('hub_financas_active_filter');
+if (savedFilter) activateFilter(savedFilter);
+// Calcula total inicial
+recalcTotal();
+
+// === DONUT TOOLTIP (hover interativo nos segmentos) ===
+// Tooltip SEMPRE à direita-acima do cursor (nunca dentro/sobre a mãozinha)
+const TOOLTIP_OFFSET_X = 12;   // px à direita do cursor
+const TOOLTIP_OFFSET_Y = -24;  // px acima do cursor (negativo = subir)
+
+function bindDonutTooltips() {
+  document.querySelectorAll('.donut-wrap').forEach(wrap => {
+    const tooltip = wrap.querySelector('.donut-tooltip');
+    if (!tooltip) return;
+    wrap.querySelectorAll('.seg').forEach(seg => {
+      seg.onmousemove = e => {
+        const rect = wrap.getBoundingClientRect();
+        const color = seg.getAttribute('stroke');
+        tooltip.classList.add('show');
+        tooltip.innerHTML =
+          `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:7px;vertical-align:middle"></span>` +
+          `<b>${seg.dataset.name}</b><br>` +
+          `<span style="margin-left:17px">R$ ${seg.dataset.value} · ${seg.dataset.pct}%</span>`;
+        // Garante posicionamento à DIREITA + ACIMA, sem transform, sem 'right'
+        tooltip.style.right = 'auto';
+        tooltip.style.transform = 'none';
+        let left = e.clientX - rect.left + TOOLTIP_OFFSET_X;
+        let top  = e.clientY - rect.top  + TOOLTIP_OFFSET_Y;
+        // Não sai pela direita/topo
+        // Auto-flip apenas se realmente passar do tooltip width (medido após render)
+        const ttW = tooltip.offsetWidth || 180;
+        if (left + ttW > rect.width - 6) left = e.clientX - rect.left - ttW - 6;
+        if (top < 0) top = e.clientY - rect.top + 12;
+        tooltip.style.left = left + 'px';
+        tooltip.style.top  = top  + 'px';
+      };
+      seg.onmouseleave = () => tooltip.classList.remove('show');
+    });
+  });
+}
+bindDonutTooltips();
+
+// === DONUTS: renderizados a partir de DATA (computeDonut) ===
+function renderDonut(targetId, totalId, legendId, data, valueLabel) {
+  const segs = document.querySelector('#' + targetId);
+  const totalText = document.getElementById(totalId);
+  const legend = document.getElementById(legendId);
+  if (!segs || !totalText || !legend) return;
+  segs.innerHTML = data.segs.map(s => `<circle class="seg" data-name="${s.name}" data-value="${s.value}" data-pct="${s.pct}" r="100" fill="none" stroke="${s.color}" stroke-width="50" stroke-dasharray="${s.dasharray}" stroke-dashoffset="${s.offset}" transform="rotate(-90)"/>`).join('');
+  totalText.textContent = data.total;
+  legend.innerHTML = data.segs.length
+    ? `<div class="legend-header"><span></span><span>Categoria</span><span>${valueLabel || 'Valor'}</span><span>%</span></div>` +
+      data.segs.map(s => `<div class="legend-item"><span class="legend-dot" style="background:${s.color}"></span><span class="legend-name">${s.name}</span><span class="legend-value">R$ ${s.value}</span><span class="legend-pct">${s.pct}%</span></div>`).join('')
+    : '<div class="empty-state">Sem dados neste mês.</div>';
+}
+function applyDonutMonth() {
+  renderDonut('donut-despesas-segs', 'donut-despesas-total', 'donut-despesas-legend', computeDonut('despesas'), 'Gasto');
+  renderDonut('donut-receitas-segs', 'donut-receitas-total', 'donut-receitas-legend', computeDonut('receitas'), 'Recebido');
+  bindDonutTooltips();
+}
+applyDonutMonth();
+
+// === ACTION MENU ===
+const actionMenu = document.getElementById('actionMenu');
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.action-menu-btn');
+  if (btn) {
+    e.stopPropagation();
+    const rect = btn.getBoundingClientRect();
+    actionMenu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+    actionMenu.style.left = (rect.left + window.scrollX - 120) + 'px';
+    actionMenu.classList.toggle('show');
+    return;
+  }
+  if (!actionMenu.contains(e.target)) actionMenu.classList.remove('show');
+});
+
+// === TOOLTIPS GRÁFICOS ===
+function setupChartTooltip(chartId, tooltipId) {
+  const chart = document.getElementById(chartId);
+  const tooltip = document.getElementById(tooltipId);
+  if (!chart || !tooltip) return;
+  chart.querySelectorAll('[data-month]').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('mouseenter', e => {
+      const m = el.dataset.month, t = el.dataset.type, v = el.dataset.value;
+      // Pega a cor do elemento: fill (rect/circle preenchido) ou stroke
+      const color = el.getAttribute('fill') || el.getAttribute('stroke') || '#fff';
+      tooltip.innerHTML =
+        `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:7px;vertical-align:middle"></span>` +
+        `<b>${m}</b><br>` +
+        `<span style="margin-left:17px">${t}: <b>R$ ${parseInt(v).toLocaleString('pt-BR')}</b></span>`;
+      tooltip.classList.add('show');
+    });
+    el.addEventListener('mousemove', e => {
+      const rect = chart.getBoundingClientRect();
+      // Tooltip SEMPRE à direita-acima do cursor
+      tooltip.style.right = 'auto';
+      tooltip.style.transform = 'none';
+      let left = e.clientX - rect.left + TOOLTIP_OFFSET_X;
+      let top  = e.clientY - rect.top  + TOOLTIP_OFFSET_Y;
+      const ttW = 220, ttH = 50;
+      if (left + ttW > rect.width) left = e.clientX - rect.left - ttW - 10;
+      if (top < 0) top = e.clientY - rect.top + 16;
+      tooltip.style.left = left + 'px';
+      tooltip.style.top  = top  + 'px';
+    });
+    el.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('show');
+    });
+  });
+}
+setupChartTooltip('chartAnnualLine', 'tooltipLine');
+setupChartTooltip('chartCompare', 'tooltipBars');
+
+// === FILTER POPOVERS ===
+document.querySelectorAll('.filter-icon').forEach(icon => {
+  icon.addEventListener('click', e => {
+    e.stopPropagation();
+    document.querySelectorAll('.filter-popover').forEach(p => p.classList.remove('show'));
+    const popover = icon.parentElement.parentElement.querySelector('.filter-popover');
+    if (popover) popover.classList.toggle('show');
+  });
+});
+document.addEventListener('click', e => {
+  document.querySelectorAll('.filter-popover').forEach(p => {
+    if (!p.contains(e.target)) p.classList.remove('show');
+  });
+});
+
+// ===== ADAPTER SUPABASE (usa o sbClient autenticado do hub) =====
+(function supabaseAdapter() {
+  const t0 = Date.now();
+  const tryInit = async () => {
+    if (!window.sbClient) {
+      if (Date.now() - t0 > 30000) return;
+      return setTimeout(tryInit, 500);
+    }
+    const sb = window.sbClient;
+    try {
+      const { data: accs, error: e1 } = await sb.from('accounts').select('id,label,bank,bank_subtype,type,balance');
+      if (e1) throw e1;
+      const keyOf = a => {
+        if (a.bank === 'Bradesco' && a.type === 'checking') return 'brad-cc';
+        if (a.bank === 'Bradesco' && a.type === 'savings') return 'brad-poup';
+        if (a.bank === 'Bradesco' && a.type === 'credit_card') return 'brad-card';
+        if (a.bank === 'Nubank' && a.bank_subtype === 'PJ') return 'nub-pj';
+        if (a.bank === 'Nubank' && a.type === 'credit_card') return 'nub-card';
+        if (a.bank === 'Nubank' && a.type === 'checking') return 'nub-cc';
+        if (a.bank === 'Itaú' && a.type === 'checking') return 'itau';
+        return null;
+      };
+      const idToKey = {};
+      (accs || []).forEach(a => {
+        const k = keyOf(a);
+        if (!k) return;
+        idToKey[a.id] = k;
+        if (DATA.accounts[k] && a.balance != null) DATA.accounts[k].saldo = parseFloat(a.balance);
+      });
+      let rows = [], from = 0;
+      while (true) {
+        const { data: chunk, error: e2 } = await sb.from('transactions')
+          .select('date,description_clean,description,amount,category,account_id,is_transfer,installment_current,installment_total')
+          .order('date', { ascending: true }).range(from, from + 999);
+        if (e2) throw e2;
+        rows = rows.concat(chunk || []);
+        if (!chunk || chunk.length < 1000) break;
+        from += 1000;
+      }
+      if (!rows.length) return;
+      const nameToSlug = {};
+      Object.entries(DATA.cats).forEach(([slug, c]) => { nameToSlug[c.name.toLowerCase()] = slug; });
+      const DEFAULTS = {
+        'presentes': ['i-gift', '#c026d3'], 'doações': ['i-heart', '#7c3aed'], 'conveniência': ['i-store', '#94a3b8'],
+        'green': ['i-tag', '#16a34a'], 'investimento': ['i-dollar', '#1e40af'], 'bebidas': ['i-box', '#f59e0b'],
+        'profissionais': ['i-doc', '#0ea5e9'],
+      };
+      const slugFor = nome => {
+        if (!nome) return 'extras';
+        const lower = nome.toLowerCase();
+        if (nameToSlug[lower]) return nameToSlug[lower];
+        const slug = lower.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-');
+        const d2 = DEFAULTS[lower] || ['i-tag', '#6b7280'];
+        DATA.cats[slug] = { name: nome, ci: 'ci-extras', icon: d2[0], color: d2[1] };
+        nameToSlug[lower] = slug;
+        return slug;
+      };
+      DATA.transactions.length = 0;
+      const mesesSet = new Set();
+      rows.forEach(r => {
+        const acc = idToKey[r.account_id];
+        if (!acc) return;
+        mesesSet.add(r.date.slice(0, 7));
+        DATA.transactions.push({
+          d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
+          acc, val: parseFloat(r.amount), st: 'paid', tr: !!r.is_transfer,
+          parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
+        });
+      });
+      MONTHS.length = 0;
+      const ms = []; mesesSet.forEach(m => ms.push(m));
+      ms.sort().forEach(m => MONTHS.push(m));
+      Object.keys(DATA.invoices).forEach(k => { DATA.invoices[k].hist = []; });
+      DATA.installments.length = 0;
+      currentMonth = MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1];
+      renderAll();
+      console.log('[finapp] dados reais: ' + DATA.transactions.length + ' transações, ' + MONTHS.length + ' meses');
+    } catch (err) {
+      console.warn('[finapp] adapter falhou, mantendo dados de exemplo:', err && err.message || err);
+    }
+  };
+  tryInit();
+})();
+
+if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: 'svg', ext: '.svg' });
+})();
+</script>
 </body>
 </html>
