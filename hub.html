@@ -1520,6 +1520,19 @@ table.data-table tr:hover td { background: var(--bg); }
   /* Esconde título redundante das áreas se ficar muito estreito */
   .rmah-chips .rm-area-chip:nth-child(n+4) { display: none; }
 }
+  /* === caixa de entrada (aprovação de lançamentos novos) === */
+  #finapp .inbox-panel { background: white; border: 2px solid #7c3aed; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; }
+  #finapp .inbox-head { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; color: #7c3aed; }
+  #finapp .inbox-badge { background: #dc2626; color: white; border-radius: 999px; font-size: 11px; font-weight: 800; padding: 2px 9px; }
+  #finapp .inbox-item { display: grid; grid-template-columns: 64px 1fr 210px 150px auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid #f3f0ea; font-size: 12.5px; }
+  #finapp .inbox-item:last-child { border-bottom: none; }
+  #finapp .inbox-raw { color: #9ca3af; font-size: 11px; }
+  #finapp .inbox-desc { border: 1px solid #e5e7eb; border-radius: 6px; padding: 6px 8px; font-size: 12.5px; width: 100%; box-sizing: border-box; }
+  #finapp .inbox-desc:focus { outline: 2px solid #7c3aed; }
+  #finapp .inbox-cat { border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 6px; font-size: 12px; background: white; width: 100%; }
+  #finapp .inbox-val { font-weight: 700; white-space: nowrap; }
+  #finapp .inbox-ok { background: #16a34a; color: white; border: none; border-radius: 7px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  #finapp .inbox-skip { background: white; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 7px; padding: 7px 10px; font-size: 12px; cursor: pointer; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -2892,6 +2905,8 @@ table.data-table tr:hover td { background: var(--bg); }
   <!-- ===== TRANSAÇÕES ===== -->
   <div class="tab-content active filter-todas" id="tab-transacoes">
     <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
+
+    <div id="finInbox" style="display:none"></div>
 
     <div class="accounts-strip" id="accountsStrip"><!-- cards de contas via JS --></div>
 
@@ -13390,6 +13405,80 @@ document.addEventListener('click', e => {
   });
 });
 
+// ===== CAIXA DE ENTRADA: lançamentos novos aguardando aprovação =====
+let INBOX = [];
+async function loadInbox() {
+  if (!window.sbClient) return;
+  try {
+    const { data, error } = await window.sbClient.from('inbox_transactions')
+      .select('id,account_id,date,description_raw,description_sugerida,category_sugerida,amount,raw')
+      .eq('status', 'pending').order('date', { ascending: false });
+    if (error) throw error;
+    INBOX = data || [];
+    renderInbox();
+  } catch (e) { console.warn('[finapp] inbox:', e.message || e); }
+}
+function renderInbox() {
+  const box = document.getElementById('finInbox');
+  if (!box) return;
+  if (!INBOX.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const catOpts = Object.keys(DATA.cats).sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
+  box.innerHTML = '<div class="inbox-panel">'
+    + '<div class="inbox-head">📥 Lançamentos novos <span class="inbox-badge">' + INBOX.length + '</span>'
+    + '<span style="font-weight:400;font-size:11.5px;color:var(--muted)">confere a descrição e a categoria, aí OK pra entrar na tabela</span></div>'
+    + INBOX.map(it => {
+      const accKey = Object.entries(window.__accIdToKey || {}).find(([id]) => id === it.account_id);
+      const badge = accKey ? accBadge(accKey[1]) : '';
+      return '<div class="inbox-item" data-id="' + it.id + '">'
+        + '<div>' + dayLabel(it.date) + '</div>'
+        + '<div><div class="inbox-raw">' + (it.description_raw || '') + '</div>' + badge + '</div>'
+        + '<input class="inbox-desc" value="' + String(it.description_sugerida || it.description_raw || '').replace(/"/g, '&quot;') + '">'
+        + '<select class="inbox-cat">' + catOpts.map(slug => '<option value="' + DATA.cats[slug].name + '"' + (DATA.cats[slug].name === it.category_sugerida ? ' selected' : '') + '>' + DATA.cats[slug].name + '</option>').join('') + '</select>'
+        + '<div><span class="inbox-val" style="color:' + (it.amount < 0 ? 'var(--red)' : 'var(--green)') + '">' + fmt(parseFloat(it.amount)) + '</span>'
+        + ' <button class="inbox-ok">OK ✓</button><button class="inbox-skip" title="Ignorar (não é um gasto real)">✕</button></div>'
+        + '</div>';
+    }).join('') + '</div>';
+  box.style.display = '';
+}
+document.addEventListener('click', async e => {
+  const okBtn = e.target.closest('#finInbox .inbox-ok');
+  const skipBtn = e.target.closest('#finInbox .inbox-skip');
+  if (!okBtn && !skipBtn) return;
+  const item = e.target.closest('.inbox-item');
+  const id = item.dataset.id;
+  const it = INBOX.find(x => x.id === id);
+  if (!it) return;
+  try {
+    if (okBtn) {
+      const desc = item.querySelector('.inbox-desc').value.trim() || it.description_raw;
+      const cat = item.querySelector('.inbox-cat').value;
+      const { error: e1 } = await window.sbClient.from('transactions').insert({
+        user_id: (await window.sbClient.auth.getUser()).data.user.id,
+        account_id: it.account_id, date: it.date,
+        description: desc, description_clean: desc,
+        amount: it.amount, type: parseFloat(it.amount) >= 0 ? 'CREDIT' : 'DEBIT',
+        category: cat, is_transfer: false,
+        pluggy_transaction_id: it.raw && it.raw.pluggy_transaction_id || null,
+        source: 'pluggy', source_file: 'inbox_aprovada',
+        raw: Object.assign({}, it.raw || {}, { st: 'paid', aprovada_em: new Date().toISOString() }),
+      });
+      if (e1) throw e1;
+      // reflete na tela na hora
+      const accKey = (window.__accIdToKey || {})[it.account_id];
+      if (accKey) {
+        DATA.transactions.push({ d: it.date, desc, cat: (Object.entries(DATA.cats).find(([s2, c]) => c.name === cat) || ['extras'])[0], acc: accKey, val: parseFloat(it.amount), st: 'paid', tr: false });
+        if (!MONTHS.includes(it.date.slice(0, 7))) { MONTHS.push(it.date.slice(0, 7)); MONTHS.sort(); }
+      }
+    }
+    await window.sbClient.from('inbox_transactions')
+      .update({ status: okBtn ? 'approved' : 'dismissed', decided_at: new Date().toISOString() })
+      .eq('id', id);
+    INBOX = INBOX.filter(x => x.id !== id);
+    renderInbox();
+    renderAll();
+  } catch (err) { alert('Erro ao processar: ' + (err.message || err)); }
+});
+
 // ===== ADAPTER SUPABASE (usa o sbClient autenticado do hub) =====
 (function supabaseAdapter() {
   const t0 = Date.now();
@@ -13413,6 +13502,7 @@ document.addEventListener('click', e => {
         return null;
       };
       const idToKey = {};
+      window.__accIdToKey = idToKey;
       (accs || []).forEach(a => {
         const k = keyOf(a);
         if (!k) return;
@@ -13481,6 +13571,7 @@ document.addEventListener('click', e => {
       DATA.installments.length = 0;
       currentMonth = MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1];
       renderAll();
+      loadInbox();
       console.log('[finapp] dados reais: ' + DATA.transactions.length + ' transações, ' + MONTHS.length + ' meses');
     } catch (err) {
       console.warn('[finapp] adapter falhou, mantendo dados de exemplo:', err && err.message || err);
