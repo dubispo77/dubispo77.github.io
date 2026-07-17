@@ -13452,6 +13452,8 @@ document.addEventListener('click', e => {
       rows.forEach(r => {
         const acc = idToKey[r.account_id];
         if (!acc) return;
+        // pagamento de fatura fica no banco (conciliação) mas não aparece na UI — o valor já está nas compras do cartão
+        if ((r.description_clean || r.description || '').startsWith('Pagamento fatura')) return;
         mesesSet.add(r.date.slice(0, 7));
         DATA.transactions.push({
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
