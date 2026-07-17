@@ -1533,7 +1533,7 @@ table.data-table tr:hover td { background: var(--bg); }
   #finapp .inbox-val { font-weight: 700; white-space: nowrap; }
   #finapp .inbox-ok { background: #16a34a; color: white; border: none; border-radius: 7px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
   #finapp .inbox-skip { background: white; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 7px; padding: 7px 10px; font-size: 12px; cursor: pointer; margin-left: 6px; }
-  #finapp .coach-inbox-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; align-items: start; }
+  #finapp .coach-inbox-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; align-items: stretch; }
   #finapp .coach-inbox-row.has-inbox { grid-template-columns: 1fr 1fr; }
   #finapp .coach-inbox-row .coach { margin-bottom: 0; }
   #finapp .coach-inbox-row .inbox-panel { margin-bottom: 0; max-height: 360px; overflow: auto; height: 100%; box-sizing: border-box; }
@@ -1547,6 +1547,8 @@ table.data-table tr:hover td { background: var(--bg); }
   #finapp .inbox-line1 { display: flex; align-items: center; gap: 10px; font-size: 13px; }
   #finapp .inbox-line2 { display: flex; align-items: center; gap: 8px; }
   #finapp .inbox-line2 .inbox-cat { flex: 1; }
+  #finapp .coach-inbox-row .coach { height: 100%; box-sizing: border-box; margin-bottom: 0; }
+  #finapp .coach-inbox-row.has-inbox .coach, #finapp .coach-inbox-row.has-inbox .inbox-panel { min-height: 280px; }
 </style>
 </head>
 <body>
