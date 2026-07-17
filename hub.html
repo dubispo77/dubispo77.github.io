@@ -1533,6 +1533,12 @@ table.data-table tr:hover td { background: var(--bg); }
   #finapp .inbox-val { font-weight: 700; white-space: nowrap; }
   #finapp .inbox-ok { background: #16a34a; color: white; border: none; border-radius: 7px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
   #finapp .inbox-skip { background: white; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 7px; padding: 7px 10px; font-size: 12px; cursor: pointer; margin-left: 6px; }
+  #finapp .coach-inbox-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; align-items: start; }
+  #finapp .coach-inbox-row.has-inbox { grid-template-columns: 1fr 1fr; }
+  #finapp .coach-inbox-row .coach { margin-bottom: 0; }
+  #finapp .coach-inbox-row .inbox-panel { margin-bottom: 0; max-height: 300px; overflow: auto; }
+  #finapp .coach-inbox-row.has-inbox .inbox-item { grid-template-columns: 52px 1fr; grid-template-rows: auto auto; }
+  #finapp .coach-inbox-row.has-inbox .inbox-item > *:nth-child(3), #finapp .coach-inbox-row.has-inbox .inbox-item > *:nth-child(4), #finapp .coach-inbox-row.has-inbox .inbox-item > *:nth-child(5) { grid-column: 2; }
 </style>
 </head>
 <body>
@@ -2852,6 +2858,7 @@ table.data-table tr:hover td { background: var(--bg); }
     </div>
   </div>
 
+  <div class="coach-inbox-row">
   <!-- COACH (colapsado) -->
   <details class="coach">
     <summary>
@@ -2869,6 +2876,8 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="insight green"><div class="insight-tag">Tendência</div><div class="insight-body">Despesas <b>caíram 9%</b> vs Abril. Maior queda em Saúde (-12%)</div></div>
     </div>
   </details>
+  <div id="finInbox" style="display:none"></div>
+  </div>
 
   <!-- TABS NA NOVA ORDEM -->
   <div class="tabs-nav">
@@ -2905,8 +2914,6 @@ table.data-table tr:hover td { background: var(--bg); }
   <!-- ===== TRANSAÇÕES ===== -->
   <div class="tab-content active filter-todas" id="tab-transacoes">
     <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
-
-    <div id="finInbox" style="display:none"></div>
 
     <div class="accounts-strip" id="accountsStrip"><!-- cards de contas via JS --></div>
 
@@ -13421,7 +13428,9 @@ async function loadInbox() {
 function renderInbox() {
   const box = document.getElementById('finInbox');
   if (!box) return;
-  if (!INBOX.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const row = box.closest('.coach-inbox-row');
+  if (!INBOX.length) { box.style.display = 'none'; box.innerHTML = ''; if (row) row.classList.remove('has-inbox'); return; }
+  if (row) row.classList.add('has-inbox');
   const catOpts = Object.keys(DATA.cats).sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
   box.innerHTML = '<div class="inbox-panel">'
     + '<div class="inbox-head">📥 Lançamentos novos <span class="inbox-badge">' + INBOX.length + '</span>'
