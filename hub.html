@@ -1536,7 +1536,7 @@ table.data-table tr:hover td { background: var(--bg); }
   #finapp .coach-inbox-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; align-items: start; }
   #finapp .coach-inbox-row.has-inbox { grid-template-columns: 1fr 1fr; }
   #finapp .coach-inbox-row .coach { margin-bottom: 0; }
-  #finapp .coach-inbox-row .inbox-panel { margin-bottom: 0; max-height: 300px; overflow: auto; }
+  #finapp .coach-inbox-row .inbox-panel { margin-bottom: 0; max-height: 360px; overflow: auto; height: 100%; box-sizing: border-box; }
   #finapp .coach-inbox-row.has-inbox .inbox-item { grid-template-columns: 52px 1fr; grid-template-rows: auto auto; }
   #finapp .coach-inbox-row.has-inbox .inbox-item > *:nth-child(3), #finapp .coach-inbox-row.has-inbox .inbox-item > *:nth-child(4), #finapp .coach-inbox-row.has-inbox .inbox-item > *:nth-child(5) { grid-column: 2; }
 </style>
@@ -2860,7 +2860,7 @@ table.data-table tr:hover td { background: var(--bg); }
 
   <div class="coach-inbox-row">
   <!-- COACH (colapsado) -->
-  <details class="coach">
+  <details class="coach" open>
     <summary>
       <div class="coach-summary-left">
         <span class="coach-title">💡 Insights diários</span>
