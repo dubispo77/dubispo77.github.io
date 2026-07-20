@@ -12907,7 +12907,7 @@ function renderAccounts() {
     const [c1, c2] = ACC_GRAD[key] || ['#7c3aed', '#4c1d95'];
     if (a.type === 'credit') {
       const inv = DATA.invoices[key];
-      const cur = inv ? (inv.hist.find(h => h.m === currentMonth) || inv.hist[0]) : null;
+      const cur = inv ? inv.hist.find(h => h.m === currentMonth) : null;
       const pct = cur && inv.limit ? Math.min(cur.total / inv.limit * 100, 100) : 0;
       const livre = cur ? Math.max(inv.limit - cur.total, 0) : 0;
       return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
@@ -13912,7 +13912,7 @@ function finAviso(msg) {
       let rows = [], from = 0;
       while (true) {
         const { data: chunk, error: e2 } = await sb.from('transactions')
-          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,installment_current,installment_total')
+          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,installment_current,installment_total,source_file')
           .order('date', { ascending: true }).range(from, from + 999);
         if (e2) throw e2;
         rows = rows.concat(chunk || []);
@@ -13946,7 +13946,7 @@ function finAviso(msg) {
         if ((r.description_clean || r.description || '').startsWith('Pagamento fatura')) return;
         mesesSet.add(r.date.slice(0, 7));
         DATA.transactions.push({
-          id: r.id,
+          id: r.id, sf: r.source_file,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
           acc, val: parseFloat(r.amount), st: 'paid', tr: !!r.is_transfer,
           parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
@@ -13970,6 +13970,28 @@ function finAviso(msg) {
       }
       Object.keys(DATA.invoices).forEach(k => { DATA.invoices[k].hist = []; });
       DATA.installments.length = 0;
+      // faturas reais da tabela credit_card_invoices
+      try {
+        const { data: invs } = await sb.from('credit_card_invoices').select('account_id,due_date,amount,status');
+        (invs || []).forEach(v => {
+          const k = idToKey[v.account_id];
+          if (!k || !DATA.invoices[k]) return;
+          DATA.invoices[k].hist.push({ m: (v.due_date || '').slice(0, 7), st: v.status === 'paid' ? 'paga' : (v.status || 'aberta'), total: parseFloat(v.amount) || 0, due: v.due_date ? dayLabel(v.due_date) : '' });
+        });
+      } catch (e) { console.warn('[finapp] invoices:', e.message || e); }
+      // meses com fatura explodida no débito (ex.: DEZ/25) sem linha na tabela
+      const porFat = {};
+      DATA.transactions.forEach(t => {
+        if (t.sf && t.sf.indexOf('fatura_') === 0 && t.val < 0) {
+          const m2 = t.d.slice(0, 7);
+          porFat[m2] = (porFat[m2] || 0) - t.val;
+        }
+      });
+      Object.entries(porFat).forEach(([m2, total]) => {
+        const hist = DATA.invoices['brad-card'].hist;
+        if (!hist.some(h => h.m === m2)) hist.push({ m: m2, st: 'paga', total: Math.round(total * 100) / 100, due: '' });
+      });
+      Object.values(DATA.invoices).forEach(inv => inv.hist.sort((a, b) => b.m.localeCompare(a.m)));
       currentMonth = MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1];
       renderAll();
       loadInbox();
