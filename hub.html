@@ -12957,18 +12957,16 @@ function renderCredExtras() {
   const key = selArr.length === 1 && DATA.accounts[selArr[0]] && DATA.accounts[selArr[0]].type === 'credit' ? selArr[0] : null;
   if (!key) { box.style.display = 'none'; box.innerHTML = ''; return; }
   const inv = DATA.invoices[key];
-  const parcs = DATA.installments.filter(it => it.acc === key && it.cur[currentMonth] !== undefined || (it.acc === key && it.cur['2026-06'] !== undefined));
-  // parcelas: usa nº do mês corrente se existir; senão projeta a partir de junho
-  const offset = MONTHS.indexOf(currentMonth) - MONTHS.indexOf('2026-06');
-  const lista = DATA.installments.filter(it => it.acc === key).map(it => {
-    const base = it.cur[currentMonth] !== undefined ? it.cur[currentMonth] : (it.cur['2026-06'] || 0) + Math.max(offset, 0);
-    return { ...it, atual: base };
-  }).filter(it => it.atual >= 1 && it.atual <= it.tot);
+  // parcelas reais: transações do cartão neste mês que têm parcela X/Y
+  const lista = DATA.transactions
+    .filter(t => t.acc === key && t.parc && !t.tr && t.d.slice(0, 7) === currentMonth)
+    .map(t => ({ name: t.desc, atual: t.parc[0], tot: t.parc[1], val: Math.abs(t.val) }))
+    .sort((a, b) => b.val - a.val);
   const parcHtml = lista.length ? lista.map(it => {
     const last = it.atual === it.tot;
     const falta = (it.tot - it.atual) * it.val;
     return '<div class="parc-row' + (last ? ' last' : '') + '">'
-      + '<div>' + it.emoji + ' ' + it.name + ' · <b>' + it.atual + '/' + it.tot + '</b> · ' + fmt(it.val) + '/mês' + (last ? '' : ' · falta ' + fmt(falta)) + '</div>'
+      + '<div>' + it.name + ' · <b>' + it.atual + '/' + it.tot + '</b> · ' + fmt(it.val) + '/mês' + (last ? '' : ' · falta ' + fmt(falta)) + '</div>'
       + '<div class="parc-bar"><i style="width:' + (it.atual / it.tot * 100).toFixed(0) + '%"></i></div>'
       + '<div>' + (last ? '<span class="parc-last-badge">última parcela!</span>' : '') + '</div></div>';
   }).join('') : '<div class="empty-state">Nenhuma parcela em curso.</div>';
