@@ -13718,7 +13718,18 @@ function renderInbox() {
   const box = document.getElementById('finInbox');
   if (!box) return;
   const row = box.closest('.coach-inbox-row');
-  if (!INBOX.length) { box.style.display = 'none'; box.innerHTML = ''; if (row) row.classList.remove('has-inbox'); return; }
+  if (!INBOX.length) {
+    box.innerHTML = '<div class="inbox-panel v2" style="display:flex;flex-direction:column">'
+      + '<div class="inbox-head">📥 Lançamentos novos</div>'
+      + '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted)">'
+      + '<div style="font-size:30px">✅</div>'
+      + '<div style="font-size:15px;font-weight:700">Sem novos lançamentos</div>'
+      + '<div style="font-size:12px">tudo aprovado — o Pluggy avisa quando chegar gasto novo</div>'
+      + '</div></div>';
+    box.style.display = '';
+    if (row) row.classList.add('has-inbox');
+    return;
+  }
   if (row) row.classList.add('has-inbox');
   if (INBOX_IDX >= INBOX.length) INBOX_IDX = 0;
   const it = INBOX[INBOX_IDX];
