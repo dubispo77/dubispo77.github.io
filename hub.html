@@ -13047,8 +13047,7 @@ function renderHead() {
 function refreshTable() {
   renderHead();
   renderTrans();
-  if (window.setupEditableTable) setupEditableTable();
-  if (window.recalcTotal) recalcTotal();
+  try { setupEditableTable(); recalcTotal(); } catch(e) { console.warn('[finapp]', e); }
   if (window.twemoji) twemoji.parse(document.getElementById('transHead'));
 }
 function miniCi(slug) {
@@ -13199,9 +13198,8 @@ function renderAll() {
   renderAccounts();
   renderCredExtras();
   renderCatMgr();
-  if (window.applyDonutMonth) applyDonutMonth();
-  if (window.setupEditableTable) setupEditableTable();
-  if (window.recalcTotal) recalcTotal();
+  try { applyDonutMonth(); } catch(e) { console.warn('[finapp]', e); }
+  try { setupEditableTable(); recalcTotal(); } catch(e) { console.warn('[finapp]', e); }
   if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: 'svg', ext: '.svg' });
 }
 renderAll();
@@ -13480,6 +13478,7 @@ function renderInbox() {
     +   '<div class="inbox-line2"><select class="inbox-cat">' + catOpts.map(slug => '<option value="' + DATA.cats[slug].name + '"' + (DATA.cats[slug].name === it.category_sugerida ? ' selected' : '') + '>' + DATA.cats[slug].name + '</option>').join('') + '</select>'
     +   '<button class="inbox-ok">OK ✓</button><button class="inbox-skip" title="Ignorar">✕</button></div>'
     + '</div></div>';
+  box.style.display = '';
   if (window.twemoji) twemoji.parse(box);
 }
 document.addEventListener('click', e => {
@@ -13521,6 +13520,7 @@ document.addEventListener('click', async e => {
     await window.sbClient.from('inbox_transactions')
       .update({ status: okBtn ? 'approved' : 'dismissed', decided_at: new Date().toISOString() })
       .eq('id', id);
+    finToast(okBtn ? '✓ Lançamento aprovado e salvo' : 'Lançamento descartado');
     INBOX = INBOX.filter(x => x.id !== id);
     renderInbox();
     renderAll();
@@ -13544,14 +13544,31 @@ document.addEventListener('click', async e => {
   });
 })();
 
+// ===== TOAST: feedback visível de salvamento =====
+function finToast(msg, erro) {
+  let t = document.getElementById('finToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'finToast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font:700 13px -apple-system,sans-serif;color:white;box-shadow:0 6px 20px rgba(0,0,0,.2);transition:opacity .3s;opacity:0;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = erro ? '#dc2626' : '#16a34a';
+  t.style.opacity = '1';
+  clearTimeout(t.__timer);
+  t.__timer = setTimeout(() => { t.style.opacity = '0'; }, 2600);
+}
+
 // ===== PERSISTÊNCIA DE EDIÇÕES: descrição e categoria salvam no Supabase =====
 async function persistTxEdit(txId, campos) {
   if (!txId || !window.sbClient) return;
   try {
     const { error } = await window.sbClient.from('transactions').update(Object.assign({}, campos, { updated_at: new Date().toISOString() })).eq('id', txId);
     if (error) throw error;
+    finToast('✓ Salvo no banco' + (campos.category ? ' — ' + campos.category : ''));
     console.log('[finapp] edição salva:', txId, campos);
-  } catch (e) { alert('Não consegui salvar a edição: ' + (e.message || e)); }
+  } catch (e) { finToast('✗ NÃO salvou: ' + (e.message || e), true); }
 }
 // descrição: salva no blur (delegação, pega células contenteditable da tabela)
 document.addEventListener('focusout', e => {
