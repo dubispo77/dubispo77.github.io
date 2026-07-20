@@ -2848,22 +2848,22 @@ table.data-table tr:hover td { background: var(--bg); }
   <div class="top-kpis">
     <div class="kpi-card">
       <div class="kpi-icon-circle saldo"><svg class="iconic"><use href="#i-bank"/></svg></div>
-      <div class="kpi-content"><div class="kpi-label">Saldo atual</div><div class="kpi-value">R$ 5.725,44</div></div>
+      <div class="kpi-content"><div class="kpi-label">Saldo atual</div><div class="kpi-value" id="kpiTopSaldo">—</div></div>
       <div class="kpi-arrow">›</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon-circle rec"><svg class="iconic"><use href="#i-arrow-up"/></svg></div>
-      <div class="kpi-content"><div class="kpi-label">Receitas</div><div class="kpi-value">R$ 14.616,06</div></div>
+      <div class="kpi-content"><div class="kpi-label">Receitas</div><div class="kpi-value" id="kpiTopRec">—</div></div>
       <div class="kpi-arrow">›</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon-circle des"><svg class="iconic"><use href="#i-arrow-down"/></svg></div>
-      <div class="kpi-content"><div class="kpi-label">Despesas</div><div class="kpi-value">R$ 9.717,00</div></div>
+      <div class="kpi-content"><div class="kpi-label">Despesas</div><div class="kpi-value" id="kpiTopDesp">—</div></div>
       <div class="kpi-arrow">›</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon-circle cart"><svg class="iconic"><use href="#i-card"/></svg></div>
-      <div class="kpi-content"><div class="kpi-label">Cartão de crédito</div><div class="kpi-value">R$ 848,64</div></div>
+      <div class="kpi-content"><div class="kpi-label">Cartão de crédito</div><div class="kpi-value" id="kpiTopCart">—</div></div>
       <div class="kpi-arrow">›</div>
     </div>
   </div>
@@ -12519,6 +12519,11 @@ function renderKPIs() {
     .filter(([k]) => !SEL_UNI.size || SEL_UNI.has(k))
     .reduce((s,[k,a]) => s + (a.saldo || 0), 0);
   setText('kpiSaldo', fmt(saldo));
+  setText('kpiTopSaldo', fmt(saldo));
+  setText('kpiTopRec', fmt(sum(rec)));
+  setText('kpiTopDesp', fmt(sum(desp)));
+  const cartTotal = txOf(m, t => !t.tr && t.val < 0 && DATA.accounts[t.acc] && DATA.accounts[t.acc].type === 'credit' && inSel(t)).reduce((s2,t) => s2 - t.val, 0);
+  setText('kpiTopCart', fmt(cartTotal));
   setText('kpiRec', fmt(sum(rec)));
   setText('kpiDesp', fmt(sum(desp)));
   setText('kpiBal', fmtS(sum(rec) + sum(desp)));
@@ -13433,7 +13438,16 @@ async function loadInbox() {
     if (error) throw error;
     INBOX = data || [];
     renderInbox();
-  } catch (e) { console.warn('[finapp] inbox:', e.message || e); }
+  } catch (e) {
+    console.warn('[finapp] inbox:', e.message || e);
+    const box = document.getElementById('finInbox');
+    if (box) {
+      box.innerHTML = '<div class="inbox-panel" style="border-color:#dc2626"><div class="inbox-head" style="color:#dc2626">📥 Caixa de entrada — erro ao carregar</div><div style="font-size:12px;color:#6b7280;margin-top:6px">' + (e.message || e) + '</div></div>';
+      box.style.display = '';
+      const row = box.closest('.coach-inbox-row');
+      if (row) row.classList.add('has-inbox');
+    }
+  }
 }
 let INBOX_IDX = 0;
 function renderInbox() {
