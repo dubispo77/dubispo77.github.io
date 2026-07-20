@@ -13842,12 +13842,25 @@ document.addEventListener('focusout', e => {
   persistTxEdit(txId, { description: v, description_clean: v });
 });
 
+function finAviso(msg) {
+  const fin = document.getElementById('finapp');
+  if (!fin) return;
+  let av = document.getElementById('finAviso');
+  if (!av) {
+    av = document.createElement('div');
+    av.id = 'finAviso';
+    av.style.cssText = 'background:#fef2f2;border:2px solid #dc2626;color:#b91c1c;border-radius:10px;padding:10px 16px;font:600 13px -apple-system,sans-serif;margin-bottom:12px';
+    fin.prepend(av);
+  }
+  av.textContent = msg;
+}
+
 // ===== ADAPTER SUPABASE (usa o sbClient autenticado do hub) =====
 (function supabaseAdapter() {
   const t0 = Date.now();
   const tryInit = async () => {
     if (!window.sbClient) {
-      if (Date.now() - t0 > 30000) return;
+      if (Date.now() - t0 > 30000) { finAviso('⚠ Finanças em modo exemplo — o hub não criou a conexão com o Supabase (sbClient ausente). Recarrega a página; persistindo, me manda print.'); return; }
       return setTimeout(tryInit, 500);
     }
     const sb = window.sbClient;
@@ -13939,6 +13952,7 @@ document.addEventListener('focusout', e => {
       console.log('[finapp] dados reais: ' + DATA.transactions.length + ' transações, ' + MONTHS.length + ' meses');
     } catch (err) {
       console.warn('[finapp] adapter falhou, mantendo dados de exemplo:', err && err.message || err);
+      finAviso('⚠ Finanças em modo exemplo — erro ao carregar do Supabase: ' + (err && err.message || err));
     }
   };
   tryInit();
