@@ -1599,6 +1599,7 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span><span id="badgeAgenda" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="pessoal"><span class="ni-icon">🙋</span><span class="ni-text">Pessoal</span><span id="badgePessoal" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="trabalho"><span class="ni-icon">💼</span><span class="ni-text">Trabalho</span><span id="badgeTrabalho" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="funil"><span class="ni-icon">🎯</span><span class="ni-text">Funil</span></div>
       <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span><span id="badgeSaude" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Administração</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="casa"><span class="ni-icon">🏡</span><span class="ni-text">Casa</span><span id="badgeCasa" class="ni-badge badge-yellow" style="display:none">0</span></div>
@@ -3310,6 +3311,92 @@ table.data-table tr:hover td { background: var(--bg); }
         </div>
         <div class="agenda-add-wrap">
           <button class="agenda-add-btn" id="pessoalAddBtn">＋ Adicionar item pessoal</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FUNIL DE CONTATOS -->
+    <section id="funil" class="section">
+      <div class="section-header"><div class="section-title">🎯 Funil de contatos</div><div class="section-subtitle" id="funilSubtitle">Prospecção ALESP + Câmara SP · Supabase</div></div>
+      <div class="section-body">
+        <style>
+          .funil-stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+          .funil-group { flex:1; min-width:300px; }
+          .funil-ghead { display:inline-block; font-weight:700; font-size:12px; padding:3px 12px; border-radius:6px; margin-bottom:8px; }
+          .funil-gh-alesp { background:#e8eff7; color:#2c5aa0; }
+          .funil-gh-cam { background:#fdf3d8; color:#b8860b; }
+          .funil-grow { display:flex; gap:8px; flex-wrap:wrap; }
+          .funil-step { background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 14px; flex:1; min-width:80px; }
+          .funil-step .fnum { font-size:22px; font-weight:700; }
+          .funil-step .flbl { color:var(--text-dim); font-size:11px; margin-top:2px; line-height:1.3; }
+          .funil-controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+          .funil-controls select, .funil-controls input { padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; color:inherit; font-family:inherit; }
+          .funil-controls input { min-width:170px; }
+          .funil-tablewrap { border:1px solid var(--border); border-radius:12px; overflow:auto; background:#fff; }
+          .funil-tg { border:1px solid var(--border); border-radius:6px; background:#fff; font-size:12px; padding:4px 0; cursor:pointer; font-weight:700; width:56px; color:#b0b4bb; font-family:inherit; }
+          .funil-tg.sim { background:#e4f3ea; color:#1e7e45; border-color:#b6dcc4; }
+          .funil-tg.nao { background:#fdecea; color:#c0392b; border-color:#eecfcb; }
+          .funil-txt { width:100%; min-width:100px; border:1px solid var(--border); border-radius:6px; padding:4px 7px; font-size:12px; font-family:inherit; }
+          .funil-notas { width:100%; min-width:280px; border:1px solid var(--border); border-radius:6px; padding:4px 7px; font-size:12px; font-family:inherit; resize:vertical; min-height:28px; }
+          .funil-nm { font-weight:600; white-space:nowrap; }
+          .funil-pp { display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:600; background:#fdecea; color:#c0392b; }
+          .funil-casabadge { display:inline-block; padding:2px 8px; border-radius:5px; font-size:11px; font-weight:600; white-space:nowrap; }
+          .funil-cb-alesp { background:#e8eff7; color:#2c5aa0; }
+          .funil-cb-cam { background:#fdf3d8; color:#b8860b; }
+          .funil-cb-tv { background:#e7e0f5; color:#5b3fa6; }
+          .funil-cb-news { background:#d8eef0; color:#1a6b73; }
+          .funil-cb-ag { background:#fde2e9; color:#b3306b; }
+          .funil-tel { white-space:nowrap; color:var(--text-dim); font-size:12px; }
+          a.funil-ig { color:#2c5aa0; text-decoration:none; font-weight:600; font-size:12px; }
+          a.funil-ig:hover { text-decoration:underline; }
+          tr.funil-sent td { background:#e9f6ee !important; }
+          tr.funil-responded td { background:#fdf3d8 !important; }
+          tr.funil-nosend td { background:#fdeaea !important; }
+          tr.funil-nocontact td { background:#eef0f3 !important; }
+          tr.funil-resolved td { background:#fdf3d8 !important; }
+          .funil-saved { color:#1e7e45; font-size:12px; opacity:0; transition:opacity .3s; }
+          .funil-saved.show { opacity:1; }
+        </style>
+        <div class="funil-stats" id="funilStats"></div>
+        <div class="funil-controls">
+          <select id="funilFCasa">
+            <option value="">Todas as Casas</option>
+            <option value="ALESP">ALESP</option>
+            <option value="Câmara SP">Câmara SP</option>
+            <option value="TV Alesp">TV Alesp</option>
+            <option value="BNews">BNews</option>
+            <option value="Agência">Agência</option>
+          </select>
+          <select id="funilFPartido"><option value="">Todos os partidos</option></select>
+          <select id="funilFEtapa">
+            <option value="">Todas as etapas</option>
+            <option value="pendente">Ainda não contatados (sem DM)</option>
+            <option value="msg">DM enviado</option>
+            <option value="tel">Com contato telefônico</option>
+            <option value="resp">Falaram com a comunicação</option>
+          </select>
+          <input type="text" id="funilFBusca" placeholder="Buscar por nome...">
+          <span class="funil-saved" id="funilSaved">salvo ✓</span>
+        </div>
+        <div class="funil-tablewrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Parlamentar</th>
+                <th>Casa</th>
+                <th>Instagram</th>
+                <th style="text-align:center">Mensagem<br>no Instagram</th>
+                <th>Telefone do gabinete</th>
+                <th style="text-align:center">Contato<br>telefônico</th>
+                <th>Resp. comunicação<br>(nome)</th>
+                <th>Resp. comunicação<br>(contato)</th>
+                <th style="text-align:center">Falou com o<br>responsável</th>
+                <th style="text-align:center">Portfólio<br>enviado</th>
+                <th>Notas</th>
+              </tr>
+            </thead>
+            <tbody id="funilTbody"><tr><td colspan="11" style="padding:24px;text-align:center;color:var(--text-dim)">⏳ Carregando...</td></tr></tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -12190,6 +12277,163 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     setInterval(refresh, 60000);
   };
   tryInit();
+})();
+
+// ── Funil de contatos (Supabase) ──
+(function setupFunil() {
+  const CYCLE = ['', 'Sim', 'Não'];
+  let rows = null, loaded = false;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+
+  function rowClass(r) {
+    if (r.resolved) return 'funil-resolved';
+    if (r.neg) return 'funil-nosend';
+    if (r.falou_resp === 'Sim') return 'funil-responded';
+    if (r.portf === 'Sim') return 'funil-sent';
+    if (r.portf === 'Não') return 'funil-nosend';
+    if (r.cont_tel === 'Sim') return 'funil-nosend';
+    if (r.cont_tel === 'Não') return 'funil-nocontact';
+    return '';
+  }
+  const tgClass = v => v === 'Sim' ? 'funil-tg sim' : v === 'Não' ? 'funil-tg nao' : 'funil-tg';
+  const tgText = v => v === 'Sim' ? 'Sim' : v === 'Não' ? 'Não' : '—';
+
+  function igCell(r) {
+    if (r.instagram) return '<a class="funil-ig" href="https://instagram.com/' + esc(r.instagram) + '" target="_blank" rel="noopener">@' + esc(r.instagram) + '</a>';
+    if (!r.partido && !r.telefone) return '<span class="funil-tel">—</span>';
+    const q = encodeURIComponent('instagram ' + r.nome + ' ' + (r.casa === 'ALESP' ? 'deputado ALESP' : 'vereador São Paulo'));
+    return '<a class="funil-ig" href="https://www.google.com/search?q=' + q + '" target="_blank" rel="noopener">buscar IG ↗</a>';
+  }
+  function casaBadge(casa) {
+    const cls = casa === 'ALESP' ? 'funil-cb-alesp' : casa === 'TV Alesp' ? 'funil-cb-tv' : casa === 'BNews' ? 'funil-cb-news' : casa === 'Agência' ? 'funil-cb-ag' : 'funil-cb-cam';
+    return '<span class="funil-casabadge ' + cls + '">' + esc(casa) + '</span>';
+  }
+
+  function flashSaved(ok) {
+    const el = $('funilSaved');
+    if (!el) return;
+    el.textContent = ok ? 'salvo ✓' : 'erro ao salvar ✗';
+    el.style.color = ok ? '#1e7e45' : '#c0392b';
+    el.classList.add('show');
+    clearTimeout(window._funilSt);
+    window._funilSt = setTimeout(() => el.classList.remove('show'), 1400);
+  }
+
+  async function save(id, patch) {
+    try {
+      const { error } = await window.sbClient.from('funil_contatos').update(patch).eq('id', id);
+      flashSaved(!error);
+      if (error) console.warn('[funil]', error);
+    } catch (e) { flashSaved(false); console.warn('[funil]', e); }
+  }
+
+  function renderStats() {
+    const wrap = $('funilStats');
+    if (!wrap) return;
+    const groups = [['ALESP', 'funil-gh-alesp'], ['Câmara SP', 'funil-gh-cam']];
+    wrap.innerHTML = groups.map(([casa, cls]) => {
+      const g = rows.filter(r => r.casa === casa);
+      const tot = g.length;
+      const red = g.filter(r => rowClass(r) === 'funil-nosend').length;
+      const green = g.filter(r => rowClass(r) === 'funil-sent').length;
+      const yellow = g.filter(r => rowClass(r) === 'funil-responded').length;
+      const pc = n => tot ? Math.round(n / tot * 100) + '%' : '';
+      return '<div class="funil-group"><div class="funil-ghead ' + cls + '">' + esc(casa) + '</div><div class="funil-grow">' +
+        '<div class="funil-step"><div class="fnum">' + tot + '</div><div class="flbl">Contatos</div></div>' +
+        '<div class="funil-step"><div class="fnum" style="color:#c0392b">' + red + '</div><div class="flbl">🔴 Sem portfólio · ' + pc(red) + '</div></div>' +
+        '<div class="funil-step"><div class="fnum" style="color:#1e7e45">' + green + '</div><div class="flbl">🟢 Portfólio enviado · ' + pc(green) + '</div></div>' +
+        '<div class="funil-step"><div class="fnum" style="color:#b8860b">' + yellow + '</div><div class="flbl">🟡 Responderam · ' + pc(yellow) + '</div></div>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function render() {
+    const tb = $('funilTbody');
+    if (!tb || !rows) return;
+    const fCasa = $('funilFCasa').value;
+    const fPart = $('funilFPartido').value;
+    const fEtapa = $('funilFEtapa').value;
+    const fBusca = $('funilFBusca').value.toLowerCase();
+    tb.innerHTML = '';
+    rows.forEach(r => {
+      if (fCasa && r.casa !== fCasa) return;
+      if (fPart && r.partido !== fPart) return;
+      if (fBusca && !r.nome.toLowerCase().includes(fBusca)) return;
+      if (fEtapa) {
+        if (fEtapa === 'pendente' && r.msg_ig === 'Sim') return;
+        if (fEtapa === 'msg' && r.msg_ig !== 'Sim') return;
+        if (fEtapa === 'tel' && r.cont_tel !== 'Sim') return;
+        if (fEtapa === 'resp' && r.falou_resp !== 'Sim') return;
+      }
+      const tr = document.createElement('tr');
+      tr.className = rowClass(r);
+      tr.innerHTML =
+        '<td><div class="funil-nm">' + esc(r.nome) + '</div>' + (r.partido ? '<div><span class="funil-pp">' + esc(r.partido) + '</span></div>' : '') + '</td>' +
+        '<td>' + casaBadge(r.casa) + '</td>' +
+        '<td>' + igCell(r) + '</td>' +
+        '<td style="text-align:center"><button class="' + tgClass(r.msg_ig) + '" data-f="msg_ig">' + tgText(r.msg_ig) + '</button></td>' +
+        '<td><span class="funil-tel">' + esc(r.telefone) + '</span></td>' +
+        '<td style="text-align:center"><button class="' + tgClass(r.cont_tel) + '" data-f="cont_tel">' + tgText(r.cont_tel) + '</button></td>' +
+        '<td><input class="funil-txt" data-f="nome_resp" value="' + esc(r.nome_resp) + '" placeholder="nome..."></td>' +
+        '<td><input class="funil-txt" data-f="contato_resp" value="' + esc(r.contato_resp) + '" placeholder="tel / @ / e-mail"></td>' +
+        '<td style="text-align:center"><button class="' + tgClass(r.falou_resp) + '" data-f="falou_resp">' + tgText(r.falou_resp) + '</button></td>' +
+        '<td style="text-align:center"><button class="' + tgClass(r.portf) + '" data-f="portf">' + tgText(r.portf) + '</button></td>' +
+        '<td><textarea class="funil-notas" data-f="notas" placeholder="retorno, próximos passos...">' + esc(r.notas) + '</textarea></td>';
+      tr.querySelectorAll('button[data-f]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const f = btn.dataset.f;
+          r[f] = CYCLE[(CYCLE.indexOf(r[f]) + 1) % CYCLE.length];
+          save(r.id, { [f]: r[f] });
+          render(); renderStats();
+        });
+      });
+      tr.querySelectorAll('input[data-f], textarea[data-f]').forEach(el => {
+        el.addEventListener('blur', () => {
+          const f = el.dataset.f;
+          if (r[f] === el.value) return;
+          r[f] = el.value;
+          save(r.id, { [f]: el.value });
+        });
+      });
+      tb.appendChild(tr);
+    });
+    const sub = $('funilSubtitle');
+    if (sub) sub.textContent = 'Prospecção ALESP + Câmara SP · ' + rows.length + ' contatos · salvo direto no banco';
+  }
+
+  async function load() {
+    const sb = window.sbClient;
+    if (!sb) return;
+    const { data, error } = await sb.from('funil_contatos').select('*').order('display_order');
+    const tb = $('funilTbody');
+    if (error || !data || !data.length) {
+      if (tb) tb.innerHTML = '<tr><td colspan="11" style="padding:24px;text-align:center;color:#c0392b">' + (error ? 'Erro ao carregar: ' + esc(error.message) : 'Nenhum contato (faça login)') + '</td></tr>';
+      return;
+    }
+    rows = data;
+    const sel = $('funilFPartido');
+    [...new Set(rows.map(r => r.partido).filter(Boolean))].forEach(p => {
+      const o = document.createElement('option'); o.value = o.textContent = p; sel.appendChild(o);
+    });
+    ['funilFCasa', 'funilFPartido', 'funilFEtapa', 'funilFBusca'].forEach(id => {
+      $(id).addEventListener('input', render);
+    });
+    renderStats(); render();
+  }
+
+  function maybeLoad() {
+    if (loaded) return;
+    loaded = true;
+    load();
+  }
+  document.querySelector('.nav-item[data-sec="funil"]')?.addEventListener('click', maybeLoad);
+  const t0 = Date.now();
+  (function waitBoot() {
+    if (window.sbClient) {
+      if (document.getElementById('funil')?.classList.contains('active')) maybeLoad();
+    } else if (Date.now() - t0 < 15000) setTimeout(waitBoot, 500);
+  })();
 })();
 </script>
 
