@@ -1575,6 +1575,10 @@ table.data-table tr:hover td { background: var(--bg); }
   #finapp .coach-inbox-row.row-collapsed .inbox-head { font-size: 13px; margin: 0; }
   #finapp .coach-inbox-row.row-collapsed .inbox-arrow, #finapp .coach-inbox-row.row-collapsed .inbox-pos { display: none; }
   #finapp .coach-inbox-row.row-collapsed .coach, #finapp .coach-inbox-row.row-collapsed .inbox-panel { height: auto; }
+  /* recolhido: só as barrinhas, nada de corpo */
+  #finapp .coach-inbox-row.row-collapsed .inbox-panel > *:not(.inbox-head) { display: none !important; }
+  #finapp .coach-inbox-row.row-collapsed .inbox-panel { display: block !important; }
+  #finapp .coach-inbox-row.row-collapsed { align-items: start; }
 </style>
 </head>
 <body>
