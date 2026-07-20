@@ -12444,7 +12444,7 @@ function renderTrans() {
       : v > 0 ? '<span class="var-cell up">↑ ' + v + '%</span>'
       : v < 0 ? '<span class="var-cell down">↓ ' + Math.abs(v) + '%</span>'
       : '<span class="var-cell neutral">=</span>';
-    return '<tr class="' + rowCls + '">'
+    return '<tr class="' + rowCls + '" data-txid="' + (t.id || '') + '">'
       + '<td><input type="checkbox"></td>'
       + '<td>' + statusIcon(t.st) + '</td>'
       + '<td>' + dayLabel(effDate(t)) + '</td>'
@@ -12821,7 +12821,7 @@ document.addEventListener('focusout', e => {
 // popover de escolha (cor/ícone)
 const catMgrPop = document.createElement('div');
 catMgrPop.className = 'cat-picker';
-document.body.appendChild(catMgrPop);
+(document.getElementById('finapp') || document.body).appendChild(catMgrPop);
 let catMgrCtx = null;
 document.addEventListener('click', e => {
   const el = e.target.closest('#catMgrBody [data-edit="color"], #catMgrBody [data-edit="icon"]');
@@ -13151,7 +13151,7 @@ document.addEventListener('click', e => {
 // ===== PICKER DE CATEGORIA (clique na célula) =====
 const catPicker = document.createElement('div');
 catPicker.className = 'cat-picker';
-document.body.appendChild(catPicker);
+(document.getElementById('finapp') || document.body).appendChild(catPicker);
 let pickerRow = null;
 function openCatPicker(cell, t) {
   pickerRow = t;
@@ -13167,6 +13167,9 @@ catPicker.addEventListener('click', e => {
   const it = e.target.closest('.cpk-item');
   if (!it || !pickerRow) return;
   pickerRow.cat = it.dataset.slug;
+  if (pickerRow.id && typeof persistTxEdit === 'function') {
+    persistTxEdit(pickerRow.id, { category: (DATA.cats[it.dataset.slug] || {}).name || null });
+  }
   catPicker.classList.remove('show');
   refreshTable();
 });
@@ -13541,6 +13544,28 @@ document.addEventListener('click', async e => {
   });
 })();
 
+// ===== PERSISTÊNCIA DE EDIÇÕES: descrição e categoria salvam no Supabase =====
+async function persistTxEdit(txId, campos) {
+  if (!txId || !window.sbClient) return;
+  try {
+    const { error } = await window.sbClient.from('transactions').update(Object.assign({}, campos, { updated_at: new Date().toISOString() })).eq('id', txId);
+    if (error) throw error;
+    console.log('[finapp] edição salva:', txId, campos);
+  } catch (e) { alert('Não consegui salvar a edição: ' + (e.message || e)); }
+}
+// descrição: salva no blur (delegação, pega células contenteditable da tabela)
+document.addEventListener('focusout', e => {
+  const td = e.target.closest && e.target.closest('#transBody td[contenteditable]');
+  if (!td) return;
+  const tr = td.closest('tr');
+  const txId = tr && tr.dataset.txid;
+  const t = (window.__shownTx || []).find(x => x.id === txId);
+  const v = td.textContent.trim();
+  if (!t || !v || v === t.desc) return;
+  t.desc = v;
+  persistTxEdit(txId, { description: v, description_clean: v });
+});
+
 // ===== ADAPTER SUPABASE (usa o sbClient autenticado do hub) =====
 (function supabaseAdapter() {
   const t0 = Date.now();
@@ -13574,7 +13599,7 @@ document.addEventListener('click', async e => {
       let rows = [], from = 0;
       while (true) {
         const { data: chunk, error: e2 } = await sb.from('transactions')
-          .select('date,description_clean,description,amount,category,account_id,is_transfer,installment_current,installment_total')
+          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,installment_current,installment_total')
           .order('date', { ascending: true }).range(from, from + 999);
         if (e2) throw e2;
         rows = rows.concat(chunk || []);
@@ -13608,6 +13633,7 @@ document.addEventListener('click', async e => {
         if ((r.description_clean || r.description || '').startsWith('Pagamento fatura')) return;
         mesesSet.add(r.date.slice(0, 7));
         DATA.transactions.push({
+          id: r.id,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
           acc, val: parseFloat(r.amount), st: 'paid', tr: !!r.is_transfer,
           parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
