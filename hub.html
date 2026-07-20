@@ -12958,10 +12958,29 @@ function renderCredExtras() {
   if (!key) { box.style.display = 'none'; box.innerHTML = ''; return; }
   const inv = DATA.invoices[key];
   // parcelas reais: transações do cartão neste mês que têm parcela X/Y
-  const lista = DATA.transactions
+  let lista = DATA.transactions
     .filter(t => t.acc === key && t.parc && !t.tr && t.d.slice(0, 7) === currentMonth)
     .map(t => ({ name: t.desc, atual: t.parc[0], tot: t.parc[1], val: Math.abs(t.val) }))
     .sort((a, b) => b.val - a.val);
+  let projecao = false;
+  if (!lista.length) {
+    // mês sem fatura importada → projeta as cadeias a partir do último mês conhecido
+    const porMes = {};
+    DATA.transactions.forEach(t => {
+      if (t.acc === key && t.parc && !t.tr) (porMes[t.d.slice(0, 7)] = porMes[t.d.slice(0, 7)] || []).push(t);
+    });
+    const meses = Object.keys(porMes).sort();
+    const ultimo = meses[meses.length - 1];
+    if (ultimo && currentMonth > ultimo) {
+      const idx = mo => parseInt(mo.slice(0, 4), 10) * 12 + parseInt(mo.slice(5, 7), 10);
+      const off = idx(currentMonth) - idx(ultimo);
+      lista = porMes[ultimo]
+        .map(t => ({ name: t.desc, atual: t.parc[0] + off, tot: t.parc[1], val: Math.abs(t.val) }))
+        .filter(it => it.atual >= 1 && it.atual <= it.tot)
+        .sort((a, b) => b.val - a.val);
+      projecao = lista.length > 0;
+    }
+  }
   const parcHtml = lista.length ? lista.map(it => {
     const last = it.atual === it.tot;
     const falta = (it.tot - it.atual) * it.val;
@@ -12973,7 +12992,7 @@ function renderCredExtras() {
   const histHtml = inv.hist.slice(0, 8).map(h =>
     '<div class="fat-row"><span>' + monthLabel(h.m) + '</span><span style="font-weight:600">' + fmt(h.total) + '</span><span class="fat-pill ' + (h.st === 'prevista' ? 'fechada' : h.st) + '">' + h.st + '</span></div>').join('');
   box.innerHTML = '<div class="cat-row" style="grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">'
-    + '<div class="panel"><div class="panel-title">Parcelas em curso (' + lista.length + ')</div>' + parcHtml + '</div>'
+    + '<div class="panel"><div class="panel-title">Parcelas em curso (' + lista.length + ')' + (projecao ? ' · projeção' : '') + '</div>' + parcHtml + '</div>'
     + '<div class="panel"><div class="panel-title">Histórico de faturas · ' + DATA.accounts[key].name + '</div>' + histHtml + '</div>'
     + '</div>';
   box.style.display = '';
