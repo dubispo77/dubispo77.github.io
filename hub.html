@@ -12934,7 +12934,7 @@ function renderAccounts() {
   };
   strip.innerHTML =
     '<div class="acc-chip-card tall' + sel('all') + '" data-selacc="all" style="background:linear-gradient(135deg,#4b5563,#1f2937)">'
-    + '<div class="cc-bank-name">Todas as contas</div><div class="dcb-val">' + fmtS(totalDeb) + '</div><div class="dcb-tipo">' + ORDER.length + ' contas</div></div>'
+    + '<div class="cc-bank-name">Todas as contas</div><div class="dcb-val">' + fmtS(totalDeb) + '</div><div class="dcb-tipo">' + ORDER.filter(k => DATA.accounts[k].type !== 'credit').length + ' contas de débito</div></div>'
     + ORDER.map(cardHtml).join('');
 }
 document.addEventListener('click', e => {
