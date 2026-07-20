@@ -2859,6 +2859,8 @@ table.data-table tr:hover td { background: var(--bg); }
         <circle cx="6.5" cy="6.5" r="2.5"/>
         <circle cx="17.5" cy="17.5" r="2.5"/>
       </symbol>
+      <symbol id="i-lion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 2 2.4-1 .4 2.6 2.6.4-1 2.4 2 1.6-2 1.6 1 2.4-2.6.4-.4 2.6-2.4-1L12 21l-1.6-2-2.4 1-.4-2.6-2.6-.4 1-2.4L4 13l2-1.6-1-2.4 2.6-.4.4-2.6 2.4 1z"/><circle cx="12" cy="12.2" r="4.6"/><circle cx="10.3" cy="11.3" r="0.4" fill="currentColor"/><circle cx="13.7" cy="11.3" r="0.4" fill="currentColor"/><path d="M12 13.2v1M11 15c.6.5 1.4.5 2 0"/></symbol>
+      <symbol id="i-maple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.2 2.4 2.3-1-.6 2.5 3.1.3-1.8 2 2.8 1.4-2.6 1.2 1.1 2.6-3-.6.2 2.6-2.7-1.2-2.7 1.2.2-2.6-3 .6 1.1-2.6L5 10.6l2.8-1.4-1.8-2 3.1-.3-.6-2.5 2.3 1z"/><path d="M12 15.4V21"/></symbol>
       <symbol id="i-beach" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="9" r="3"/>
         <line x1="12" y1="3" x2="12" y2="5"/>
@@ -12485,21 +12487,21 @@ const DATA = {
   },
   cats: {
     moradia:     { name:'Moradia',          ci:'ci-moradia',     icon:'i-house',   color:'#ea580c' },
-    imposto:     { name:'Imposto',          ci:'ci-imposto',     icon:'i-percent', color:'#0891b2' },
+    imposto:     { name:'Imposto',          ci:'ci-imposto',     icon:'i-lion',    color:'#f87171' },
     saude:       { name:'Saúde',            ci:'ci-saude',       icon:'i-pill',    color:'#dc2626' },
-    reembolso:   { name:'Reembolso',        ci:'ci-reembolso',   icon:'i-refresh', color:'#16a34a' },
-    coisas:      { name:'Coisas para casa', ci:'ci-coisas',      icon:'i-fridge',  color:'#84cc16' },
-    assinaturas: { name:'Assinaturas',      ci:'ci-assinaturas', icon:'i-pen',     color:'#94a3b8' },
+    reembolso:   { name:'Reembolso',        ci:'ci-reembolso',   icon:'i-refresh', color:'#4ade80' },
+    coisas:      { name:'Coisas para casa', ci:'ci-coisas',      icon:'i-fridge',  color:'#eab308' },
+    assinaturas: { name:'Assinaturas',      ci:'ci-assinaturas', icon:'i-pen',     color:'#6366f1' },
     pessoais:    { name:'Pessoais',         ci:'ci-pessoais',    icon:'i-shirt',   color:'#06b6d4' },
     seguros:     { name:'Seguros',          ci:'ci-seguros',     icon:'i-tag',     color:'#475569' }, /* ícone provisório — escolher no preview */
     transporte:  { name:'Transporte',       ci:'ci-transporte',  icon:'i-car',     color:'#2563eb' },
     mercado:     { name:'Mercado',          ci:'ci-mercado',     icon:'i-store',   color:'#d97706' },
     lazer:       { name:'Lazer',            ci:'ci-lazer',       icon:'i-beach',   color:'#a855f7' },
     alimentacao: { name:'Alimentação',      ci:'ci-alimentacao', icon:'i-store',   color:'#f59e0b' },
-    salario:     { name:'Salário',          ci:'ci-salario',     icon:'i-dollar',  color:'#16a34a' },
-    aluguel:     { name:'Aluguel',          ci:'ci-aluguel',     icon:'i-house',   color:'#86efac' },
-    resgate:     { name:'Resgate',          ci:'ci-resgate',     icon:'i-swap',    color:'#10b981' },
-    extras:      { name:'Extras',           ci:'ci-extras',      icon:'i-box',     color:'#6b7280' }
+    salario:     { name:'Salário',          ci:'ci-salario',     icon:'i-dollar',  color:'#15803d' },
+    aluguel:     { name:'Aluguel',          ci:'ci-aluguel',     icon:'i-house',   color:'#22c55e' },
+    resgate:     { name:'Resgate',          ci:'ci-resgate',     icon:'i-swap',    color:'#059669' },
+    extras:      { name:'Extras',           ci:'ci-extras',      icon:'i-box',     color:'#8b5cf6' }
   },
   budgets: { moradia:6427.82, saude:2362.78, pessoais:1200, mercado:900, transporte:800, lazer:600, coisas:600, seguros:380, assinaturas:211.58, imposto:1900 },
   invoices: {
@@ -12655,7 +12657,7 @@ function varPrev(t) {
 
 function catCell(slug) {
   const c = DATA.cats[slug] || DATA.cats.extras;
-  return '<div class="cat-cell"><span class="cat-icon-classic ' + c.ci + '"><svg class="iconic"><use href="#' + c.icon + '"/></svg></span><span class="cat-name">' + c.name + '</span></div>';
+  return '<div class="cat-cell"><span class="cat-icon-classic ' + c.ci + '" style="background:' + c.color + '"><svg class="iconic"><use href="#' + c.icon + '"/></svg></span><span class="cat-name">' + c.name + '</span></div>';
 }
 function accBadge(key) {
   const a = DATA.accounts[key];
@@ -13917,8 +13919,8 @@ function finAviso(msg) {
       const nameToSlug = {};
       Object.entries(DATA.cats).forEach(([slug, c]) => { nameToSlug[c.name.toLowerCase()] = slug; });
       const DEFAULTS = {
-        'presentes': ['i-gift', '#c026d3'], 'doações': ['i-heart', '#7c3aed'], 'conveniência': ['i-store', '#94a3b8'],
-        'green': ['i-tag', '#16a34a'], 'investimento': ['i-dollar', '#1e40af'], 'bebidas': ['i-box', '#f59e0b'],
+        'presentes': ['i-gift', '#c026d3'], 'doações': ['i-heart', '#7c3aed'], 'conveniência': ['i-store', '#14b8a6'],
+        'green': ['i-maple', '#16a34a'], 'investimento': ['i-dollar', '#0f766e'], 'bebidas': ['i-box', '#f59e0b'],
         'profissionais': ['i-doc', '#0ea5e9'],
       };
       const slugFor = nome => {
