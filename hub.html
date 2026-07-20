@@ -1554,6 +1554,20 @@ table.data-table tr:hover td { background: var(--bg); }
   #finapp .coach-inbox-row.row-collapsed .inbox-card { display: none; }
   #finapp .coach-inbox-row.row-collapsed .inbox-panel { min-height: 0; }
   #finapp .inbox-head { cursor: pointer; }
+  /* inbox v2: layout escolhido (#01) com destaques */
+  #finapp .inbox-panel.v2 { position: relative; padding: 14px 52px 16px; }
+  #finapp .inbox-panel.v2 .inbox-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 2px solid #7c3aed; background: white; color: #7c3aed; font-size: 19px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  #finapp .inbox-panel.v2 .ia-l { left: 8px; } #finapp .inbox-panel.v2 .ia-r { right: 8px; }
+  #finapp .inbox-panel.v2 .ib-line1 { display: flex; align-items: center; gap: 10px; margin: 10px 0 8px; }
+  #finapp .inbox-panel.v2 .ib-date { font-size: 17px; font-weight: 800; }
+  #finapp .inbox-panel.v2 .acc-badge { font-size: 13.5px; padding: 5px 14px; width: auto; }
+  #finapp .inbox-panel.v2 .acc-badge .badge-dot { width: 10px; height: 10px; }
+  #finapp .inbox-panel.v2 .ib-val { margin-left: auto; font-size: 26px; font-weight: 800; white-space: nowrap; }
+  #finapp .inbox-panel.v2 .ib-raw { color: #6b7280; font-size: 14px; font-family: ui-monospace, monospace; font-weight: 600; margin-bottom: 8px; }
+  #finapp .inbox-panel.v2 .inbox-desc { font-size: 16px; font-weight: 600; padding: 10px 12px; margin-bottom: 8px; }
+  #finapp .inbox-panel.v2 .ib-line2 { display: flex; gap: 8px; }
+  #finapp .inbox-panel.v2 .inbox-cat { flex: 1; font-size: 15px; padding: 10px 12px; }
+  #finapp .inbox-panel.v2 .inbox-ok { font-size: 15px; font-weight: 800; padding: 10px 22px; border-radius: 9px; }
 </style>
 </head>
 <body>
@@ -13711,18 +13725,17 @@ function renderInbox() {
   const catOpts = Object.keys(DATA.cats).sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
   const accKey = (window.__accIdToKey || {})[it.account_id];
   const badge = accKey ? accBadge(accKey) : '';
-  box.innerHTML = '<div class="inbox-panel">'
-    + '<div class="inbox-head">📥 Lançamentos novos <span class="inbox-badge">' + INBOX.length + '</span>'
-    + '<span class="inbox-nav"><button class="inbox-arrow" data-nav="-1" ' + (INBOX.length < 2 ? 'disabled' : '') + '>‹</button>'
-    + '<span class="inbox-pos">' + (INBOX_IDX + 1) + '/' + INBOX.length + '</span>'
-    + '<button class="inbox-arrow" data-nav="1" ' + (INBOX.length < 2 ? 'disabled' : '') + '>›</button></span></div>'
+  box.innerHTML = '<div class="inbox-panel v2">'
+    + '<div class="inbox-arrow ia-l" data-nav="-1"' + (INBOX.length < 2 ? ' style="visibility:hidden"' : '') + '>‹</div>'
+    + '<div class="inbox-arrow ia-r" data-nav="1"' + (INBOX.length < 2 ? ' style="visibility:hidden"' : '') + '>›</div>'
+    + '<div class="inbox-head">📥 Lançamentos novos <span class="inbox-badge">' + INBOX.length + '</span><span class="inbox-pos">' + (INBOX_IDX + 1) + '/' + INBOX.length + '</span></div>'
     + '<div class="inbox-card" data-id="' + it.id + '">'
-    +   '<div class="inbox-line1"><span>' + dayLabel(it.date) + '</span>' + badge
-    +     '<span class="inbox-val" style="margin-left:auto;color:' + (it.amount < 0 ? 'var(--red)' : 'var(--green)') + '">' + fmt(parseFloat(it.amount)) + '</span></div>'
-    +   '<div class="inbox-raw">' + (it.description_raw || '') + '</div>'
+    +   '<div class="ib-line1"><span class="ib-date">' + dayLabel(it.date) + '</span>' + badge
+    +     '<span class="ib-val" style="color:' + (it.amount < 0 ? 'var(--red)' : 'var(--green)') + '">' + fmt(parseFloat(it.amount)) + '</span></div>'
+    +   '<div class="ib-raw">' + (it.description_raw || '') + '</div>'
     +   '<input class="inbox-desc" value="' + String(it.description_sugerida || it.description_raw || '').replace(/"/g, '&quot;') + '">'
-    +   '<div class="inbox-line2"><select class="inbox-cat">' + catOpts.map(slug => '<option value="' + DATA.cats[slug].name + '"' + (DATA.cats[slug].name === it.category_sugerida ? ' selected' : '') + '>' + DATA.cats[slug].name + '</option>').join('') + '</select>'
-    +   '<button class="inbox-ok">OK ✓</button><button class="inbox-skip" title="Ignorar">✕</button></div>'
+    +   '<div class="ib-line2"><select class="inbox-cat">' + catOpts.map(slug => '<option value="' + DATA.cats[slug].name + '"' + (DATA.cats[slug].name === it.category_sugerida ? ' selected' : '') + '>' + DATA.cats[slug].name + '</option>').join('') + '</select>'
+    +   '<button class="inbox-ok">OK ✓</button></div>'
     + '</div></div>';
   box.style.display = '';
   if (window.twemoji) twemoji.parse(box);
