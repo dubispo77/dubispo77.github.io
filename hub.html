@@ -1548,7 +1548,10 @@ table.data-table tr:hover td { background: var(--bg); }
   #finapp .inbox-line2 { display: flex; align-items: center; gap: 8px; }
   #finapp .inbox-line2 .inbox-cat { flex: 1; }
   #finapp .coach-inbox-row .coach { height: 100%; box-sizing: border-box; margin-bottom: 0; }
-  #finapp .coach-inbox-row.has-inbox .coach, #finapp .coach-inbox-row.has-inbox .inbox-panel { min-height: 280px; }
+  #finapp .coach-inbox-row.has-inbox:not(.row-collapsed) .coach, #finapp .coach-inbox-row.has-inbox:not(.row-collapsed) .inbox-panel { min-height: 280px; }
+  #finapp .coach-inbox-row.row-collapsed .inbox-card { display: none; }
+  #finapp .coach-inbox-row.row-collapsed .inbox-panel { min-height: 0; }
+  #finapp .inbox-head { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -13520,6 +13523,23 @@ document.addEventListener('click', async e => {
     renderAll();
   } catch (err) { alert('Erro ao processar: ' + (err.message || err)); }
 });
+
+// ===== abre/fecha sincronizado: Insights + Caixa de entrada =====
+(function syncCoachInbox() {
+  const row = document.querySelector('#finapp .coach-inbox-row');
+  if (!row) return;
+  const coach = row.querySelector('details.coach');
+  if (!coach) return;
+  const apply = () => row.classList.toggle('row-collapsed', !coach.open);
+  coach.addEventListener('toggle', apply);
+  apply();
+  // clicar no cabeçalho da inbox também abre/fecha os dois (menos nos botões)
+  document.addEventListener('click', e => {
+    const head = e.target.closest('#finInbox .inbox-head');
+    if (!head || e.target.closest('button')) return;
+    coach.open = !coach.open;
+  });
+})();
 
 // ===== ADAPTER SUPABASE (usa o sbClient autenticado do hub) =====
 (function supabaseAdapter() {
