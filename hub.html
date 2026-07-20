@@ -12643,7 +12643,7 @@ const prevMonthOf = m => MONTHS[MONTHS.indexOf(m) - 1] || null;
 const PAY_DAY = { 'brad-card': '10', 'nub-card': '18' };
 function effDate(t) {
   if (!PAY_DAY[t.acc]) return t.d;
-  if (SEL_UNI.size && SEL_UNI.has(t.acc)) return t.d; // cartão selecionado → data real
+  if (SEL_UNI.size && SEL_UNI.has(t.acc)) return t.pd || t.d; // cartão selecionado → data real da compra
   return t.d.slice(0, 8) + PAY_DAY[t.acc];
 }
 
@@ -13921,7 +13921,7 @@ function finAviso(msg) {
       let rows = [], from = 0;
       while (true) {
         const { data: chunk, error: e2 } = await sb.from('transactions')
-          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,installment_current,installment_total,source_file')
+          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,installment_current,installment_total,source_file,purchase_date:raw->>purchase_date')
           .order('date', { ascending: true }).range(from, from + 999);
         if (e2) throw e2;
         rows = rows.concat(chunk || []);
@@ -13957,7 +13957,7 @@ function finAviso(msg) {
         if ((r.description_clean || r.description || '').startsWith('Pagamento fatura')) { DATA.hiddenPays.push({ acc, d: r.date, val: parseFloat(r.amount) }); return; }
         mesesSet.add(r.date.slice(0, 7));
         DATA.transactions.push({
-          id: r.id, sf: r.source_file,
+          id: r.id, sf: r.source_file, pd: r.purchase_date || undefined,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
           acc, val: parseFloat(r.amount), st: 'paid', tr: !!r.is_transfer,
           parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
