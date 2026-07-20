@@ -13321,7 +13321,7 @@ function refreshTable() {
 }
 function miniCi(slug) {
   const c = DATA.cats[slug];
-  return '<span class="mini-ci ' + c.ci + '"><svg><use href="#' + c.icon + '"/></svg></span>';
+  return '<span class="mini-ci" style="background:' + c.color + '"><svg><use href="#' + c.icon + '"/></svg></span>';
 }
 function buildPop(colId) {
   const pop = document.querySelector('.col-pop[data-pop="' + colId + '"]');
