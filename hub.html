@@ -14020,7 +14020,10 @@ function finAviso(msg) {
         if (!hist.some(h => h.m === m2)) hist.push({ m: m2, st: 'paga', total: Math.round(total * 100) / 100, due: '' });
       });
       Object.values(DATA.invoices).forEach(inv => inv.hist.sort((a, b) => b.m.localeCompare(a.m)));
-      currentMonth = MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1];
+      // restaura o mês onde o Eduardo estava; sem salvo válido, cai em dez/25
+      const mesSalvo = store.get('hub_financas_month');
+      currentMonth = (mesSalvo && MONTHS.includes(mesSalvo)) ? mesSalvo
+        : (MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1]);
       renderAll();
       loadInbox();
       console.log('[finapp] dados reais: ' + DATA.transactions.length + ' transações, ' + MONTHS.length + ' meses');
