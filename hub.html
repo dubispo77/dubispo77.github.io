@@ -13079,19 +13079,14 @@ const ACC_GRAD = {
   'itau':         ['#ec7000', '#b35400'],
 };
 const ACC_TYPE_LABEL = { checking:'Conta corrente', savings:'Poupança', credit:'Cartão' };
-// Saldo da conta no FIM do mês selecionado (corrente contínua: cada mês herda o anterior).
-// Mês corrente = saldo vivo. Fontes: account_balances (extratos reais + cadeia Pluggy).
+// Movimentação da conta SÓ no mês selecionado (entradas - saídas daquele mês).
+// Mês atual mostra o acumulado até agora. Pagamentos de fatura ficam fora
+// (o valor já aparece no card do cartão).
 function saldoDe(key) {
-  const a = DATA.accounts[key];
-  if (!a) return 0;
   const m = currentMonth;
-  const MES_HOJE = new Date().toISOString().slice(0, 7);
-  if (m >= MES_HOJE) return a.saldo || 0;
-  if (key === 'brad-poup') return 0; // histórico do Bradesco consolidado no card Débito (conta varredora)
-  const hist = a.saldoHist || {};
-  if (hist[m] !== undefined) return hist[m];
-  const antes = Object.keys(hist).filter(x => x < m).sort();
-  return antes.length ? hist[antes[antes.length - 1]] : (a.saldo || 0);
+  let s = 0;
+  DATA.transactions.forEach(t => { if (t.acc === key && t.d.slice(0, 7) === m) s += t.val; });
+  return Math.round(s * 100) / 100;
 }
 function renderAccounts() {
   const strip = document.getElementById('accountsStrip');
