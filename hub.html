@@ -12964,10 +12964,20 @@ function renderKPIs() {
   const desp = txOf(m, t => !t.tr && t.val < 0 && inSel(t));
   const trf  = txOf(m, t => t.tr && inSel(t));
   const sum = a => a.reduce((s,t) => s + t.val, 0);
-  // Saldo Atual = dinheiro de verdade: só contas de débito, com saldo vivo do Pluggy
-  const saldo = Object.entries(DATA.accounts)
-    .filter(([k, a]) => (!SEL_UNI.size || SEL_UNI.has(k)) && a.type !== 'credit')
-    .reduce((s,[k,a]) => s + (a.saldo || 0), 0);
+  // Saldo do MÊS selecionado (fim do mês; corrente contínua — cada mês herda o anterior).
+  // Mês corrente = saldo vivo. Só contas de débito.
+  const MES_HOJE = new Date().toISOString().slice(0, 7);
+  let saldo = 0;
+  Object.entries(DATA.accounts).forEach(([k, a]) => {
+    if (a.type === 'credit') return;
+    if (SEL_UNI.size && !SEL_UNI.has(k)) return;
+    if (m >= MES_HOJE) { saldo += a.saldo || 0; return; }
+    if (k === 'brad-poup') return; // histórico do Bradesco consolidado no card Débito (conta varredora)
+    const hist = a.saldoHist || {};
+    if (hist[m] !== undefined) { saldo += hist[m]; return; }
+    const antes = Object.keys(hist).filter(x => x < m).sort();
+    saldo += antes.length ? hist[antes[antes.length - 1]] : (a.saldo || 0);
+  });
   setText('kpiSaldo', fmt(saldo));
   setText('kpiTopSaldo', fmt(saldo));
   setText('kpiTopRec', fmt(sum(rec)));
@@ -14181,6 +14191,15 @@ function finAviso(msg) {
           DATA.invoices[k].hist.push({ m: (v.due_date || '').slice(0, 7), st: v.status === 'paid' ? 'paga' : (v.status || 'aberta'), total: parseFloat(v.amount) || 0, due: v.due_date ? dayLabel(v.due_date) : '' });
         });
       } catch (e) { console.warn('[finapp] invoices:', e.message || e); }
+      // saldos de fim de mês (account_balances: extratos reais + cadeias Pluggy)
+      try {
+        const { data: bals } = await sb.from('account_balances').select('account_id,month,balance');
+        Object.keys(DATA.accounts).forEach(k => { DATA.accounts[k].saldoHist = {}; });
+        (bals || []).forEach(b => {
+          const k = idToKey[b.account_id];
+          if (k && DATA.accounts[k]) DATA.accounts[k].saldoHist[b.month] = parseFloat(b.balance);
+        });
+      } catch (e) { console.warn('[finapp] saldos fim de mês:', e.message || e); }
       // meses com fatura explodida no débito (ex.: DEZ/25) sem linha na tabela
       const porFat = {};
       DATA.transactions.forEach(t => {
