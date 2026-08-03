@@ -3599,9 +3599,10 @@ window.loadRoadmapSubs = async function() {
 window.isOverdue = function(dateOrIso, status) {
   if (status !== 'planned') return false;
   if (!dateOrIso) return false;
+  const s = String(dateOrIso);
   const d = (dateOrIso instanceof Date)
     ? dateOrIso
-    : new Date(String(dateOrIso).replace(' ', 'T'));
+    : (/^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T00:00:00') : new Date(s.replace(' ', 'T')));
   if (isNaN(d.getTime())) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -3652,6 +3653,26 @@ window.copyItemId = async function(id, btnEl) {
   toast.classList.add('show');
   clearTimeout(window._copyToastT);
   window._copyToastT = setTimeout(() => toast.classList.remove('show'), 1400);
+};
+
+// ── Toast global de confirmação (regra do Eduardo: toda ação de salvar tem feedback visível) ──
+window.hubToast = function(msg, isError) {
+  let t = document.getElementById('hubGlobalToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'hubGlobalToast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;color:#fff;z-index:99999;opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.18)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = isError ? '#dc2626' : '#16a34a';
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(window._hubToastT);
+  window._hubToastT = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(8px)';
+  }, isError ? 3200 : 1600);
 };
 
 // ── Helpers WebAuthn (compartilhados entre login e cadastro) ──
@@ -4005,10 +4026,13 @@ window.WebAuthnHelpers = (function() {
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': sb.supabaseKey || 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1' },
         body: '{}',
       });
-      const data = await resp.json();
-      if (data.error || !data.url) throw new Error(data.error || 'sem URL');
+      let data = null;
+      try { data = await resp.json(); } catch (_) {}
+      if (!resp.ok) throw new Error(resp.status === 401 ? 'sessão expirada — recarregue a página' : ((data && (data.error || data.message)) || ('HTTP ' + resp.status)));
+      if (!data || data.error || !data.url) throw new Error((data && data.error) || 'sem URL');
       const fullUrl = data.url + '&state=' + encodeURIComponent(user.id);
-      window.open(fullUrl, 'gcal-oauth', 'width=500,height=700');
+      const popupWin = window.open(fullUrl, 'gcal-oauth', 'width=500,height=700');
+      if (!popupWin) alert('Popup bloqueado — libere popups pra conectar o Google.');
     } catch (e) {
       alert('Erro: ' + e.message);
     } finally {
@@ -4035,8 +4059,10 @@ window.WebAuthnHelpers = (function() {
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': sb.supabaseKey || 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1' },
         body: '{}',
       });
-      const data = await resp.json();
-      if (data.error) throw new Error(data.error);
+      let data = null;
+      try { data = await resp.json(); } catch (_) {}
+      if (!resp.ok) throw new Error(resp.status === 401 ? 'sessão expirada — recarregue a página' : ((data && (data.error || data.message)) || ('HTTP ' + resp.status)));
+      if (!data || data.error) throw new Error((data && data.error) || 'resposta vazia');
       const totals = Object.values(data.stats || {}).reduce((acc, s) => {
         acc.fetched += s.fetched || 0;
         acc.inserted += s.inserted || s.upserted || 0;
@@ -4050,9 +4076,15 @@ window.WebAuthnHelpers = (function() {
       if (totals.updated) breakdown.push(`${totals.updated} atualizados`);
       if (totals.deleted) breakdown.push(`${totals.deleted} cancelados`);
       resultEl.innerHTML = `✓ ${total} eventos de ${data.totalCals || 0} calendários${breakdown.length ? ' (' + breakdown.join(' · ') + ')' : ''}`;
+      if (window.hubToast) window.hubToast('Google sincronizado ✓');
       refreshStatus();
     } catch (e) {
-      resultEl.innerHTML = '<span style="color:#dc2626">⚠ ' + e.message + '</span>';
+      resultEl.textContent = '';
+      const errSpan = document.createElement('span');
+      errSpan.style.color = '#dc2626';
+      errSpan.textContent = '⚠ ' + e.message;
+      resultEl.appendChild(errSpan);
+      if (window.hubToast) window.hubToast('⚠ Sync falhou: ' + e.message, true);
     } finally {
       syncBtn.disabled = false; syncBtn.textContent = '↻ Sincronizar agora';
     }
@@ -4062,8 +4094,10 @@ window.WebAuthnHelpers = (function() {
     if (!confirm('Desconectar do Google Calendar? Os eventos já sincronizados ficam, mas não atualizam mais.')) return;
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
-    await sb.from('google_oauth_tokens').delete().eq('user_id', user.id);
+    const { error: discErr } = await sb.from('google_oauth_tokens').delete().eq('user_id', user.id);
+    if (discErr) { if (window.hubToast) window.hubToast('⚠ Erro ao desconectar: ' + discErr.message, true); return; }
     resultEl.textContent = 'Desconectado.';
+    if (window.hubToast) window.hubToast('Google desconectado ✓');
     refreshStatus();
   });
 
@@ -4087,10 +4121,20 @@ window.syncToGcal = async function(action, itemId) {
         'apikey': sb.supabaseKey || 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1',
       },
       body: JSON.stringify({ action, item_id: itemId }),
-    }).then(r => r.json()).then(j => {
-      if (j.error) console.warn('[gcal-write]', action, j.error);
-      else console.log('[gcal-write]', action, j);
-    }).catch(e => console.warn('[gcal-write] falhou:', e));
+    }).then(async r => {
+      let j = null;
+      try { j = await r.json(); } catch (_) {}
+      if (!r.ok || (j && j.error)) {
+        const msg = (j && (j.error || j.message)) || ('HTTP ' + r.status);
+        console.warn('[gcal-write]', action, msg);
+        if (window.hubToast) window.hubToast('⚠ Sync com o Google falhou: ' + msg, true);
+      } else {
+        console.log('[gcal-write]', action, j);
+      }
+    }).catch(e => {
+      console.warn('[gcal-write] falhou:', e);
+      if (window.hubToast) window.hubToast('⚠ Sync com o Google falhou (sem rede?)', true);
+    });
   } catch (e) {
     console.warn('[gcal-write] sessao:', e);
   }
@@ -4138,7 +4182,7 @@ window.syncToGcal = async function(action, itemId) {
       .eq('user_id', user.id)
       .neq('status', 'done')
       .not('reminder_minutes', 'is', null)
-      .gte('date_start', now.toISOString())
+      .gte('date_start', new Date(now.getTime() - 5 * 60_000).toISOString())
       .lte('date_start', lookahead.toISOString());
 
     if (!items?.length) return;
@@ -4150,7 +4194,7 @@ window.syncToGcal = async function(action, itemId) {
       const key = `${it.id}|${ds.toISOString().slice(0,16)}`; // id + minuto
 
       // Janela de 90s pra disparar (em caso do checker pular um tick)
-      if (reminderAt <= now && now - reminderAt < 90_000 && !notified.has(key)) {
+      if (reminderAt <= now && now - reminderAt < 30 * 60_000 && !notified.has(key)) {
         try {
           const minsLabel = it.reminder_minutes === 0 ? 'agora' : `em ${it.reminder_minutes} min`;
           const timeLabel = it.has_time
@@ -4217,19 +4261,22 @@ window.syncToGcal = async function(action, itemId) {
     enableBtn.addEventListener('click', async () => {
       const result = await Notification.requestPermission();
       if (result === 'granted') {
-        new Notification('🔔 Hub Eduardo', { body: 'Notificações ativadas! Vou te avisar dos lembretes.' });
+        try { new Notification('🔔 Hub Eduardo', { body: 'Notificações ativadas! Vou te avisar dos lembretes.' }); }
+        catch (_) { if (navigator.serviceWorker) navigator.serviceWorker.ready.then(r => r.showNotification('🔔 Hub Eduardo', { body: 'Notificações ativadas! Vou te avisar dos lembretes.' })).catch(() => {}); }
       }
       refreshUi();
     });
     testBtn.addEventListener('click', () => {
-      new Notification('🔔 Teste — Hub Eduardo', { body: 'Notificações estão funcionando ✓', tag: 'hub-test' });
+      try { new Notification('🔔 Teste — Hub Eduardo', { body: 'Notificações estão funcionando ✓', tag: 'hub-test' }); }
+      catch (_) { if (navigator.serviceWorker) navigator.serviceWorker.ready.then(r => r.showNotification('🔔 Teste — Hub Eduardo', { body: 'Notificações estão funcionando ✓', tag: 'hub-test' })).catch(() => {}); }
     });
     refreshUi();
   }
 
   // Loop de check
   await checkReminders();
-  setInterval(checkReminders, CHECK_INTERVAL_MS);
+  setInterval(() => { if (!document.hidden) checkReminders(); }, CHECK_INTERVAL_MS);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkReminders(); });
 })();
 
 // ── Gerenciamento de biometria (lista de dispositivos cadastrados em Setup)
@@ -6177,6 +6224,7 @@ document.addEventListener('click', handleMilestoneClick, true);
     }
     trackingBlock = block;
     hoverTimer = setTimeout(() => {
+      if (!block.isConnected) { trackingBlock = null; hoverTimer = null; return; } // bloco foi re-renderizado
       // Se for item do calendário (.calM-ev) e tem outro item abaixo na mesma célula,
       // a caixinha de ações vai pra CIMA pra não cobrir o item de baixo.
       if (block.classList.contains('calM-ev')) {
@@ -7568,19 +7616,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
     const addBtn = document.getElementById('pessoalAddBtn');
     if (addBtn) {
-      addBtn.onclick = () => {
-        document.querySelector('[data-sec="agenda"]')?.click();
-        setTimeout(() => {
-          document.getElementById('agendaAddBtn')?.click();
-          setTimeout(() => {
-            const sel = document.getElementById('aafProject');
-            if (sel) {
-              const opt = Array.from(sel.options).find(o => o.text.toLowerCase().includes('pessoal'));
-              if (opt) sel.value = opt.value;
-            }
-          }, 100);
-        }, 200);
-      };
+      // Abre o quick add global com a área pré-selecionada (o form antigo da agenda foi desativado)
+      addBtn.onclick = () => { if (window.hubQuickAddOpen) window.hubQuickAddOpen('pessoal'); };
     }
   }
 
@@ -7715,6 +7752,9 @@ async function setupGenericArea(area, opts) {
       });
     });
   }
+
+  const addBtn = document.getElementById(area + 'AddBtn');
+  if (addBtn) addBtn.onclick = () => { if (window.hubQuickAddOpen) window.hubQuickAddOpen(area); };
 
   await loadItems();
   render();
@@ -7881,19 +7921,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
     const addBtn = document.getElementById('rotinaAddBtn');
     if (addBtn) {
-      addBtn.onclick = () => {
-        document.querySelector('[data-sec="agenda"]')?.click();
-        setTimeout(() => {
-          document.getElementById('agendaAddBtn')?.click();
-          setTimeout(() => {
-            const sel = document.getElementById('aafProject');
-            if (sel) {
-              const opt = Array.from(sel.options).find(o => o.text.toLowerCase().includes('rotina'));
-              if (opt) sel.value = opt.value;
-            }
-          }, 100);
-        }, 200);
-      };
+      // Abre o quick add global com a área pré-selecionada (o form antigo da agenda foi desativado)
+      addBtn.onclick = () => { if (window.hubQuickAddOpen) window.hubQuickAddOpen('pessoal'); };
     }
   }
 
@@ -8077,20 +8106,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // Botão adicionar redireciona para Agenda com area=saude pré-selecionada
     const addBtn = document.getElementById('saudeAddBtn');
     if (addBtn) {
-      addBtn.onclick = () => {
-        document.querySelector('[data-sec="agenda"]')?.click();
-        setTimeout(() => {
-          document.getElementById('agendaAddBtn')?.click();
-          setTimeout(() => {
-            const sel = document.getElementById('aafProject');
-            if (sel) {
-              // Tenta selecionar projeto Saúde
-              const opt = Array.from(sel.options).find(o => o.text.toLowerCase().includes('saúde') || o.text.toLowerCase().includes('saude'));
-              if (opt) sel.value = opt.value;
-            }
-          }, 100);
-        }, 200);
-      };
+      // Abre o quick add global com a área pré-selecionada (o form antigo da agenda foi desativado)
+      addBtn.onclick = () => { if (window.hubQuickAddOpen) window.hubQuickAddOpen('saude'); };
     }
   }
 
@@ -8741,6 +8758,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   // Estado
   let view = 'month';
+  try { const _v = localStorage.getItem('hubCalView'); if (_v === 'week' || _v === 'month') view = _v; } catch (_) {}
   let cursor = new Date(); // data ancorada na vista atual
   let chronoMode = false;  // toggle "cronológico": grid começa em HOJE em vez de início do mês
   let itemsCache = [];     // items normalizados {id, date, has_time, hr, title, project, status, raw}
@@ -8826,6 +8844,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // Detecta jogo do Santos (pelo título, depois de expansão)
   function isSantosGame(title) {
     if (!title) return false;
+    // Só é jogo se o título tiver formato de partida ("Santos x Cruzeiro") —
+    // evita marcar "Consulta Dr. Santos" como jogo (auto-done indevido)
+    if (!/\s[x×]\s/i.test(title)) return false;
     return /\b(SAN|Santos)\b/.test(title);
   }
   window.hubExpandTeamCodes = expandTeamCodes;
@@ -8855,21 +8876,31 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   function recurrenceMatchesDay(item, target) {
     const rec = item.raw?.recurrence;
     if (!rec) return false;
-    const start = new Date(item.raw.date_start); start.setHours(0,0,0,0);
+    const start = parseDbDate(item.raw.date_start); start.setHours(0,0,0,0);
     const t = new Date(target); t.setHours(0,0,0,0);
     if (t < start) return false;
     if (t.getTime() === start.getTime()) return false; // a instância original já está como item normal
     switch (rec) {
       case 'daily':   return true;
       case 'weekly':  return start.getDay() === t.getDay();
-      case 'monthly': return start.getDate() === t.getDate();
-      case 'yearly':  return start.getDate() === t.getDate() && start.getMonth() === t.getMonth();
+      case 'monthly': {
+        // Dia 29/30/31: em mês mais curto, a ocorrência cai no último dia do mês
+        const lastOfTarget = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+        return t.getDate() === Math.min(start.getDate(), lastOfTarget);
+      }
+      case 'yearly': {
+        if (start.getMonth() !== t.getMonth()) return false;
+        const lastOfTarget = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+        return t.getDate() === Math.min(start.getDate(), lastOfTarget);
+      }
       default: return false;
     }
   }
   function makeVirtualOccurrence(parent, target) {
     const ymdStr = ymd(target);
     const isDoneAtThisDate = (parent.recurrence_done_dates || []).includes(ymdStr);
+    const _tMid = new Date(target); _tMid.setHours(0,0,0,0);
+    const _todayMid = new Date(); _todayMid.setHours(0,0,0,0);
     return {
       ...parent,
       id: `${parent.id}#${ymdStr}`,
@@ -8878,6 +8909,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       virtual_parent_id: parent.id,
       is_done: isDoneAtThisDate,
       status: isDoneAtThisDate ? 'done' : parent.status,
+      // Ocorrência virtual só é atrasada se a PRÓPRIA data já passou (não herda do pai)
+      is_overdue: !isDoneAtThisDate && parent.status === 'planned' && _tMid < _todayMid,
     };
   }
   // Item multi-dia: tem date_end no dia seguinte+ ao date_start (ignora hora)
@@ -8919,8 +8952,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     return m === '00' ? `${h}h` : `${h}h${m}`;
   }
 
+  function parseDbDate(s) {
+    // 'YYYY-MM-DD' puro seria lido como meia-noite UTC (= 21h do dia ANTERIOR em SP);
+    // força meia-noite local nesse caso. ISO completo passa direto.
+    if (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(s + 'T00:00:00');
+    return new Date(s);
+  }
   function normalizeItem(it) {
-    const d = new Date(it.date_start);
+    const d = parseDbDate(it.date_start);
     let hr = '';
     if (it.has_time) {
       hr = fmtTime(d);
@@ -8978,8 +9017,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   async function reloadItemsForCursor() {
     // Carrega itens cobrindo o mês do cursor + 1 mês antes e 1 mês depois
     // (assim o calendário cobre os "out-of-month" sem precisar nova query toda vez)
-    const start = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
-    const end   = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1);
+    let start = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
+    let end   = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1);
+    // Acumula o range já visitado — a timeline mantém meses extras no DOM,
+    // e o cache precisa cobrir tudo que está visível (senão ✓/drag viram no-op)
+    if (loadedRange) {
+      if (loadedRange.start < start) start = loadedRange.start;
+      if (loadedRange.end > end) end = loadedRange.end;
+    }
     if (sb && session) {
       const { data, error } = await sb.from('items')
         .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,recurrence_done_dates')
@@ -9125,6 +9170,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   function updateLabelFromMonth(year, month) {
     if (_suppressLabelUpdate) return;
     document.getElementById('calLabel').textContent = `${MESES_LONG[month]} ${year}`;
+    try { localStorage.setItem('hubCalMonth', year + '-' + month); } catch (_) {}
   }
 
   function setupTimelineObservers() {
@@ -9409,6 +9455,28 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   async function renderMobileAgenda() {
     container.classList.remove('single-page');
     const today = new Date(); today.setHours(0,0,0,0);
+    // Re-render (realtime/toggle): preserva o range carregado e a posição de scroll
+    const oldScroller = container.querySelector('.calMM-scroll');
+    if (oldScroller && _mobileLoadedRange) {
+      const oldTop = oldScroller.scrollTop;
+      const rs = _mobileLoadedRange.start, re2 = _mobileLoadedRange.end;
+      await ensureRangeForCursor();
+      container.innerHTML = `
+      <div class="calMM-scroll">
+        <div class="calMM-edge-top" data-edge="top" style="height:1px"></div>
+        ${buildMobileDaysHtml(rs, re2)}
+        <div class="calMM-edge-bottom" data-edge="bottom" style="height:1px"></div>
+      </div>
+    `;
+      const sc2 = container.querySelector('.calMM-scroll');
+      if (sc2) {
+        _suppressLabelUpdate = true;
+        sc2.scrollTop = oldTop;
+        requestAnimationFrame(() => { _suppressLabelUpdate = false; });
+      }
+      setupMobileObservers();
+      return;
+    }
     // Range inicial: 7 dias antes de hoje + 30 dias depois
     const start = new Date(today); start.setDate(start.getDate() - 7);
     const end = new Date(today); end.setDate(end.getDate() + 30);
@@ -9548,9 +9616,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   function openPopoverFor(cellEl, dateStr) {
     closePopover();
-    const items = itemsCache.filter(i => i.date === dateStr);
-    if (items.length === 0) return;
     const d = new Date(dateStr + 'T12:00:00');
+    const items = itemsForDate(d);
+    if (items.length === 0) return;
     const titleStr = `${DOW_SHORT[(d.getDay()+6)%7]}, ${d.getDate()} ${MESES_LONG[d.getMonth()].slice(0,3)} · ${items.length} ${items.length===1?'item':'itens'}`;
     const pop = document.createElement('div');
     pop.className = 'cal-day-popover';
@@ -9610,7 +9678,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           // Optimistic
           item.status = newStatus; item.is_done = newStatus === 'done';
           render();
-          await sb.from('items').update({ status: newStatus, done_at: newStatus === 'done' ? new Date().toISOString() : null }).eq('id', id);
+          const { error: togErr } = await sb.from('items').update({ status: newStatus, done_at: newStatus === 'done' ? new Date().toISOString() : null }).eq('id', id);
+          if (togErr) {
+            item.status = newStatus === 'done' ? 'planned' : 'done';
+            item.is_done = item.status === 'done';
+            render();
+            if (window.hubToast) window.hubToast('⚠ Não salvou: ' + togErr.message, true);
+          } else if (window.hubToast) window.hubToast(newStatus === 'done' ? 'Concluído ✓' : 'Reaberto ✓');
           // re-abre o popover atualizado
           const updatedCell = document.querySelector(`.calM-cell[data-date="${dateStr}"]`);
           if (updatedCell) openPopoverFor(updatedCell, dateStr);
@@ -9618,7 +9692,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         }
         if (act === 'del') {
           if (!confirm('Apagar este item?')) return;
-          await sb.from('items').delete().eq('id', id);
+          const target = itemsCache.find(i => i.id === id);
+          if (target && target.raw && target.raw.google_event_id && window.syncToGcal) {
+            // gcal-write apaga no Google E no banco
+            window.syncToGcal('delete', id);
+          } else {
+            const { error: delErr } = await sb.from('items').delete().eq('id', id);
+            if (delErr) { if (window.hubToast) window.hubToast('⚠ Não apagou: ' + delErr.message, true); return; }
+          }
+          if (window.hubToast) window.hubToast('Apagado ✓');
           await reloadItemsForCursor(); render();
           closePopover();
           return;
@@ -9653,7 +9735,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         parent.recurrence_done_dates = cur;
         if (parent.raw) parent.raw.recurrence_done_dates = cur;
         render();
-        await sb.from('items').update({ recurrence_done_dates: cur }).eq('id', parentId);
+        const { error: recErr } = await sb.from('items').update({ recurrence_done_dates: cur }).eq('id', parentId);
+        if (recErr) {
+          const i2 = cur.indexOf(ymdStr);
+          if (i2 === -1) cur.push(ymdStr); else cur.splice(i2, 1);
+          parent.recurrence_done_dates = [...cur];
+          if (parent.raw) parent.raw.recurrence_done_dates = [...cur];
+          render();
+          if (window.hubToast) window.hubToast('⚠ Não salvou: ' + recErr.message, true);
+        } else if (window.hubToast) window.hubToast('Salvo ✓');
         return;
       }
       // Item normal (instância original ou não recorrente): toggle status
@@ -9662,12 +9752,26 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const newStatus = item.is_done ? 'planned' : 'done';
       item.status = newStatus; item.is_done = newStatus === 'done';
       render();
-      await sb.from('items').update({ status: newStatus, done_at: newStatus === 'done' ? new Date().toISOString() : null }).eq('id', id);
+      const { error: togErr } = await sb.from('items').update({ status: newStatus, done_at: newStatus === 'done' ? new Date().toISOString() : null }).eq('id', id);
+      if (togErr) {
+        item.status = newStatus === 'done' ? 'planned' : 'done';
+        item.is_done = item.status === 'done';
+        render();
+        if (window.hubToast) window.hubToast('⚠ Não salvou: ' + togErr.message, true);
+      } else if (window.hubToast) window.hubToast(newStatus === 'done' ? 'Concluído ✓' : 'Reaberto ✓');
       return;
     }
     if (act === 'del') {
       if (!confirm('Apagar este item?')) return;
-      await sb.from('items').delete().eq('id', id);
+      const target = itemsCache.find(i => i.id === id);
+      if (target && target.raw && target.raw.google_event_id && window.syncToGcal) {
+        // gcal-write apaga no Google E no banco
+        window.syncToGcal('delete', id);
+      } else {
+        const { error: delErr } = await sb.from('items').delete().eq('id', id);
+        if (delErr) { if (window.hubToast) window.hubToast('⚠ Não apagou: ' + delErr.message, true); return; }
+      }
+      if (window.hubToast) window.hubToast('Apagado ✓');
       await reloadItemsForCursor(); render();
       return;
     }
@@ -9691,6 +9795,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   document.querySelectorAll('.cv-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       view = btn.dataset.view;
+      try { localStorage.setItem('hubCalView', view); } catch (_) {}
       document.querySelectorAll('.cv-btn').forEach(b => b.classList.toggle('active', b === btn));
       render();
     });
@@ -9769,6 +9874,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   container.addEventListener('dragstart', e => {
     const ev = e.target.closest('.calM-ev');
     if (!ev) return;
+    // Ocorrência virtual de recorrência não é arrastável (mover teria que mexer na série toda)
+    if ((ev.dataset.itemId || '').includes('#')) { e.preventDefault(); return; }
     e.dataTransfer.setData('text/plain', ev.dataset.itemId);
     e.dataTransfer.effectAllowed = 'move';
     ev.classList.add('is-dragging');
@@ -9816,8 +9923,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
     const newDate = cell?.dataset?.date;
     if (!id || !newDate) return;
+    if (id.includes('#')) { render(); return; } // virtual: re-render desfaz o preview do drag
     const item = itemsCache.find(i => i.id === id);
-    if (!item || !item.raw) return;
+    if (!item || !item.raw) { render(); return; } // fora do cache: desfaz o preview em vez de deixar o card órfão
 
     // CASO 1: drop na MESMA célula → reordenar (order_manual)
     if (item.date === newDate) {
@@ -9826,26 +9934,45 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       orderedItems.forEach((it, idx) => { if (it.raw) it.raw.order_manual = idx; });
       render();
       if (sb && session) {
+        let orderErr = null;
         for (let idx = 0; idx < orderedItems.length; idx++) {
-          await sb.from('items').update({ order_manual: idx }).eq('id', orderedItems[idx].id);
+          const { error: e2 } = await sb.from('items').update({ order_manual: idx }).eq('id', orderedItems[idx].id);
+          if (e2) orderErr = e2;
         }
+        if (orderErr) {
+          await reloadItemsForCursor(); render();
+          if (window.hubToast) window.hubToast('⚠ Ordem não salvou: ' + orderErr.message, true);
+        } else if (window.hubToast) window.hubToast('Ordem salva ✓');
       }
       return;
     }
 
-    // CASO 2: drop em DIA DIFERENTE → mover (preserva hora)
-    const oldDate = new Date(item.raw.date_start);
+    // CASO 2: drop em DIA DIFERENTE → mover (preserva hora E duração)
+    const oldDate = parseDbDate(item.raw.date_start);
     const newD = new Date(newDate + 'T00:00:00');
     if (item.has_time) {
       newD.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
     }
     if (sb && session) {
+      const deltaMs = newD.getTime() - oldDate.getTime();
+      const updates = { date_start: newD.toISOString(), order_manual: null };
+      if (item.raw.date_end) {
+        // date_end acompanha o mesmo deslocamento (senão fica duração negativa)
+        updates.date_end = new Date(parseDbDate(item.raw.date_end).getTime() + deltaMs).toISOString();
+      }
       item.date = newDate;
-      item.raw.date_start = newD.toISOString();
+      item.raw.date_start = updates.date_start;
+      if (updates.date_end) item.raw.date_end = updates.date_end;
       item.raw.order_manual = null;
       render();
-      const { error } = await sb.from('items').update({ date_start: newD.toISOString(), order_manual: null }).eq('id', id);
-      if (error) { await reloadItemsForCursor(); render(); }
+      const { error } = await sb.from('items').update(updates).eq('id', id);
+      if (error) {
+        await reloadItemsForCursor(); render();
+        if (window.hubToast) window.hubToast('⚠ Não moveu: ' + error.message, true);
+      } else {
+        if (window.hubToast) window.hubToast('Movido ✓');
+        if (item.raw.google_event_id && window.syncToGcal) window.syncToGcal('update', id);
+      }
     }
   }
 
@@ -10013,7 +10140,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // ── Init: carrega projetos e items, renderiza ──
   await loadProjects();
   await reloadItemsForCursor();
+  document.querySelectorAll('.cv-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   render();
+  // Restaura o último mês visitado (vista mês desktop) — a UI lembra onde você estava
+  try {
+    const _m = localStorage.getItem('hubCalMonth');
+    if (_m && view === 'month' && !isMobile()) {
+      const _p = _m.split('-');
+      const _y = parseInt(_p[0], 10), _mo = parseInt(_p[1], 10);
+      const _now = new Date();
+      if (!isNaN(_y) && !isNaN(_mo) && (_y !== _now.getFullYear() || _mo !== _now.getMonth())) scrollToMonth(_y, _mo);
+    }
+  } catch (_) {}
 
   // ── Realtime: qualquer mudança em items ou projects re-carrega e re-renderiza ──
   if (sb && session) {
@@ -10570,13 +10708,16 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       }, 320);
     });
 
-    // Fecha ao clicar fora
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.tdm-addr-wrap')) {
-        const s = document.getElementById('tdmAddrSuggest');
-        if (s) { s.classList.remove('open'); }
-      }
-    });
+    // Fecha ao clicar fora (listener global registrado UMA vez — não acumula a cada renderBody)
+    if (!window._tdmAddrOutsideBound) {
+      window._tdmAddrOutsideBound = true;
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.tdm-addr-wrap')) {
+          const s = document.getElementById('tdmAddrSuggest');
+          if (s) { s.classList.remove('open'); }
+        }
+      });
+    }
   }
 
   // Anexa handler de refresh com feedback visual (spin + "atualizando...")
@@ -10851,7 +10992,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const timeInput = document.getElementById('tdmWhenTimeInput');
     const timeLabel = document.getElementById('tdmWhenTimeLabel');
     if (item.date_start) {
-      const ds = new Date(item.date_start);
+      const ds = (typeof item.date_start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.date_start))
+        ? new Date(item.date_start + 'T00:00:00') : new Date(item.date_start);
       fillDateCard(ds);
       dateInput.value = ymdLocal(ds);
       if (item.has_time) {
@@ -10956,16 +11098,24 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       newStart = new Date(`${ymd}T00:00:00${tzOffset()}`);
     }
     const newEnd = durMs > 0 ? new Date(newStart.getTime() + durMs) : null;
+    const _prev = { ds: currentItem.date_start, de: currentItem.date_end, ht: currentItem.has_time };
     currentItem.date_start = newStart.toISOString();
     currentItem.date_end = newEnd ? newEnd.toISOString() : null;
     currentItem.has_time = hasTime;
     fillDateCard(newStart);
-    // Salva no banco
-    await sb.from('items').update({
+    // Salva no banco (com confirmação visível e rollback em caso de erro)
+    const { error: dtErr } = await sb.from('items').update({
       date_start: currentItem.date_start,
       date_end: currentItem.date_end,
       has_time: hasTime,
     }).eq('id', currentItem.id);
+    if (dtErr) {
+      currentItem.date_start = _prev.ds; currentItem.date_end = _prev.de; currentItem.has_time = _prev.ht;
+      if (_prev.ds) fillDateCard(new Date(_prev.ds));
+      if (window.hubToast) window.hubToast('⚠ Não salvou a data: ' + dtErr.message, true);
+      return;
+    }
+    if (window.hubToast) window.hubToast('Data salva ✓');
     if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
   }
   function tzOffset() {
@@ -11008,8 +11158,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     t.style.display = '';
     document.getElementById('tdmWhenTimeLabel').style.display = 'none';
     t.value = t.value || '09:00';
+    // Só salva quando o usuário confirmar a hora no input (evento 'change') —
+    // clique acidental no "+ hora" não grava mais 09:00 no banco
     try { if (t.showPicker) t.showPicker(); } catch {}
-    applyDateTimeChange();
   });
 
   // ── Duração dropdown ──
@@ -11050,7 +11201,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         currentItem.date_end = newEnd;
         document.getElementById('tdmDuration').textContent = fmtMinutes(m) + ' ▾';
         dd.style.display = 'none';
-        await sb.from('items').update({ date_end: newEnd }).eq('id', currentItem.id);
+        const { error: durErr } = await sb.from('items').update({ date_end: newEnd }).eq('id', currentItem.id);
+        if (durErr) { if (window.hubToast) window.hubToast('⚠ Não salvou a duração: ' + durErr.message, true); return; }
+        if (window.hubToast) window.hubToast('Duração salva ✓');
         if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
       });
     });
@@ -11167,12 +11320,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         document.getElementById('tdmHead').className = 'tdm-head area-' + slug;
         document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
         ad.style.display = 'none';
-        await sb.from('items').update({
+        const { error: areaErr } = await sb.from('items').update({
           area: slug,
           parent_id: parentId,
           metadata: currentItem.metadata || {},
         }).eq('id', currentItem.id);
-        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+        if (areaErr) { if (window.hubToast) window.hubToast('⚠ Não salvou a área: ' + areaErr.message, true); }
+        else if (window.hubToast) window.hubToast('Área salva ✓');
+        if (!areaErr && currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
         renderBrasileiraoUI();
         renderBody(); // pra atualizar o Sub do Roadmap exibido no body
       });
@@ -11361,13 +11516,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const vis  = TDM_TEAMS.find(t => t.id === b.visitante_team_id);
     row.innerHTML = `
       <button class="tdm-brasi-team" type="button" data-side="mand">
-        ${mand && mand.logo_url ? `<img src="${mand.logo_url}" alt="">` : '⚽'}
-        <span>${mand ? mand.name : 'Mandante'}</span> ▾
+        ${mand && mand.logo_url ? `<img src="${escHtml(mand.logo_url)}" alt="">` : '⚽'}
+        <span>${mand ? escHtml(mand.name) : 'Mandante'}</span> ▾
       </button>
       <span class="tdm-brasi-vs">×</span>
       <button class="tdm-brasi-team" type="button" data-side="vis">
-        ${vis && vis.logo_url ? `<img src="${vis.logo_url}" alt="">` : '⚽'}
-        <span>${vis ? vis.name : 'Visitante'}</span> ▾
+        ${vis && vis.logo_url ? `<img src="${escHtml(vis.logo_url)}" alt="">` : '⚽'}
+        <span>${vis ? escHtml(vis.name) : 'Visitante'}</span> ▾
       </button>
     `;
     row.querySelectorAll('[data-side]').forEach(btn => {
@@ -11388,8 +11543,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     dd.className = 'tdm-brasi-dropdown';
     dd.innerHTML = TDM_TEAMS.filter(t => t.id !== otherId).map(t => `
       <div class="tdm-brasi-dropdown-item ${t.id === currentId ? 'selected' : ''}" data-team-id="${t.id}">
-        ${t.logo_url ? `<img src="${t.logo_url}" alt="">` : '⚽'}
-        <span>${t.name}</span>
+        ${t.logo_url ? `<img src="${escHtml(t.logo_url)}" alt="">` : '⚽'}
+        <span>${escHtml(t.name)}</span>
       </div>
     `).join('');
     // Posicionar relativo ao botão
@@ -11449,7 +11604,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   btnClose.addEventListener('click', close);
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('open')) close(); });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || !overlay.classList.contains('open')) return;
+    // Se o date picker estiver aberto, o Esc fecha só ele (handler do picker) — não o modal
+    const hdp = document.getElementById('hubDatePickerPop');
+    if (hdp && hdp.classList.contains('open')) return;
+    close();
+  });
 
   btnEdit.addEventListener('click', () => {
     editMode = true;
@@ -11503,6 +11664,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     btnSave.disabled = false;
     if (error) { alert('Erro ao salvar: ' + error.message); return; }
     Object.assign(currentItem, updates);
+    if (window.hubToast) window.hubToast('Salvo ✓');
     // Sync hub → Google Calendar (fire-and-forget, só pra items 'event')
     if (currentItem.type === 'event') {
       window.syncToGcal && window.syncToGcal('update', currentItem.id);
@@ -11523,6 +11685,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const { error } = await sb.from('items').delete().eq('id', currentItem.id);
       if (error) { alert('Erro: ' + error.message); return; }
     }
+    if (window.hubToast) window.hubToast('Apagado ✓');
     close();
   });
 
@@ -11972,11 +12135,17 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const err = $('hqaError'); if (err) { err.style.display = 'none'; err.textContent = ''; }
   }
 
+  let qaSaving = false;
   async function save() {
+    if (qaSaving) return; // clique duplo não cria item duplicado
+    qaSaving = true;
+    const _saveBtn = $('hqaSave');
+    if (_saveBtn) _saveBtn.disabled = true;
+    try {
     const sb = getSb();
     if (!sb) { showError('Conexão Supabase não inicializada'); return; }
     const title = $('hqaTitle').value.trim();
-    if (!title) { $('hqaTitle').focus(); return; }
+    if (!title) { showError('Dê um título ao item'); $('hqaTitle').focus(); return; }
     const type = 'task'; // Eduardo: tudo é tarefa, sem diferenciação
     const timeStr = $('hqaTime').value;
     const hasTime = !!timeStr;
@@ -12005,12 +12174,16 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       payload.address_lng = qaPendingGeo.lng;
       payload.address_formatted = qaPendingGeo.formatted;
     }
-    $('hqaSave').disabled = true;
     const { data, error } = await sb.from('items').insert(payload).select().single();
-    $('hqaSave').disabled = false;
     if (error) { showError(error.message); return; }
+    if (window.hubToast) window.hubToast('Item criado ✓');
     if (type === 'event' && data && window.syncToGcal) window.syncToGcal('update', data.id);
     close();
+    } finally {
+      qaSaving = false;
+      const _sb2 = $('hqaSave');
+      if (_sb2) _sb2.disabled = false;
+    }
   }
 
   function showError(msg) {
@@ -12019,7 +12192,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   // API pública
-  window.hubQuickAddOpen = function() {
+  window.hubQuickAddOpen = function(presetArea) {
     buildModal();
     const bd = $('hubQuickAddBackdrop');
     bd.style.display = 'flex';
@@ -12027,7 +12200,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     qaSelDate = new Date();
     qaViewYear = qaSelDate.getFullYear();
     qaViewMonth = qaSelDate.getMonth();
-    qaArea = 'pessoal';
+    qaArea = (typeof presetArea === 'string' && presetArea) ? presetArea : 'pessoal';
     qaParentId = null;
     qaExpandedAreas = new Set();
     qaExpandedSubs = new Set();
@@ -12486,7 +12659,7 @@ const DATA = {
     'nub-cc':       { name:'Nubank - Débito',        badge:'nub-cc',       card:'nub-cc',       type:'checking', bank:'Nubank',   logo:'nu', logoCls:'nubank',    saldo:1247.33,  previsto:1247.33 },
     'nub-card':     { name:'Nubank - Crédito',    badge:'nub-card',     card:'nub-card',     type:'credit',   bank:'Nubank',   logo:'nu', logoCls:'nubank' },
     'nub-pj':       { name:'Nubank - PJ',         badge:'nub-pj',       card:'nub-pj',       type:'checking', bank:'Nubank',   logo:'PJ', logoCls:'nubank-pj', saldo:0.90,     previsto:0.90 },
-    'nub-caixinha': { name:'Nubank - Caixinha',   badge:'nub-caixinha', card:'nub-caixinha', type:'savings',  bank:'Nubank',   logo:'nu', logoCls:'nubank',    saldo:1918.75,  previsto:1918.75 },
+    'nub-caixinha': { name:'Nubank - Caixinha',   badge:'nub-caixinha', card:'nub-caixinha', type:'savings',  bank:'Nubank',   logo:'nu', logoCls:'nubank',    saldo:0,  previsto:0 },
     'itau':         { name:'Itaú - Débito',          badge:'itau',         card:'itau-cc',      type:'checking', bank:'Itaú',     logo:'i',  logoCls:'itau',      saldo:96.80,    previsto:96.80 }
   },
   cats: {
@@ -12791,8 +12964,9 @@ function renderKPIs() {
   const desp = txOf(m, t => !t.tr && t.val < 0 && inSel(t));
   const trf  = txOf(m, t => t.tr && inSel(t));
   const sum = a => a.reduce((s,t) => s + t.val, 0);
+  // Saldo Atual = dinheiro de verdade: só contas de débito, com saldo vivo do Pluggy
   const saldo = Object.entries(DATA.accounts)
-    .filter(([k]) => !SEL_UNI.size || SEL_UNI.has(k))
+    .filter(([k, a]) => (!SEL_UNI.size || SEL_UNI.has(k)) && a.type !== 'credit')
     .reduce((s,[k,a]) => s + (a.saldo || 0), 0);
   setText('kpiSaldo', fmt(saldo));
   setText('kpiTopSaldo', fmt(saldo));
