@@ -2785,8 +2785,8 @@ table.data-table tr:hover td { background: var(--bg); }
     box-shadow: 0 3px 8px rgba(0,0,0,.10); transition: transform .12s; }
 #finapp .acc-chip-card:hover{ transform: translateY(-2px); }
 #finapp .strip-rotulo{ font-size: 10px; letter-spacing: 1.2px; font-weight: 800; color: #9ca3af; margin: 4px 0 5px; }
-#finapp .mini-strip{ display: flex; gap: 8px; flex-wrap: wrap; }
-#finapp .mini-card{ border-radius: 10px; padding: 7px 12px; min-width: 132px; font-size: 10.5px; border: 1.5px solid; cursor: pointer; transition: transform .12s; }
+#finapp .mini-strip{ display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; margin-bottom: 16px; }
+#finapp .mini-card{ border-radius: 10px; padding: 7px 10px; font-size: 10.5px; border: 1.5px solid; cursor: pointer; transition: transform .12s; min-width: 0; }
 #finapp .mini-card:hover{ transform: translateY(-1px); }
 #finapp .mini-card.sel{ box-shadow: 0 0 0 2px white, 0 0 0 4px #7c3aed; }
 #finapp .mini-card b{ display: block; font-size: 14px; margin-top: 1px; white-space: nowrap; }
