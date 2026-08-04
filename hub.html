@@ -13086,7 +13086,7 @@ function saldoDe(key) {
 function renderAccounts() {
   const strip = document.getElementById('accountsStrip');
   if (!strip) return;
-  const ORDER = ['brad-cc', 'brad-card', 'itau', 'nub-cc', 'nub-card', 'nub-pj', 'nub-caixinha', 'mp-card'];
+  const ORDER = ['brad-cc', 'brad-card', 'itau', 'mp-card', 'nub-cc', 'nub-card', 'nub-pj', 'nub-caixinha'];
   const sel = k => (k === 'all' ? SEL_UNI.size === 0 : SEL_UNI.has(k)) ? ' sel' : '';
   const MES_HOJE = new Date().toISOString().slice(0, 7);
   // ===== CARDS GRANDES: AGORA, AO VIVO (independem do mês selecionado) =====
