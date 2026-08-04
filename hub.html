@@ -2781,6 +2781,13 @@ table.data-table tr:hover td { background: var(--bg); }
     display: flex; flex-direction: column; justify-content: space-between;
     box-shadow: 0 3px 8px rgba(0,0,0,.10); transition: transform .12s; }
 #finapp .acc-chip-card:hover{ transform: translateY(-2px); }
+#finapp .strip-rotulo{ font-size: 10px; letter-spacing: 1.2px; font-weight: 800; color: #9ca3af; margin: 12px 0 6px; }
+#finapp .mini-strip{ display: flex; gap: 8px; flex-wrap: wrap; }
+#finapp .mini-card{ border-radius: 10px; padding: 7px 12px; min-width: 132px; font-size: 10.5px; border: 1.5px solid; cursor: pointer; transition: transform .12s; }
+#finapp .mini-card:hover{ transform: translateY(-1px); }
+#finapp .mini-card.sel{ box-shadow: 0 0 0 2px white, 0 0 0 4px #7c3aed; }
+#finapp .mini-card b{ display: block; font-size: 14px; margin-top: 1px; white-space: nowrap; }
+#finapp .mini-card .mc-sub{ font-size: 9px; opacity: .75; }
 #finapp .acc-chip-card.sel{ box-shadow: 0 0 0 2.5px white, 0 0 0 5px #7c3aed; }
 #finapp .acc-chip-card .cc-bank-name{ font-size: 8.5px; letter-spacing: .05em; }
 #finapp .acc-chip-card .dcb-val{ font-size: 13.5px; font-weight: 800; margin-top: 6px; white-space: nowrap; }
@@ -2958,7 +2965,10 @@ table.data-table tr:hover td { background: var(--bg); }
   <div class="tab-content active filter-todas" id="tab-transacoes">
     <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
 
-    <div class="accounts-strip" id="accountsStrip"><!-- cards de contas via JS --></div>
+    <div class="strip-rotulo">AGORA · AO VIVO</div>
+    <div class="accounts-strip" id="accountsStrip"><!-- cards ao vivo via JS --></div>
+    <div class="strip-rotulo" id="stripRotuloMes">MÊS</div>
+    <div class="mini-strip" id="accountsStripMes"><!-- mini-cards do mês via JS --></div>
 
     <div class="filter-tabs">
       <button class="active" data-filter="todas"><span class="filter-dot fd-all"></span>Todas as transações</button>
@@ -13093,36 +13103,65 @@ function renderAccounts() {
   if (!strip) return;
   const ORDER = ['brad-cc', 'brad-poup', 'brad-card', 'itau', 'nub-cc', 'nub-card', 'nub-pj', 'nub-caixinha'];
   const sel = k => (k === 'all' ? SEL_UNI.size === 0 : SEL_UNI.has(k)) ? ' sel' : '';
-  const totalDeb = ORDER.filter(k => DATA.accounts[k].type !== 'credit')
-    .reduce((s2, k) => s2 + saldoDe(k), 0);
-  const cardHtml = key => {
+  const MES_HOJE = new Date().toISOString().slice(0, 7);
+  // ===== CARDS GRANDES: AGORA, AO VIVO (independem do mês selecionado) =====
+  const totalVivo = ORDER.filter(k => DATA.accounts[k].type !== 'credit')
+    .reduce((s2, k) => s2 + (DATA.accounts[k].saldo || 0), 0);
+  const cardVivo = key => {
     const a = DATA.accounts[key];
     const [c1, c2] = ACC_GRAD[key] || ['#7c3aed', '#4c1d95'];
     if (a.type === 'credit') {
       const inv = DATA.invoices[key];
-      const cur = inv ? inv.hist.find(h => h.m === currentMonth) : null;
+      const cur = inv ? inv.hist.find(h => h.m === MES_HOJE) || inv.hist[0] : null;
       const pct = cur && inv.limit ? Math.min(cur.total / inv.limit * 100, 100) : 0;
-      const livre = cur ? Math.max(inv.limit - cur.total, 0) : 0;
+      const livre = cur ? Math.max(inv.limit - cur.total, 0) : (inv ? inv.limit : 0);
       return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
         + '<div class="cc-bank-name">' + a.name + '</div>'
         + '<div class="dcb-val">' + (cur ? fmt(cur.total) : '—') + '</div>'
         + '<div class="cred-limit-bar"><i style="width:' + pct.toFixed(0) + '%"></i></div>'
-        + '<div class="dcb-tipo">' + pct.toFixed(0) + '% limite usado · ' + fmt(livre) + ' livre de ' + fmt(inv ? inv.limit : 0) + '</div>'
+        + '<div class="dcb-tipo">fatura corrente · ' + fmt(livre) + ' livre de ' + fmt(inv ? inv.limit : 0) + '</div>'
         + '</div>';
     }
     const tipo = key === 'nub-caixinha' ? 'Caixinha' : (key === 'nub-pj' ? 'Conta PJ' : (key === 'brad-poup' ? 'Invest Fácil' : ACC_TYPE_LABEL[a.type] || ''));
     return '<div class="acc-chip-card' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
       + '<div class="cc-bank-name">' + a.name + '</div>'
-      + '<div class="dcb-val">' + fmtS(saldoDe(key)) + '</div>'
-      + '<div class="dcb-tipo">' + tipo + '</div></div>';
+      + '<div class="dcb-val">' + fmtS(a.saldo || 0) + '</div>'
+      + '<div class="dcb-tipo">' + tipo + ' · agora</div></div>';
   };
   strip.innerHTML =
     '<div class="acc-chip-card tall' + sel('all') + '" data-selacc="all" style="background:linear-gradient(135deg,#4b5563,#1f2937)">'
-    + '<div class="cc-bank-name">Todas as contas</div><div class="dcb-val">' + fmtS(totalDeb) + '</div><div class="dcb-tipo">' + ORDER.filter(k => DATA.accounts[k].type !== 'credit').length + ' contas de débito</div></div>'
-    + ORDER.map(cardHtml).join('');
+    + '<div class="cc-bank-name">Todas as contas</div><div class="dcb-val">' + fmtS(totalVivo) + '</div><div class="dcb-tipo">em conta agora</div></div>'
+    + ORDER.map(cardVivo).join('');
+  // ===== MINI-CARDS: O MÊS SELECIONADO (cor derivada do card-pai) =====
+  const mini = document.getElementById('accountsStripMes');
+  const rotulo = document.getElementById('stripRotuloMes');
+  if (rotulo) rotulo.textContent = monthLabel(currentMonth).toUpperCase() + ' · MOVIMENTAÇÃO E FATURAS DO MÊS';
+  if (!mini) return;
+  const totalMes = ORDER.filter(k => DATA.accounts[k].type !== 'credit')
+    .reduce((s2, k) => s2 + saldoDe(k), 0);
+  const miniHtml = key => {
+    const a = DATA.accounts[key];
+    const c1 = (ACC_GRAD[key] || ['#7c3aed'])[0];
+    let valor, sub;
+    if (a.type === 'credit') {
+      const inv = DATA.invoices[key];
+      const cur = inv ? inv.hist.find(h => h.m === currentMonth) : null;
+      valor = cur ? fmt(cur.total) : '—';
+      sub = 'fatura do mês';
+    } else {
+      valor = fmtS(saldoDe(key));
+      sub = 'movimentação';
+    }
+    return '<div class="mini-card' + sel(key) + '" data-selacc="' + key + '" style="border-color:' + c1 + ';color:' + c1 + ';background:' + c1 + '14">'
+      + a.name + '<b>' + valor + '</b><div class="mc-sub">' + sub + '</div></div>';
+  };
+  mini.innerHTML =
+    '<div class="mini-card' + sel('all') + '" data-selacc="all" style="border-color:#1f2937;color:#1f2937;background:#1f293714">'
+    + 'Todas as contas<b>' + fmtS(totalMes) + '</b><div class="mc-sub">movimentação do mês</div></div>'
+    + ORDER.map(miniHtml).join('');
 }
 document.addEventListener('click', e => {
-  const card = e.target.closest('.acc-chip-card[data-selacc]');
+  const card = e.target.closest('.acc-chip-card[data-selacc], .mini-card[data-selacc]');
   if (!card) return;
   const k = card.dataset.selacc;
   if (k === 'all') SEL_UNI.clear();
