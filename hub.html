@@ -2890,7 +2890,7 @@ table.data-table tr:hover td { background: var(--bg); }
 
   <div class="coach-inbox-row">
   <!-- COACH (colapsado) -->
-  <details class="coach" open>
+  <details class="coach">
     <summary>
       <div class="coach-summary-left">
         <span class="coach-title">💡 Insights diários</span>
@@ -13079,7 +13079,7 @@ function saldoDe(key) {
 function renderAccounts() {
   const strip = document.getElementById('accountsStrip');
   if (!strip) return;
-  const ORDER = ['brad-cc', 'brad-poup', 'brad-card', 'itau', 'nub-cc', 'nub-card', 'nub-pj', 'nub-caixinha'];
+  const ORDER = ['brad-cc', 'brad-card', 'itau', 'nub-cc', 'nub-card', 'nub-pj', 'nub-caixinha'];
   const sel = k => (k === 'all' ? SEL_UNI.size === 0 : SEL_UNI.has(k)) ? ' sel' : '';
   const MES_HOJE = new Date().toISOString().slice(0, 7);
   // ===== CARDS GRANDES: AGORA, AO VIVO (independem do mês selecionado) =====
