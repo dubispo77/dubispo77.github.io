@@ -13103,7 +13103,7 @@ function renderAccounts() {
       const cur = inv ? inv.hist.find(h => h.m === MES_HOJE) || inv.hist[0] : null;
       const pct = cur && inv.limit ? Math.min(cur.total / inv.limit * 100, 100) : 0;
       const livre = cur ? Math.max(inv.limit - cur.total, 0) : (inv ? inv.limit : 0);
-      return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
+      return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.22)),linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
         + '<div class="cc-bank-name">' + a.name + '</div>'
         + '<div class="dcb-val">' + (cur ? fmt(cur.total) : '—') + '</div>'
         + '<div class="cred-limit-bar"><i style="width:' + pct.toFixed(0) + '%"></i></div>'
@@ -13111,7 +13111,7 @@ function renderAccounts() {
         + '</div>';
     }
     const tipo = key === 'nub-caixinha' ? 'Caixinha' : (key === 'nub-pj' ? 'Conta PJ' : (key === 'brad-poup' ? 'Invest Fácil' : ACC_TYPE_LABEL[a.type] || ''));
-    return '<div class="acc-chip-card' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
+    return '<div class="acc-chip-card' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.22)),linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
       + '<div class="cc-bank-name">' + a.name + '</div>'
       + '<div class="dcb-val">' + fmtS(a.saldo || 0) + '</div>'
       + '<div class="dcb-tipo">' + tipo + ' · agora</div></div>';
@@ -13141,11 +13141,11 @@ function renderAccounts() {
       sub = 'movimentação';
     }
     const c2 = (ACC_GRAD[key] || ['#7c3aed', '#4c1d95'])[1];
-    return '<div class="mini-card' + sel(key) + '" data-selacc="' + key + '" style="border-color:' + c2 + ';color:white;background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
+    return '<div class="mini-card' + sel(key) + '" data-selacc="' + key + '" style="border-color:' + c2 + ';color:white;background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.22)),linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
       + a.name + '<b>' + valor + '</b><div class="mc-sub">' + sub + '</div></div>';
   };
   mini.innerHTML =
-    '<div class="mini-card' + sel('all') + '" data-selacc="all" style="border-color:#1f2937;color:white;background:linear-gradient(135deg,#4b5563,#1f2937)">'
+    '<div class="mini-card' + sel('all') + '" data-selacc="all" style="border-color:#1f2937;color:white;background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.22)),linear-gradient(135deg,#4b5563,#1f2937)">'
     + 'Todas as contas<b>' + fmtS(totalMes) + '</b><div class="mc-sub">movimentação do mês</div></div>'
     + ORDER.map(miniHtml).join('');
 }
