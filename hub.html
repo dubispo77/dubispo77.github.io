@@ -2792,7 +2792,7 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .mini-card:hover{ transform: translateY(-1px); }
 #finapp .mini-card.sel{ box-shadow: 0 0 0 1.5px white, 0 0 0 3px #7c3aed; }
 #finapp .mini-card b{ display: block; font-size: 14px; margin-top: 1px; white-space: nowrap; }
-#finapp .mini-card .mc-sub{ font-size: 9px; opacity: .75; }
+#finapp .mini-card .mc-sub{ font-size: 9px; opacity: .85; }
 #finapp .acc-chip-card.sel{ box-shadow: 0 0 0 2.5px white, 0 0 0 5px #7c3aed; }
 #finapp .acc-chip-card .cc-bank-name{ font-size: 8.5px; letter-spacing: .05em; }
 #finapp .acc-chip-card .dcb-val{ font-size: 13.5px; font-weight: 800; margin-top: 6px; white-space: nowrap; }
@@ -13140,11 +13140,12 @@ function renderAccounts() {
       valor = fmtS(saldoDe(key));
       sub = 'movimentação';
     }
-    return '<div class="mini-card' + sel(key) + '" data-selacc="' + key + '" style="border-color:' + c1 + ';color:' + c1 + ';background:' + c1 + '14">'
+    const c2 = (ACC_GRAD[key] || ['#7c3aed', '#4c1d95'])[1];
+    return '<div class="mini-card' + sel(key) + '" data-selacc="' + key + '" style="border-color:' + c2 + ';color:white;background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
       + a.name + '<b>' + valor + '</b><div class="mc-sub">' + sub + '</div></div>';
   };
   mini.innerHTML =
-    '<div class="mini-card' + sel('all') + '" data-selacc="all" style="border-color:#1f2937;color:#1f2937;background:#1f293714">'
+    '<div class="mini-card' + sel('all') + '" data-selacc="all" style="border-color:#1f2937;color:white;background:linear-gradient(135deg,#4b5563,#1f2937)">'
     + 'Todas as contas<b>' + fmtS(totalMes) + '</b><div class="mc-sub">movimentação do mês</div></div>'
     + ORDER.map(miniHtml).join('');
 }
