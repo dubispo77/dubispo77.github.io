@@ -2389,6 +2389,8 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .acc-badge.nub-caixinha .badge-dot{ background: var(--nubcax); }
 #finapp .acc-badge.nub-pj{ background: var(--pj-soft); color: var(--pj); border-color: var(--pj); }
 #finapp .acc-badge.nub-pj .badge-dot{ background: var(--pj); }
+#finapp .acc-badge.mp-cc, #finapp .acc-badge.mp-card{ background: #e0f4fd; color: #0075b3; border-color: #0075b3; }
+#finapp .acc-badge.mp-cc .badge-dot, #finapp .acc-badge.mp-card .badge-dot{ background: #00a2e6; }
 #finapp .acc-badge.itau{ background: var(--itau-soft); color: var(--itau); border-color: var(--itau); }
 #finapp .acc-badge.itau .badge-dot{ background: var(--itau); }
 #finapp .action-menu-btn{
@@ -12648,6 +12650,8 @@ const DATA = {
     'nub-card':     { name:'Nubank - Crédito',    badge:'nub-card',     card:'nub-card',     type:'credit',   bank:'Nubank',   logo:'nu', logoCls:'nubank' },
     'nub-pj':       { name:'Nubank - PJ',         badge:'nub-pj',       card:'nub-pj',       type:'checking', bank:'Nubank',   logo:'PJ', logoCls:'nubank-pj', saldo:0.90,     previsto:0.90 },
     'nub-caixinha': { name:'Nubank - Caixinha',   badge:'nub-caixinha', card:'nub-caixinha', type:'savings',  bank:'Nubank',   logo:'nu', logoCls:'nubank',    saldo:0,  previsto:0 },
+    'mp-cc':        { name:'Mercado Pago - Débito',  badge:'mp-cc',   card:'mp-cc',   type:'checking', bank:'Mercado Pago', logo:'MP', logoCls:'mp', saldo:1.01, previsto:1.01 },
+    'mp-card':      { name:'Mercado Pago - Crédito', badge:'mp-card', card:'mp-card', type:'credit',   bank:'Mercado Pago', logo:'MP', logoCls:'mp', saldo:0,    previsto:0 },
     'itau':         { name:'Itaú - Débito',          badge:'itau',         card:'itau-cc',      type:'checking', bank:'Itaú',     logo:'i',  logoCls:'itau',      saldo:96.80,    previsto:96.80 }
   },
   cats: {
@@ -12673,7 +12677,8 @@ const DATA = {
     'brad-card': { title:'Bradesco VISA Infinite · ****7385', cls:'brad', limit:27000,
       hist:[ {m:'2026-06',st:'aberta',total:20587.55,due:'10-julho'}, {m:'2026-05',st:'paga',total:18234.10,due:'10-junho'}, {m:'2026-04',st:'paga',total:16890.45,due:'10-maio'}, {m:'2026-03',st:'paga',total:15210.33,due:'10-abril'} ] },
     'nub-card': { title:'Nubank Mastercard · ****6351', cls:'nub', limit:11400,
-      hist:[ {m:'2026-06',st:'aberta',total:2599.27,due:'18-junho'}, {m:'2026-05',st:'paga',total:3104.88,due:'18-maio'}, {m:'2026-04',st:'paga',total:2411.02,due:'18-abril'}, {m:'2026-03',st:'paga',total:2870.55,due:'18-março'} ] }
+      hist:[ {m:'2026-06',st:'aberta',total:2599.27,due:'18-junho'}, {m:'2026-05',st:'paga',total:3104.88,due:'18-maio'}, {m:'2026-04',st:'paga',total:2411.02,due:'18-abril'}, {m:'2026-03',st:'paga',total:2870.55,due:'18-março'} ] },
+    'mp-card': { title:'Mercado Pago', cls:'mp', limit:10500, hist:[] }
   },
   installments: [
     { name:'Bicicleta Elétrica',       emoji:'🚲', tot:18, val:566.78, cur:{'2026-04':8,'2026-05':9,'2026-06':10}, acc:'brad-card' },
@@ -13065,6 +13070,8 @@ const ACC_GRAD = {
   'nub-pj':       ['#6d28d9', '#4c1d95'],
   'nub-caixinha': ['#5a0480', '#3b0254'],
   'itau':         ['#ec7000', '#b35400'],
+  'mp-cc':        ['#00a2e6', '#00679e'],
+  'mp-card':      ['#0087cc', '#004d77'],
 };
 const ACC_TYPE_LABEL = { checking:'Conta corrente', savings:'Poupança', credit:'Cartão' };
 // Movimentação da conta SÓ no mês selecionado (entradas - saídas daquele mês).
@@ -13079,7 +13086,7 @@ function saldoDe(key) {
 function renderAccounts() {
   const strip = document.getElementById('accountsStrip');
   if (!strip) return;
-  const ORDER = ['brad-cc', 'brad-card', 'itau', 'nub-cc', 'nub-card', 'nub-pj', 'nub-caixinha'];
+  const ORDER = ['brad-cc', 'brad-card', 'itau', 'nub-cc', 'nub-card', 'nub-pj', 'nub-caixinha', 'mp-card'];
   const sel = k => (k === 'all' ? SEL_UNI.size === 0 : SEL_UNI.has(k)) ? ' sel' : '';
   const MES_HOJE = new Date().toISOString().slice(0, 7);
   // ===== CARDS GRANDES: AGORA, AO VIVO (independem do mês selecionado) =====
@@ -14126,6 +14133,8 @@ function finAviso(msg) {
         if (a.bank === 'Nubank' && a.type === 'credit_card') return 'nub-card';
         if (a.bank === 'Nubank' && a.type === 'checking') return 'nub-cc';
         if (a.bank === 'Itaú' && a.type === 'checking') return 'itau';
+        if (a.bank === 'Mercado Pago' && a.type === 'credit_card') return 'mp-card';
+        if (a.bank === 'Mercado Pago') return 'mp-cc';
         return null;
       };
       const idToKey = {};
