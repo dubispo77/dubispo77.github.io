@@ -13103,7 +13103,7 @@ function renderAccounts() {
       const cur = inv ? inv.hist.find(h => h.m === MES_HOJE) || inv.hist[0] : null;
       const pct = cur && inv.limit ? Math.min(cur.total / inv.limit * 100, 100) : 0;
       const livre = cur ? Math.max(inv.limit - cur.total, 0) : (inv ? inv.limit : 0);
-      return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.22)),linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
+      return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
         + '<div class="cc-bank-name">' + a.name + '</div>'
         + '<div class="dcb-val">' + (cur ? fmt(cur.total) : '—') + '</div>'
         + '<div class="cred-limit-bar"><i style="width:' + pct.toFixed(0) + '%"></i></div>'
@@ -13111,7 +13111,7 @@ function renderAccounts() {
         + '</div>';
     }
     const tipo = key === 'nub-caixinha' ? 'Caixinha' : (key === 'nub-pj' ? 'Conta PJ' : (key === 'brad-poup' ? 'Invest Fácil' : ACC_TYPE_LABEL[a.type] || ''));
-    return '<div class="acc-chip-card' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.22)),linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
+    return '<div class="acc-chip-card' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
       + '<div class="cc-bank-name">' + a.name + '</div>'
       + '<div class="dcb-val">' + fmtS(a.saldo || 0) + '</div>'
       + '<div class="dcb-tipo">' + tipo + ' · agora</div></div>';
