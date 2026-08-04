@@ -2884,29 +2884,9 @@ table.data-table tr:hover td { background: var(--bg); }
     </defs>
   </svg>
 
-  <!-- TOP KPIs -->
-  <div class="top-kpis">
-    <div class="kpi-card">
-      <div class="kpi-icon-circle saldo"><svg class="iconic"><use href="#i-bank"/></svg></div>
-      <div class="kpi-content"><div class="kpi-label">Saldo do mês</div><div class="kpi-value" id="kpiTopSaldo">—</div></div>
-      <div class="kpi-arrow">›</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon-circle rec"><svg class="iconic"><use href="#i-arrow-up"/></svg></div>
-      <div class="kpi-content"><div class="kpi-label">Receitas</div><div class="kpi-value" id="kpiTopRec">—</div></div>
-      <div class="kpi-arrow">›</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon-circle des"><svg class="iconic"><use href="#i-arrow-down"/></svg></div>
-      <div class="kpi-content"><div class="kpi-label">Despesas</div><div class="kpi-value" id="kpiTopDesp">—</div></div>
-      <div class="kpi-arrow">›</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon-circle cart"><svg class="iconic"><use href="#i-card"/></svg></div>
-      <div class="kpi-content"><div class="kpi-label">Cartão de crédito</div><div class="kpi-value" id="kpiTopCart">—</div></div>
-      <div class="kpi-arrow">›</div>
-    </div>
-  </div>
+  <!-- AGORA · AO VIVO (no lugar dos antigos TOP KPIs) -->
+  <div class="strip-rotulo">AGORA · AO VIVO</div>
+  <div class="accounts-strip" id="accountsStrip"><!-- cards ao vivo via JS --></div>
 
   <div class="coach-inbox-row">
   <!-- COACH (colapsado) -->
@@ -2965,8 +2945,6 @@ table.data-table tr:hover td { background: var(--bg); }
   <div class="tab-content active filter-todas" id="tab-transacoes">
     <div class="month-selector global-month"><button class="gm-prev">‹</button><span class="month-pill gm-label"></span><button class="gm-next">›</button></div>
 
-    <div class="strip-rotulo">AGORA · AO VIVO</div>
-    <div class="accounts-strip" id="accountsStrip"><!-- cards ao vivo via JS --></div>
     <div class="strip-rotulo" id="stripRotuloMes">MÊS</div>
     <div class="mini-strip" id="accountsStripMes"><!-- mini-cards do mês via JS --></div>
 
