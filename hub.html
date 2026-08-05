@@ -13096,24 +13096,31 @@ function renderAccounts() {
   const sel = k => (k === 'all' ? SEL_UNI.size === 0 : SEL_UNI.has(k)) ? ' sel' : '';
   const MES_HOJE = new Date().toISOString().slice(0, 7);
   // ===== CARDS GRANDES: AGORA, AO VIVO (independem do mês selecionado) =====
+  // próxima fatura (não paga) de um cartão
+  const proxFatura = key => {
+    const inv = DATA.invoices[key];
+    if (!inv || !inv.hist) return null;
+    return inv.hist.filter(h => h.st !== 'paga').sort((x, y) => x.m.localeCompare(y.m))[0] || null;
+  };
   const somaDeb = ORDER.filter(k => DATA.accounts[k].type !== 'credit')
     .reduce((s2, k) => s2 + (DATA.accounts[k].saldo || 0), 0);
-  const somaCart = ORDER.filter(k => DATA.accounts[k].type === 'credit')
-    .reduce((s2, k) => s2 + (DATA.accounts[k].saldo || 0), 0);
-  const totalVivo = somaDeb - somaCart; // líquido: em conta − dívida aberta dos cartões
+  const somaProxFat = ORDER.filter(k => DATA.accounts[k].type === 'credit')
+    .reduce((s2, k) => { const f = proxFatura(k); return s2 + (f ? f.total : 0); }, 0);
+  const totalVivo = somaDeb - somaProxFat; // em conta − próximas faturas dos cartões
   const cardVivo = key => {
     const a = DATA.accounts[key];
     const [c1, c2] = ACC_GRAD[key] || ['#7c3aed', '#4c1d95'];
     if (a.type === 'credit') {
       const inv = DATA.invoices[key];
-      const divida = a.saldo || 0; // saldo devedor ao vivo (Pluggy) — inclui parcelas futuras
-      const pct = inv && inv.limit ? Math.min(divida / inv.limit * 100, 100) : 0;
-      const livre = inv ? Math.max(inv.limit - divida, 0) : 0;
+      const f = proxFatura(key);
+      const valor = f ? f.total : 0;
+      const pct = inv && inv.limit ? Math.min(valor / inv.limit * 100, 100) : 0;
+      const livre = inv ? Math.max(inv.limit - valor, 0) : 0;
       return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
         + '<div class="cc-bank-name">' + a.name + '</div>'
-        + '<div class="dcb-val">' + fmt(divida) + '</div>'
+        + '<div class="dcb-val">' + (f ? fmt(valor) : '—') + '</div>'
         + '<div class="cred-limit-bar"><i style="width:' + pct.toFixed(0) + '%"></i></div>'
-        + '<div class="dcb-tipo">em aberto agora · ' + fmt(livre) + ' livre de ' + fmt(inv ? inv.limit : 0) + '</div>'
+        + '<div class="dcb-tipo">próxima fatura' + (f && f.due ? ' · vence ' + f.due : '') + ' · ' + fmt(livre) + ' livre</div>'
         + '</div>';
     }
     const tipo = key === 'nub-caixinha' ? 'Caixinha' : (key === 'nub-pj' ? 'Conta PJ' : (key === 'brad-poup' ? 'Invest Fácil' : ACC_TYPE_LABEL[a.type] || ''));
@@ -13124,7 +13131,7 @@ function renderAccounts() {
   };
   strip.innerHTML =
     '<div class="acc-chip-card tall' + sel('all') + '" data-selacc="all" style="background:linear-gradient(135deg,#4b5563,#1f2937)">'
-    + '<div class="cc-bank-name">Todas as contas</div><div class="dcb-val">' + fmtS(totalVivo) + '</div><div class="dcb-tipo">em conta − cartões em aberto</div></div>'
+    + '<div class="cc-bank-name">Todas as contas</div><div class="dcb-val">' + fmtS(totalVivo) + '</div><div class="dcb-tipo">em conta − próximas faturas</div></div>'
     + ORDER.map(cardVivo).join('');
   // ===== MINI-CARDS: O MÊS SELECIONADO (cor derivada do card-pai) =====
   const mini = document.getElementById('accountsStripMes');
