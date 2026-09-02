@@ -12912,7 +12912,10 @@ function renderTransfersPaired(tbody) {
   let pairs = negs.map(n => {
     const i = pos.findIndex((p2, idx) => !usados.has(idx) && p2.d === n.d && Math.abs(p2.val + n.val) < 0.005);
     if (i >= 0) usados.add(i);
-    return { d: n.d, desc: n.desc, cat: n.cat, st: n.st, from: n.acc, to: i >= 0 ? pos[i].acc : null, val: -n.val };
+    let to = i >= 0 ? pos[i].acc : null;
+    // par registrado no banco (transfer_pair_id) — cobre pernas em meses diferentes (ex.: saque no crédito)
+    if (!to && n.pair) { const par = DATA.transactions.find(t2 => t2.id === n.pair); if (par) to = par.acc; }
+    return { d: n.d, desc: n.desc, cat: n.cat, st: n.st, from: n.acc, to, val: -n.val };
   });
   // filtros ativos
   pairs = pairs.filter(pr => {
@@ -14165,7 +14168,7 @@ function finAviso(msg) {
       let rows = [], from = 0;
       while (true) {
         const { data: chunk, error: e2 } = await sb.from('transactions')
-          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,installment_current,installment_total,source_file,purchase_date:raw->>purchase_date')
+          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,transfer_pair_id,installment_current,installment_total,source_file,purchase_date:raw->>purchase_date')
           .order('date', { ascending: true }).range(from, from + 999);
         if (e2) throw e2;
         rows = rows.concat(chunk || []);
@@ -14203,7 +14206,7 @@ function finAviso(msg) {
         DATA.transactions.push({
           id: r.id, sf: r.source_file, pd: r.purchase_date || undefined,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
-          acc, val: parseFloat(r.amount), st: 'paid', tr: !!r.is_transfer,
+          acc, val: parseFloat(r.amount), st: 'paid', tr: !!r.is_transfer, pair: r.transfer_pair_id || undefined,
           parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
         });
       });
