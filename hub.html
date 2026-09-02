@@ -14096,7 +14096,38 @@ async function loadReview() {
     if (error) throw error;
     REVIEW = data || [];
     renderReview();
+    revLigaRealtime();
   } catch (e) { console.warn('[finapp] review:', e.message || e); }
+}
+let __revRT = null, __revRenderTimer = null;
+function revAgendaRender() {
+  // não re-renderizar enquanto o Eduardo edita uma célula do painel
+  clearTimeout(__revRenderTimer);
+  __revRenderTimer = setTimeout(() => {
+    const ativo = document.activeElement;
+    if (ativo && ativo.closest && ativo.closest('#finReview')) { revAgendaRender(); return; }
+    renderReview();
+  }, 600);
+}
+function revLigaRealtime() {
+  if (__revRT || !window.sbClient || !window.sbClient.channel) return;
+  try {
+    __revRT = window.sbClient.channel('import-review-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'import_review' }, payload => {
+        const novo2 = payload.new || {};
+        if (payload.eventType === 'DELETE') {
+          REVIEW = REVIEW.filter(r => r.id !== (payload.old || {}).id);
+        } else if (novo2.id) {
+          const i = REVIEW.findIndex(r => r.id === novo2.id);
+          if (novo2.status && novo2.status !== 'pendente') { if (i >= 0) REVIEW.splice(i, 1); }
+          else if (i >= 0) Object.assign(REVIEW[i], novo2);
+          else if (novo2.status === 'pendente') { REVIEW.push(novo2); REVIEW.sort((a,b) => a.ordem - b.ordem); }
+        }
+        revAgendaRender();
+      })
+      .subscribe();
+    console.log('[finapp] review realtime ligado');
+  } catch (e) { console.warn('[finapp] realtime:', e.message || e); }
 }
 function revFmt(v) { return (v < 0 ? '-' : '+') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); }
 function renderReview() {
