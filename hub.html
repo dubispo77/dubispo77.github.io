@@ -14364,7 +14364,7 @@ function finAviso(msg) {
         DATA.transactions.push({
           id: r.id, sf: r.source_file, pd: r.purchase_date || undefined,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
-          acc, val: parseFloat(r.amount), st: 'paid', tr: !!r.is_transfer, pair: r.transfer_pair_id || undefined,
+          acc, val: parseFloat(r.amount), st: r.source_file === 'projecao' ? 'pending' : 'paid', tr: !!r.is_transfer, pair: r.transfer_pair_id || undefined,
           parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
         });
       });
