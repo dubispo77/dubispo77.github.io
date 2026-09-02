@@ -14135,6 +14135,7 @@ function renderReview() {
   if (!box) return;
   if (!REVIEW.length) { box.style.display = 'none'; return; }
   box.style.display = '';
+  const estavaAberto = (box.querySelector('details') || {}).open || false;
   const mes = REVIEW[0].mes;
   const duvidas = REVIEW.filter(r => r.flag === 'duvida').length;
   const mostra = revSoDuvidas ? REVIEW.filter(r => r.flag === 'duvida') : REVIEW;
@@ -14154,7 +14155,7 @@ function renderReview() {
       + '<td class="' + (r.valor < 0 ? 'rv-val-neg' : 'rv-val-pos') + '">' + revFmt(r.valor) + '</td>'
       + '</tr>').join('');
   });
-  box.innerHTML = '<details class="rev-panel"><summary>📝 Revisão de importação — ' + mes
+  box.innerHTML = '<details class="rev-panel"' + (estavaAberto ? ' open' : '') + '><summary>📝 Revisão de importação — ' + mes
     + ' <span class="rev-badge">' + duvidas + ' dúvida(s)</span><span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--muted)">' + REVIEW.length + ' lançamentos</span></summary>'
     + '<div class="rev-tools"><label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" id="revFiltro"' + (revSoDuvidas ? ' checked' : '') + '> só dúvidas</label>'
     + '<button id="revConcluir" style="margin-left:auto;background:#16a34a;color:#fff;border-color:#16a34a">✓ Concluir revisão</button></div>'
