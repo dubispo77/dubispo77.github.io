@@ -1520,7 +1520,25 @@ table.data-table tr:hover td { background: var(--bg); }
   /* Esconde título redundante das áreas se ficar muito estreito */
   .rmah-chips .rm-area-chip:nth-child(n+4) { display: none; }
 }
-  /* === caixa de entrada (aprovação de lançamentos novos) === */
+  /* === revisão de importação === */
+#finapp .rev-panel { background: var(--card); border: 1.5px solid #ddd9d2; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+#finapp .rev-panel summary { cursor: pointer; font-weight: 700; font-size: 14px; list-style: none; display: flex; align-items: center; gap: 8px; }
+#finapp .rev-panel summary::-webkit-details-marker { display: none; }
+#finapp .rev-badge { background: #fef3c7; color: #92400e; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+#finapp .rev-tools { display: flex; gap: 10px; align-items: center; margin: 10px 0 6px; font-size: 12.5px; }
+#finapp .rev-tools button { border: 1px solid #d6d3cd; background: #fff; border-radius: 8px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; }
+#finapp table.rev-tb { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+#finapp table.rev-tb th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid #eee; }
+#finapp table.rev-tb td { padding: 6px 8px; border-bottom: 1px solid #f2f0ec; vertical-align: middle; }
+#finapp table.rev-tb tr.rv-duvida { background: #fefce8; }
+#finapp table.rev-tb td.rv-desc { min-width: 170px; }
+#finapp table.rev-tb td[contenteditable] { outline: none; border-radius: 6px; }
+#finapp table.rev-tb td[contenteditable]:focus { background: #eef4ff; box-shadow: inset 0 0 0 1.5px #93b4f5; }
+#finapp .rev-tb select, #finapp .rev-tb input.rv-cat { border: 1px solid #ddd9d2; border-radius: 7px; padding: 3px 6px; font-size: 12px; background: #fff; max-width: 150px; }
+#finapp .rv-raw { color: var(--muted, #999); font-size: 11px; max-width: 190px; }
+#finapp .rv-val-neg { color: #dc2626; font-weight: 600; white-space: nowrap; }
+#finapp .rv-val-pos { color: #16a34a; font-weight: 600; white-space: nowrap; }
+/* === caixa de entrada (aprovação de lançamentos novos) === */
   #finapp .inbox-panel { background: var(--card); border: 1.5px solid #ddd9d2; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
   #finapp .inbox-head { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; color: #7c3aed; }
   #finapp .inbox-badge { background: #dc2626; color: white; border-radius: 999px; font-size: 11px; font-weight: 800; padding: 2px 9px; }
@@ -2915,6 +2933,7 @@ table.data-table tr:hover td { background: var(--bg); }
     </div>
   </details>
   <div id="finInbox" style="display:none"></div>
+<div id="finReview" style="display:none"></div>
   </div>
 
   <!-- TABS NA NOVA ORDEM -->
@@ -14064,6 +14083,108 @@ document.addEventListener('click', async e => {
   } catch (err) { alert('Erro ao processar: ' + (err.message || err)); }
 });
 
+// ===== REVISÃO DE IMPORTAÇÃO (mensal, editável direto no banco) =====
+const REV_CATS = ['Alimentação','Aluguel','Assinaturas','Bebidas','Coisas para casa','Conveniência','Doações','Extras','Green','Imposto','Investimento','Lazer','Mercado','Moradia','Pessoais','Presentes','Profissionais','Reembolso','Resgate','Salário','Saúde','Seguros','Transporte','TRANSFER'];
+const REV_BLOCOS = { cartao: '💳 Fatura Bradesco', debito: '🏦 Bradesco Débito', nub_cred: '🟣 Nubank Crédito', nub_deb: '🟣 Nubank Débito', nub_pj: '🟣 Nubank PJ', mp_card: '🔵 Mercado Pago' };
+let REVIEW = []; let revSoDuvidas = true;
+async function loadReview() {
+  if (!window.sbClient) return;
+  try {
+    const { data, error } = await window.sbClient.from('import_review')
+      .select('id,mes,ordem,bloco,data,raw,descricao,parcela,categoria,situacao,valor,fonte,flag,status')
+      .eq('status', 'pendente').order('ordem');
+    if (error) throw error;
+    REVIEW = data || [];
+    renderReview();
+  } catch (e) { console.warn('[finapp] review:', e.message || e); }
+}
+function revFmt(v) { return (v < 0 ? '-' : '+') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); }
+function renderReview() {
+  const box = document.getElementById('finReview');
+  if (!box) return;
+  if (!REVIEW.length) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  const mes = REVIEW[0].mes;
+  const duvidas = REVIEW.filter(r => r.flag === 'duvida').length;
+  const mostra = revSoDuvidas ? REVIEW.filter(r => r.flag === 'duvida') : REVIEW;
+  const grupos = {};
+  mostra.forEach(r => { (grupos[r.bloco] = grupos[r.bloco] || []).push(r); });
+  let corpo = '';
+  Object.keys(REV_BLOCOS).forEach(b => {
+    const rs = grupos[b]; if (!rs || !rs.length) return;
+    corpo += '<tr><td colspan="7" style="font-weight:700;padding-top:12px">' + REV_BLOCOS[b] + ' (' + rs.length + ')</td></tr>';
+    corpo += rs.map(r => '<tr class="' + (r.flag === 'duvida' ? 'rv-duvida' : '') + '" data-id="' + r.id + '">'
+      + '<td>' + r.data + '</td>'
+      + '<td class="rv-raw">' + r.raw + '</td>'
+      + '<td class="rv-desc" contenteditable spellcheck="false" data-f="descricao">' + r.descricao + '</td>'
+      + '<td>' + (r.parcela || '—') + '</td>'
+      + '<td><input class="rv-cat" data-f="categoria" list="revCatList" value="' + r.categoria + '"></td>'
+      + '<td><select data-f="situacao"><option' + (r.situacao === 'Incluir' ? ' selected' : '') + '>Incluir</option><option' + (r.situacao !== 'Incluir' ? ' selected' : '') + '>Não incluir</option></select></td>'
+      + '<td class="' + (r.valor < 0 ? 'rv-val-neg' : 'rv-val-pos') + '">' + revFmt(r.valor) + '</td>'
+      + '</tr>').join('');
+  });
+  box.innerHTML = '<details class="rev-panel"><summary>📝 Revisão de importação — ' + mes
+    + ' <span class="rev-badge">' + duvidas + ' dúvida(s)</span><span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--muted)">' + REVIEW.length + ' lançamentos</span></summary>'
+    + '<div class="rev-tools"><label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" id="revFiltro"' + (revSoDuvidas ? ' checked' : '') + '> só dúvidas</label>'
+    + '<button id="revConcluir" style="margin-left:auto;background:#16a34a;color:#fff;border-color:#16a34a">✓ Concluir revisão</button></div>'
+    + '<div style="overflow-x:auto"><table class="rev-tb"><tr><th>Data</th><th>Original</th><th>Descrição</th><th>Parc</th><th>Categoria</th><th>Situação</th><th>Valor</th></tr>' + corpo + '</table></div>'
+    + '<datalist id="revCatList">' + REV_CATS.map(c => '<option value="' + c + '">').join('') + '</datalist></details>';
+  bindReview();
+}
+async function revSalva(id, campos) {
+  try {
+    campos.flag = 'firme'; campos.updated_at = new Date().toISOString();
+    const { error } = await window.sbClient.from('import_review').update(campos).eq('id', id);
+    if (error) throw error;
+    const r = REVIEW.find(x => x.id === id);
+    if (r) Object.assign(r, campos);
+    finToast('✓ Salvo no banco');
+    const badge = document.querySelector('#finReview .rev-badge');
+    if (badge) badge.textContent = REVIEW.filter(x => x.flag === 'duvida').length + ' dúvida(s)';
+    const tr = document.querySelector('#finReview tr[data-id="' + id + '"]');
+    if (tr) tr.classList.remove('rv-duvida');
+  } catch (e) { finToast('✗ NÃO salvou: ' + (e.message || e), true); }
+}
+function bindReview() {
+  const box = document.getElementById('finReview');
+  box.querySelectorAll('td[contenteditable]').forEach(td => {
+    td.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); td.blur(); } });
+    td.addEventListener('blur', () => {
+      const id = td.closest('tr').dataset.id;
+      const r = REVIEW.find(x => x.id === id);
+      const v = td.textContent.trim();
+      if (r && v && v !== r.descricao) revSalva(id, { descricao: v });
+    });
+  });
+  box.querySelectorAll('input.rv-cat').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const id = inp.closest('tr').dataset.id;
+      const r = REVIEW.find(x => x.id === id);
+      if (r && inp.value && inp.value !== r.categoria) revSalva(id, { categoria: inp.value });
+    });
+  });
+  box.querySelectorAll('select[data-f="situacao"]').forEach(s => {
+    s.addEventListener('change', () => {
+      const id = s.closest('tr').dataset.id;
+      revSalva(id, { situacao: s.value });
+    });
+  });
+  const filtro = document.getElementById('revFiltro');
+  if (filtro) filtro.addEventListener('change', () => { revSoDuvidas = filtro.checked; renderReview(); });
+  const conc = document.getElementById('revConcluir');
+  if (conc) conc.addEventListener('click', async () => {
+    if (!confirm('Concluir a revisão? O Claude vai importar essas linhas pro hub.')) return;
+    try {
+      const mes = REVIEW[0].mes;
+      const { error } = await window.sbClient.from('import_review').update({ status: 'revisado', updated_at: new Date().toISOString() }).eq('mes', mes).eq('status', 'pendente');
+      if (error) throw error;
+      finToast('✓ Revisão concluída — avisa o Claude pra importar!');
+      REVIEW = []; renderReview();
+    } catch (e) { finToast('✗ Erro: ' + (e.message || e), true); }
+  });
+}
+
+
 // ===== abre/fecha sincronizado: Insights + Caixa de entrada =====
 (function syncCoachInbox() {
   const row = document.querySelector('#finapp .coach-inbox-row');
@@ -14265,6 +14386,7 @@ function finAviso(msg) {
         : (MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1]);
       renderAll();
       loadInbox();
+      loadReview();
       console.log('[finapp] dados reais: ' + DATA.transactions.length + ' transações, ' + MONTHS.length + ' meses');
     } catch (err) {
       console.warn('[finapp] adapter falhou, mantendo dados de exemplo:', err && err.message || err);
