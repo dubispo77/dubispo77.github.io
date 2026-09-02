@@ -14120,7 +14120,12 @@ function revLigaRealtime() {
         } else if (novo2.id) {
           const i = REVIEW.findIndex(r => r.id === novo2.id);
           if (novo2.status && novo2.status !== 'pendente') { if (i >= 0) REVIEW.splice(i, 1); }
-          else if (i >= 0) Object.assign(REVIEW[i], novo2);
+          else if (i >= 0) {
+            const r = REVIEW[i];
+            // eco da própria edição: estado local já é igual → não re-renderizar
+            if (r.descricao === novo2.descricao && r.categoria === novo2.categoria && r.situacao === novo2.situacao && r.flag === novo2.flag) return;
+            Object.assign(r, novo2);
+          }
           else if (novo2.status === 'pendente') { REVIEW.push(novo2); REVIEW.sort((a,b) => a.ordem - b.ordem); }
         }
         revAgendaRender();
