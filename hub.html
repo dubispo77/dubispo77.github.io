@@ -2911,7 +2911,7 @@ table.data-table tr:hover td { background: var(--bg); }
   </svg>
 
   <!-- AGORA · AO VIVO (no lugar dos antigos TOP KPIs) -->
-  <div class="strip-rotulo">AGORA · AO VIVO</div>
+  <div class="strip-rotulo">AGORA · AO VIVO <button onclick="window.finRecarregar && window.finRecarregar()" style="margin-left:10px;border:1px solid #d6d3cd;background:#fff;border-radius:7px;padding:2px 10px;font-size:10.5px;letter-spacing:normal;font-weight:600;cursor:pointer;color:#555">🔄 Atualizar</button></div>
   <div class="accounts-strip" id="accountsStrip"><!-- cards ao vivo via JS --></div>
 
   <div class="coach-inbox-row">
@@ -14436,6 +14436,7 @@ function finAviso(msg) {
       finAviso('⚠ Finanças em modo exemplo — erro ao carregar do Supabase: ' + (err && err.message || err));
     }
   };
+  window.finRecarregar = async () => { try { await tryInit(); if (typeof finToast === 'function') finToast('✓ Dados atualizados'); } catch(e) { if (typeof finToast === 'function') finToast('✗ ' + (e.message || e), true); } };
   tryInit();
 })();
 
