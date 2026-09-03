@@ -1531,6 +1531,11 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp table.rev-tb th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid #eee; }
 #finapp table.rev-tb td { padding: 6px 8px; border-bottom: 1px solid #f2f0ec; vertical-align: middle; }
 #finapp table.rev-tb tr.rv-duvida { background: #fefce8; }
+#finapp table.rev-tb tr.rv-plan { background: #ecfdf5; }
+#finapp table.rev-tb tr.rv-prov { background: #fff7ed; }
+#finapp .rev-tag { display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
+#finapp .rev-tag.planejado { background: #d1fae5; color: #065f46; }
+#finapp .rev-tag.provavel { background: #ffedd5; color: #9a3412; }
 #finapp table.rev-tb td.rv-desc { min-width: 170px; }
 #finapp table.rev-tb td[contenteditable] { outline: none; border-radius: 6px; }
 #finapp table.rev-tb td[contenteditable]:focus { background: #eef4ff; box-shadow: inset 0 0 0 1.5px #93b4f5; }
@@ -14149,16 +14154,19 @@ function renderReview() {
   const estavaAberto = (box.querySelector('details') || {}).open || false;
   const mes = REVIEW[0].mes;
   const duvidas = REVIEW.filter(r => r.flag === 'duvida').length;
-  const mostra = revSoDuvidas ? REVIEW.filter(r => r.flag === 'duvida') : REVIEW;
+  const planejados = REVIEW.filter(r => r.flag === 'planejado' || r.flag === 'provavel').length;
+  const mostra = revSoDuvidas ? REVIEW.filter(r => r.flag === 'duvida' || r.flag === 'provavel' || r.flag === 'planejado') : REVIEW;
   const grupos = {};
   mostra.forEach(r => { (grupos[r.bloco] = grupos[r.bloco] || []).push(r); });
+  const rvCls = { duvida: 'rv-duvida', planejado: 'rv-plan', provavel: 'rv-prov' };
+  const rvTag = { planejado: '<span class="rev-tag planejado">✓ planejado</span>', provavel: '<span class="rev-tag provavel">≈ planejado?</span>' };
   let corpo = '';
   Object.keys(REV_BLOCOS).forEach(b => {
     const rs = grupos[b]; if (!rs || !rs.length) return;
     corpo += '<tr><td colspan="7" style="font-weight:700;padding-top:12px">' + REV_BLOCOS[b] + ' (' + rs.length + ')</td></tr>';
-    corpo += rs.map(r => '<tr class="' + (r.flag === 'duvida' ? 'rv-duvida' : '') + '" data-id="' + r.id + '">'
+    corpo += rs.map(r => '<tr class="' + (rvCls[r.flag] || '') + '" data-id="' + r.id + '">'
       + '<td>' + r.data + '</td>'
-      + '<td class="rv-raw">' + r.raw + '</td>'
+      + '<td class="rv-raw">' + r.raw + (rvTag[r.flag] || '') + '</td>'
       + '<td class="rv-desc" contenteditable spellcheck="false" data-f="descricao">' + r.descricao + '</td>'
       + '<td>' + (r.parcela || '—') + '</td>'
       + '<td><select class="rv-cat" data-f="categoria">' + REV_CATS.map(c => '<option' + (c === r.categoria ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></td>'
@@ -14167,8 +14175,10 @@ function renderReview() {
       + '</tr>').join('');
   });
   box.innerHTML = '<details class="rev-panel"' + (estavaAberto ? ' open' : '') + '><summary>📝 Revisão de importação — ' + mes
-    + ' <span class="rev-badge">' + duvidas + ' dúvida(s)</span><span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--muted)">' + REVIEW.length + ' lançamentos</span></summary>'
-    + '<div class="rev-tools"><label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" id="revFiltro"' + (revSoDuvidas ? ' checked' : '') + '> só dúvidas</label>'
+    + ' <span class="rev-badge">' + duvidas + ' dúvida(s)</span>'
+    + (planejados ? '<span class="rev-tag planejado">' + planejados + ' planejada(s)</span>' : '')
+    + '<span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--muted)">' + REVIEW.length + ' lançamentos</span></summary>'
+    + '<div class="rev-tools"><label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" id="revFiltro"' + (revSoDuvidas ? ' checked' : '') + '> só pendentes</label>'
     + '<button id="revConcluir" style="margin-left:auto;background:#16a34a;color:#fff;border-color:#16a34a">✓ Concluir revisão</button></div>'
     + '<div style="overflow-x:auto"><table class="rev-tb"><tr><th>Data</th><th>Original</th><th>Descrição</th><th>Parc</th><th>Categoria</th><th>Situação</th><th>Valor</th></tr>' + corpo + '</table></div>'
     + '</details>';
@@ -14185,7 +14195,7 @@ async function revSalva(id, campos) {
     const badge = document.querySelector('#finReview .rev-badge');
     if (badge) badge.textContent = REVIEW.filter(x => x.flag === 'duvida').length + ' dúvida(s)';
     const tr = document.querySelector('#finReview tr[data-id="' + id + '"]');
-    if (tr) tr.classList.remove('rv-duvida');
+    if (tr) tr.classList.remove('rv-duvida', 'rv-plan', 'rv-prov');
   } catch (e) { finToast('✗ NÃO salvou: ' + (e.message || e), true); }
 }
 function bindReview() {
