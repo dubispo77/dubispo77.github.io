@@ -14094,9 +14094,15 @@ async function loadReview() {
       .select('id,mes,ordem,bloco,data,raw,descricao,parcela,categoria,situacao,valor,fonte,flag,status')
       .eq('status', 'pendente').order('ordem');
     if (error) throw error;
-    REVIEW = data || [];
-    renderReview();
+    const novoJson = JSON.stringify(data || []);
+    if (novoJson !== window.__revJson) {
+      window.__revJson = novoJson;
+      REVIEW = data || [];
+      const ativo = document.activeElement;
+      if (!(ativo && ativo.closest && ativo.closest('#finReview'))) renderReview();
+    }
     revLigaRealtime();
+    if (!window.__revPoll) window.__revPoll = setInterval(loadReview, 20000);
   } catch (e) { console.warn('[finapp] review:', e.message || e); }
 }
 let __revRT = null, __revRenderTimer = null;
