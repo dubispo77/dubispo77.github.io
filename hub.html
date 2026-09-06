@@ -10836,7 +10836,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (error) throw error;
       const modes = [
         { key: 'driving', emoji: '🚗' },
-        { key: 'walking', emoji: '🚲' }, // emoji bicicleta no card (API ainda retorna a pé)
+        { key: 'bicycling', emoji: '🚲' }, // tempo real de bike (maps-proxy v2), com fallback estimado
         { key: 'transit', emoji: '🚌' },
       ];
       if (times) times.innerHTML = ''; // limpa o container antigo — agora tudo vai pro leave
@@ -10847,10 +10847,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (currentItem.has_time && currentItem.date_start) {
         const start = new Date(currentItem.date_start);
         // Caso especial: trajeto = 0 (endereço == casa). Mostra mensagem em vez dos 3 cards.
-        const allZero = ['driving','transit','walking'].every(k => {
+        const allZero = ['driving','transit','bicycling'].every(k => {
           const r = data[k]; return r && r.minutes === 0;
         });
-        const someValid = ['driving','transit','walking'].some(k => {
+        const someValid = ['driving','transit','bicycling'].some(k => {
           const r = data[k]; return r && r.minutes != null;
         });
         const cards = allZero ? [] : modes.map(m => {
