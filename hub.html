@@ -14379,12 +14379,17 @@ function bindReview() {
       if (isNaN(i) || !r._prevs[i]) return;
       const f = r._prevs[i];
       const v = { desc: f.description, valor: Number(f.amount), n: f.installment_current || null, total: f.installment_total || null, tipo: f.source_file };
+      const difV = Math.round(Math.abs(Number(f.amount) - r.valor) * 100) / 100;
+      const evV = Object.assign({}, r.ev || {}, { previsto: f.description, previsto_valor: Number(f.amount), diferenca: difV, gasto_novo: false, sinais: ['vínculo manual do Eduardo'] });
       try {
         await window.sbClient.from('import_review').update({
           vinculo: v, descricao: f.description, categoria: f.category || r.cat,
-          flag: 'planejado', updated_at: new Date().toISOString(),
+          n_atual: f.installment_current || null, n_total: f.installment_total || null,
+          parcela: f.installment_total ? (f.installment_current + '/' + f.installment_total) : null,
+          evidencia: evV, flag: 'planejado', updated_at: new Date().toISOString(),
         }).eq('id', r.id);
         r.vinculo = v; r.desc = f.description; r.cat = f.category || r.cat; r.flag = 'planejado';
+        r.ev = evV; r.parcela = f.installment_total ? (f.installment_current + '/' + f.installment_total) : null;
         window.__revJson = null;
         finToast('🔗 Vinculado a "' + f.description + '" — sai do planejamento quando você aprovar');
         renderReview();
@@ -14395,11 +14400,12 @@ function bindReview() {
     b.addEventListener('click', async e => {
       e.stopPropagation();
       const r = CONF.find(x => x.id === b.dataset.id); if (!r) return;
+      const evN = Object.assign({}, r.ev || {}, { previsto: null, previsto_valor: null, diferenca: null, gasto_novo: true, sinais: ['gasto novo confirmado pelo Eduardo'] });
       try {
         await window.sbClient.from('import_review').update({
-          vinculo: null, flag: 'firme', updated_at: new Date().toISOString(),
+          vinculo: null, evidencia: evN, flag: 'firme', updated_at: new Date().toISOString(),
         }).eq('id', r.id);
-        r.vinculo = null; r.flag = 'firme';
+        r.vinculo = null; r.flag = 'firme'; r.ev = evN;
         window.__revJson = null;
         finToast('✚ Marcado como gasto novo, sem vínculo com previsões');
         renderReview();
