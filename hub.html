@@ -1551,6 +1551,15 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .cf-cands th { font-size: 10px; }
 #finapp .cf-cands td { padding: 5px 10px; }
 #finapp .cf-foot { padding: 9px 4px 0; font-size: 12px; color: var(--muted); border-top: 1px solid #f0ede8; margin-top: 8px; }
+#finapp .cf-cands3 { display: grid; gap: 8px; grid-template-columns: 1fr; margin-top: 7px; }
+@media (min-width: 640px) { #finapp .cf-cands3 { grid-template-columns: 1fr 1fr 1fr; } }
+#finapp .cf-cand { border: 1.5px solid #ede9f5; border-radius: 10px; padding: 9px 11px; cursor: pointer; background: #fff; }
+#finapp .cf-cand:hover { border-color: #5b4fcf; }
+#finapp .cf-cand.sel { border-color: #5b4fcf; background: #ede9f5; }
+#finapp .cf-listap { border: 1px solid #ede9f5; border-radius: 9px; background: #fff; max-height: 250px; overflow: auto; margin-top: 8px; }
+#finapp .cf-prow { display: flex; align-items: center; gap: 9px; padding: 7px 11px; border-bottom: 1px solid #f4f2f7; cursor: pointer; font-size: 12.5px; }
+#finapp .cf-prow:hover { background: #f6f4fb; }
+#finapp .cf-prow.sel { background: #ede9f5; box-shadow: inset 3px 0 0 #5b4fcf; }
 #finapp table.rev-tb td.rv-desc { min-width: 170px; }
 #finapp table.rev-tb td[contenteditable] { outline: none; border-radius: 6px; }
 #finapp table.rev-tb td[contenteditable]:focus { background: #eef4ff; box-shadow: inset 0 0 0 1.5px #93b4f5; }
@@ -14245,23 +14254,42 @@ function cfDossie(r) {
     + '</div></div></td></tr>';
 }
 function cfVincHtml(r) {
-  // "isso aqui é aquela previsão ali" (vínculo manual) ou "é gasto novo mesmo"
-  let opts;
-  if (!r._prevs) opts = '<option value="">carregando previsões da fatura…</option>';
-  else if (!r._prevs.length) opts = '<option value="">(nenhuma previsão nesta fatura)</option>';
-  else {
-    opts = '<option value="">🔗 é uma destas previsões? escolha…</option>' + r._prevs.map((f, i) => {
-      const sel2 = r.vinculo && r.vinculo.desc === f.description && (r.vinculo.n || null) === (f.installment_current || null);
-      return '<option value="' + i + '"' + (sel2 ? ' selected' : '') + '>' + cfEsc(f.description)
-        + (f.installment_current ? ' · ' + f.installment_current + '/' + f.installment_total : '')
-        + ' · ' + cfBR(Number(f.amount)) + (f.source_file === 'recorrencia' ? ' · recorrência' : '') + '</option>';
-    }).join('');
+  // vínculo manual — layout "top 3 cards + ver todas" (escolhido pelo Eduardo em 06/09)
+  if (!r._prevs) return '<div style="margin-top:9px;font-size:12px;color:var(--muted)">carregando previsões da fatura…</div>';
+  const tag = r.vinculo
+    ? '<div style="margin-top:8px"><span class="rev-tag planejado">🔗 ' + cfEsc(r.vinculo.desc) + (r.vinculo.n ? ' ' + r.vinculo.n + '/' + r.vinculo.total : '') + ' — sai do planejamento ao aprovar</span></div>'
+    : (r.ev && r.ev.gasto_novo ? '<div style="margin-top:8px"><span class="rev-tag" style="background:#ede9f5;color:#4c3f9e">✚ gasto novo confirmado</span></div>' : '');
+  const btnNovo = '<button class="cf-btn cf-novo" data-id="' + r.id + '">✚ É gasto novo (não planejado)</button>';
+  if (!r._prevs.length) {
+    return '<div style="margin-top:9px;font-size:12px;color:var(--muted)">(nenhuma previsão nesta fatura)</div>'
+      + '<div style="margin-top:8px">' + btnNovo + '</div>' + tag;
   }
-  return '<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center">'
-    + '<select class="cf-vinc" data-id="' + r.id + '" style="max-width:360px">' + opts + '</select>'
-    + '<button class="cf-btn cf-novo" data-id="' + r.id + '">✚ É gasto novo (não planejado)</button>'
-    + (r.vinculo ? '<span class="rev-tag planejado">🔗 ' + cfEsc(r.vinculo.desc) + (r.vinculo.n ? ' ' + r.vinculo.n + '/' + r.vinculo.total : '') + ' — sai do planejamento ao aprovar</span>' : '')
-    + '</div>';
+  const eSel = f => r.vinculo && r.vinculo.desc === f.description
+    && (r.vinculo.n || null) === (f.installment_current || null)
+    && Math.abs(Number(r.vinculo.valor) - Number(f.amount)) < 0.005;
+  const deltaTxt = f => { const d = Math.abs(Number(f.amount) - r.valor); return d <= 0.005 ? 'valor exato' : 'Δ R$ ' + d.toFixed(2).replace('.', ','); };
+  const card = (f, i) => {
+    const d = Math.abs(Number(f.amount) - r.valor);
+    return '<div class="cf-cand' + (eSel(f) ? ' sel' : '') + '" data-id="' + r.id + '" data-i="' + i + '">'
+      + '<div style="font-weight:700;font-size:12.5px">' + cfEsc(f.description) + '</div>'
+      + '<div style="font-size:11px;color:var(--muted)">' + (f.installment_current ? 'parcela ' + f.installment_current + '/' + f.installment_total : 'recorrência') + ' · ' + cfBR(Number(f.amount)) + '</div>'
+      + '<div style="font-size:11px;font-weight:800;margin-top:3px;color:' + (d <= 5 ? '#065f46' : 'var(--muted)') + '">' + deltaTxt(f) + '</div></div>';
+  };
+  const linha = (f, i) => {
+    const d = Math.abs(Number(f.amount) - r.valor);
+    return '<div class="cf-prow' + (eSel(f) ? ' sel' : '') + '" data-id="' + r.id + '" data-i="' + i + '">'
+      + '<span style="font-weight:650;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + cfEsc(f.description) + '</span>'
+      + '<span style="font-size:11px;color:var(--muted);white-space:nowrap">' + (f.installment_current ? f.installment_current + '/' + f.installment_total : 'recorrência') + '</span>'
+      + '<span style="font-weight:700;white-space:nowrap">' + cfBR(Number(f.amount)) + '</span>'
+      + '<span class="rev-tag' + (d <= 5 ? ' planejado' : '') + '" style="font-size:10px;margin-left:0">' + deltaTxt(f) + '</span></div>';
+  };
+  return '<div style="margin-top:10px;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">🔗 Isso se refere a…</div>'
+    + '<div class="cf-cands3">' + r._prevs.slice(0, 3).map(card).join('') + '</div>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">'
+    + (r._prevs.length > 3 ? '<button class="cf-btn cf-vertodas" data-id="' + r.id + '">' + (r._verTodas ? '▴ Esconder lista' : '▾ Ver todas as ' + r._prevs.length + ' previsões…') + '</button>' : '')
+    + btnNovo + '</div>'
+    + (r._verTodas ? '<div class="cf-listap">' + r._prevs.map(linha).join('') + '</div>' : '')
+    + tag;
 }
 let __confReloadTimer = null;
 function confAgendaRecarga() {
@@ -14372,28 +14400,38 @@ function bindReview() {
       }
     });
   });
-  box.querySelectorAll('.cf-vinc').forEach(sel => {
-    sel.addEventListener('change', async () => {
-      const r = CONF.find(x => x.id === sel.dataset.id); if (!r || !r._prevs) return;
-      const i = parseInt(sel.value, 10);
-      if (isNaN(i) || !r._prevs[i]) return;
-      const f = r._prevs[i];
-      const v = { desc: f.description, valor: Number(f.amount), n: f.installment_current || null, total: f.installment_total || null, tipo: f.source_file };
-      const difV = Math.round(Math.abs(Number(f.amount) - r.valor) * 100) / 100;
-      const evV = Object.assign({}, r.ev || {}, { previsto: f.description, previsto_valor: Number(f.amount), diferenca: difV, gasto_novo: false, sinais: ['vínculo manual do Eduardo'] });
-      try {
-        await window.sbClient.from('import_review').update({
-          vinculo: v, descricao: f.description, categoria: f.category || r.cat,
-          n_atual: f.installment_current || null, n_total: f.installment_total || null,
-          parcela: f.installment_total ? (f.installment_current + '/' + f.installment_total) : null,
-          evidencia: evV, flag: 'planejado', updated_at: new Date().toISOString(),
-        }).eq('id', r.id);
-        r.vinculo = v; r.desc = f.description; r.cat = f.category || r.cat; r.flag = 'planejado';
-        r.ev = evV; r.parcela = f.installment_total ? (f.installment_current + '/' + f.installment_total) : null;
-        window.__revJson = null;
-        finToast('🔗 Vinculado a "' + f.description + '" — sai do planejamento quando você aprovar');
-        renderReview();
-      } catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
+  async function cfVincula(r, f) {
+    const v = { desc: f.description, valor: Number(f.amount), n: f.installment_current || null, total: f.installment_total || null, tipo: f.source_file };
+    const difV = Math.round(Math.abs(Number(f.amount) - r.valor) * 100) / 100;
+    const evV = Object.assign({}, r.ev || {}, { previsto: f.description, previsto_valor: Number(f.amount), diferenca: difV, gasto_novo: false, sinais: ['vínculo manual do Eduardo'] });
+    try {
+      await window.sbClient.from('import_review').update({
+        vinculo: v, descricao: f.description, categoria: f.category || r.cat,
+        n_atual: f.installment_current || null, n_total: f.installment_total || null,
+        parcela: f.installment_total ? (f.installment_current + '/' + f.installment_total) : null,
+        evidencia: evV, flag: 'planejado', updated_at: new Date().toISOString(),
+      }).eq('id', r.id);
+      r.vinculo = v; r.desc = f.description; r.cat = f.category || r.cat; r.flag = 'planejado';
+      r.ev = evV; r.parcela = f.installment_total ? (f.installment_current + '/' + f.installment_total) : null;
+      window.__revJson = null;
+      finToast('🔗 Vinculado a "' + f.description + '" — sai do planejamento quando você aprovar');
+      renderReview();
+    } catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
+  }
+  box.querySelectorAll('.cf-cand, .cf-prow').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const r = CONF.find(x => x.id === el.dataset.id); if (!r || !r._prevs) return;
+      const f = r._prevs[parseInt(el.dataset.i, 10)]; if (!f) return;
+      cfVincula(r, f);
+    });
+  });
+  box.querySelectorAll('.cf-vertodas').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      const r = CONF.find(x => x.id === b.dataset.id); if (!r) return;
+      r._verTodas = !r._verTodas;
+      renderReview();
     });
   });
   box.querySelectorAll('.cf-novo').forEach(b => {
