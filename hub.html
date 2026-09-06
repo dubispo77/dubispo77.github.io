@@ -1532,6 +1532,7 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp table.rev-tb td { padding: 6px 8px; border-bottom: 1px solid #f2f0ec; vertical-align: middle; }
 #finapp table.rev-tb tr.rv-duvida { background: #fefce8; }
 #finapp table.rev-tb tr.rv-plan { background: #ecfdf5; }
+#finapp table.rev-tb tr.rv-firm { background: #ecfdf5; }
 #finapp table.rev-tb tr.rv-prov { background: #fff7ed; }
 #finapp .rev-tag { display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
 #finapp .rev-tag.planejado { background: #d1fae5; color: #065f46; }
@@ -14215,18 +14216,21 @@ function renderReview() {
   const duvidas = CONF.filter(r => r.flag === 'duvida').length;
   const planejados = CONF.filter(r => r.flag === 'planejado' || r.flag === 'provavel').length;
   const semDuvida = CONF.filter(r => r.k === 'cartao' && r.flag !== 'duvida').length;
-  const rvCls = { duvida: 'rv-duvida', planejado: 'rv-plan', provavel: 'rv-prov' };
+  const rvCls = { duvida: 'rv-duvida', planejado: 'rv-plan', provavel: 'rv-prov', firme: 'rv-firm' };
   const totFila = CONF.reduce((s, r) => s + r.valor, 0);
   const totDif = CONF.reduce((s, r) => s + (r.ev && typeof r.ev.diferenca === 'number' ? r.ev.diferenca : 0), 0);
   const linhas = CONF.map(r => {
     const ev = r.ev || {};
     const temPrev = ev.previsto != null;
+    const naoConf = temPrev && r.flag === 'duvida'; // há candidato, mas o motor não confirmou — mostra em cinza
     const prevCell = temPrev
-      ? '<div style="font-weight:600;font-size:12px">' + cfEsc(ev.previsto) + '</div>'
-        + (typeof ev.previsto_valor === 'number' ? '<div style="font-size:11px;color:var(--muted)">' + cfBR(ev.previsto_valor) + '</div>' : '')
+      ? '<div style="font-weight:600;font-size:12px' + (naoConf ? ';color:#a89eb8' : '') + '">' + cfEsc(ev.previsto) + '</div>'
+        + (typeof ev.previsto_valor === 'number' ? '<div style="font-size:11px;color:#a89eb8">' + cfBR(ev.previsto_valor) + (naoConf ? ' · não confirmado' : '') + '</div>' : '')
       : '<span style="color:#c9c2d6">—</span>';
     const difCell = temPrev && typeof ev.diferenca === 'number'
-      ? '<span class="rev-tag ' + (r.flag === 'planejado' ? 'planejado' : 'provavel') + '">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + '</span>'
+      ? (naoConf
+        ? '<span style="font-size:11px;color:#a89eb8;font-weight:700">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + ' ?</span>'
+        : '<span class="rev-tag ' + (r.flag === 'planejado' ? 'planejado' : 'provavel') + '">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + '</span>')
       : (r.flag === 'duvida' ? '<span class="rev-tag duvida">?</span>' : '<span style="color:#c9c2d6">—</span>');
     const chip = r.k === 'conta'
       ? '<span class="cf-org conta">🏦 ' + cfEsc(r.bloco) + '</span>'
