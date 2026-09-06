@@ -14121,7 +14121,7 @@ async function loadReview() { // nome mantido — é o ponto de entrada chamado 
   try {
     const [rev, inb] = await Promise.all([
       window.sbClient.from('import_review')
-        .select('id,mes,ordem,bloco,data,raw,descricao,parcela,categoria,situacao,valor,fonte,flag,status,pd,tx_id,evidencia,account_id')
+        .select('id,mes,ordem,bloco,data,raw,descricao,parcela,categoria,situacao,valor,fonte,flag,status,pd,tx_id,evidencia,account_id,tx_payload,vinculo')
         .eq('status', 'pendente').order('ordem'),
       window.sbClient.from('inbox_transactions')
         .select('id,account_id,date,description_raw,description_sugerida,category_sugerida,amount,pluggy_transaction_id,raw')
@@ -14133,6 +14133,8 @@ async function loadReview() { // nome mantido — é o ponto de entrada chamado 
       k: 'cartao', id: r.id, ordem: r.ordem || 0, dia: r.data, bloco: r.bloco,
       raw: r.raw || '', desc: r.descricao || '', cat: r.categoria || 'Extras', valor: parseFloat(r.valor),
       parcela: r.parcela, flag: r.flag, ev: r.evidencia || null, tx_id: r.tx_id, pd: r.pd || '',
+      account_id: r.account_id, bill: (r.tx_payload && r.tx_payload.raw && r.tx_payload.raw.bill) || null,
+      vinculo: r.vinculo || null,
     }));
     const contas = (inb.data || []).map(it => {
       const accKey = (window.__accIdToKey || {})[it.account_id];
@@ -14234,12 +14236,32 @@ function cfDossie(r) {
     + (ev.sinais && ev.sinais.length ? '<div style="margin-bottom:5px"><b>Sinais:</b> ' + cfEsc(ev.sinais.join(' · ')) + '</div>' : '')
     + (ev.detalhe ? '<div style="color:var(--muted);margin-bottom:7px">' + cfEsc(ev.detalhe) + '</div>' : '')
     + (cands ? '<table class="cf-cands"><tr><th>Previsões candidatas na mesma fatura</th><th>Valor</th><th>Distância</th></tr>' + cands + '</table>' : '')
+    + (r.k === 'cartao' && !r.tx_id ? cfVincHtml(r) : '')
     + '<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center">'
     + '<input class="cf-desc" data-id="' + r.id + '" value="' + cfEsc(r.desc).replace(/"/g, '&quot;') + '" style="flex:1;min-width:180px;border:1px solid #ddd9d2;border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;font-weight:600">'
     + '<select class="cf-cat" data-id="' + r.id + '">' + REV_CATS.map(c => '<option' + (c === r.cat ? ' selected' : '') + '>' + c + '</option>').join('') + '</select>'
     + '<button class="cf-btn go btn-ap" data-id="' + r.id + '">Aprovar ✓</button>'
     + '<button class="cf-btn btn-rc" data-id="' + r.id + '">Não incluir ✕</button>'
     + '</div></div></td></tr>';
+}
+function cfVincHtml(r) {
+  // "isso aqui é aquela previsão ali" (vínculo manual) ou "é gasto novo mesmo"
+  let opts;
+  if (!r._prevs) opts = '<option value="">carregando previsões da fatura…</option>';
+  else if (!r._prevs.length) opts = '<option value="">(nenhuma previsão nesta fatura)</option>';
+  else {
+    opts = '<option value="">🔗 é uma destas previsões? escolha…</option>' + r._prevs.map((f, i) => {
+      const sel2 = r.vinculo && r.vinculo.desc === f.description && (r.vinculo.n || null) === (f.installment_current || null);
+      return '<option value="' + i + '"' + (sel2 ? ' selected' : '') + '>' + cfEsc(f.description)
+        + (f.installment_current ? ' · ' + f.installment_current + '/' + f.installment_total : '')
+        + ' · ' + cfBR(Number(f.amount)) + (f.source_file === 'recorrencia' ? ' · recorrência' : '') + '</option>';
+    }).join('');
+  }
+  return '<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center">'
+    + '<select class="cf-vinc" data-id="' + r.id + '" style="max-width:360px">' + opts + '</select>'
+    + '<button class="cf-btn cf-novo" data-id="' + r.id + '">✚ É gasto novo (não planejado)</button>'
+    + (r.vinculo ? '<span class="rev-tag planejado">🔗 ' + cfEsc(r.vinculo.desc) + (r.vinculo.n ? ' ' + r.vinculo.n + '/' + r.vinculo.total : '') + ' — sai do planejamento ao aprovar</span>' : '')
+    + '</div>';
 }
 let __confReloadTimer = null;
 function confAgendaRecarga() {
@@ -14284,11 +14306,23 @@ async function confRecusar(r) {
 function bindReview() {
   const box = document.getElementById('finReview');
   box.querySelectorAll('.cf-row').forEach(tr => {
-    tr.addEventListener('click', e => {
+    tr.addEventListener('click', async e => {
       if (e.target.closest('button, input, select')) return;
       const id = tr.dataset.id;
       confAberto = (confAberto === id) ? null : id;
       renderReview();
+      // abriu dossiê de cartão: busca as previsões da fatura pro dropdown de vínculo
+      const r = CONF.find(x => x.id === id);
+      if (confAberto === id && r && r.k === 'cartao' && !r.tx_id && !r._prevs && r.account_id && r.bill) {
+        try {
+          const { data } = await window.sbClient.from('transactions')
+            .select('description,category,amount,installment_current,installment_total,source_file,raw')
+            .eq('account_id', r.account_id).eq('source', 'forecast').in('source_file', ['projecao', 'recorrencia']);
+          r._prevs = (data || []).filter(f => (f.raw || {}).bill === r.bill)
+            .sort((a, b) => Math.abs(Number(a.amount) - r.valor) - Math.abs(Number(b.amount) - r.valor));
+          if (confAberto === id) renderReview();
+        } catch (e2) { console.warn('[finapp] previsões:', e2.message || e2); }
+      }
     });
   });
   const tira = (id) => { CONF = CONF.filter(x => x.id !== id); window.__revJson = null; if (confAberto === id) confAberto = null; };
@@ -14336,6 +14370,40 @@ function bindReview() {
           r.flag = 'firme'; finToast('✓ Salvo');
         } catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
       }
+    });
+  });
+  box.querySelectorAll('.cf-vinc').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const r = CONF.find(x => x.id === sel.dataset.id); if (!r || !r._prevs) return;
+      const i = parseInt(sel.value, 10);
+      if (isNaN(i) || !r._prevs[i]) return;
+      const f = r._prevs[i];
+      const v = { desc: f.description, valor: Number(f.amount), n: f.installment_current || null, total: f.installment_total || null, tipo: f.source_file };
+      try {
+        await window.sbClient.from('import_review').update({
+          vinculo: v, descricao: f.description, categoria: f.category || r.cat,
+          flag: 'planejado', updated_at: new Date().toISOString(),
+        }).eq('id', r.id);
+        r.vinculo = v; r.desc = f.description; r.cat = f.category || r.cat; r.flag = 'planejado';
+        window.__revJson = null;
+        finToast('🔗 Vinculado a "' + f.description + '" — sai do planejamento quando você aprovar');
+        renderReview();
+      } catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
+    });
+  });
+  box.querySelectorAll('.cf-novo').forEach(b => {
+    b.addEventListener('click', async e => {
+      e.stopPropagation();
+      const r = CONF.find(x => x.id === b.dataset.id); if (!r) return;
+      try {
+        await window.sbClient.from('import_review').update({
+          vinculo: null, flag: 'firme', updated_at: new Date().toISOString(),
+        }).eq('id', r.id);
+        r.vinculo = null; r.flag = 'firme';
+        window.__revJson = null;
+        finToast('✚ Marcado como gasto novo, sem vínculo com previsões');
+        renderReview();
+      } catch (e2) { finToast('✗ Erro: ' + (e2.message || e2), true); }
     });
   });
   const lote = document.getElementById('confLote');
