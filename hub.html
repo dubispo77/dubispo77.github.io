@@ -1569,6 +1569,12 @@ table.data-table tr:hover td { background: var(--bg); }
   flex: 0 0 auto; margin-left: 4px; font-family: inherit; }
 #finapp .cf-vincbtn:hover { border-color: #16a34a; background: #16a34a; color: #fff; }
 #finapp .cf-prow.sel .cf-vincbtn { border-color: #5b4fcf; background: #5b4fcf; color: #fff; }
+#finapp .cf-fixo { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 650; cursor: pointer;
+  border: 1px dashed #b9b2c9; border-radius: 8px; padding: 5px 11px; color: #4c3f9e; user-select: none; }
+#finapp .cf-fixo .fx-box { width: 14px; height: 14px; border: 1.5px solid #b9b2c9; border-radius: 4px; background: #fff; position: relative; }
+#finapp .cf-fixo.on { border-style: solid; border-color: #5b4fcf; background: #ede9f5; }
+#finapp .cf-fixo.on .fx-box { background: #5b4fcf; border-color: #5b4fcf; }
+#finapp .cf-fixo.on .fx-box::after { content: '✓'; color: #fff; font-size: 10px; font-weight: 800; position: absolute; left: 2px; top: -1px; }
 #finapp .cf-novo { border-style: dashed; border-color: #b9b2c9; color: #4c3f9e; }
 #finapp .cf-novo.on, #finapp .cf-novo:hover { background: #ede9f5; border-style: solid; border-color: #5b4fcf; }
 #finapp table.rev-tb td.rv-desc { min-width: 170px; }
@@ -14283,8 +14289,12 @@ function cfDossie(r) {
     + '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">'
     + '<input class="cf-desc" data-id="' + r.id + '" value="' + cfEsc(r.desc).replace(/"/g, '&quot;') + '" style="flex:1;min-width:180px;border:1px solid #ddd9d2;border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;font-weight:600">'
     + '<select class="cf-cat" data-id="' + r.id + '">' + REV_CATS.map(c => '<option' + (c === r.cat ? ' selected' : '') + '>' + c + '</option>').join('') + '</select>'
+    + '<label class="cf-fixo' + (r._fixo ? ' on' : '') + '" data-id="' + r.id + '"><span class="fx-box"></span> 🔁 Gasto fixo mensal</label>'
     + '<button class="cf-btn go btn-ap" data-id="' + r.id + '">Aprovar ✓</button>'
-    + '</div></div></td></tr>';
+    + '</div>'
+    + '<div class="cf-fixohint" style="display:' + (r._fixo ? 'block' : 'none') + ';font-size:11.5px;color:#4c3f9e;margin-top:6px">'
+    + '🔁 Ao aprovar: <b>' + revFmt(r.valor) + ' entra como previsão em todos os meses seguintes</b> e casa sozinho quando a cobrança real chegar.</div>'
+    + '</div></td></tr>';
 }
 function cfPrevLista(r) {
   if (!r._prevs) return '<div style="font-size:12px;color:var(--muted)">carregando previsões da fatura…</div>';
@@ -14309,11 +14319,22 @@ function confAgendaRecarga() {
   clearTimeout(__confReloadTimer);
   __confReloadTimer = setTimeout(() => { if (window.finRecarregar) window.finRecarregar(); }, 1800);
 }
+function cfMatchDesc(s) {
+  // padrão ilike pra recorrência reconhecer as próximas cobranças (2 tokens fortes do texto bruto)
+  const toks = String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase()
+    .replace(/[^A-Z0-9 ]+/g, ' ').split(/\s+/)
+    .filter(t => t.length >= 4 && !/^\d+$/.test(t)
+      && ['COMPRA','CARTAO','CREDITO','DEBITO','PARCELA','BRASIL','LTDA','PAGAMENTO','INTERNACIONAL','ENVIADO','RECEBIDO','TRANSFERENCIA','DOCTO'].indexOf(t) < 0)
+    .slice(0, 2);
+  return toks.length ? '%' + toks.join('%') + '%' : '%' + String(s || '').slice(0, 20) + '%';
+}
 async function confAprovar(r) {
   if (r.k === 'cartao') {
-    const { data, error } = await window.sbClient.rpc('aprovar_review', { p_id: r.id });
+    const { data, error } = await window.sbClient.rpc('aprovar_review',
+      { p_id: r.id, p_fixo: !!r._fixo, p_match: r._fixo ? cfMatchDesc(r.raw || r.desc) : null });
     if (error) throw error;
     if (data && data.ok === false) throw new Error(data.erro || 'falha na aprovação');
+    if (r._fixo) finToast('🔁 Gasto fixo cadastrado — previsto nos próximos meses');
     confAgendaRecarga();
   } else {
     const it = r.it;
@@ -14330,6 +14351,18 @@ async function confAprovar(r) {
     if (e1) throw e1;
     await window.sbClient.from('inbox_transactions')
       .update({ status: 'approved', decided_at: new Date().toISOString() }).eq('id', r.id);
+    if (r._fixo) {
+      // 🔁 gasto fixo de conta: cadastra recorrência (previsão nos meses seguintes + casamento no sync)
+      const dia = parseInt(it.date.slice(8, 10), 10) || 1;
+      const { error: e2 } = await window.sbClient.from('recorrencias').insert({
+        user_id: (await window.sbClient.auth.getUser()).data.user.id,
+        account_id: it.account_id, description: r.desc, category: r.cat, amount: it.amount,
+        vezes_por_mes: 1, meses_a_frente: 12, dia: Math.min(dia, 28), dia_cobranca: dia,
+        match_desc: cfMatchDesc(r.raw || r.desc), ativo: true,
+      });
+      if (e2) finToast('⚠ Aprovado, mas não cadastrou o fixo: ' + (e2.message || e2), true);
+      else finToast('🔁 Gasto fixo cadastrado — previsto nos próximos meses');
+    }
     confAgendaRecarga();
   }
 }
@@ -14443,6 +14476,16 @@ function bindReview() {
     inp.addEventListener('input', aplica);
     inp.addEventListener('click', e => e.stopPropagation());
     if (inp.value) aplica();
+  });
+  box.querySelectorAll('.cf-fixo').forEach(lb => {
+    lb.addEventListener('click', e => {
+      e.stopPropagation();
+      const r = CONF.find(x => x.id === lb.dataset.id); if (!r) return;
+      r._fixo = !r._fixo;
+      lb.classList.toggle('on', r._fixo);
+      const hint = lb.closest('.cf-dbox').querySelector('.cf-fixohint');
+      if (hint) hint.style.display = r._fixo ? 'block' : 'none';
+    });
   });
   box.querySelectorAll('.cf-novo').forEach(b => {
     b.addEventListener('click', async e => {
