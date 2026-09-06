@@ -1564,7 +1564,11 @@ table.data-table tr:hover td { background: var(--bg); }
 @media (min-width: 700px) { #finapp .cf-2col:not(.so-esq) { grid-template-columns: 250px 1fr; } }
 #finapp .cf-esq { background: #fff; border: 1.5px solid #ede9f5; border-radius: 10px; padding: 11px 13px; }
 #finapp .cf-lbl { font-size: 10.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
-#finapp .cf-vincbtn { padding: 2px 9px; font-size: 12px; margin-left: 4px; }
+#finapp .cf-vincbtn { border: 1px solid #ddd9d2; background: transparent; color: #c9c2d6; border-radius: 999px;
+  width: 24px; height: 24px; padding: 0; font-size: 11px; font-weight: 800; cursor: pointer; line-height: 1;
+  flex: 0 0 auto; margin-left: 4px; font-family: inherit; }
+#finapp .cf-vincbtn:hover { border-color: #16a34a; background: #16a34a; color: #fff; }
+#finapp .cf-prow.sel .cf-vincbtn { border-color: #5b4fcf; background: #5b4fcf; color: #fff; }
 #finapp .cf-novo { border-style: dashed; border-color: #b9b2c9; color: #4c3f9e; }
 #finapp .cf-novo.on, #finapp .cf-novo:hover { background: #ede9f5; border-style: solid; border-color: #5b4fcf; }
 #finapp table.rev-tb td.rv-desc { min-width: 170px; }
@@ -14295,7 +14299,7 @@ function cfPrevLista(r) {
       + '<span style="font-size:11px;color:var(--muted);white-space:nowrap">' + (f.installment_current ? f.installment_current + '/' + f.installment_total : 'recorrência') + '</span>'
       + '<span style="font-weight:700;white-space:nowrap">' + cfBR(Number(f.amount)) + '</span>'
       + '<span class="rev-tag' + (d <= 5 ? ' planejado' : '') + '" style="font-size:10px;margin-left:0">' + (d <= 0.005 ? 'exato' : 'Δ R$ ' + d.toFixed(2).replace('.', ',')) + '</span>'
-      + '<button class="cf-btn go cf-vincbtn" data-id="' + r.id + '" data-i="' + i + '" title="é esta previsão">' + (eSel(f) ? '🔗' : '✓') + '</button></div>';
+      + '<button class="cf-vincbtn" data-id="' + r.id + '" data-i="' + i + '" title="é esta previsão">' + (eSel(f) ? '🔗' : '✓') + '</button></div>';
   };
   return '<input type="text" class="cf-busca" data-id="' + r.id + '" placeholder="🔍 buscar previsão…" value="' + cfEsc(r._busca || '').replace(/"/g, '&quot;') + '" style="width:100%;border:1px solid #ddd9d2;border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px;margin-bottom:7px">'
     + '<div class="cf-listap" style="margin-top:0;max-height:280px">' + r._prevs.map(linha).join('') + '</div>';
