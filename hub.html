@@ -1536,6 +1536,21 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .rev-tag { display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
 #finapp .rev-tag.planejado { background: #d1fae5; color: #065f46; }
 #finapp .rev-tag.provavel { background: #ffedd5; color: #9a3412; }
+#finapp .rev-tag.duvida { background: #fef3c7; color: #92400e; }
+#finapp .cf-tb .cf-row { cursor: pointer; }
+#finapp .cf-tb .cf-row:hover { filter: brightness(.985); }
+#finapp .cf-prev { max-width: 220px; }
+#finapp .cf-org { display: inline-block; border: 1px solid #e4e0ee; border-radius: 999px; padding: 1px 8px; font-size: 10.5px; font-weight: 700; color: #6b637a; background: #faf9fc; white-space: nowrap; }
+#finapp .cf-org.conta { border-color: #f2b8b8; color: #b91c1c; }
+#finapp .cf-btn { border: 1px solid #ddd9d2; background: #fff; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 650; cursor: pointer; font-family: inherit; color: var(--ink, #1a1828); }
+#finapp .cf-btn.go { background: #16a34a; border-color: #16a34a; color: #fff; font-weight: 800; }
+#finapp .cf-btn:disabled { opacity: .5; cursor: default; }
+#finapp .cf-dossie td { background: #faf9fc; }
+#finapp .cf-dbox { padding: 10px 12px; font-size: 12.5px; }
+#finapp .cf-cands { width: auto; min-width: 340px; font-size: 11.5px; }
+#finapp .cf-cands th { font-size: 10px; }
+#finapp .cf-cands td { padding: 5px 10px; }
+#finapp .cf-foot { padding: 9px 4px 0; font-size: 12px; color: var(--muted); border-top: 1px solid #f0ede8; margin-top: 8px; }
 #finapp table.rev-tb td.rv-desc { min-width: 170px; }
 #finapp table.rev-tb td[contenteditable] { outline: none; border-radius: 6px; }
 #finapp table.rev-tb td[contenteditable]:focus { background: #eef4ff; box-shadow: inset 0 0 0 1.5px #93b4f5; }
@@ -14094,152 +14109,249 @@ document.addEventListener('click', async e => {
   } catch (err) { alert('Erro ao processar: ' + (err.message || err)); }
 });
 
-// ===== REVISÃO DE IMPORTAÇÃO (mensal, editável direto no banco) =====
+// ===== CONFERÊNCIA (painel único — regra-mãe: nada entra no mês sem o ✓ do Eduardo) =====
+// Layout escolhido em 06/09: conciliação "previsto × chegou × diferença" (opção 10)
+// com dossiê expansível por linha (opção 5). Cartão vem da sala de espera import_review
+// (tx_id null até aprovar → RPC aprovar_review cria a transação); conta vem de inbox_transactions.
 const REV_CATS = ['Alimentação','Aluguel','Assinaturas','Bebidas','Coisas para casa','Conveniência','Doações','Extras','Green','Imposto','Investimento','Lazer','Mercado','Moradia','Pessoais','Presentes','Profissionais','Reembolso','Resgate','Salário','Saúde','Seguros','Transporte','TRANSFER'];
-const REV_BLOCOS = { cartao: '💳 Fatura Bradesco', debito: '🏦 Bradesco Débito', nub_cred: '🟣 Nubank Crédito', nub_deb: '🟣 Nubank Débito', nub_pj: '🟣 Nubank PJ', mp_card: '🔵 Mercado Pago' };
-let REVIEW = []; let revSoDuvidas = true;
-async function loadReview() {
+const REV_BLOCOS = { cartao: '💳 Bradesco VISA', nub_cred: '🟣 Nubank Crédito', mp_card: '🔵 Mercado Pago', debito: '🏦 Bradesco Débito', nub_deb: '🟣 Nubank Débito', nub_pj: '🟣 Nubank PJ' };
+let CONF = []; let confAberto = null;
+async function loadReview() { // nome mantido — é o ponto de entrada chamado pelo adapter
   if (!window.sbClient) return;
   try {
-    const { data, error } = await window.sbClient.from('import_review')
-      .select('id,mes,ordem,bloco,data,raw,descricao,parcela,categoria,situacao,valor,fonte,flag,status')
-      .eq('status', 'pendente').order('ordem');
-    if (error) throw error;
-    const novoJson = JSON.stringify(data || []);
+    const [rev, inb] = await Promise.all([
+      window.sbClient.from('import_review')
+        .select('id,mes,ordem,bloco,data,raw,descricao,parcela,categoria,situacao,valor,fonte,flag,status,pd,tx_id,evidencia,account_id')
+        .eq('status', 'pendente').order('ordem'),
+      window.sbClient.from('inbox_transactions')
+        .select('id,account_id,date,description_raw,description_sugerida,category_sugerida,amount,pluggy_transaction_id,raw')
+        .eq('status', 'pending').order('date'),
+    ]);
+    if (rev.error) throw rev.error;
+    if (inb.error) throw inb.error;
+    const cards = (rev.data || []).map(r => ({
+      k: 'cartao', id: r.id, ordem: r.ordem || 0, dia: r.data, bloco: r.bloco,
+      raw: r.raw || '', desc: r.descricao || '', cat: r.categoria || 'Extras', valor: parseFloat(r.valor),
+      parcela: r.parcela, flag: r.flag, ev: r.evidencia || null, tx_id: r.tx_id, pd: r.pd || '',
+    }));
+    const contas = (inb.data || []).map(it => {
+      const accKey = (window.__accIdToKey || {})[it.account_id];
+      const nome = (accKey && DATA.accounts && DATA.accounts[accKey] && DATA.accounts[accKey].name) || 'Conta';
+      return {
+        k: 'conta', id: it.id, ordem: 0, dia: it.date.slice(8, 10) + '/' + it.date.slice(5, 7), bloco: nome,
+        raw: it.description_raw || '', desc: it.description_sugerida || it.description_raw || '',
+        cat: it.category_sugerida || 'Extras', valor: parseFloat(it.amount),
+        parcela: null, flag: null, ev: null, tx_id: null, pd: it.date, it,
+      };
+    });
+    const lista = cards.concat(contas).sort((a, b) => String(a.pd).localeCompare(String(b.pd)) || a.ordem - b.ordem);
+    const novoJson = JSON.stringify(lista.map(r => [r.id, r.desc, r.cat, r.flag]));
     if (novoJson !== window.__revJson) {
       window.__revJson = novoJson;
-      REVIEW = data || [];
+      CONF = lista;
       const ativo = document.activeElement;
       if (!(ativo && ativo.closest && ativo.closest('#finReview'))) renderReview();
     }
     revLigaRealtime();
     if (!window.__revPoll) window.__revPoll = setInterval(loadReview, 20000);
-  } catch (e) { console.warn('[finapp] review:', e.message || e); }
+  } catch (e) { console.warn('[finapp] conferência:', e.message || e); }
 }
 let __revRT = null, __revRenderTimer = null;
 function revAgendaRender() {
-  // não re-renderizar enquanto o Eduardo edita uma célula do painel
   clearTimeout(__revRenderTimer);
   __revRenderTimer = setTimeout(() => {
     const ativo = document.activeElement;
     if (ativo && ativo.closest && ativo.closest('#finReview')) { revAgendaRender(); return; }
-    renderReview();
-  }, 600);
+    loadReview();
+  }, 700);
 }
 function revLigaRealtime() {
   if (__revRT || !window.sbClient || !window.sbClient.channel) return;
   try {
-    __revRT = window.sbClient.channel('import-review-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'import_review' }, payload => {
-        const novo2 = payload.new || {};
-        if (payload.eventType === 'DELETE') {
-          REVIEW = REVIEW.filter(r => r.id !== (payload.old || {}).id);
-        } else if (novo2.id) {
-          const i = REVIEW.findIndex(r => r.id === novo2.id);
-          if (novo2.status && novo2.status !== 'pendente') { if (i >= 0) REVIEW.splice(i, 1); }
-          else if (i >= 0) {
-            const r = REVIEW[i];
-            // eco da própria edição: estado local já é igual → não re-renderizar
-            if (r.descricao === novo2.descricao && r.categoria === novo2.categoria && r.situacao === novo2.situacao && r.flag === novo2.flag) return;
-            Object.assign(r, novo2);
-          }
-          else if (novo2.status === 'pendente') { REVIEW.push(novo2); REVIEW.sort((a,b) => a.ordem - b.ordem); }
-        }
-        revAgendaRender();
-      })
+    __revRT = window.sbClient.channel('conf-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'import_review' }, () => revAgendaRender())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inbox_transactions' }, () => revAgendaRender())
       .subscribe();
-    console.log('[finapp] review realtime ligado');
+    console.log('[finapp] conferência realtime ligada');
   } catch (e) { console.warn('[finapp] realtime:', e.message || e); }
 }
 function revFmt(v) { return (v < 0 ? '-' : '+') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); }
+function cfBR(v) { return 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); }
+function cfEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 function renderReview() {
   const box = document.getElementById('finReview');
   if (!box) return;
-  if (!REVIEW.length) { box.style.display = 'none'; return; }
+  if (!CONF.length) { box.style.display = 'none'; return; }
   box.style.display = '';
   const estavaAberto = (box.querySelector('details') || {}).open || false;
-  const mes = REVIEW[0].mes;
-  const duvidas = REVIEW.filter(r => r.flag === 'duvida').length;
-  const planejados = REVIEW.filter(r => r.flag === 'planejado' || r.flag === 'provavel').length;
-  const mostra = revSoDuvidas ? REVIEW.filter(r => r.flag === 'duvida' || r.flag === 'provavel' || r.flag === 'planejado') : REVIEW;
-  const grupos = {};
-  mostra.forEach(r => { (grupos[r.bloco] = grupos[r.bloco] || []).push(r); });
+  const duvidas = CONF.filter(r => r.flag === 'duvida').length;
+  const planejados = CONF.filter(r => r.flag === 'planejado' || r.flag === 'provavel').length;
+  const semDuvida = CONF.filter(r => r.k === 'cartao' && r.flag !== 'duvida').length;
   const rvCls = { duvida: 'rv-duvida', planejado: 'rv-plan', provavel: 'rv-prov' };
-  const rvTag = { planejado: '<span class="rev-tag planejado">✓ planejado</span>', provavel: '<span class="rev-tag provavel">≈ planejado?</span>' };
-  let corpo = '';
-  Object.keys(REV_BLOCOS).forEach(b => {
-    const rs = grupos[b]; if (!rs || !rs.length) return;
-    corpo += '<tr><td colspan="7" style="font-weight:700;padding-top:12px">' + REV_BLOCOS[b] + ' (' + rs.length + ')</td></tr>';
-    corpo += rs.map(r => '<tr class="' + (rvCls[r.flag] || '') + '" data-id="' + r.id + '">'
-      + '<td>' + r.data + '</td>'
-      + '<td class="rv-raw">' + r.raw + (rvTag[r.flag] || '') + '</td>'
-      + '<td class="rv-desc" contenteditable spellcheck="false" data-f="descricao">' + r.descricao + '</td>'
-      + '<td>' + (r.parcela || '—') + '</td>'
-      + '<td><select class="rv-cat" data-f="categoria">' + REV_CATS.map(c => '<option' + (c === r.categoria ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></td>'
-      + '<td><select data-f="situacao"><option' + (r.situacao === 'Incluir' ? ' selected' : '') + '>Incluir</option><option' + (r.situacao !== 'Incluir' ? ' selected' : '') + '>Não incluir</option></select></td>'
-      + '<td class="' + (r.valor < 0 ? 'rv-val-neg' : 'rv-val-pos') + '">' + revFmt(r.valor) + '</td>'
-      + '</tr>').join('');
-  });
-  box.innerHTML = '<details class="rev-panel"' + (estavaAberto ? ' open' : '') + '><summary>📝 Revisão de importação — ' + mes
+  const totFila = CONF.reduce((s, r) => s + r.valor, 0);
+  const totDif = CONF.reduce((s, r) => s + (r.ev && typeof r.ev.diferenca === 'number' ? r.ev.diferenca : 0), 0);
+  const linhas = CONF.map(r => {
+    const ev = r.ev || {};
+    const temPrev = ev.previsto != null;
+    const prevCell = temPrev
+      ? '<div style="font-weight:600;font-size:12px">' + cfEsc(ev.previsto) + '</div>'
+        + (typeof ev.previsto_valor === 'number' ? '<div style="font-size:11px;color:var(--muted)">' + cfBR(ev.previsto_valor) + '</div>' : '')
+      : '<span style="color:#c9c2d6">—</span>';
+    const difCell = temPrev && typeof ev.diferenca === 'number'
+      ? '<span class="rev-tag ' + (r.flag === 'planejado' ? 'planejado' : 'provavel') + '">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + '</span>'
+      : (r.flag === 'duvida' ? '<span class="rev-tag duvida">?</span>' : '<span style="color:#c9c2d6">—</span>');
+    const chip = r.k === 'conta'
+      ? '<span class="cf-org conta">🏦 ' + cfEsc(r.bloco) + '</span>'
+      : '<span class="cf-org">' + (REV_BLOCOS[r.bloco] || cfEsc(r.bloco)) + '</span>';
+    let linha = '<tr class="cf-row ' + (rvCls[r.flag] || '') + '" data-id="' + r.id + '">'
+      + '<td style="white-space:nowrap;font-size:11.5px;color:var(--muted);font-weight:700">' + cfEsc(r.dia) + '</td>'
+      + '<td class="cf-prev">' + prevCell + '</td>'
+      + '<td style="text-align:center">' + difCell + '</td>'
+      + '<td><div style="font-weight:650">' + cfEsc(r.desc) + (r.parcela ? ' <span style="color:var(--muted);font-weight:600">· ' + r.parcela + '</span>' : '') + '</div>'
+      + '<div class="rv-raw" style="font-size:10.5px">' + cfEsc(r.raw).slice(0, 110) + '</div><div style="margin-top:2px">' + chip + '</div></td>'
+      + '<td class="' + (r.valor < 0 ? 'rv-val-neg' : 'rv-val-pos') + '" style="text-align:right;white-space:nowrap">' + revFmt(r.valor) + '</td>'
+      + '<td style="white-space:nowrap"><button class="cf-btn go btn-ap" data-id="' + r.id + '">✓</button> <button class="cf-btn btn-rc" data-id="' + r.id + '">✕</button></td>'
+      + '</tr>';
+    if (confAberto === r.id) linha += cfDossie(r);
+    return linha;
+  }).join('');
+  box.innerHTML = '<details class="rev-panel"' + (estavaAberto ? ' open' : '') + '><summary>🧾 Conferência'
     + ' <span class="rev-badge">' + duvidas + ' dúvida(s)</span>'
     + (planejados ? '<span class="rev-tag planejado">' + planejados + ' planejada(s)</span>' : '')
-    + '<span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--muted)">' + REVIEW.length + ' lançamentos</span></summary>'
-    + '<div class="rev-tools"><label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" id="revFiltro"' + (revSoDuvidas ? ' checked' : '') + '> só pendentes</label>'
-    + '<button id="revConcluir" style="margin-left:auto;background:#16a34a;color:#fff;border-color:#16a34a">✓ Concluir revisão</button></div>'
-    + '<div style="overflow-x:auto"><table class="rev-tb"><tr><th>Data</th><th>Original</th><th>Descrição</th><th>Parc</th><th>Categoria</th><th>Situação</th><th>Valor</th></tr>' + corpo + '</table></div>'
+    + '<span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--muted)">' + CONF.length + ' na fila · nada entra sem o seu ✓</span></summary>'
+    + (semDuvida ? '<div class="rev-tools"><button id="confLote" class="cf-btn go" style="font-weight:700">✓ Aprovar os sem dúvida (' + semDuvida + ')</button><span style="font-size:11.5px;color:var(--muted);margin-left:8px">clique numa linha pra ver o dossiê</span></div>' : '')
+    + '<div style="overflow-x:auto"><table class="rev-tb cf-tb"><tr><th>Data</th><th>O que eu previa</th><th style="text-align:center">Dif</th><th>O que chegou</th><th style="text-align:right">Valor</th><th></th></tr>' + linhas + '</table></div>'
+    + '<div class="cf-foot">Total na fila: <b>' + revFmt(totFila) + '</b>' + (totDif > 0.005 ? ' · diferença acumulada previsto×veio: <b>R$ ' + totDif.toFixed(2).replace('.', ',') + '</b>' : '') + '</div>'
     + '</details>';
   bindReview();
 }
-async function revSalva(id, campos) {
-  try {
-    campos.flag = 'firme'; campos.updated_at = new Date().toISOString();
-    const { error } = await window.sbClient.from('import_review').update(campos).eq('id', id);
+function cfDossie(r) {
+  const ev = r.ev || {};
+  const cands = (ev.candidatos || []).map(c =>
+    '<tr><td>' + cfEsc(c.desc) + (c.tipo === 'recorrencia' ? ' <span style="color:var(--muted)">(recorrência)</span>' : '') + '</td>'
+    + '<td>' + cfBR(Number(c.valor)) + '</td><td><b>' + (Number(c.dist) <= 0.005 ? 'exato' : 'R$ ' + Number(c.dist).toFixed(2).replace('.', ',')) + '</b></td></tr>').join('');
+  return '<tr class="cf-dossie"><td colspan="6"><div class="cf-dbox">'
+    + (ev.sinais && ev.sinais.length ? '<div style="margin-bottom:5px"><b>Sinais:</b> ' + cfEsc(ev.sinais.join(' · ')) + '</div>' : '')
+    + (ev.detalhe ? '<div style="color:var(--muted);margin-bottom:7px">' + cfEsc(ev.detalhe) + '</div>' : '')
+    + (cands ? '<table class="cf-cands"><tr><th>Previsões candidatas na mesma fatura</th><th>Valor</th><th>Distância</th></tr>' + cands + '</table>' : '')
+    + '<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center">'
+    + '<input class="cf-desc" data-id="' + r.id + '" value="' + cfEsc(r.desc).replace(/"/g, '&quot;') + '" style="flex:1;min-width:180px;border:1px solid #ddd9d2;border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;font-weight:600">'
+    + '<select class="cf-cat" data-id="' + r.id + '">' + REV_CATS.map(c => '<option' + (c === r.cat ? ' selected' : '') + '>' + c + '</option>').join('') + '</select>'
+    + '<button class="cf-btn go btn-ap" data-id="' + r.id + '">Aprovar ✓</button>'
+    + '<button class="cf-btn btn-rc" data-id="' + r.id + '">Não incluir ✕</button>'
+    + '</div></div></td></tr>';
+}
+let __confReloadTimer = null;
+function confAgendaRecarga() {
+  clearTimeout(__confReloadTimer);
+  __confReloadTimer = setTimeout(() => { if (window.finRecarregar) window.finRecarregar(); }, 1800);
+}
+async function confAprovar(r) {
+  if (r.k === 'cartao') {
+    const { data, error } = await window.sbClient.rpc('aprovar_review', { p_id: r.id });
     if (error) throw error;
-    const r = REVIEW.find(x => x.id === id);
-    if (r) Object.assign(r, campos);
-    finToast('✓ Salvo no banco');
-    const badge = document.querySelector('#finReview .rev-badge');
-    if (badge) badge.textContent = REVIEW.filter(x => x.flag === 'duvida').length + ' dúvida(s)';
-    const tr = document.querySelector('#finReview tr[data-id="' + id + '"]');
-    if (tr) tr.classList.remove('rv-duvida', 'rv-plan', 'rv-prov');
-  } catch (e) { finToast('✗ NÃO salvou: ' + (e.message || e), true); }
+    if (data && data.ok === false) throw new Error(data.erro || 'falha na aprovação');
+    confAgendaRecarga();
+  } else {
+    const it = r.it;
+    const { error: e1 } = await window.sbClient.from('transactions').insert({
+      user_id: (await window.sbClient.auth.getUser()).data.user.id,
+      account_id: it.account_id, date: it.date,
+      description: r.desc, description_clean: r.desc,
+      amount: it.amount, type: parseFloat(it.amount) >= 0 ? 'CREDIT' : 'DEBIT',
+      category: r.cat, is_transfer: false,
+      pluggy_transaction_id: it.pluggy_transaction_id || (it.raw && it.raw.pluggy && it.raw.pluggy.id) || null,
+      source: 'pluggy', source_file: 'inbox_aprovada',
+      raw: Object.assign({}, it.raw || {}, { st: 'paid', aprovada_em: new Date().toISOString() }),
+    });
+    if (e1) throw e1;
+    await window.sbClient.from('inbox_transactions')
+      .update({ status: 'approved', decided_at: new Date().toISOString() }).eq('id', r.id);
+    confAgendaRecarga();
+  }
+}
+async function confRecusar(r) {
+  if (r.k === 'cartao') {
+    const { data, error } = await window.sbClient.rpc('recusar_review', { p_id: r.id });
+    if (error) throw error;
+    if (data && data.ok === false) throw new Error(data.erro || 'falha');
+    confAgendaRecarga();
+  } else {
+    await window.sbClient.from('inbox_transactions')
+      .update({ status: 'dismissed', decided_at: new Date().toISOString() }).eq('id', r.id);
+  }
 }
 function bindReview() {
   const box = document.getElementById('finReview');
-  box.querySelectorAll('td[contenteditable]').forEach(td => {
-    td.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); td.blur(); } });
-    td.addEventListener('blur', () => {
-      const id = td.closest('tr').dataset.id;
-      const r = REVIEW.find(x => x.id === id);
-      const v = td.textContent.trim();
-      if (r && v && v !== r.descricao) revSalva(id, { descricao: v });
+  box.querySelectorAll('.cf-row').forEach(tr => {
+    tr.addEventListener('click', e => {
+      if (e.target.closest('button, input, select')) return;
+      const id = tr.dataset.id;
+      confAberto = (confAberto === id) ? null : id;
+      renderReview();
     });
   });
-  box.querySelectorAll('select.rv-cat').forEach(inp => {
-    inp.addEventListener('change', () => {
-      const id = inp.closest('tr').dataset.id;
-      const r = REVIEW.find(x => x.id === id);
-      if (r && inp.value && inp.value !== r.categoria) revSalva(id, { categoria: inp.value });
-    });
-  });
-  box.querySelectorAll('select[data-f="situacao"]').forEach(s => {
-    s.addEventListener('change', () => {
-      const id = s.closest('tr').dataset.id;
-      revSalva(id, { situacao: s.value });
-    });
-  });
-  const filtro = document.getElementById('revFiltro');
-  if (filtro) filtro.addEventListener('change', () => { revSoDuvidas = filtro.checked; renderReview(); });
-  const conc = document.getElementById('revConcluir');
-  if (conc) conc.addEventListener('click', async () => {
-    if (!confirm('Concluir a revisão? O Claude vai importar essas linhas pro hub.')) return;
+  const tira = (id) => { CONF = CONF.filter(x => x.id !== id); window.__revJson = null; if (confAberto === id) confAberto = null; };
+  box.querySelectorAll('.btn-ap').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
+    const r = CONF.find(x => x.id === b.dataset.id); if (!r) return;
+    b.disabled = true;
     try {
-      const mes = REVIEW[0].mes;
-      const { error } = await window.sbClient.from('import_review').update({ status: 'revisado', updated_at: new Date().toISOString() }).eq('mes', mes).eq('status', 'pendente');
-      if (error) throw error;
-      finToast('✓ Revisão concluída — avisa o Claude pra importar!');
-      REVIEW = []; renderReview();
-    } catch (e) { finToast('✗ Erro: ' + (e.message || e), true); }
+      await confAprovar(r); tira(r.id);
+      finToast('✓ Aprovado' + (r.k === 'cartao' ? ' — entrou na fatura' : ' — entrou na conta'));
+      renderReview();
+    } catch (err) { b.disabled = false; finToast('✗ Erro: ' + (err.message || err), true); }
+  }));
+  box.querySelectorAll('.btn-rc').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
+    const r = CONF.find(x => x.id === b.dataset.id); if (!r) return;
+    b.disabled = true;
+    try {
+      await confRecusar(r); tira(r.id);
+      finToast('Lançamento descartado');
+      renderReview();
+    } catch (err) { b.disabled = false; finToast('✗ Erro: ' + (err.message || err), true); }
+  }));
+  box.querySelectorAll('.cf-desc').forEach(inp => {
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+    inp.addEventListener('blur', async () => {
+      const r = CONF.find(x => x.id === inp.dataset.id); if (!r) return;
+      const v = inp.value.trim(); if (!v || v === r.desc) return;
+      r.desc = v; window.__revJson = null;
+      if (r.k === 'cartao') {
+        try {
+          await window.sbClient.from('import_review').update({ descricao: v, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
+          r.flag = 'firme'; finToast('✓ Salvo');
+        } catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
+      }
+    });
+  });
+  box.querySelectorAll('.cf-cat').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const r = CONF.find(x => x.id === sel.dataset.id); if (!r) return;
+      r.cat = sel.value; window.__revJson = null;
+      if (r.k === 'cartao') {
+        try {
+          await window.sbClient.from('import_review').update({ categoria: sel.value, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
+          r.flag = 'firme'; finToast('✓ Salvo');
+        } catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
+      }
+    });
+  });
+  const lote = document.getElementById('confLote');
+  if (lote) lote.addEventListener('click', async () => {
+    const alvo = CONF.filter(r => r.k === 'cartao' && r.flag !== 'duvida');
+    if (!alvo.length) return;
+    if (!confirm('Aprovar ' + alvo.length + ' lançamento(s) sem dúvida? (planejados, prováveis e firmes)')) return;
+    lote.disabled = true;
+    let okc = 0;
+    for (const r of alvo) {
+      try { await confAprovar(r); CONF = CONF.filter(x => x.id !== r.id); okc++; }
+      catch (err) { console.warn('[finapp] lote:', err.message || err); }
+    }
+    window.__revJson = null; confAberto = null;
+    finToast('✓ ' + okc + ' aprovado(s)');
+    renderReview();
   });
 }
 
@@ -14444,9 +14556,7 @@ function finAviso(msg) {
       currentMonth = (mesSalvo && MONTHS.includes(mesSalvo)) ? mesSalvo
         : (MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1]);
       renderAll();
-      loadInbox();
-      if (!window.__inboxPoll) window.__inboxPoll = setInterval(loadInbox, 20000);
-      loadReview();
+      loadReview(); // painel único de conferência (cartão + conta)
       console.log('[finapp] dados reais: ' + DATA.transactions.length + ' transações, ' + MONTHS.length + ' meses');
     } catch (err) {
       console.warn('[finapp] adapter falhou, mantendo dados de exemplo:', err && err.message || err);
