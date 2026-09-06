@@ -14266,7 +14266,7 @@ function cfDossie(r) {
   // layout "lado a lado" (escolha do Eduardo 07/09): compra fixa à esquerda,
   // previsões com busca e ✓ à direita. Sem "não incluir": o que entrou no Pluggy fica na lista.
   const ev = r.ev || {};
-  const temLista = r.k === 'cartao' && !r.tx_id;
+  const temLista = r.k === 'cartao' && r.account_id && r.bill; // toda linha de cartão: vincular, gasto novo ou aprovar
   const tag = r.vinculo
     ? '<div style="margin-top:9px"><span class="rev-tag planejado">🔗 ' + cfEsc(r.vinculo.desc) + (r.vinculo.n ? ' ' + r.vinculo.n + '/' + r.vinculo.total : '') + ' — sai do planejamento ao aprovar</span></div>'
     : (ev.gasto_novo ? '<div style="margin-top:9px"><span class="rev-tag" style="background:#ede9f5;color:#4c3f9e">✚ gasto novo confirmado</span></div>' : '');
@@ -14391,7 +14391,7 @@ function bindReview() {
       renderReview();
       // abriu dossiê de cartão: busca as previsões da fatura pro dropdown de vínculo
       const r = CONF.find(x => x.id === id);
-      if (confAberto === id && r && r.k === 'cartao' && !r.tx_id && !r._prevs && r.account_id && r.bill) {
+      if (confAberto === id && r && r.k === 'cartao' && !r._prevs && r.account_id && r.bill) {
         try {
           const { data } = await window.sbClient.from('transactions')
             .select('description,category,amount,installment_current,installment_total,source_file,raw')
