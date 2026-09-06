@@ -13991,6 +13991,12 @@ async function loadInbox() {
       .select('id,account_id,date,description_raw,description_sugerida,category_sugerida,amount,raw')
       .eq('status', 'pending').order('date', { ascending: false });
     if (error) throw error;
+    // poll-safe: só re-renderiza se mudou, e nunca enquanto o Eduardo interage com a caixa
+    const novoJson = JSON.stringify(data || []);
+    if (novoJson === window.__inboxJson) return;
+    const ativo = document.activeElement;
+    if (ativo && ativo.closest && ativo.closest('#finInbox')) return;
+    window.__inboxJson = novoJson;
     INBOX = data || [];
     renderInbox();
   } catch (e) {
@@ -14439,6 +14445,7 @@ function finAviso(msg) {
         : (MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1]);
       renderAll();
       loadInbox();
+      if (!window.__inboxPoll) window.__inboxPoll = setInterval(loadInbox, 20000);
       loadReview();
       console.log('[finapp] dados reais: ' + DATA.transactions.length + ' transações, ' + MONTHS.length + ' meses');
     } catch (err) {
