@@ -14146,31 +14146,58 @@ let CONF = []; let confAberto = null;
 async function loadReview() { // nome mantido — é o ponto de entrada chamado pelo adapter
   if (!window.sbClient) return;
   try {
-    const [rev, inb] = await Promise.all([
+    const [rev, inb, fc] = await Promise.all([
       window.sbClient.from('import_review')
         .select('id,mes,ordem,bloco,data,raw,descricao,parcela,categoria,situacao,valor,fonte,flag,status,pd,tx_id,evidencia,account_id,tx_payload,vinculo')
         .eq('status', 'pendente').order('ordem'),
       window.sbClient.from('inbox_transactions')
         .select('id,account_id,date,description_raw,description_sugerida,category_sugerida,amount,pluggy_transaction_id,raw')
         .eq('status', 'pending').order('date'),
+      window.sbClient.from('transactions')
+        .select('account_id,description,amount,installment_current,installment_total,source_file,raw')
+        .eq('source', 'forecast').in('source_file', ['projecao', 'recorrencia']),
     ]);
     if (rev.error) throw rev.error;
     if (inb.error) throw inb.error;
-    const cards = (rev.data || []).map(r => ({
-      k: 'cartao', id: r.id, ordem: r.ordem || 0, dia: r.data, bloco: r.bloco,
-      raw: r.raw || '', desc: r.descricao || '', cat: r.categoria || 'Extras', valor: parseFloat(r.valor),
-      parcela: r.parcela, flag: r.flag, ev: r.evidencia || null, tx_id: r.tx_id, pd: r.pd || '',
-      account_id: r.account_id, bill: (r.tx_payload && r.tx_payload.raw && r.tx_payload.raw.bill) || null,
-      vinculo: r.vinculo || null,
-    }));
+    // mapa de previsões por conta+fatura — as colunas "previa"/"dif" são calculadas AO VIVO
+    // (não dependem de quando/por qual versão do sync a linha foi criada)
+    const FCMAP = {};
+    (fc.data || []).forEach(f => {
+      const b = (f.raw || {}).bill; if (!b) return;
+      const k = f.account_id + '|' + b;
+      (FCMAP[k] = FCMAP[k] || []).push({ desc: f.description, valor: Number(f.amount), n: f.installment_current, total: f.installment_total, tipo: f.source_file });
+    });
+    const calcMelhor = (accId, bill, valor) => {
+      const lst = FCMAP[accId + '|' + bill] || [];
+      const tol = Math.max(2, Math.abs(valor) * 0.03);
+      let best = null;
+      for (const f of lst) { const d = Math.abs(f.valor - valor); if (d <= tol && (!best || d < best.d)) best = { f, d }; }
+      return best ? { previsto: best.f.desc, previsto_valor: best.f.valor, diferenca: Math.round(best.d * 100) / 100 } : null;
+    };
+    const cards = (rev.data || []).map(r => {
+      const bill = (r.tx_payload && r.tx_payload.raw && r.tx_payload.raw.bill) || null;
+      const valor = parseFloat(r.valor);
+      const ev = r.evidencia || null;
+      const o = {
+        k: 'cartao', id: r.id, ordem: r.ordem || 0, dia: r.data, bloco: r.bloco,
+        raw: r.raw || '', desc: r.descricao || '', cat: r.categoria || 'Extras', valor,
+        parcela: r.parcela, flag: r.flag, ev, tx_id: r.tx_id, pd: r.pd || '',
+        account_id: r.account_id, bill,
+        vinculo: r.vinculo || null, evCalc: null,
+      };
+      if ((!ev || ev.previsto == null) && r.account_id && bill) o.evCalc = calcMelhor(r.account_id, bill, valor);
+      return o;
+    });
     const contas = (inb.data || []).map(it => {
       const accKey = (window.__accIdToKey || {})[it.account_id];
       const nome = (accKey && DATA.accounts && DATA.accounts[accKey] && DATA.accounts[accKey].name) || 'Conta';
+      const valor = parseFloat(it.amount);
       return {
         k: 'conta', id: it.id, ordem: 0, dia: it.date.slice(8, 10) + '/' + it.date.slice(5, 7), bloco: nome,
         raw: it.description_raw || '', desc: it.description_sugerida || it.description_raw || '',
-        cat: it.category_sugerida || 'Extras', valor: parseFloat(it.amount),
+        cat: it.category_sugerida || 'Extras', valor,
         parcela: null, flag: null, ev: null, tx_id: null, pd: it.date, it,
+        evCalc: calcMelhor(it.account_id, it.date.slice(0, 7), valor),
       };
     });
     const lista = cards.concat(contas).sort((a, b) => String(a.pd).localeCompare(String(b.pd)) || a.ordem - b.ordem);
@@ -14220,13 +14247,17 @@ function renderReview() {
   const totFila = CONF.reduce((s, r) => s + r.valor, 0);
   const totDif = CONF.reduce((s, r) => s + (r.ev && typeof r.ev.diferenca === 'number' ? r.ev.diferenca : 0), 0);
   const linhas = CONF.map(r => {
-    const ev = r.ev || {};
+    const ev0 = r.ev || {};
+    // fonte das colunas: evidência do sync OU cálculo ao vivo (evCalc) — nunca depende da versão que criou a linha
+    const ev = ev0.previsto != null ? ev0 : (r.evCalc || {});
     const temPrev = ev.previsto != null;
-    const naoConf = temPrev && r.flag === 'duvida'; // há candidato, mas o motor não confirmou — mostra em cinza
+    const naoConf = temPrev && (ev0.previsto == null || r.flag === 'duvida'); // candidato sem confirmação — cinza
     const prevCell = temPrev
       ? '<div style="font-weight:600;font-size:12px' + (naoConf ? ';color:#a89eb8' : '') + '">' + cfEsc(ev.previsto) + '</div>'
         + (typeof ev.previsto_valor === 'number' ? '<div style="font-size:11px;color:#a89eb8">' + cfBR(ev.previsto_valor) + (naoConf ? ' · não confirmado' : '') + '</div>' : '')
-      : '<span style="color:#c9c2d6">—</span>';
+      : (r.k === 'cartao'
+        ? '<span style="font-size:11px;color:#c9c2d6">sem previsão parecida</span>'
+        : '<span style="color:#c9c2d6">—</span>');
     const difCell = temPrev && typeof ev.diferenca === 'number'
       ? (naoConf
         ? '<span style="font-size:11px;color:#a89eb8;font-weight:700">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + ' ?</span>'
