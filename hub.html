@@ -14179,6 +14179,25 @@ document.addEventListener('click', async e => {
 // com dossiê expansível por linha (opção 5). Cartão vem da sala de espera import_review
 // (tx_id null até aprovar → RPC aprovar_review cria a transação); conta vem de inbox_transactions.
 const REV_CATS = ['Alimentação','Aluguel','Assinaturas','Bebidas','Coisas para casa','Conveniência','Doações','Extras','Green','Imposto','Investimento','Lazer','Mercado','Moradia','Pessoais','Presentes','Profissionais','Reembolso','Resgate','Salário','Saúde','Seguros','Transporte','TRANSFER'];
+// tipo de cada categoria (r=receita, d=despesa, n=neutra) + emoji do ícone — decisão do Eduardo 07/09:
+// dropdown "inteligente com todas": o grupo do sinal do lançamento vem primeiro, mas nada some.
+const CAT_META = {
+  'Salário':['💵','r'], 'Aluguel':['🔑','r'], 'Reembolso':['🔄','r'], 'Resgate':['💱','r'],
+  'Alimentação':['🍽️','d'], 'Assinaturas':['✍️','d'], 'Bebidas':['🍺','d'], 'Coisas para casa':['🛋️','d'],
+  'Conveniência':['🏪','d'], 'Doações':['❤️','d'], 'Green':['🌿','d'], 'Imposto':['🦁','d'],
+  'Investimento':['📈','d'], 'Lazer':['🏖️','d'], 'Mercado':['🛒','d'], 'Moradia':['🏠','d'],
+  'Pessoais':['👕','d'], 'Presentes':['🎁','d'], 'Profissionais':['💼','d'], 'Saúde':['💊','d'],
+  'Seguros':['🛡️','d'], 'Transporte':['🚗','d'],
+  'Extras':['📦','n'], 'TRANSFER':['🔀','n'],
+};
+function cfCatSelect(id, atual, valor) {
+  const grp = t => REV_CATS.filter(c => (CAT_META[c] || ['', 'd'])[1] === t)
+    .map(c => '<option value="' + c + '"' + (c === atual ? ' selected' : '') + '>' + (CAT_META[c] || [''])[0] + ' ' + c + '</option>').join('');
+  const rec = '<optgroup label="💰 Receitas">' + grp('r') + '</optgroup>';
+  const des = '<optgroup label="💸 Despesas">' + grp('d') + '</optgroup>';
+  const neu = '<optgroup label="↔ Outras">' + grp('n') + '</optgroup>';
+  return '<select class="cf-cat" data-id="' + id + '">' + (valor >= 0 ? rec + neu + des : des + neu + rec) + '</select>';
+}
 const REV_BLOCOS = { cartao: '💳 Bradesco VISA', nub_cred: '🟣 Nubank Crédito', mp_card: '🔵 Mercado Pago', debito: '🏦 Bradesco Débito', nub_deb: '🟣 Nubank Débito', nub_pj: '🟣 Nubank PJ' };
 let CONF = []; let confAberto = null;
 async function loadReview() { // nome mantido — é o ponto de entrada chamado pelo adapter
@@ -14368,7 +14387,7 @@ function cfDossie(r) {
     corpo = parc
       + '<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center">'
       + '<input class="cf-desc" data-id="' + r.id + '" value="' + cfEsc(r.desc).replace(/"/g, '&quot;') + '" style="flex:1;min-width:180px;border:1px solid #ddd9d2;border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;font-weight:600">'
-      + '<select class="cf-cat" data-id="' + r.id + '">' + REV_CATS.map(c => '<option' + (c === r.cat ? ' selected' : '') + '>' + c + '</option>').join('') + '</select>'
+      + cfCatSelect(r.id, r.cat, r.valor)
       + '<label class="cf-fixo' + (fixoOff ? ' off' : (r._fixo ? ' on' : '')) + '" data-id="' + r.id + '"' + (fixoOff ? ' title="compra parcelada não vira gasto fixo — as parcelas já entram sozinhas nos meses seguintes"' : '') + '><span class="fx-box"></span> 🔁 Gasto fixo mensal</label>'
       + '<button class="cf-btn go cf-aprvnovo" data-id="' + r.id + '">Aprovar ✓</button>'
       + '</div>'
