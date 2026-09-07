@@ -14198,14 +14198,15 @@ const CAT_META = {
   'Investimento':['📈','d'], 'Lazer':['🏖️','d'], 'Mercado':['🛒','d'], 'Moradia':['🏠','d'],
   'Pessoais':['👕','d'], 'Presentes':['🎁','d'], 'Profissionais':['💼','d'], 'Saúde':['💊','d'],
   'Seguros':['🛡️','d'], 'Transporte':['🚗','d'],
-  'Extras':['📦','n'], 'TRANSFER':['🔀','n'],
+  'Extras':['📦','d'], 'TRANSFER':['🔀','n'],
 };
 function cfCatSelect(id, atual, valor) {
+  const rotulo = c => c === 'TRANSFER' ? 'Transferência' : c; // valor continua 'TRANSFER' (o motor depende dele)
   const grp = t => REV_CATS.filter(c => (CAT_META[c] || ['', 'd'])[1] === t)
-    .map(c => '<option value="' + c + '"' + (c === atual ? ' selected' : '') + '>' + (CAT_META[c] || [''])[0] + ' ' + c + '</option>').join('');
+    .map(c => '<option value="' + c + '"' + (c === atual ? ' selected' : '') + '>' + (CAT_META[c] || [''])[0] + ' ' + rotulo(c) + '</option>').join('');
   const rec = '<optgroup label="💰 Receitas">' + grp('r') + '</optgroup>';
   const des = '<optgroup label="💸 Despesas">' + grp('d') + '</optgroup>';
-  const neu = '<optgroup label="↔ Outras">' + grp('n') + '</optgroup>';
+  const neu = '<optgroup label="↔ Transferências">' + grp('n') + '</optgroup>';
   return '<select class="cf-cat" data-id="' + id + '">' + (valor >= 0 ? rec + neu + des : des + neu + rec) + '</select>';
 }
 const REV_BLOCOS = { cartao: '💳 Bradesco VISA', nub_cred: '🟣 Nubank Crédito', mp_card: '🔵 Mercado Pago', debito: '🏦 Bradesco Débito', nub_deb: '🟣 Nubank Débito', nub_pj: '🟣 Nubank PJ' };
