@@ -1752,7 +1752,6 @@ table.data-table tr:hover td { background: var(--bg); }
         <div class="nav-subitem" data-cat="brasileirao_play"><span class="cat-dot" style="--c:#16a34a"></span><span class="ni-text">Brasileirão Play</span></div>
         <div class="nav-subitem" data-cat="eventos"><span class="cat-dot" style="--c:#ea580c"></span><span class="ni-text">Eventos</span></div>
         <div class="nav-subitem" data-cat="administracao"><span class="cat-dot" style="--c:#7c3aed"></span><span class="ni-text">Finanças</span></div>
-        <div class="nav-subitem" data-cat="saude"><span class="cat-dot" style="--c:#0ea5e9"></span><span class="ni-text">Saúde</span></div>
         <div class="nav-subitem" data-cat="casa"><span class="cat-dot" style="--c:#eab308"></span><span class="ni-text">Casa</span></div>
         <div class="nav-subitem" data-cat="aw_vz"><span class="cat-dot" style="--c:#ff1493"></span><span class="ni-text">AW+VZ</span></div>
         <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#f9a8d4"></span><span class="ni-text">Aniversários</span></div>
@@ -1760,7 +1759,6 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="nav-item" data-sec="pessoal"><span class="ni-icon">🙋</span><span class="ni-text">Pessoal</span><span id="badgePessoal" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="trabalho"><span class="ni-icon">💼</span><span class="ni-text">Trabalho</span><span id="badgeTrabalho" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="funil"><span class="ni-icon">🎯</span><span class="ni-text">Funil</span></div>
-      <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span><span id="badgeSaude" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="casa"><span class="ni-icon">🏡</span><span class="ni-text">Casa</span><span id="badgeCasa" class="ni-badge badge-yellow" style="display:none">0</span></div>
       <div class="nav-item" data-sec="eventos"><span class="ni-icon">🎟️</span><span class="ni-text">Eventos</span><span id="badgeEventos" class="ni-badge badge-yellow" style="display:none">0</span></div>
@@ -4572,7 +4570,6 @@ const CATLIST_META = {
   brasileirao_play: { name: 'Brasileirão Play', color: '#16a34a' },
   eventos:          { name: 'Eventos',          color: '#ea580c' },
   administracao:    { name: 'Finanças',         color: '#7c3aed' },
-  saude:            { name: 'Saúde',            color: '#0ea5e9' },
   casa:             { name: 'Casa',             color: '#eab308' },
   aw_vz:            { name: 'AW+VZ',            color: '#ff1493' },
   aniversarios:     { name: 'Aniversários',     color: '#f9a8d4' },
@@ -4955,20 +4952,6 @@ const INITIAL_DATA = [
           { icon:'📈', name:'Investir (6 meses+)', start:5, end:8, statusLabel:'Meta 2', statusColor:'#22c55e', milestones:[{m:5.5,label:'Abrir conta',pos:'top',status:'planned'},{m:7.5,label:'Aportes',pos:'bot',status:'planned'}] },
         ]
       },
-    ]
-  },
-  { id:'saude', emoji:'🏋️', name:'Saúde', color:'#db2777', colorSoft:'#f9a8d4', badge:'Em aberto', badgeColor:'#f59e0b',
-    milestones:[{m:0,label:'Vape parado',pos:'top',status:'done'},{m:0.3,label:'Academia volta',pos:'bot',status:'active'},{m:3,label:'Rotina física',pos:'top',status:'planned'},{m:6,label:'Hábitos OK',pos:'bot',status:'planned'}],
-    subs:[
-      { icon:'🏋️', name:'Academia', start:0.3, end:6, statusLabel:'Retomando', statusColor:'#f59e0b', milestones:[{m:0.3,label:'Amanhã',pos:'top',status:'active'},{m:3,label:'5x/sem',pos:'bot',status:'planned'}],
-        subs:[
-          { icon:'💪', name:'Treino A (superior)', start:0.3, end:6, statusLabel:'3x/sem', statusColor:'#db2777', milestones:[{m:0.3,label:'Começo',pos:'top',status:'active'},{m:3,label:'Progressão',pos:'bot',status:'planned'}] },
-          { icon:'🦵', name:'Treino B (inferior)', start:0.5, end:6, statusLabel:'2x/sem', statusColor:'#db2777', milestones:[{m:0.5,label:'Começo',pos:'top',status:'active'},{m:4,label:'Consistência',pos:'bot',status:'planned'}] },
-        ]
-      },
-      { icon:'🌿', name:'Maconha', start:0, end:5, statusLabel:'Reduzir', statusColor:'#f59e0b', milestones:[{m:0,label:'Uso atual',pos:'top',status:'active'},{m:2.5,label:'Redução',pos:'bot',status:'planned'},{m:5,label:'Controle',pos:'top',status:'planned'}] },
-      { icon:'😴', name:'Sono', start:0, end:5, statusLabel:'Irregular', statusColor:'#f59e0b', milestones:[{m:0,label:'Sem ritual',pos:'top',status:'active'},{m:2.5,label:'Ritual criado',pos:'bot',status:'planned'},{m:5,label:'Regulado',pos:'top',status:'planned'}] },
-      { icon:'🍽️', name:'Alimentação', start:1, end:5, statusLabel:'Delivery', statusColor:'#f59e0b', milestones:[{m:1,label:'Começar',pos:'top',status:'planned'},{m:4,label:'Melhor',pos:'bot',status:'planned'}] },
     ]
   },
   { id:'rotina', emoji:'📅', name:'Rotina', color:'#2563eb', colorSoft:'#93c5fd', badge:'Instável', badgeColor:'#f59e0b',
@@ -10799,7 +10782,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       // Agrupa por path (depth visual via indent)
       const currentSub = (window.roadmapSubs || []).find(s => s.id === i.parent_id);
       const AREA_LABELS = {
-        pessoal: 'Pessoal', trabalho: 'Trabalho', saude: 'Saúde',
+        pessoal: 'Pessoal', trabalho: 'Trabalho',
         administracao: 'Finanças', casa: 'Casa', eventos: 'Eventos',
         brasileirao_play: 'Brasileirão Play', aw_vz: 'AW+VZ', aniversarios: 'Aniversários',
       };
@@ -11217,7 +11200,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   const TDM_AREAS = [
     { slug: 'pessoal',          name: 'Pessoal',          emoji: '🙋' },
     { slug: 'brasileirao_play', name: 'Brasileirão Play', emoji: '⚽' },
-    { slug: 'saude',            name: 'Saúde',            emoji: '🏥' },
     { slug: 'administracao',    name: 'Finanças',          emoji: '💰' },
     { slug: 'casa',             name: 'Casa',             emoji: '🏡' },
     { slug: 'eventos',          name: 'Eventos',          emoji: '🎟️' },
@@ -12066,7 +12048,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   const QA_AREAS = [
     { slug: 'pessoal',          name: 'Pessoal',          emoji: '🙋' },
     { slug: 'brasileirao_play', name: 'Brasileirão Play', emoji: '⚽' },
-    { slug: 'saude',            name: 'Saúde',            emoji: '🏥' },
     { slug: 'administracao',    name: 'Finanças',          emoji: '💰' },
     { slug: 'casa',             name: 'Casa',             emoji: '🏡' },
     { slug: 'eventos',          name: 'Eventos',          emoji: '🎟️' },
