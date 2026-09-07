@@ -13797,8 +13797,8 @@ function openCatPicker(cell, t) {
       '<div class="cpk-item' + (t.cat === slug ? ' cur' : '') + '" data-slug="' + slug + '">' + miniCi(slug) + DATA.cats[slug].name + '</div>').join('');
   };
   const rec = grupo('r', '💰 Receitas'), des = grupo('d', '💸 Despesas'), neu = grupo('n', '↔ Transferências');
-  // receita não mostra despesas (pedido 07/09); despesa mantém tudo com despesas no topo
-  catPicker.innerHTML = ((t.val || 0) >= 0 ? rec + neu : des + neu + rec);
+  // receita só mostra receitas, despesa só mostra despesas (+ transferência nos dois) — pedido 07/09
+  catPicker.innerHTML = ((t.val || 0) >= 0 ? rec + neu : des + neu);
   const r = cell.getBoundingClientRect();
   catPicker.style.left = Math.min(r.left, window.innerWidth - 270) + 'px';
   catPicker.style.top = Math.min(r.bottom + 4, window.innerHeight - 350) + 'px';
@@ -14208,7 +14208,7 @@ function cfCatSelect(id, atual, valor) {
   const rec = '<optgroup label="💰 Receitas">' + grp('r') + '</optgroup>';
   const des = '<optgroup label="💸 Despesas">' + grp('d') + '</optgroup>';
   const neu = '<optgroup label="↔ Transferências">' + grp('n') + '</optgroup>';
-  return '<select class="cf-cat" data-id="' + id + '">' + (valor >= 0 ? rec + neu : des + neu + rec) + '</select>';
+  return '<select class="cf-cat" data-id="' + id + '">' + (valor >= 0 ? rec + neu : des + neu) + '</select>';
 }
 const REV_BLOCOS = { cartao: '💳 Bradesco VISA', nub_cred: '🟣 Nubank Crédito', mp_card: '🔵 Mercado Pago', debito: '🏦 Bradesco Débito', nub_deb: '🟣 Nubank Débito', nub_pj: '🟣 Nubank PJ' };
 let CONF = []; let confAberto = null;
