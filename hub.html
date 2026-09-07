@@ -2871,6 +2871,13 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .mini-card b{ display: block; font-size: 14px; margin-top: 1px; white-space: nowrap; }
 #finapp .mini-card .mc-sub{ font-size: 9px; opacity: .85; }
 #finapp .acc-chip-card.sel{ box-shadow: 0 0 0 2.5px white, 0 0 0 5px #7c3aed; }
+/* destaque "os outros apagam" (escolha do Eduardo 07/09): com uma conta específica selecionada,
+   os cards não-selecionados esmaecem — no strip ao vivo e nos mini-cards do mês */
+#finapp #accountsStrip [data-selacc], #finapp #accountsStripMes [data-selacc] { transition: opacity .15s, filter .15s, transform .12s, box-shadow .12s; }
+#finapp #accountsStrip:has(.sel[data-selacc]:not([data-selacc="all"])) [data-selacc]:not(.sel),
+#finapp #accountsStripMes:has(.sel[data-selacc]:not([data-selacc="all"])) [data-selacc]:not(.sel) { opacity: .45; filter: saturate(.55); }
+#finapp #accountsStrip:has(.sel[data-selacc]:not([data-selacc="all"])) [data-selacc]:not(.sel):hover,
+#finapp #accountsStripMes:has(.sel[data-selacc]:not([data-selacc="all"])) [data-selacc]:not(.sel):hover { opacity: .85; filter: none; }
 #finapp .acc-chip-card .cc-bank-name{ font-size: 8.5px; letter-spacing: .05em; }
 #finapp .acc-chip-card .dcb-val{ font-size: 13.5px; font-weight: 800; margin-top: 6px; white-space: nowrap; }
 #finapp .acc-chip-card .dcb-tipo{ font-size: 9px; opacity: .8; }
