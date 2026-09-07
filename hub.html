@@ -14439,7 +14439,11 @@ async function confAprovar(r) {
         match_desc: cfMatchDesc(r.raw || r.desc), ativo: true,
       });
       if (e2) finToast('⚠ Aprovado, mas não cadastrou o fixo: ' + (e2.message || e2), true);
-      else finToast('🔁 Gasto fixo cadastrado — previsto nos próximos meses');
+      else {
+        // materializa as previsões dos próximos meses NA HORA (sem esperar o sync das 06:30)
+        try { await window.sbClient.rpc('regenerar_projecoes'); } catch (_e3) { /* sync cobre depois */ }
+        finToast('🔁 Gasto fixo cadastrado — previsto nos próximos meses');
+      }
     }
     confAgendaRecarga();
   }
