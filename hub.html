@@ -69,8 +69,12 @@ html, body {
 .nav-item .ni-text { font-size: 13px; font-weight: 500; color: var(--sidebar-text); flex: 1; }
 .nav-item.active .ni-text { font-weight: 650; color: #2d2460; }
 .nav-item .ni-badge { font-size: 9px; font-weight: 800; padding: 1.5px 6px; border-radius: 999px; flex-shrink: 0; }
+/* Chevron do item Agenda (indica que abre/fecha) */
+.nav-item .ni-caret { font-size: 9px; color: var(--sidebar-text); opacity: .55; transition: transform .15s; margin-left: 4px; flex-shrink: 0; }
+.nav-item.cats-open .ni-caret { transform: rotate(90deg); opacity: .8; }
 /* Submenu de categorias da Agenda (bolinha colorida no lugar do emoji) */
-.nav-subitems { margin: 1px 0 5px 15px; padding-left: 9px; border-left: 2px solid var(--sidebar-hover); display: flex; flex-direction: column; gap: 1px; }
+.nav-subitems { margin: 1px 0 5px 15px; padding-left: 9px; border-left: 2px solid var(--sidebar-hover); display: none; flex-direction: column; gap: 1px; }
+.nav-subitems.open { display: flex; }
 .nav-subitem { display: flex; align-items: center; gap: 9px; padding: 5.5px 8px; border-radius: 8px; cursor: pointer; transition: background .12s; }
 .nav-subitem:hover { background: var(--sidebar-hover); }
 .nav-subitem.active { background: var(--sidebar-active); box-shadow: inset 0 1px 0 rgba(255,255,255,.3); }
@@ -96,7 +100,7 @@ html, body {
 .catrow.is-done .catrow-title { text-decoration: line-through; }
 .catrow.is-past { opacity: .78; }
 .catlist-empty { text-align: center; color: var(--text-faint, #9b93ac); font-size: 13.5px; padding: 40px 12px; }
-@media (max-width: 768px) { .nav-subitems { display: none; } }
+@media (max-width: 768px) { .nav-subitems { display: none; } .nav-item .ni-caret { display: none; } }
 .badge-red    { background: #fee2e2; color: #dc2626; }
 .badge-yellow { background: #fef9c3; color: #a16207; }
 .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
@@ -1742,8 +1746,8 @@ table.data-table tr:hover td { background: var(--bg); }
     <div class="sidebar-section">
       <div class="sidebar-section-label">Principal</div>
       <div class="nav-item active" data-sec="roadmap"><span class="ni-icon">🗺️</span><span class="ni-text">Roadmap</span><span class="ni-badge badge-red">Urgente</span></div>
-      <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span><span id="badgeAgenda" class="ni-badge badge-red" style="display:none">0</span></div>
-      <div class="nav-subitems" id="agendaCats" hidden>
+      <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span><span id="badgeAgenda" class="ni-badge badge-red" style="display:none">0</span><span class="ni-caret">▸</span></div>
+      <div class="nav-subitems" id="agendaCats">
         <div class="nav-subitem" data-cat="pessoal"><span class="cat-dot" style="--c:#dc2626"></span><span class="ni-text">Pessoal</span></div>
         <div class="nav-subitem" data-cat="brasileirao_play"><span class="cat-dot" style="--c:#16a34a"></span><span class="ni-text">Brasileirão Play</span></div>
         <div class="nav-subitem" data-cat="eventos"><span class="cat-dot" style="--c:#ea580c"></span><span class="ni-text">Eventos</span></div>
@@ -4531,18 +4535,35 @@ function activateTab(sec) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   item.classList.add('active');
   sectionEl.classList.add('active');
-  // Submenu de categorias: aparece só quando a Agenda está ativa
-  const _cats = document.getElementById('agendaCats');
-  if (_cats) {
-    _cats.hidden = (sec !== 'agenda');
-    if (sec !== 'agenda') document.querySelectorAll('.nav-subitem').forEach(n => n.classList.remove('active'));
-  }
+  // Submenu de categorias: some ao sair da Agenda; abrir/fechar é controlado no clique
+  if (sec !== 'agenda') setAgendaCats(false);
   try { localStorage.setItem(HUB_ACTIVE_TAB_KEY, sec); } catch (_) {}
   return true;
 }
 
+// Abre/fecha o submenu de categorias da Agenda
+function setAgendaCats(open) {
+  const cats = document.getElementById('agendaCats');
+  const nav = document.querySelector('.nav-item[data-sec="agenda"]');
+  if (!cats) return;
+  cats.classList.toggle('open', open);
+  if (nav) nav.classList.toggle('cats-open', open);
+  if (!open) document.querySelectorAll('.nav-subitem').forEach(n => n.classList.remove('active'));
+}
+
 document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => activateTab(item.dataset.sec));
+  item.addEventListener('click', () => {
+    const sec = item.dataset.sec;
+    if (sec === 'agenda') {
+      const onAgenda = document.getElementById('agenda')?.classList.contains('active');
+      const isOpen = document.getElementById('agendaCats')?.classList.contains('open');
+      activateTab('agenda');
+      // Já estava na Agenda → alterna (colapsa/expande). Vindo de outra aba → abre.
+      setAgendaCats(onAgenda ? !isOpen : true);
+    } else {
+      activateTab(sec);
+    }
+  });
 });
 
 // ── LISTA POR CATEGORIA (submenu da Agenda) ───────────────────────────────
@@ -4639,8 +4660,7 @@ function showCategoryList(slug) {
   // No menu: mantém a Agenda destacada e marca a subcategoria
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelector('.nav-item[data-sec="agenda"]')?.classList.add('active');
-  const cats = document.getElementById('agendaCats');
-  if (cats) cats.hidden = false;
+  setAgendaCats(true);
   document.querySelectorAll('.nav-subitem').forEach(n => n.classList.remove('active'));
   document.querySelector('.nav-subitem[data-cat="' + slug + '"]')?.classList.add('active');
   renderCatList(slug);
