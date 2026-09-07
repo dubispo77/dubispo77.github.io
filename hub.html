@@ -9269,7 +9269,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const projInfo = it.project_id && projectsMap[it.project_id] ? projectsMap[it.project_id] : null;
     let projectToken = it.area || 'pessoal';
     if (projInfo && /santos/i.test(projInfo.name || '')) projectToken = 'santos';
-    if (itIsSantos) projectToken = 'santos'; // se o título for jogo do Santos, força projectToken
+    // Jogo do Santos ganha o estilo "santos" (preto) — MAS se veio pela categoria
+    // Brasileirão Play (jogo que o Eduardo narra, do WhatsApp), mantém o verde da categoria.
+    if (itIsSantos && it.area !== 'brasileirao_play') projectToken = 'santos';
     return {
       id: it.id,
       date: ymd(d),
