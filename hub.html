@@ -1719,7 +1719,7 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="nav-item" data-sec="trabalho"><span class="ni-icon">💼</span><span class="ni-text">Trabalho</span><span id="badgeTrabalho" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="funil"><span class="ni-icon">🎯</span><span class="ni-text">Funil</span></div>
       <div class="nav-item" data-sec="saude"><span class="ni-icon">🏃</span><span class="ni-text">Saúde</span><span id="badgeSaude" class="ni-badge badge-red" style="display:none">0</span></div>
-      <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Administração</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="casa"><span class="ni-icon">🏡</span><span class="ni-text">Casa</span><span id="badgeCasa" class="ni-badge badge-yellow" style="display:none">0</span></div>
       <div class="nav-item" data-sec="eventos"><span class="ni-icon">🎟️</span><span class="ni-text">Eventos</span><span id="badgeEventos" class="ni-badge badge-yellow" style="display:none">0</span></div>
     </div>
@@ -1744,7 +1744,7 @@ table.data-table tr:hover td { background: var(--bg); }
     <section id="roadmap" class="section active">
       <div class="section-header">
         <div class="section-title">🗺️ Roadmap de Vida</div>
-        <div class="section-subtitle">6 áreas · Pessoal · Trabalho · Saúde · Administração · Casa · Eventos</div>
+        <div class="section-subtitle">6 áreas · Pessoal · Trabalho · Saúde · Finanças · Casa · Eventos</div>
       </div>
       <div style="padding-bottom:60px;">
         <div class="rm-wrap" id="rmWrap">
@@ -1817,7 +1817,7 @@ table.data-table tr:hover td { background: var(--bg); }
 
     <!-- FINANÇAS -->
     <section id="administracao" class="section">
-      <div class="section-header"><div class="section-title">💰 Administração</div><div class="section-subtitle" id="finSubtitle">Finanças · Supabase</div></div>
+      <div class="section-header"><div class="section-title">💰 Finanças</div><div class="section-subtitle" id="finSubtitle">Contas · Supabase</div></div>
       <div class="section-body" style="padding:0">
         <style>
 #administracao .section-title{ font-size: 19px; margin-bottom: 2px; }
@@ -10590,7 +10590,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const currentSub = (window.roadmapSubs || []).find(s => s.id === i.parent_id);
       const AREA_LABELS = {
         pessoal: 'Pessoal', trabalho: 'Trabalho', saude: 'Saúde',
-        administracao: 'Administração', casa: 'Casa', eventos: 'Eventos',
+        administracao: 'Finanças', casa: 'Casa', eventos: 'Eventos',
         brasileirao_play: 'Brasileirão Play', aw_vz: 'AW+VZ', aniversarios: 'Aniversários',
       };
       const innerSub = editMode
@@ -11008,7 +11008,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     { slug: 'pessoal',          name: 'Pessoal',          emoji: '🙋' },
     { slug: 'brasileirao_play', name: 'Brasileirão Play', emoji: '⚽' },
     { slug: 'saude',            name: 'Saúde',            emoji: '🏥' },
-    { slug: 'administracao',    name: 'Administração',     emoji: '💰' },
+    { slug: 'administracao',    name: 'Finanças',          emoji: '💰' },
     { slug: 'casa',             name: 'Casa',             emoji: '🏡' },
     { slug: 'eventos',          name: 'Eventos',          emoji: '🎟️' },
     { slug: 'aw_vz',            name: 'AW+VZ',            emoji: '🤝' },
@@ -11857,7 +11857,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     { slug: 'pessoal',          name: 'Pessoal',          emoji: '🙋' },
     { slug: 'brasileirao_play', name: 'Brasileirão Play', emoji: '⚽' },
     { slug: 'saude',            name: 'Saúde',            emoji: '🏥' },
-    { slug: 'administracao',    name: 'Administração',     emoji: '💰' },
+    { slug: 'administracao',    name: 'Finanças',          emoji: '💰' },
     { slug: 'casa',             name: 'Casa',             emoji: '🏡' },
     { slug: 'eventos',          name: 'Eventos',          emoji: '🎟️' },
     { slug: 'aw_vz',            name: 'AW+VZ',            emoji: '🤝' },
