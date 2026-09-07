@@ -4660,7 +4660,27 @@ function showCategoryList(slug) {
   setAgendaCats(true);
   document.querySelectorAll('.nav-subitem').forEach(n => n.classList.remove('active'));
   document.querySelector('.nav-subitem[data-cat="' + slug + '"]')?.classList.add('active');
+  _ensureCatlistRT();
   renderCatList(slug);
+}
+
+// Realtime da lista de categoria: qualquer mudança nos itens (mudar categoria,
+// título, data, concluir, apagar num card) reflete NA HORA na lista aberta.
+let _catlistRTdone = false;
+function _ensureCatlistRT() {
+  if (_catlistRTdone) return;
+  const sb = window.sbClient;
+  if (!sb) return; // ainda sem sessão — tenta de novo no próximo clique
+  _catlistRTdone = true;
+  let t = null;
+  sb.channel('catlist-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, () => {
+      const sec = document.getElementById('catlist');
+      if (!_catlistSlug || !sec || !sec.classList.contains('active')) return;
+      clearTimeout(t);
+      t = setTimeout(() => renderCatList(_catlistSlug), 200);
+    })
+    .subscribe();
 }
 
 document.querySelectorAll('.nav-subitem').forEach(it => {
