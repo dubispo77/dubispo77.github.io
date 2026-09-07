@@ -9297,6 +9297,25 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     (data || []).forEach(p => { projectsMap[p.id] = p; });
   }
 
+  // Calendário read-only do time do Eduardo (Santos FC). Jogos importados dele.
+  const SANTOS_CAL_ID = 'f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.com';
+  // Chave do jogo: times (ordenados, sem depender de mandante) + dia.
+  function _gameKey(title, date) {
+    const parts = String(title || '').toLowerCase().replace(/×/g, 'x').split(/\s+x\s+/).map(s => s.trim()).filter(Boolean);
+    if (parts.length === 2) parts.sort();
+    return parts.join(' x ') + '|' + date;
+  }
+  // Quando o MESMO jogo vem do calendário do Santos (read-only) E também da
+  // categoria Brasileirão Play (o que o Eduardo mandou pelo WhatsApp — ele às vezes
+  // narra jogos do Santos), esconde a cópia do Santos e mantém a do WhatsApp.
+  function dedupeSantosGames(items) {
+    const braKeys = new Set(
+      items.filter(i => i.raw && i.raw.area === 'brasileirao_play').map(i => _gameKey(i.title, i.date))
+    );
+    if (!braKeys.size) return items;
+    return items.filter(i => !(i.raw && i.raw.google_calendar_id === SANTOS_CAL_ID && braKeys.has(_gameKey(i.title, i.date))));
+  }
+
   async function reloadItemsForCursor() {
     // Carrega itens cobrindo o mês do cursor + 1 mês antes e 1 mês depois
     // (assim o calendário cobre os "out-of-month" sem precisar nova query toda vez)
@@ -9310,20 +9329,20 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     if (sb && session) {
       const { data, error } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,recurrence_done_dates')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,recurrence_done_dates')
         .eq('is_roadmap', false)
         .gte('date_start', start.toISOString())
         .lt('date_start', end.toISOString())
         .order('date_start');
       // Carrega TAMBÉM todos items recorrentes (independente da data) pra expandir em virtuais
       const { data: recurData } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,recurrence_done_dates')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,recurrence_done_dates')
         .eq('is_roadmap', false)
         .not('recurrence', 'is', null)
         .lt('date_start', end.toISOString());
       // Items multi-dia que terminam na janela (mas começam antes)
       const { data: spanData } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,recurrence_done_dates')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,recurrence_done_dates')
         .eq('is_roadmap', false)
         .lt('date_start', start.toISOString())
         .gte('date_end', start.toISOString());
@@ -9333,6 +9352,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         for (const r of (recurData || [])) if (!seen.has(r.id)) { all.push(r); seen.add(r.id); }
         for (const s of (spanData || [])) if (!seen.has(s.id)) { all.push(s); seen.add(s.id); }
         itemsCache = all.map(normalizeItem);
+        itemsCache = dedupeSantosGames(itemsCache);
       }
     } else {
       // Modo demo (sem login): usa mock
