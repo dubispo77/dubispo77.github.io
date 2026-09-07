@@ -14460,6 +14460,13 @@ function cfMatchDesc(s) {
 }
 async function confAprovar(r) {
   if (r.k === 'cartao') {
+    // blindagem contra corrida (bug do Tinder Boost, 07/09): garante que a ÚLTIMA edição local
+    // (nome/categoria digitados na fila) está gravada ANTES do RPC ler a linha pra criar a transação
+    try {
+      await window.sbClient.from('import_review')
+        .update({ descricao: r.desc, categoria: r.cat, updated_at: new Date().toISOString() })
+        .eq('id', r.id).eq('status', 'pendente');
+    } catch (_e0) { /* RPC ainda usa o que estiver no banco */ }
     const { data, error } = await window.sbClient.rpc('aprovar_review',
       { p_id: r.id, p_fixo: !!r._fixo, p_match: r._fixo ? cfMatchDesc(r.raw || r.desc) : null });
     if (error) throw error;
