@@ -1600,6 +1600,8 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .cf-cardprev { background: #fff; border: 1.5px solid #065f46; border-radius: 10px; padding: 11px 14px; max-width: 460px; }
 #finapp .cf-parcbox { background: #fff; border: 1.5px solid #ede9f5; border-left: 4px solid #5b4fcf; border-radius: 9px; padding: 9px 12px; }
 #finapp .cf-vincconf { display: flex; align-items: center; gap: 8px; margin-top: 8px; background: #d1fae5; color: #065f46; border-radius: 9px; padding: 8px 12px; font-size: 12.5px; font-weight: 650; flex-wrap: wrap; }
+#finapp .cpk-head { padding: 7px 12px 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: #a89eb8; border-top: 1px solid #f0ede8; }
+#finapp .cpk-head:first-child { border-top: 0; }
 #finapp .cf-novo { border-style: dashed; border-color: #b9b2c9; color: #4c3f9e; }
 #finapp .cf-novo.on, #finapp .cf-novo:hover { background: #ede9f5; border-style: solid; border-color: #5b4fcf; }
 #finapp table.rev-tb td.rv-desc { min-width: 170px; }
@@ -13785,9 +13787,17 @@ catPicker.className = 'cat-picker';
 let pickerRow = null;
 function openCatPicker(cell, t) {
   pickerRow = t;
+  // grupos receita/despesa (decisão 07/09): o grupo do sinal do lançamento vem primeiro, todas visíveis
   const slugs = Object.keys(DATA.cats).sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
-  catPicker.innerHTML = slugs.map(slug =>
-    '<div class="cpk-item' + (t.cat === slug ? ' cur' : '') + '" data-slug="' + slug + '">' + miniCi(slug) + DATA.cats[slug].name + '</div>').join('');
+  const tipoDe = slug => (typeof CAT_META !== 'undefined' && CAT_META[DATA.cats[slug].name]) ? CAT_META[DATA.cats[slug].name][1] : 'd';
+  const grupo = (tp, titulo) => {
+    const ss = slugs.filter(s => tipoDe(s) === tp);
+    if (!ss.length) return '';
+    return '<div class="cpk-head">' + titulo + '</div>' + ss.map(slug =>
+      '<div class="cpk-item' + (t.cat === slug ? ' cur' : '') + '" data-slug="' + slug + '">' + miniCi(slug) + DATA.cats[slug].name + '</div>').join('');
+  };
+  const rec = grupo('r', '💰 Receitas'), des = grupo('d', '💸 Despesas'), neu = grupo('n', '↔ Outras');
+  catPicker.innerHTML = ((t.val || 0) >= 0 ? rec + neu + des : des + neu + rec);
   const r = cell.getBoundingClientRect();
   catPicker.style.left = Math.min(r.left, window.innerWidth - 270) + 'px';
   catPicker.style.top = Math.min(r.bottom + 4, window.innerHeight - 350) + 'px';
