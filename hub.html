@@ -9607,12 +9607,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // Preserva posição de scroll quando re-renderiza timeline (após drag-drop, toggle, etc)
     const oldScroller = container.querySelector('.calM-scroll');
     const oldScrollTop = oldScroller ? oldScroller.scrollTop : null;
+    // Guarda também o offsetTop do mês âncora, pra restaurar a posição EXATA
+    // (antes só voltava pro topo do mês → a página "pulava" ao marcar tarefa).
+    let oldAnchorTop = null;
     const oldVisibleKey = oldScroller && !chronoMode
       ? (() => {
           const ms = container.querySelectorAll('.calM-month');
           for (const m of ms) {
             const top = m.offsetTop, bot = top + m.offsetHeight;
-            if (oldScrollTop >= top - 80 && oldScrollTop < bot - 80) return m.dataset.monthKey;
+            if (oldScrollTop >= top - 80 && oldScrollTop < bot - 80) { oldAnchorTop = top; return m.dataset.monthKey; }
           }
           return null;
         })()
@@ -9621,14 +9624,24 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       renderMonthSinglePage();
     } else {
       renderTimeline().then(() => {
+        const newScroller = container.querySelector('.calM-scroll');
+        if (!newScroller) return;
         if (oldVisibleKey) {
           const target = container.querySelector(`.calM-month[data-month-key="${oldVisibleKey}"]`);
-          const newScroller = container.querySelector('.calM-scroll');
-          if (target && newScroller) {
-            _suppressLabelUpdate = true;
-            newScroller.scrollTop = target.offsetTop;
-            requestAnimationFrame(() => { _suppressLabelUpdate = false; });
+          _suppressLabelUpdate = true;
+          if (target) {
+            // mantém o mesmo deslocamento dentro do mês âncora → não pula
+            const delta = oldAnchorTop != null ? (oldScrollTop - oldAnchorTop) : 0;
+            newScroller.scrollTop = target.offsetTop + delta;
+          } else if (oldScrollTop != null) {
+            newScroller.scrollTop = oldScrollTop; // fallback: mês âncora sumiu
           }
+          requestAnimationFrame(() => { _suppressLabelUpdate = false; });
+        } else if (oldScrollTop != null) {
+          // sem mês âncora — restaura o scroll bruto
+          _suppressLabelUpdate = true;
+          newScroller.scrollTop = oldScrollTop;
+          requestAnimationFrame(() => { _suppressLabelUpdate = false; });
         }
       });
     }
