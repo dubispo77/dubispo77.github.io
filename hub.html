@@ -13516,6 +13516,8 @@ function changeMonth(dir) {
   if (idx < 0 || idx >= MONTHS.length) return;
   currentMonth = MONTHS[idx];
   store.set('hub_financas_month', currentMonth);
+  // regra do Eduardo (07/09): ao trocar de mês, lista sempre por data crescente (1…31)
+  VIEW.sort = 'date'; VIEW.dir = 'asc';
   renderAll();
 }
 document.addEventListener('click', e => {
@@ -13598,7 +13600,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ===== ESTADO DA TABELA: ordenação + filtros por coluna =====
-const VIEW = { sort:'date', dir:'desc', st:new Set(), cat:new Set(), acc:new Set(), q:'' };
+const VIEW = { sort:'date', dir:'asc', st:new Set(), cat:new Set(), acc:new Set(), q:'' }; // padrão: data crescente (1…31)
 
 const COLS = [
   { id:'check', label:'<input type="checkbox">', sort:null },
