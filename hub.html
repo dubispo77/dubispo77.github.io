@@ -69,6 +69,34 @@ html, body {
 .nav-item .ni-text { font-size: 13px; font-weight: 500; color: var(--sidebar-text); flex: 1; }
 .nav-item.active .ni-text { font-weight: 650; color: #2d2460; }
 .nav-item .ni-badge { font-size: 9px; font-weight: 800; padding: 1.5px 6px; border-radius: 999px; flex-shrink: 0; }
+/* Submenu de categorias da Agenda (bolinha colorida no lugar do emoji) */
+.nav-subitems { margin: 1px 0 5px 15px; padding-left: 9px; border-left: 2px solid var(--sidebar-hover); display: flex; flex-direction: column; gap: 1px; }
+.nav-subitem { display: flex; align-items: center; gap: 9px; padding: 5.5px 8px; border-radius: 8px; cursor: pointer; transition: background .12s; }
+.nav-subitem:hover { background: var(--sidebar-hover); }
+.nav-subitem.active { background: var(--sidebar-active); box-shadow: inset 0 1px 0 rgba(255,255,255,.3); }
+.nav-subitem .ni-text { font-size: 12.5px; font-weight: 500; color: var(--sidebar-text); }
+.nav-subitem.active .ni-text { font-weight: 650; color: #2d2460; }
+.cat-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--c); flex-shrink: 0; box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.12); }
+/* Lista de categoria (seção catlist) */
+#catlist .catlist-controls { display: flex; align-items: center; gap: 10px; margin: 2px 0 14px; }
+.catlist-pastbtn { border: 1px solid var(--border, #e2e0ec); background: var(--card, #fff); color: var(--text-faint, #6b637a); font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px; cursor: pointer; transition: background .12s; }
+.catlist-pastbtn:hover { background: var(--sidebar-hover, #f1eff8); }
+.catlist-count { font-size: 12.5px; color: var(--text-faint, #6b637a); }
+.cat-dot-lg { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; margin-right: 4px; box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
+.catlist-body { display: flex; flex-direction: column; gap: 7px; padding-bottom: 60px; }
+.catlist-daysep { font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--text-faint, #9b93ac); margin: 14px 0 2px; }
+.catrow { display: flex; align-items: center; gap: 12px; background: var(--card, #fff); border: 1px solid var(--border, #ece9f5); border-left: 4px solid var(--c, #999); border-radius: 10px; padding: 10px 14px; }
+.catrow-date { min-width: 74px; font-size: 12px; font-weight: 700; color: var(--text, #2d2460); line-height: 1.25; }
+.catrow-date small { display: block; font-size: 10.5px; font-weight: 600; color: var(--text-faint, #9b93ac); text-transform: capitalize; }
+.catrow-main { flex: 1; min-width: 0; }
+.catrow-title { font-size: 14px; font-weight: 600; color: var(--text, #2d2460); }
+.catrow-sub { font-size: 11.5px; color: var(--text-faint, #9b93ac); margin-top: 1px; }
+.catrow-time { font-size: 12.5px; font-weight: 700; color: var(--text-faint, #6b637a); white-space: nowrap; }
+.catrow.is-done { opacity: .55; }
+.catrow.is-done .catrow-title { text-decoration: line-through; }
+.catrow.is-past { opacity: .78; }
+.catlist-empty { text-align: center; color: var(--text-faint, #9b93ac); font-size: 13.5px; padding: 40px 12px; }
+@media (max-width: 768px) { .nav-subitems { display: none; } }
 .badge-red    { background: #fee2e2; color: #dc2626; }
 .badge-yellow { background: #fef9c3; color: #a16207; }
 .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
@@ -1715,6 +1743,16 @@ table.data-table tr:hover td { background: var(--bg); }
       <div class="sidebar-section-label">Principal</div>
       <div class="nav-item active" data-sec="roadmap"><span class="ni-icon">🗺️</span><span class="ni-text">Roadmap</span><span class="ni-badge badge-red">Urgente</span></div>
       <div class="nav-item" data-sec="agenda"><span class="ni-icon">📅</span><span class="ni-text">Agenda</span><span id="badgeAgenda" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-subitems" id="agendaCats" hidden>
+        <div class="nav-subitem" data-cat="pessoal"><span class="cat-dot" style="--c:#dc2626"></span><span class="ni-text">Pessoal</span></div>
+        <div class="nav-subitem" data-cat="brasileirao_play"><span class="cat-dot" style="--c:#16a34a"></span><span class="ni-text">Brasileirão Play</span></div>
+        <div class="nav-subitem" data-cat="eventos"><span class="cat-dot" style="--c:#ea580c"></span><span class="ni-text">Eventos</span></div>
+        <div class="nav-subitem" data-cat="administracao"><span class="cat-dot" style="--c:#7c3aed"></span><span class="ni-text">Finanças</span></div>
+        <div class="nav-subitem" data-cat="saude"><span class="cat-dot" style="--c:#0ea5e9"></span><span class="ni-text">Saúde</span></div>
+        <div class="nav-subitem" data-cat="casa"><span class="cat-dot" style="--c:#eab308"></span><span class="ni-text">Casa</span></div>
+        <div class="nav-subitem" data-cat="aw_vz"><span class="cat-dot" style="--c:#ec4899"></span><span class="ni-text">AW+VZ</span></div>
+        <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#c026d3"></span><span class="ni-text">Aniversários</span></div>
+      </div>
       <div class="nav-item" data-sec="pessoal"><span class="ni-icon">🙋</span><span class="ni-text">Pessoal</span><span id="badgePessoal" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="trabalho"><span class="ni-icon">💼</span><span class="ni-text">Trabalho</span><span id="badgeTrabalho" class="ni-badge badge-red" style="display:none">0</span></div>
       <div class="nav-item" data-sec="funil"><span class="ni-icon">🎯</span><span class="ni-text">Funil</span></div>
@@ -1812,6 +1850,21 @@ table.data-table tr:hover td { background: var(--bg); }
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- LISTA POR CATEGORIA (aberta pelo submenu da Agenda) -->
+    <section id="catlist" class="section">
+      <div class="section-header">
+        <div class="section-title"><span id="catlistDot" class="cat-dot-lg"></span><span id="catlistName">Categoria</span></div>
+        <div class="section-subtitle">Compromissos de hoje em diante</div>
+      </div>
+      <div class="section-body">
+        <div class="catlist-controls">
+          <button id="catlistPastBtn" class="catlist-pastbtn" type="button" style="display:none">Ver anteriores</button>
+          <span id="catlistCount" class="catlist-count"></span>
+        </div>
+        <div id="catlistBody" class="catlist-body"></div>
       </div>
     </section>
 
@@ -4478,12 +4531,127 @@ function activateTab(sec) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   item.classList.add('active');
   sectionEl.classList.add('active');
+  // Submenu de categorias: aparece só quando a Agenda está ativa
+  const _cats = document.getElementById('agendaCats');
+  if (_cats) {
+    _cats.hidden = (sec !== 'agenda');
+    if (sec !== 'agenda') document.querySelectorAll('.nav-subitem').forEach(n => n.classList.remove('active'));
+  }
   try { localStorage.setItem(HUB_ACTIVE_TAB_KEY, sec); } catch (_) {}
   return true;
 }
 
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => activateTab(item.dataset.sec));
+});
+
+// ── LISTA POR CATEGORIA (submenu da Agenda) ───────────────────────────────
+const CATLIST_META = {
+  pessoal:          { name: 'Pessoal',          color: '#dc2626' },
+  brasileirao_play: { name: 'Brasileirão Play', color: '#16a34a' },
+  eventos:          { name: 'Eventos',          color: '#ea580c' },
+  administracao:    { name: 'Finanças',         color: '#7c3aed' },
+  saude:            { name: 'Saúde',            color: '#0ea5e9' },
+  casa:             { name: 'Casa',             color: '#eab308' },
+  aw_vz:            { name: 'AW+VZ',            color: '#ec4899' },
+  aniversarios:     { name: 'Aniversários',     color: '#c026d3' },
+};
+let _catlistSlug = null;
+let _catlistShowPast = false;
+
+function _catEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c])); }
+function _catTodayStr() { const d = new Date(); const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+function _catDayStr(it) { return (it.date_start || '').slice(0, 10); }
+function _catFmtDate(dayStr) {
+  const [y, m, d] = dayStr.split('-').map(Number);
+  if (!y) return { wd: '', dm: '' };
+  const dt = new Date(y, m - 1, d);
+  const wd = dt.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+  return { wd, dm: String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0') };
+}
+function _catFmtTime(it) {
+  if (!it.has_time || !it.date_start) return '';
+  const dt = new Date(it.date_start);
+  if (isNaN(dt)) return '';
+  return dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).replace(':', 'h');
+}
+function _catRowHtml(it, color, isPast) {
+  const done = it.status === 'done';
+  const { wd, dm } = _catFmtDate(_catDayStr(it));
+  const time = _catFmtTime(it);
+  return '<div class="catrow' + (done ? ' is-done' : '') + (isPast ? ' is-past' : '') + '" style="--c:' + color + '">'
+    + '<div class="catrow-date">' + dm + '<small>' + _catEsc(wd) + '</small></div>'
+    + '<div class="catrow-main"><div class="catrow-title">' + (done ? '✓ ' : '') + _catEsc(it.title) + '</div>'
+    + (it.address ? '<div class="catrow-sub">' + _catEsc(it.address) + '</div>' : '')
+    + '</div>'
+    + '<div class="catrow-time">' + (time || '<span style="opacity:.4">dia todo</span>') + '</div>'
+    + '</div>';
+}
+
+async function renderCatList(slug) {
+  const meta = CATLIST_META[slug];
+  if (!meta) return;
+  const body = document.getElementById('catlistBody');
+  const nameEl = document.getElementById('catlistName');
+  const dotEl = document.getElementById('catlistDot');
+  const pastBtn = document.getElementById('catlistPastBtn');
+  const countEl = document.getElementById('catlistCount');
+  nameEl.textContent = meta.name;
+  dotEl.style.background = meta.color;
+  const sb = window.sbClient;
+  if (!sb) { body.innerHTML = '<div class="catlist-empty">Entre na sua conta pra ver os itens.</div>'; pastBtn.style.display = 'none'; countEl.textContent = ''; return; }
+  body.innerHTML = '<div class="catlist-empty">Carregando…</div>';
+  const { data, error } = await sb.from('items')
+    .select('id,title,area,type,date_start,date_end,has_time,status,address')
+    .eq('area', slug)
+    .order('date_start', { ascending: true });
+  if (error) { body.innerHTML = '<div class="catlist-empty">Erro ao carregar: ' + _catEsc(error.message) + '</div>'; return; }
+  const todayStr = _catTodayStr();
+  const all = data || [];
+  const future = all.filter(it => _catDayStr(it) >= todayStr);
+  const past = all.filter(it => _catDayStr(it) < todayStr).reverse(); // mais recentes primeiro
+  let html = '';
+  if (future.length === 0) {
+    html += '<div class="catlist-empty">Nenhum compromisso de hoje em diante em <b>' + _catEsc(meta.name) + '</b>.</div>';
+  } else {
+    html += future.map(it => _catRowHtml(it, meta.color, false)).join('');
+  }
+  if (_catlistShowPast && past.length) {
+    html += '<div class="catlist-daysep">Anteriores</div>';
+    html += past.map(it => _catRowHtml(it, meta.color, true)).join('');
+  }
+  body.innerHTML = html;
+  // Botão "ver anteriores"
+  if (past.length) {
+    pastBtn.style.display = '';
+    pastBtn.textContent = _catlistShowPast ? 'Ocultar anteriores' : ('Ver anteriores (' + past.length + ')');
+  } else {
+    pastBtn.style.display = 'none';
+  }
+  countEl.textContent = future.length ? (future.length + (future.length === 1 ? ' compromisso' : ' compromissos') + ' a partir de hoje') : '';
+}
+
+function showCategoryList(slug) {
+  _catlistSlug = slug;
+  _catlistShowPast = false;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('catlist').classList.add('active');
+  // No menu: mantém a Agenda destacada e marca a subcategoria
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector('.nav-item[data-sec="agenda"]')?.classList.add('active');
+  const cats = document.getElementById('agendaCats');
+  if (cats) cats.hidden = false;
+  document.querySelectorAll('.nav-subitem').forEach(n => n.classList.remove('active'));
+  document.querySelector('.nav-subitem[data-cat="' + slug + '"]')?.classList.add('active');
+  renderCatList(slug);
+}
+
+document.querySelectorAll('.nav-subitem').forEach(it => {
+  it.addEventListener('click', e => { e.stopPropagation(); showCategoryList(it.dataset.cat); });
+});
+document.getElementById('catlistPastBtn')?.addEventListener('click', () => {
+  _catlistShowPast = !_catlistShowPast;
+  if (_catlistSlug) renderCatList(_catlistSlug);
 });
 
 // Restaura aba salva ao carregar (default = roadmap)
