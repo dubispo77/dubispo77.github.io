@@ -11092,6 +11092,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           to_lat: Number(currentItem.address_lat),
           to_lng: Number(currentItem.address_lng),
           force,
+          // horário do compromisso → trânsito previsto (carro) e horário real (transporte)
+          depart_ts: (currentItem.has_time && currentItem.date_start)
+            ? Math.floor(new Date(currentItem.date_start).getTime() / 1000)
+            : undefined,
         },
       });
       if (error) throw error;
