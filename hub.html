@@ -14753,12 +14753,14 @@ function cfDossie(r) {
     + corpo + '</div></td></tr>';
 }
 function cfCand(r) {
-  // candidata da aba "Aprovar previsão": vínculo manual > casamento do sync > cálculo ao vivo
+  // candidata da aba "Aprovar previsão": vínculo manual > casamento do sync COM SINAIS.
+  // Regra do Eduardo (10/09, caso Queluz×Google One): valor sozinho NUNCA elege — sem sinal
+  // (nome/parcela/data) ou com gasto_novo/so_valor, a compra abre direto em "Novo gasto";
+  // o quase-casamento fica só como info cinza nas colunas. Vincular manualmente segue livre.
   if (r.vinculo) return { desc: r.vinculo.desc, valor: Number(r.vinculo.valor), n: r.vinculo.n || null, total: r.vinculo.total || null, tipo: r.vinculo.tipo || null, category: null, origem: 'vinculo' };
   const ev = r.ev || {};
-  if (ev.previsto != null && typeof ev.previsto_valor === 'number') return { desc: ev.previsto, valor: ev.previsto_valor, n: null, total: null, tipo: null, category: null, origem: 'motor' };
-  if (r.evCalc && r.evCalc.f) return { desc: r.evCalc.f.desc, valor: r.evCalc.f.valor, n: r.evCalc.f.n || null, total: r.evCalc.f.total || null, tipo: r.evCalc.f.tipo || null, category: r.evCalc.f.category || null, origem: 'calc' };
-  if (r.evCalc) return { desc: r.evCalc.previsto, valor: r.evCalc.previsto_valor, n: null, total: null, tipo: null, category: null, origem: 'calc' };
+  const temSinal = Array.isArray(ev.sinais) && ev.sinais.length > 0 && !ev.so_valor && !ev.gasto_novo;
+  if (temSinal && ev.previsto != null && typeof ev.previsto_valor === 'number') return { desc: ev.previsto, valor: ev.previsto_valor, n: null, total: null, tipo: null, category: null, origem: 'motor' };
   return null;
 }
 function cfMesLabel(bill, off) {
