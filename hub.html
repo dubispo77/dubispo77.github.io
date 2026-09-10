@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
+<meta name="hub-build" content="2026-09-10T18:36:59">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3706,6 +3707,42 @@ table.data-table tr:hover td { background: var(--bg); }
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 <script>
+// ── AUTO-UPDATE ──────────────────────────────────────────────────────────────
+// O GitHub Pages manda cache-control: max-age=600, então o navegador segurava a
+// versão velha por até 10min (daí o Cmd+Shift+R). Aqui o hub compara o
+// <meta name="hub-build"> carregado com o que está no servidor (fetch sem cache)
+// e recarrega sozinho quando muda. Checa ao abrir, ao voltar pra aba e a cada 60s.
+(function hubAutoUpdate() {
+  const meta = document.querySelector('meta[name="hub-build"]');
+  const mine = meta ? meta.content : '';
+  if (!mine || location.protocol === 'file:') return;
+  let busy = false;
+  async function check() {
+    if (busy || document.hidden) return;
+    busy = true;
+    try {
+      const url = location.pathname + '?hubchk=' + Date.now();
+      const r = await fetch(url, { cache: 'no-store', headers: { 'Range': 'bytes=0-4095' } });
+      if (!r.ok && r.status !== 206) return;
+      const txt = await r.text();
+      const m = txt.match(/<meta name="hub-build" content="([^"]+)"/);
+      if (!m || m[1] === mine) return;
+      // Não recarrega no meio de uma digitação — tenta de novo no próximo ciclo.
+      const ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
+      // Evita loop se o reload ainda vier do cache: só tenta de novo após 3min.
+      let last = null;
+      try { last = sessionStorage.getItem('HUB_RELOADED_FOR'); } catch (_) {}
+      if (last) { const [b, t] = last.split('|'); if (b === m[1] && Date.now() - Number(t) < 3 * 60 * 1000) return; }
+      try { sessionStorage.setItem('HUB_RELOADED_FOR', m[1] + '|' + Date.now()); } catch (_) {}
+      location.reload();
+    } catch (_) {} finally { busy = false; }
+  }
+  check();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+  window.addEventListener('focus', check);
+  setInterval(check, 60 * 1000);
+})();
 // ── AUTH (Fase 3) ── Verifica login antes de renderizar o hub.
 const SUPABASE_URL  = 'https://bpyoaxdmejnnyixrjxel.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1';
