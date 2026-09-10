@@ -1322,6 +1322,12 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .tdm-local-btn.tdm-loc-waze { background: #33ccff; color: #fff; }
 .tdm-local-btn.tdm-loc-maps { background: #fff; border: 1px solid #e5e7eb; color: #111; }
+/* Edição de vídeo: dropdowns Autora / Editor / Gravação */
+.tdm-video { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 2px 0 14px; }
+.tdm-video-f { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tdm-video-f label { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #9ca3af; }
+.tdm-video-f select { font-size: 13px; padding: 6px 8px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; background: var(--card, #fff); color: var(--text, #111); font-family: inherit; cursor: pointer; width: 100%; }
+@media (max-width: 600px) { .tdm-video { grid-template-columns: 1fr; gap: 6px; } }
 /* Dropdown da área */
 .tdm-area-dropdown {
   position: absolute; top: 54px; left: 22px;
@@ -9314,6 +9320,17 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     return items.filter(i => !(i.raw && i.raw.google_calendar_id === SANTOS_CAL_ID && braKeys.has(_gameKey(i.title, i.date))));
   }
 
+  // Vídeos de edição (metadata.video): na agenda geral do Eduardo só aparecem os que
+  // estão PRA ELE como editor. Mudou o editor no card → entra/sai da agenda automaticamente.
+  const VIDEO_MEU_EDITOR = 'Eduardo';
+  function filterVideosByEditor(items) {
+    return items.filter(it => {
+      const md = it.raw && it.raw.metadata;
+      if (md && md.video && md.editor && md.editor !== VIDEO_MEU_EDITOR) return false;
+      return true;
+    });
+  }
+
   async function reloadItemsForCursor() {
     // Carrega itens cobrindo o mês do cursor + 1 mês antes e 1 mês depois
     // (assim o calendário cobre os "out-of-month" sem precisar nova query toda vez)
@@ -9327,20 +9344,20 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     if (sb && session) {
       const { data, error } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,recurrence_done_dates')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,metadata,recurrence_done_dates')
         .eq('is_roadmap', false)
         .gte('date_start', start.toISOString())
         .lt('date_start', end.toISOString())
         .order('date_start');
       // Carrega TAMBÉM todos items recorrentes (independente da data) pra expandir em virtuais
       const { data: recurData } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,recurrence_done_dates')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,metadata,recurrence_done_dates')
         .eq('is_roadmap', false)
         .not('recurrence', 'is', null)
         .lt('date_start', end.toISOString());
       // Items multi-dia que terminam na janela (mas começam antes)
       const { data: spanData } = await sb.from('items')
-        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,recurrence_done_dates')
+        .select('id,title,area,type,project_id,date_start,date_end,has_time,status,amount,currency,order_manual,recurrence,google_event_id,google_calendar_id,metadata,recurrence_done_dates')
         .eq('is_roadmap', false)
         .lt('date_start', start.toISOString())
         .gte('date_end', start.toISOString());
@@ -9351,6 +9368,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         for (const s of (spanData || [])) if (!seen.has(s.id)) { all.push(s); seen.add(s.id); }
         itemsCache = all.map(normalizeItem);
         itemsCache = dedupeSantosGames(itemsCache);
+        itemsCache = filterVideosByEditor(itemsCache);
       }
     } else {
       // Modo demo (sem login): usa mock
@@ -10701,6 +10719,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const i = currentItem;
     let html = '';
 
+    // ── Edição de vídeo: dropdowns Autora / Editor / Gravação (salvam no metadata) ──
+    if (i.area === 'aw_vz' || (i.metadata && i.metadata.video)) {
+      const md = i.metadata || {};
+      const _o = (v, cur) => `<option value="${escHtml(v)}" ${cur === v ? 'selected' : ''}>${escHtml(v)}</option>`;
+      const _e = (cur) => `<option value="" ${!cur ? 'selected' : ''}>—</option>`;
+      html += `<div class="tdm-video">
+        <div class="tdm-video-f"><label>Autora</label><select data-vmeta="autora">${_e(md.autora)}${['AW','VZ','Collab'].map(v=>_o(v,md.autora)).join('')}</select></div>
+        <div class="tdm-video-f"><label>Editor</label><select data-vmeta="editor">${_e(md.editor)}${['Eduardo','Sofia','João','Ruan'].map(v=>_o(v,md.editor)).join('')}</select></div>
+        <div class="tdm-video-f"><label>Gravação</label><select data-vmeta="gravacao">${_e(md.gravacao)}${['Comitê','Produtora (E1)','Produtora (E2)','Gabinete (D3)'].map(v=>_o(v,md.gravacao)).join('')}</select></div>
+      </div>`;
+    }
+
     // Local — só renderiza no body em MODO EDIÇÃO (visualização vai na .tdm-local-row externa)
     if ((i.address || activeFields.has('address')) && editMode) {
       // Botões Waze + Maps com logos reais (universal URLs — funcionam mobile + desktop)
@@ -10891,6 +10921,28 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
 
     elBody.innerHTML = html;
+
+    // Hook dos dropdowns de vídeo (funciona em visualização e edição): salva no metadata.
+    // Mudar o editor pra "Eduardo" faz o vídeo entrar na agenda geral; pra outro, sai (via realtime).
+    elBody.querySelectorAll('select[data-vmeta]').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        if (!sb) return;
+        const key = sel.dataset.vmeta;
+        const md = { ...(currentItem.metadata || {}), video: true };
+        if (sel.value) md[key] = sel.value; else delete md[key];
+        currentItem.metadata = md;
+        const patch = { metadata: md };
+        if (key === 'editor') {
+          patch.google_calendar_id = (sel.value === 'Eduardo')
+            ? 'b04e643de22c30494d5b125d2fddb5a20bb679e7ad041ee6bd076a119ae2b132@group.calendar.google.com'
+            : null;
+          currentItem.google_calendar_id = patch.google_calendar_id;
+        }
+        const { error } = await sb.from('items').update(patch).eq('id', currentItem.id);
+        if (error) { if (window.hubToast) window.hubToast('⚠ Não salvou: ' + error.message, true); return; }
+        if (window.hubToast) window.hubToast('Salvo ✓');
+      });
+    });
 
     // Hooks pós-render
     if (editMode) {
