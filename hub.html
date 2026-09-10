@@ -982,19 +982,12 @@ table.data-table tr:hover td { background: var(--bg); }
    1. último/solo da célula → tooltip embaixo (espaço livre)
    2. primeiro com outros embaixo → tooltip pra cima (espaço livre)
    3. no meio (tem antes E depois) → overlay no lado direito do próprio item */
-.calM-ev .eb-actions { top: 100%; bottom: auto; right: auto; left: 0; margin-top: 0; padding-top: 6px; padding-bottom: 0; padding-left: 0; padding-right: 0; background: transparent; box-shadow: none; border-radius: 0; gap: 6px; transform: translateY(-8px) scale(.96); transition: opacity .2s ease, transform .22s cubic-bezier(.34, 1.56, .64, 1); z-index: 20; }
-.calM-ev.show-actions .eb-actions { transform: translateY(0) scale(1); }
-.calM-ev.actions-up .eb-actions { top: auto; bottom: 100%; padding-top: 0; padding-bottom: 6px; transform: translateY(8px) scale(.96); }
-.calM-ev.actions-up.show-actions .eb-actions { transform: translateY(0) scale(1); }
-/* Estado 2: tem item depois mas não tem item antes → tooltip pra cima */
-.calM-ev:has(+ .calM-ev):not(.calM-ev + .calM-ev) .eb-actions { top: auto; bottom: 100%; padding-top: 0; padding-bottom: 6px; transform: translateY(8px) scale(.96); }
-.calM-ev:has(+ .calM-ev):not(.calM-ev + .calM-ev).show-actions .eb-actions { transform: translateY(0) scale(1); }
-/* Estado 3: tem antes E depois (no meio) → overlay no lado direito */
-.calM-ev + .calM-ev:has(+ .calM-ev) .eb-actions { top: 50%; bottom: auto; right: 6px; left: auto; padding: 0; transform: translate(8px, -50%) scale(.96); background: rgba(255,255,255,.94); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 999px; padding: 3px 5px; box-shadow: 0 2px 8px rgba(0,0,0,.14); }
-.calM-ev + .calM-ev:has(+ .calM-ev).show-actions .eb-actions { transform: translate(0, -50%) scale(1); }
-.calM-ev .eb-actions .eb-btn { background: #fff; border-radius: 999px; width: 26px; height: 26px; box-shadow: 0 2px 6px rgba(0,0,0,.14); }
-.calM-ev + .calM-ev:has(+ .calM-ev) .eb-actions .eb-btn { width: 22px; height: 22px; box-shadow: none; }
-.calM-ev .eb-actions .eb-btn:hover { background: #fff; filter: brightness(.95); }
+/* Ações ✓ (concluir) / ✕ (apagar) DENTRO do card, canto superior direito,
+   surgindo suavemente no hover (fade + leve escala). */
+.calM-ev .eb-actions { top: 3px; right: 3px; bottom: auto; left: auto; margin: 0; padding: 2px; gap: 2px; background: rgba(255,255,255,.92); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.18); transform: scale(.9); transition: opacity .18s ease, transform .18s ease; z-index: 20; }
+.calM-ev:hover .eb-actions, .calM-ev.show-actions .eb-actions { opacity: 1; pointer-events: auto; transform: scale(1); }
+.calM-ev .eb-actions .eb-btn { background: transparent; border-radius: 999px; width: 20px; height: 20px; box-shadow: none; }
+.calM-ev .eb-actions .eb-btn:hover { background: rgba(0,0,0,.07); filter: none; }
 .calM-ev .eb-actions .eb-btn[data-act="toggle"] { color: #16a34a; }
 .calM-ev .eb-actions .eb-btn[data-act="copy"]   { color: #6366f1; }
 .calM-ev .eb-actions .eb-btn[data-act="del"]    { color: #dc2626; }
@@ -9434,6 +9427,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const ICO_X = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg>';
         const actions = `<div class="eb-actions">
           <button class="eb-btn calM-act" data-act="toggle" data-id="${it.id}" title="${it.is_done ? 'Desfazer' : 'Concluir'}">${it.is_done ? ICO_UNDO : ICO_CHECK}</button>
+          <button class="eb-btn calM-act" data-act="del" data-id="${it.id}" title="Apagar">${ICO_X}</button>
         </div>`;
         return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
           ${overdueBadge}
