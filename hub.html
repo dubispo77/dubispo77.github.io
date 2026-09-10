@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-10T17:03:22">
+<meta name="hub-build" content="2026-09-10T20:06:54">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -4577,10 +4577,13 @@ function activateTab(sec) {
   const item = document.querySelector(`.nav-item[data-sec="${sec}"]`);
   const sectionEl = document.getElementById(sec);
   if (!item || !sectionEl) return false;
+  const wasActive = sectionEl.classList.contains('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   item.classList.add('active');
   sectionEl.classList.add('active');
+  // Ao ENTRAR na Agenda (vindo de outra aba), sempre posiciona em "hoje" (mesmo que o botão Hoje)
+  if (sec === 'agenda' && !wasActive) setTimeout(() => document.getElementById('calToday')?.click(), 0);
   // Submenu de categorias: some ao sair da Agenda; abrir/fechar é controlado no clique
   if (sec !== 'agenda') setAgendaCats(false);
   // Aba dentro do grupo "Arquivados" → garante o grupo aberto pra mostrar o destaque
