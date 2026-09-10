@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-10T18:36:59">
+<meta name="hub-build" content="2026-09-10T18:39:48">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3711,7 +3711,7 @@ table.data-table tr:hover td { background: var(--bg); }
 // O GitHub Pages manda cache-control: max-age=600, então o navegador segurava a
 // versão velha por até 10min (daí o Cmd+Shift+R). Aqui o hub compara o
 // <meta name="hub-build"> carregado com o que está no servidor (fetch sem cache)
-// e recarrega sozinho quando muda. Checa ao abrir, ao voltar pra aba e a cada 60s.
+// e recarrega sozinho quando muda. Checa ao abrir, ao voltar pra aba e a cada 20s.
 (function hubAutoUpdate() {
   const meta = document.querySelector('meta[name="hub-build"]');
   const mine = meta ? meta.content : '';
@@ -3741,7 +3741,7 @@ table.data-table tr:hover td { background: var(--bg); }
   check();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
   window.addEventListener('focus', check);
-  setInterval(check, 60 * 1000);
+  setInterval(check, 20 * 1000);
 })();
 // ── AUTH (Fase 3) ── Verifica login antes de renderizar o hub.
 const SUPABASE_URL  = 'https://bpyoaxdmejnnyixrjxel.supabase.co';
