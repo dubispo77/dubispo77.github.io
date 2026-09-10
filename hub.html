@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-10T20:06:54">
+<meta name="hub-build" content="2026-09-10T20:15:38">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -108,6 +108,53 @@ html, body {
 .nav-archived-items .nav-item { opacity: .8; }
 .nav-archived-items .nav-item.active { opacity: 1; }
 @media (max-width: 768px) { .nav-subitems { display: none; } .nav-item .ni-caret { display: none; } .nav-archived { display: none; } }
+/* ── Lista de categoria v2 (agrupada por dia) ── */
+.catl-day { margin: 20px 0 8px; display: flex; align-items: baseline; gap: 8px; }
+.catl-day:first-child { margin-top: 4px; }
+.catl-day-num { font-size: 22px; font-weight: 800; color: var(--text, #2d2460); line-height: 1; }
+.catl-day-wd { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint, #9b93ac); }
+.catl-day-tag { font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #ede9fe; color: #5b21b6; margin-left: 2px; }
+.catl-day.is-today .catl-day-num { color: #5b4fcf; }
+.catl-card { display: flex; align-items: center; gap: 12px; background: var(--card, #fff); border: 1px solid var(--border, #ece9f5); border-radius: 12px; padding: 11px 12px 11px 16px; margin-bottom: 6px; position: relative; cursor: pointer; transition: box-shadow .15s, transform .15s; }
+.catl-card::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: var(--c); }
+.catl-card:hover { box-shadow: 0 4px 14px rgba(30,20,60,.08); transform: translateY(-1px); }
+.catl-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--c); background: transparent; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--c); transition: background .12s; padding: 0; }
+.catl-check svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.catl-check:hover svg { opacity: .6; }
+.catl-card.is-done .catl-check { background: var(--c); color: #fff; }
+.catl-card.is-done .catl-check svg { opacity: 1; }
+.catl-main { flex: 1; min-width: 0; }
+.catl-title { font-size: 14px; font-weight: 600; color: var(--text, #2d2460); line-height: 1.3; }
+.catl-title input { width: 100%; font: inherit; border: none; outline: none; background: #f4f2fb; border-radius: 6px; padding: 2px 6px; color: inherit; }
+.catl-sub { font-size: 11.5px; color: var(--text-faint, #9b93ac); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.catl-time { font-size: 12px; font-weight: 700; color: var(--text, #2d2460); background: #f4f2fb; padding: 4px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+.catl-time.allday { color: var(--text-faint, #9b93ac); font-weight: 600; }
+.catl-card.is-done { opacity: .55; }
+.catl-card.is-done .catl-title { text-decoration: line-through; }
+.catl-card.is-past { opacity: .7; }
+.catl-edit { width: 26px; height: 26px; border-radius: 50%; border: none; background: transparent; color: var(--text-faint, #9b93ac); cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .12s, background .12s; flex-shrink: 0; padding: 0; }
+.catl-card:hover .catl-edit { opacity: 1; }
+.catl-edit:hover { background: #f1eff8; color: var(--text, #2d2460); }
+.catl-edit svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.catl-sep { margin: 28px 0 4px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint, #9b93ac); border-top: 1px solid var(--border, #ece9f5); padding-top: 14px; }
+@media (max-width: 768px) { .catl-edit { opacity: 1; } }
+/* Toggle Lista/Calendário da categoria */
+.catv-toggle { display: inline-flex; background: #eeeef1; border-radius: 8px; padding: 2px; margin-left: auto; }
+.catv-btn { background: transparent; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #6b7280; cursor: pointer; font-family: inherit; }
+.catv-btn.active { background: #fff; color: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+/* Pill "só esta categoria" no header da Agenda */
+.cal-filter-pill { display: none; align-items: center; gap: 7px; background: #fff; border: 1.5px solid var(--c, #999); color: var(--text, #2d2460); font-size: 12px; font-weight: 700; padding: 4px 6px 4px 10px; border-radius: 999px; }
+.cal-filter-pill.on { display: inline-flex; }
+.cal-filter-pill .cat-dot { width: 9px; height: 9px; }
+.cal-filter-pill button { border: none; background: #f1eff8; color: #6b637a; font: inherit; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; cursor: pointer; }
+.cal-filter-pill button:hover { background: #e4e0f3; color: var(--text, #2d2460); }
+/* Título do card de detalhe: clique pra editar */
+.tdm-title.editable-hint { cursor: text; border-radius: 6px; margin: 0 -6px; padding: 0 6px; transition: background .12s; }
+.tdm-title.editable-hint:hover { background: #f6f5fb; }
+.tdm-title-input { width: 100%; font-size: 22px; font-weight: 600; line-height: 1.25; color: #111; border: none; border-bottom: 2px solid #5b4fcf; outline: none; background: #f6f5fb; border-radius: 6px 6px 0 0; padding: 2px 6px; margin: 0 -6px; font-family: inherit; box-sizing: border-box; }
+/* Renomear direto no card do calendário */
+.calM-ev .ti input { width: 100%; font: inherit; color: #111; background: #fff; border: none; border-radius: 4px; padding: 1px 4px; outline: 2px solid rgba(255,255,255,.7); box-sizing: border-box; }
+.calM-ev .eb-actions .eb-btn[data-act="rename"] { color: #6b637a; }
 .badge-red    { background: #fee2e2; color: #dc2626; }
 .badge-yellow { background: #fef9c3; color: #a16207; }
 .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
@@ -1823,6 +1870,7 @@ table.data-table tr:hover td { background: var(--bg); }
           <div class="cal-header-left">
             <div class="section-title">📅 Agenda</div>
             <div id="hubSyncStatus" class="hub-sync-status" title=""></div>
+            <div class="cal-filter-pill" id="calFilterPill"><span class="cat-dot"></span><span id="calFilterName"></span><button type="button" id="calFilterList" title="Ver esta categoria em lista">Lista</button><button type="button" id="calFilterClear" title="Voltar pra agenda completa">✕</button></div>
             <div class="cal-view-toggle">
               <button class="cv-btn active" data-view="month" type="button">Mês</button>
               <button class="cv-btn" data-view="week" type="button">Semana</button>
@@ -1877,6 +1925,7 @@ table.data-table tr:hover td { background: var(--bg); }
         <div class="catlist-controls">
           <button id="catlistPastBtn" class="catlist-pastbtn" type="button" style="display:none">Ver anteriores</button>
           <span id="catlistCount" class="catlist-count"></span>
+          <div class="catv-toggle"><button class="catv-btn active" data-catview="list" type="button">Lista</button><button class="catv-btn" data-catview="cal" type="button">Calendário</button></div>
         </div>
         <div id="catlistBody" class="catlist-body"></div>
       </div>
@@ -4623,7 +4672,10 @@ function setAgendaCats(open) {
 
 document.querySelectorAll('.nav-item[data-sec]').forEach(item => {
   // 1 clique = abre a aba. Na Agenda, o submenu de categorias só abre/fecha com 2 cliques.
-  item.addEventListener('click', () => activateTab(item.dataset.sec));
+  item.addEventListener('click', () => {
+    if (item.dataset.sec === 'agenda' && window.calSetAreaFilter) window.calSetAreaFilter(null);
+    activateTab(item.dataset.sec);
+  });
   if (item.dataset.sec === 'agenda') {
     item.addEventListener('dblclick', () => {
       const isOpen = document.getElementById('agendaCats')?.classList.contains('open');
@@ -4642,6 +4694,7 @@ const CATLIST_META = {
   aw_vz:            { name: 'AW+VZ',            color: '#ff1493' },
   aniversarios:     { name: 'Aniversários',     color: '#f9a8d4' },
 };
+window.CATLIST_META = CATLIST_META;
 let _catlistSlug = null;
 let _catlistShowPast = false;
 
@@ -4661,17 +4714,81 @@ function _catFmtTime(it) {
   if (isNaN(dt)) return '';
   return dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).replace(':', 'h');
 }
-function _catRowHtml(it, color, isPast) {
-  const done = it.status === 'done';
-  const { wd, dm } = _catFmtDate(_catDayStr(it));
-  const time = _catFmtTime(it);
-  return '<div class="catrow' + (done ? ' is-done' : '') + (isPast ? ' is-past' : '') + '" style="--c:' + color + '">'
-    + '<div class="catrow-date">' + dm + '<small>' + _catEsc(wd) + '</small></div>'
-    + '<div class="catrow-main"><div class="catrow-title">' + (done ? '✓ ' : '') + _catEsc(it.title) + '</div>'
-    + (it.address ? '<div class="catrow-sub">' + _catEsc(it.address) + '</div>' : '')
-    + '</div>'
-    + '<div class="catrow-time">' + (time || '<span style="opacity:.4">dia todo</span>') + '</div>'
+// ── Renomear inline (usado na lista de categoria, nos cards do calendário e no card de detalhe) ──
+// Troca `el` por um input; Enter/blur salva no banco, Esc cancela. onDone(novoTitulo|null).
+window.hubInlineRename = function(el, itemId, currentTitle, onDone) {
+  if (!el || el.querySelector('input')) return;
+  const sb = window.sbClient;
+  const realId = String(itemId).includes('#') ? String(itemId).split('#')[0] : itemId;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentTitle || '';
+  input.setAttribute('aria-label', 'Nome da tarefa');
+  const prevHtml = el.innerHTML;
+  el.innerHTML = '';
+  el.appendChild(input);
+  ['click', 'mousedown', 'dblclick', 'touchstart', 'pointerdown'].forEach(evn => input.addEventListener(evn, e => e.stopPropagation()));
+  let finished = false;
+  async function finish(save) {
+    if (finished) return; finished = true;
+    const val = input.value.trim();
+    if (!save || !val || val === (currentTitle || '')) { el.innerHTML = prevHtml; onDone && onDone(null); return; }
+    el.textContent = val;
+    if (!sb) { onDone && onDone(val); return; }
+    const { data, error } = await sb.from('items').update({ title: val }).eq('id', realId).select('google_event_id,type').maybeSingle();
+    if (error) { el.innerHTML = prevHtml; window.hubToast && window.hubToast('⚠ Não salvou: ' + error.message, true); onDone && onDone(null); return; }
+    window.hubToast && window.hubToast('Renomeado ✓');
+    if (data && data.google_event_id && window.syncToGcal) window.syncToGcal('update', realId);
+    onDone && onDone(val);
+  }
+  input.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+  input.addEventListener('blur', () => finish(true));
+  setTimeout(() => { input.focus(); input.select(); }, 0);
+};
+
+const _ICO_EDIT = '<svg viewBox="0 0 16 16"><path d="M11.5 2.5 L 13.5 4.5 L 5.5 12.5 L 3 13 L 3.5 10.5 Z"/></svg>';
+const _ICO_CHK = '<svg viewBox="0 0 16 16"><path d="M3 8 L 7 12 L 13 4"/></svg>';
+
+function _catDayHeader(dayStr, todayStr) {
+  const [y, m, d] = dayStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  const wd = dt.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+  const mon = dt.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  const diff = Math.round((dt - t0) / 86400000);
+  let tag = '';
+  if (diff === 0) tag = 'Hoje'; else if (diff === 1) tag = 'Amanhã'; else if (diff === -1) tag = 'Ontem';
+  const showYear = y !== t0.getFullYear();
+  return '<div class="catl-day' + (diff === 0 ? ' is-today' : '') + '">'
+    + '<span class="catl-day-num">' + String(d).padStart(2, '0') + '</span>'
+    + '<span class="catl-day-wd">' + _catEsc(wd) + ' · ' + _catEsc(mon) + (showYear ? ' ' + y : '') + '</span>'
+    + (tag ? '<span class="catl-day-tag">' + tag + '</span>' : '')
     + '</div>';
+}
+function _catCardHtml(it, color, isPast) {
+  const done = it.status === 'done';
+  const time = _catFmtTime(it);
+  return '<div class="catl-card' + (done ? ' is-done' : '') + (isPast ? ' is-past' : '') + '" data-id="' + it.id + '" style="--c:' + color + '">'
+    + '<button class="catl-check" type="button" data-catact="toggle" title="' + (done ? 'Desfazer' : 'Concluir') + '">' + _ICO_CHK + '</button>'
+    + '<div class="catl-main"><div class="catl-title">' + _catEsc(it.title) + '</div>'
+    + (it.address ? '<div class="catl-sub">📍 ' + _catEsc(it.address) + '</div>' : '')
+    + '</div>'
+    + '<button class="catl-edit" type="button" data-catact="rename" title="Renomear">' + _ICO_EDIT + '</button>'
+    + '<div class="catl-time' + (time ? '' : ' allday') + '">' + (time || 'dia todo') + '</div>'
+    + '</div>';
+}
+function _catGroupHtml(list, color, isPast, todayStr) {
+  let html = '', lastDay = null;
+  for (const it of list) {
+    const day = _catDayStr(it);
+    if (day !== lastDay) { html += _catDayHeader(day, todayStr); lastDay = day; }
+    html += _catCardHtml(it, color, isPast);
+  }
+  return html;
 }
 
 async function renderCatList(slug) {
@@ -4684,14 +4801,16 @@ async function renderCatList(slug) {
   const countEl = document.getElementById('catlistCount');
   nameEl.textContent = meta.name;
   dotEl.style.background = meta.color;
+  document.querySelectorAll('.catv-btn').forEach(b => b.classList.toggle('active', b.dataset.catview === 'list'));
   const sb = window.sbClient;
   if (!sb) { body.innerHTML = '<div class="catlist-empty">Entre na sua conta pra ver os itens.</div>'; pastBtn.style.display = 'none'; countEl.textContent = ''; return; }
-  body.innerHTML = '<div class="catlist-empty">Carregando…</div>';
+  if (!body.children.length) body.innerHTML = '<div class="catlist-empty">Carregando…</div>';
   const { data, error } = await sb.from('items')
     .select('id,title,area,type,date_start,date_end,has_time,status,address')
-    .eq('area', slug)
+    .eq('area', slug).eq('is_roadmap', false)
     .order('date_start', { ascending: true });
   if (error) { body.innerHTML = '<div class="catlist-empty">Erro ao carregar: ' + _catEsc(error.message) + '</div>'; return; }
+  if (_catlistSlug !== slug) return; // trocou de categoria enquanto carregava
   const todayStr = _catTodayStr();
   const all = data || [];
   const future = all.filter(it => _catDayStr(it) >= todayStr);
@@ -4700,14 +4819,13 @@ async function renderCatList(slug) {
   if (future.length === 0) {
     html += '<div class="catlist-empty">Nenhum compromisso de hoje em diante em <b>' + _catEsc(meta.name) + '</b>.</div>';
   } else {
-    html += future.map(it => _catRowHtml(it, meta.color, false)).join('');
+    html += _catGroupHtml(future, meta.color, false, todayStr);
   }
   if (_catlistShowPast && past.length) {
-    html += '<div class="catlist-daysep">Anteriores</div>';
-    html += past.map(it => _catRowHtml(it, meta.color, true)).join('');
+    html += '<div class="catl-sep">Anteriores</div>';
+    html += _catGroupHtml(past, meta.color, true, todayStr);
   }
   body.innerHTML = html;
-  // Botão "ver anteriores"
   if (past.length) {
     pastBtn.style.display = '';
     pastBtn.textContent = _catlistShowPast ? 'Ocultar anteriores' : ('Ver anteriores (' + past.length + ')');
@@ -4717,19 +4835,71 @@ async function renderCatList(slug) {
   countEl.textContent = future.length ? (future.length + (future.length === 1 ? ' compromisso' : ' compromissos') + ' a partir de hoje') : '';
 }
 
-function showCategoryList(slug) {
-  _catlistSlug = slug;
-  _catlistShowPast = false;
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('catlist').classList.add('active');
-  // No menu: mantém a Agenda destacada e marca a subcategoria
+// Ações dentro da lista: ✓ concluir, ✎ renomear, clique no card abre o detalhe
+document.getElementById('catlistBody')?.addEventListener('click', async e => {
+  if (e.target.tagName === 'INPUT') return;
+  const card = e.target.closest('.catl-card');
+  if (!card) return;
+  const id = card.dataset.id;
+  const actBtn = e.target.closest('[data-catact]');
+  if (actBtn) {
+    e.stopPropagation();
+    const sb = window.sbClient;
+    if (actBtn.dataset.catact === 'rename') {
+      const titleEl = card.querySelector('.catl-title');
+      window.hubInlineRename(titleEl, id, titleEl.textContent, () => { if (_catlistSlug) renderCatList(_catlistSlug); });
+      return;
+    }
+    if (actBtn.dataset.catact === 'toggle' && sb) {
+      const nowDone = !card.classList.contains('is-done');
+      card.classList.toggle('is-done', nowDone);
+      const { error } = await sb.from('items').update({ status: nowDone ? 'done' : 'planned', done_at: nowDone ? new Date().toISOString() : null }).eq('id', id);
+      if (error) { card.classList.toggle('is-done', !nowDone); window.hubToast && window.hubToast('⚠ Não salvou: ' + error.message, true); }
+      else window.hubToast && window.hubToast(nowDone ? 'Concluído ✓' : 'Reaberto');
+      return;
+    }
+    return;
+  }
+  if (window.openTaskPopup) window.openTaskPopup(id);
+});
+
+// ── Preferência de visualização da categoria (lista | calendário) ──
+const HUB_CAT_VIEW_KEY = 'HUB_CAT_VIEW';
+function _catViewPref() { try { return localStorage.getItem(HUB_CAT_VIEW_KEY) === 'cal' ? 'cal' : 'list'; } catch (_) { return 'list'; } }
+function _setCatViewPref(v) { try { localStorage.setItem(HUB_CAT_VIEW_KEY, v); } catch (_) {} }
+
+function _catNavHighlight(slug) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelector('.nav-item[data-sec="agenda"]')?.classList.add('active');
   setAgendaCats(true);
   document.querySelectorAll('.nav-subitem').forEach(n => n.classList.remove('active'));
   document.querySelector('.nav-subitem[data-cat="' + slug + '"]')?.classList.add('active');
+}
+
+function showCategoryList(slug) {
+  _catlistSlug = slug;
+  _catlistShowPast = false;
+  if (window.calSetAreaFilter) window.calSetAreaFilter(null);
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('catlist').classList.add('active');
+  document.getElementById('catlistBody').innerHTML = '';
+  _catNavHighlight(slug);
   _ensureCatlistRT();
   renderCatList(slug);
+}
+
+// Calendário só desta categoria = a própria Agenda com filtro de área
+function showCategoryCalendar(slug) {
+  _catlistSlug = slug;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('agenda').classList.add('active');
+  _catNavHighlight(slug);
+  if (window.calSetAreaFilter) window.calSetAreaFilter(slug);
+  setTimeout(() => document.getElementById('calToday')?.click(), 0);
+}
+
+function showCategory(slug) {
+  if (_catViewPref() === 'cal') showCategoryCalendar(slug); else showCategoryList(slug);
 }
 
 // Realtime da lista de categoria: qualquer mudança nos itens (mudar categoria,
@@ -4752,11 +4922,28 @@ function _ensureCatlistRT() {
 }
 
 document.querySelectorAll('.nav-subitem').forEach(it => {
-  it.addEventListener('click', e => { e.stopPropagation(); showCategoryList(it.dataset.cat); });
+  it.addEventListener('click', e => { e.stopPropagation(); showCategory(it.dataset.cat); });
 });
 document.getElementById('catlistPastBtn')?.addEventListener('click', () => {
   _catlistShowPast = !_catlistShowPast;
   if (_catlistSlug) renderCatList(_catlistSlug);
+});
+document.querySelectorAll('.catv-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    if (!_catlistSlug) return;
+    _setCatViewPref(b.dataset.catview);
+    if (b.dataset.catview === 'cal') showCategoryCalendar(_catlistSlug); else showCategoryList(_catlistSlug);
+  });
+});
+// Pill no header da Agenda (modo "só esta categoria")
+document.getElementById('calFilterList')?.addEventListener('click', () => {
+  if (!_catlistSlug) return;
+  _setCatViewPref('list');
+  showCategoryList(_catlistSlug);
+});
+document.getElementById('calFilterClear')?.addEventListener('click', () => {
+  if (window.calSetAreaFilter) window.calSetAreaFilter(null);
+  activateTab('agenda');
 });
 
 // Restaura aba salva ao carregar (default = agenda)
@@ -9118,6 +9305,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   let itemsCache = [];     // items normalizados {id, date, has_time, hr, title, project, status, raw}
   let projectsMap = {};    // id → {area, color, name}
   let loadedRange = null;  // {start, end} — janela de meses já carregada
+  let areaFilter = null;   // slug de categoria → calendário mostra SÓ ela (submenu da Agenda → "Calendário")
 
   // Mock de items — semana 27/04/2026 a 03/05/2026 + alguns ao longo do mês
   // Usado como fallback quando o user não está logado (modo demo)
@@ -9292,8 +9480,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
   function itemsForDate(d) {
     const t = ymd(d);
-    const direct = itemsCache.filter(i => i.date === t);
-    const recurring = itemsCache.filter(i => i.is_recurring && recurrenceMatchesDay(i, d))
+    const passArea = i => !areaFilter || (i.raw && i.raw.area === areaFilter);
+    const direct = itemsCache.filter(i => i.date === t && passArea(i));
+    const recurring = itemsCache.filter(i => i.is_recurring && passArea(i) && recurrenceMatchesDay(i, d))
       .map(p => makeVirtualOccurrence(p, d));
     // Regra Eduardo: sem multi-dia. Não geramos mais "spans" — item aparece só no dia de início.
     return sortItemsForDay([...direct, ...recurring]);
@@ -9512,8 +9701,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const ICO_UNDO = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M5 4 L 2 7 L 5 10"/><path d="M2 7 H 10 a 4 4 0 0 1 0 8 H 8"/></svg>';
         const ICO_LINK = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M9.5 6.5 L 13 3 a 2.5 2.5 0 0 1 3.5 3.5 L 13 10"/><path d="M6.5 9.5 L 3 13 a 2.5 2.5 0 0 0 3.5 3.5 L 10 13"/><path d="M6.5 9.5 L 9.5 6.5"/></svg>';
         const ICO_X = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg>';
+        const ICO_PEN = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M11.5 2.5 L 13.5 4.5 L 5.5 12.5 L 3 13 L 3.5 10.5 Z"/></svg>';
         const actions = `<div class="eb-actions">
           <button class="eb-btn calM-act" data-act="toggle" data-id="${it.id}" title="${it.is_done ? 'Desfazer' : 'Concluir'}">${it.is_done ? ICO_UNDO : ICO_CHECK}</button>
+          <button class="eb-btn calM-act" data-act="rename" data-id="${it.id}" title="Renomear">${ICO_PEN}</button>
           <button class="eb-btn calM-act" data-act="del" data-id="${it.id}" title="Apagar">${ICO_X}</button>
         </div>`;
         return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
@@ -10123,6 +10314,23 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (window.copyItemId) window.copyItemId(id, btn);
       return;
     }
+    if (act === 'rename') {
+      const card = btn.closest('.calM-ev');
+      const tiEl = card && card.querySelector('.ti');
+      const realId = id.includes('#') ? id.split('#')[0] : id;
+      const item = itemsCache.find(i => i.id === realId);
+      if (!card || !tiEl || !item) return;
+      card.setAttribute('draggable', 'false');
+      card.classList.remove('show-actions');
+      window.hubInlineRename(tiEl, realId, (item.raw && item.raw.title) || item.title, (newTitle) => {
+        if (newTitle) {
+          if (item.raw) item.raw.title = newTitle;
+          item.title = expandTeamCodes(stripTagPrefix(newTitle));
+        }
+        render();
+      });
+      return;
+    }
     if (act === 'toggle') {
       // Item virtual (recorrência): id formato 'parent#yyyy-mm-dd'
       // Toggle adiciona/remove a date do array recurrence_done_dates do parent — não muda status do parent
@@ -10554,6 +10762,27 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (!isNaN(_y) && !isNaN(_mo) && (_y !== _now.getFullYear() || _mo !== _now.getMonth())) scrollToMonth(_y, _mo);
     }
   } catch (_) {}
+
+  // ── Filtro "só esta categoria" (submenu da Agenda → Calendário) ──
+  function updateAreaFilterPill() {
+    const pill = document.getElementById('calFilterPill');
+    if (!pill) return;
+    const meta = areaFilter && window.CATLIST_META ? window.CATLIST_META[areaFilter] : null;
+    pill.classList.toggle('on', !!meta);
+    if (meta) {
+      pill.style.setProperty('--c', meta.color);
+      pill.querySelector('.cat-dot').style.setProperty('--c', meta.color);
+      document.getElementById('calFilterName').textContent = meta.name;
+    }
+  }
+  window.calSetAreaFilter = function(slug) {
+    const next = slug || null;
+    if (next === areaFilter) { updateAreaFilterPill(); return; }
+    areaFilter = next;
+    updateAreaFilterPill();
+    render();
+  };
+  window.calGetAreaFilter = () => areaFilter;
 
   // ── Realtime: qualquer mudança em items ou projects re-carrega e re-renderiza ──
   if (sb && session) {
@@ -12044,6 +12273,40 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     open(data);
   };
 
+  // Título: clique pra renomear (em qualquer modo — não precisa entrar em "Editar")
+  elTitle.classList.add('editable-hint');
+  elTitle.title = 'Clique pra renomear';
+  elTitle.addEventListener('click', () => {
+    if (!currentItem || !sb) return;
+    if (document.getElementById('tdmTitleInput')) return;
+    const wrap = document.getElementById('tdmTitleWrap');
+    const input = document.createElement('input');
+    input.type = 'text'; input.id = 'tdmTitleInput'; input.className = 'tdm-title-input';
+    input.value = currentItem.title || '';
+    elTitle.style.display = 'none';
+    wrap.insertBefore(input, elTitle);
+    let done = false;
+    const finish = async (save) => {
+      if (done) return; done = true;
+      const val = input.value.trim();
+      input.remove(); elTitle.style.display = '';
+      if (!save || !val || val === currentItem.title) return;
+      const { error } = await sb.from('items').update({ title: val }).eq('id', currentItem.id);
+      if (error) { window.hubToast && window.hubToast('⚠ Não salvou: ' + error.message, true); return; }
+      currentItem.title = val;
+      elTitle.textContent = val;
+      window.hubToast && window.hubToast('Renomeado ✓');
+      if (currentItem.google_event_id && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+    };
+    input.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+      else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+  });
+
   btnClose.addEventListener('click', close);
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   document.addEventListener('keydown', e => {
@@ -12133,6 +12396,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   // ── Click/tap no card do calendário (desktop ou mobile) → abre popup ──
   document.addEventListener('click', e => {
+    if (e.target.tagName === 'INPUT') return;
     if (e.target.closest('.eb-actions') || e.target.closest('.eb-btn') || e.target.closest('.calM-act')) return;
     const ev = e.target.closest('.calM-ev, .calMM-card');
     if (!ev) return;
