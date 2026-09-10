@@ -14660,19 +14660,23 @@ function renderReview() {
     const ev0 = r.ev || {};
     // fonte das colunas: evidência do sync OU cálculo ao vivo (evCalc) — nunca depende da versão que criou a linha
     const ev = ev0.previsto != null ? ev0 : (r.evCalc || {});
-    const temPrev = ev.previsto != null;
+    // gasto rotineiro/novo (regra 10/09): não exibir quase-casamento por valor — só "novo gasto"
+    const ehNovo = !!ev0.gasto_novo;
+    const temPrev = !ehNovo && ev.previsto != null;
     const naoConf = temPrev && (ev0.previsto == null || r.flag === 'duvida'); // candidato sem confirmação — cinza
     const prevCell = temPrev
       ? '<div style="font-weight:600;font-size:12px' + (naoConf ? ';color:#a89eb8' : '') + '">' + cfEsc(ev.previsto) + '</div>'
         + (typeof ev.previsto_valor === 'number' ? '<div style="font-size:11px;color:#a89eb8">' + cfBR(ev.previsto_valor) + (naoConf ? ' · não confirmado' : '') + '</div>' : '')
-      : (r.k === 'cartao'
+      : (ehNovo
+        ? '<span style="font-size:11px;color:#c9c2d6">— novo gasto</span>'
+        : (r.k === 'cartao'
         ? '<span style="font-size:11px;color:#c9c2d6">sem previsão parecida</span>'
-        : '<span style="color:#c9c2d6">—</span>');
+        : '<span style="color:#c9c2d6">—</span>'));
     const difCell = temPrev && typeof ev.diferenca === 'number'
       ? (naoConf
         ? '<span style="font-size:11px;color:#a89eb8;font-weight:700">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + ' ?</span>'
         : '<span class="rev-tag ' + (r.flag === 'planejado' ? 'planejado' : 'provavel') + '">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + '</span>')
-      : (r.flag === 'duvida' ? '<span class="rev-tag duvida">?</span>' : '<span style="color:#c9c2d6">—</span>');
+      : ((r.flag === 'duvida' && !ehNovo) ? '<span class="rev-tag duvida">?</span>' : '<span style="color:#c9c2d6">—</span>');
     const chip = r.k === 'conta'
       ? '<span class="cf-org conta">🏦 ' + cfEsc(r.bloco) + '</span>'
       : '<span class="cf-org">' + (REV_BLOCOS[r.bloco] || cfEsc(r.bloco)) + '</span>';
