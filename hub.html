@@ -14659,8 +14659,10 @@ function renderReview() {
   const linhas = CONF.map(r => {
     const ev0 = r.ev || {};
     // fonte das colunas: evidência do sync OU cálculo ao vivo (evCalc) — nunca depende da versão que criou a linha
-    const ev = ev0.previsto != null ? ev0 : (r.evCalc || {});
-    // gasto rotineiro/novo (regra 10/09): não exibir quase-casamento por valor — só "novo gasto"
+    // regra 10/09 (endurecida): a coluna "o que eu previa" SÓ mostra candidato com sinal real
+    // (nome/parcela/data). Valor parecido sozinho não aparece — nem do sync, nem do evCalc.
+    const temSinalCol = Array.isArray(ev0.sinais) && ev0.sinais.length > 0 && !ev0.so_valor;
+    const ev = (ev0.previsto != null && temSinalCol) ? ev0 : {};
     const ehNovo = !!ev0.gasto_novo;
     const temPrev = !ehNovo && ev.previsto != null;
     const naoConf = temPrev && (ev0.previsto == null || r.flag === 'duvida'); // candidato sem confirmação — cinza
