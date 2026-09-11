@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-10T20:17:10">
+<meta name="hub-build" content="2026-09-11T09:33:15">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15105,6 +15105,9 @@ async function confAprovar(r) {
     if (e1) throw e1;
     await window.sbClient.from('inbox_transactions')
       .update({ status: 'approved', decided_at: new Date().toISOString() }).eq('id', r.id);
+    // aprovação de conta que casa com recorrência: recalcula previsões NA HORA
+    // (regra 10/09 — o previsto do mês tem que sumir assim que o real entra, sem esperar 06:30)
+    try { await window.sbClient.rpc('regenerar_projecoes'); } catch (_eR) { /* sync cobre depois */ }
     if (r._fixo) {
       // 🔁 gasto fixo de conta: cadastra recorrência (previsão nos meses seguintes + casamento no sync)
       const dia = parseInt(it.date.slice(8, 10), 10) || 1;
