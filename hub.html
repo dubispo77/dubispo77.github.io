@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-11T09:49:04">
+<meta name="hub-build" content="2026-09-11T09:50:49">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -8005,7 +8005,17 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     byArea.agenda = (agendaItems || []).filter(i => !['saude','trabalho','administracao','casa','eventos','pessoal'].includes(i.area)).length;
 
     setBadge('badgeAgenda',        byArea.agenda,        1);
-    setBadge('badgeAdministracao', byArea.administracao, 1);
+    // pedido 11/09: o badge de Finanças mostra os itens A CONFERIR (fila da Conferência),
+    // não os eventos de agenda da área administração
+    let confCount = 0;
+    try {
+      const [cA, cB] = await Promise.all([
+        sb.from('import_review').select('id', { count: 'exact', head: true }).eq('status', 'pendente'),
+        sb.from('inbox_transactions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      ]);
+      confCount = (cA.count || 0) + (cB.count || 0);
+    } catch (_eC) { }
+    setBadge('badgeAdministracao', confCount, 1);
     setBadge('badgeSaude',         byArea.saude,         1);
     setBadge('badgeTrabalho',      byArea.trabalho,      1);
     setBadge('badgeCasa',          byArea.casa,          1);
@@ -8017,6 +8027,12 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
 
   sb.channel('sidebar-badges-rt')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async () => {
+      await updateBadges();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'import_review' }, async () => {
+      await updateBadges();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'inbox_transactions' }, async () => {
       await updateBadges();
     })
     .subscribe();
