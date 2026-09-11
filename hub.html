@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-11T09:51:49">
+<meta name="hub-build" content="2026-09-11T11:12:37">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -154,8 +154,6 @@ html, body {
 .tdm-title-input { width: 100%; font-size: 22px; font-weight: 600; line-height: 1.25; color: #111; border: none; border-bottom: 2px solid #5b4fcf; outline: none; background: #f6f5fb; border-radius: 6px 6px 0 0; padding: 2px 6px; margin: 0 -6px; font-family: inherit; box-sizing: border-box; }
 /* Renomear direto no card do calendário */
 .calM-ev .ti input { width: 100%; font: inherit; color: #111; background: #fff; border: none; border-radius: 4px; padding: 1px 4px; outline: 2px solid rgba(255,255,255,.7); box-sizing: border-box; }
-.calM-ev .eb-actions .eb-btn[data-act="rename"] { color: #6b637a; }
-.calM-ev:has(.ti input) .eb-actions { opacity: 0 !important; pointer-events: none !important; }
 .badge-red    { background: #fee2e2; color: #dc2626; }
 .badge-yellow { background: #fef9c3; color: #a16207; }
 .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
@@ -1039,9 +1037,19 @@ table.data-table tr:hover td { background: var(--bg); }
    3. no meio (tem antes E depois) → overlay no lado direito do próprio item */
 /* Ações ✓ (concluir) / ✕ (apagar) DENTRO do card, canto superior direito,
    surgindo suavemente no hover (fade + leve escala). */
-.calM-ev .eb-actions { top: 3px; right: 3px; bottom: auto; left: auto; margin: 0; padding: 2px; gap: 2px; background: rgba(255,255,255,.92); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.18); transform: scale(.9); transition: opacity .18s ease, transform .18s ease; z-index: 20; }
-.calM-ev:hover .eb-actions, .calM-ev.show-actions .eb-actions { opacity: 1; pointer-events: auto; transform: scale(1); }
-.calM-ev .eb-actions .eb-btn { background: transparent; border-radius: 999px; width: 20px; height: 20px; box-shadow: none; }
+/* Ações (✓ ✕): no hover o PRÓPRIO card se estica pra direita (62px) e os botões
+   aparecem dentro da parte nova. O nome não é coberto; o card passa por cima do vizinho. */
+.calM-ev { width: 100%; box-sizing: border-box; }
+.calM-ev:hover, .calM-ev.show-actions { width: calc(100% + 62px); padding-right: 68px; z-index: 30; }
+.calM-ev .eb-actions { top: 50%; bottom: auto; left: auto; right: 7px; margin: 0; padding: 0; gap: 4px; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; transform: translateY(-50%); opacity: 0; transition: opacity .15s ease .06s; z-index: 2; white-space: nowrap; }
+.calM-ev:hover .eb-actions, .calM-ev.show-actions .eb-actions { opacity: 1; pointer-events: auto; transform: translateY(-50%); }
+/* Domingo (última coluna): o grid corta o que sai pela direita, então o card cresce pra esquerda */
+.calM-cell:nth-child(7n) .calM-ev:hover, .calM-cell:nth-child(7n) .calM-ev.show-actions { margin-left: -62px; padding-right: 9px; padding-left: 71px; }
+.calM-cell:nth-child(7n) .calM-ev .eb-actions { right: auto; left: 9px; }
+/* Célula em hover sobe na pilha pra o card esticado passar por cima do vizinho */
+.calM-cell:hover, .calM-cell:has(.calM-ev.show-actions) { z-index: 5; }
+.calM-ev .eb-actions .eb-btn { background: transparent; border-radius: 999px; width: 24px; height: 24px; box-shadow: none; }
+.calM-ev .eb-actions .eb-btn:hover { background: rgba(255,255,255,.35); filter: none; }
 .calM-ev .eb-actions .eb-btn:hover { background: rgba(0,0,0,.07); filter: none; }
 .calM-ev .eb-actions .eb-btn[data-act="toggle"] { color: #16a34a; }
 .calM-ev .eb-actions .eb-btn[data-act="copy"]   { color: #6366f1; }
@@ -1075,7 +1083,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.is-overdue { border-left-color: #dc2626 !important; border-left-width: 4px !important; }
 .calM-ev .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 1px 5px; border-radius: 999px; font-size: 8px; font-weight: 700; line-height: 1.2; pointer-events: none; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .calM-ev.is-dragging { opacity: .35; transform: scale(.98); transition: opacity .12s, transform .12s; }
-.calM-ev { transition: transform .15s; }
+.calM-ev { transition: transform .15s, width .22s cubic-bezier(.2,.8,.3,1), padding .22s cubic-bezier(.2,.8,.3,1), margin-left .22s cubic-bezier(.2,.8,.3,1); }
 .calM-ev .bd { display: inline-block; margin-right: 3px; font-size: 9px; line-height: 1; }
 .calM-ev .bd.ov { color: #fecaca; }
 .calM-ev .bd.dn { color: #bbf7d0; }
@@ -7994,15 +8002,20 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       .lt('date_start', in7.toISOString());
     byArea.administracao = (bills || []).length;
 
-    // Total agenda = todos os pendentes de hoje que não cabem nas áreas dedicadas
+    // Badge da Agenda = TODAS as tarefas/compromissos de HOJE ainda abertos (qualquer categoria),
+    // menos os vídeos de outro editor (que a agenda também não mostra). Pedido 11/09.
     const { data: agendaItems } = await sb.from('items')
-      .select('id,area')
+      .select('id,area,metadata')
       .eq('is_roadmap', false)
       .not('status', 'eq', 'done')
       .not('status', 'eq', 'cancelled')
       .gte('date_start', today.toISOString())
       .lt('date_start', tomorrow.toISOString());
-    byArea.agenda = (agendaItems || []).filter(i => !['saude','trabalho','administracao','casa','eventos','pessoal'].includes(i.area)).length;
+    byArea.agenda = (agendaItems || []).filter(i => {
+      const md = i.metadata || {};
+      if (md.video && md.editor && md.editor !== 'Eduardo') return false;
+      return true;
+    }).length;
 
     setBadge('badgeAgenda',        byArea.agenda,        1);
     // pedido 11/09: o badge de Finanças mostra os itens A CONFERIR (fila da Conferência),
@@ -9722,7 +9735,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const ICO_PEN = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M11.5 2.5 L 13.5 4.5 L 5.5 12.5 L 3 13 L 3.5 10.5 Z"/></svg>';
         const actions = `<div class="eb-actions">
           <button class="eb-btn calM-act" data-act="toggle" data-id="${it.id}" title="${it.is_done ? 'Desfazer' : 'Concluir'}">${it.is_done ? ICO_UNDO : ICO_CHECK}</button>
-          <button class="eb-btn calM-act" data-act="rename" data-id="${it.id}" title="Renomear">${ICO_PEN}</button>
           <button class="eb-btn calM-act" data-act="del" data-id="${it.id}" title="Apagar">${ICO_X}</button>
         </div>`;
         return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
@@ -15524,7 +15536,7 @@ function finAviso(msg) {
         DATA.transactions.push({
           id: r.id, sf: r.source_file, pd: r.purchase_date || undefined,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
-          acc, val: parseFloat(r.amount), st: (r.source_file === 'projecao' || r.source_file === 'fatura_aberta' || r.source_file === 'recorrencia') ? 'pending' : 'paid', tr: !!r.is_transfer, pair: r.transfer_pair_id || undefined,
+          acc, val: parseFloat(r.amount), st: (r.source_file === 'projecao' || r.source_file === 'recorrencia') ? 'pending' : 'paid', tr: !!r.is_transfer, pair: r.transfer_pair_id || undefined,
           parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
         });
       });
