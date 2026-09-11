@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-11T09:50:49">
+<meta name="hub-build" content="2026-09-11T09:51:49">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -69,7 +69,7 @@ html, body {
 .nav-item .ni-icon { font-size: 15px; flex-shrink: 0; }
 .nav-item .ni-text { font-size: 13px; font-weight: 500; color: var(--sidebar-text); flex: 1; }
 .nav-item.active .ni-text { font-weight: 650; color: #2d2460; }
-.nav-item .ni-badge { font-size: 9px; font-weight: 800; padding: 1.5px 6px; border-radius: 999px; flex-shrink: 0; }
+.nav-item .ni-badge { font-size: 10px; font-weight: 800; min-width: 19px; height: 19px; padding: 0 6px; border-radius: 999px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
 /* Chevron do item Agenda (indica que abre/fecha) */
 .nav-item .ni-caret { font-size: 9px; color: var(--sidebar-text); opacity: .55; transition: transform .15s; margin-left: 4px; flex-shrink: 0; }
 .nav-item.cats-open .ni-caret { transform: rotate(90deg); opacity: .8; }
@@ -1810,7 +1810,7 @@ table.data-table tr:hover td { background: var(--bg); }
         <div class="nav-subitem" data-cat="aw_vz"><span class="cat-dot" style="--c:#ff1493"></span><span class="ni-text">AW+VZ</span></div>
         <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#f9a8d4"></span><span class="ni-text">Aniversários</span></div>
       </div>
-      <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span><span class="ni-caret" style="visibility:hidden">▸</span></div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">
