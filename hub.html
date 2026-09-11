@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-11T09:33:15">
+<meta name="hub-build" content="2026-09-11T09:49:04">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1626,6 +1626,7 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .rev-panel summary { cursor: pointer; font-weight: 700; font-size: 14px; list-style: none; display: flex; align-items: center; gap: 8px; }
 #finapp .rev-panel summary::-webkit-details-marker { display: none; }
 #finapp .rev-badge { background: #fef3c7; color: #92400e; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+#finapp .cf-dot { background: #dc2626; color: #fff; border-radius: 999px; min-width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; padding: 0 7px; margin-left: 8px; }
 #finapp .rev-tools { display: flex; gap: 10px; align-items: center; margin: 10px 0 6px; font-size: 12.5px; }
 #finapp .rev-tools button { border: 1px solid #d6d3cd; background: #fff; border-radius: 8px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; }
 #finapp table.rev-tb { width: 100%; border-collapse: collapse; font-size: 12.5px; }
@@ -14950,7 +14951,8 @@ function renderReview() {
     const chip = r.k === 'conta'
       ? '<span class="cf-org conta">🏦 ' + cfEsc(r.bloco) + '</span>'
       : '<span class="cf-org">' + (REV_BLOCOS[r.bloco] || cfEsc(r.bloco)) + '</span>';
-    let linha = '<tr class="cf-row ' + (rvCls[r.flag] || '') + '" data-id="' + r.id + '">'
+    // pedido do Eduardo 11/09: linhas SEM cor por flag (nada de verde/amarelo)
+    let linha = '<tr class="cf-row" data-id="' + r.id + '">'
       + '<td style="white-space:nowrap;font-size:11.5px;color:var(--muted);font-weight:700">' + cfEsc(r.dia) + '</td>'
       + '<td class="cf-prev">' + prevCell + '</td>'
       + '<td style="text-align:center">' + difCell + '</td>'
@@ -14962,10 +14964,10 @@ function renderReview() {
     if (confAberto === r.id) linha += cfDossie(r);
     return linha;
   }).join('');
+  // pedido do Eduardo 11/09: sem badges — só a bolinha vermelha com o nº de itens a conferir
   box.innerHTML = '<details class="rev-panel"' + (estavaAberto ? ' open' : '') + '><summary>🧾 Conferência'
-    + ' <span class="rev-badge">' + duvidas + ' dúvida(s)</span>'
-    + (planejados ? '<span class="rev-tag planejado">' + planejados + ' planejada(s)</span>' : '')
-    + '<span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--muted)">' + CONF.length + ' na fila · nada entra sem o seu ✓</span></summary>'
+    + ' <span class="cf-dot">' + CONF.length + '</span>'
+    + '<span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--muted)">nada entra sem o seu ✓</span></summary>'
     + (semDuvida ? '<div class="rev-tools"><button id="confLote" class="cf-btn go" style="font-weight:700">✓ Aprovar os sem dúvida (' + semDuvida + ')</button><span style="font-size:11.5px;color:var(--muted);margin-left:8px">clique numa linha pra ver o dossiê</span></div>' : '')
     + '<div style="overflow-x:auto"><table class="rev-tb cf-tb"><tr><th>Data</th><th>O que eu previa</th><th style="text-align:center">Dif</th><th>O que chegou</th><th style="text-align:right">Valor</th><th></th></tr>' + linhas + '</table></div>'
     + '<div class="cf-foot">Total na fila: <b>' + revFmt(totFila) + '</b>' + (totDif > 0.005 ? ' · diferença acumulada previsto×veio: <b>R$ ' + totDif.toFixed(2).replace('.', ',') + '</b>' : '') + '</div>'
