@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-12T12:20:19-03:00">
+<meta name="hub-build" content="2026-09-12T20:59:15-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15135,8 +15135,12 @@ function cfPrevLista(r) {
     && Math.abs(Number(r.vinculo.valor) - Number(f.amount)) < 0.005;
   const linha = (f, i) => {
     const d = Math.abs(Number(f.amount) - r.valor);
+    const outraConta = f.account_id && f.account_id !== r.account_id;
+    const kOutra = outraConta && window.__accIdToKey ? window.__accIdToKey[f.account_id] : null;
+    const nomeOutra = kOutra && DATA.accounts[kOutra] ? DATA.accounts[kOutra].name : (outraConta ? 'outra conta' : '');
     return '<div class="cf-prow' + (eSel(f) ? ' sel' : '') + '" data-nome="' + cfEsc(f.description).toLowerCase().replace(/"/g, '') + '">'
-      + '<span style="font-weight:650;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + cfEsc(f.description) + '</span>'
+      + '<span style="font-weight:650;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + cfEsc(f.description)
+      + (outraConta ? ' <span style="font-size:10px;font-weight:600;color:var(--muted)">(previsto no ' + cfEsc(nomeOutra) + ')</span>' : '') + '</span>'
       + '<span style="font-size:11px;color:var(--muted);white-space:nowrap">' + (f.installment_current ? f.installment_current + '/' + f.installment_total : 'recorrência') + '</span>'
       + '<span style="font-weight:700;white-space:nowrap">' + cfBR(Number(f.amount)) + '</span>'
       + '<span class="rev-tag' + (d <= 5 ? ' planejado' : '') + '" style="font-size:10px;margin-left:0">' + (d <= 0.005 ? 'exato' : 'Δ R$ ' + d.toFixed(2).replace('.', ',')) + '</span>'
@@ -15234,11 +15238,15 @@ function bindReview() {
       const r = CONF.find(x => x.id === id);
       if (confAberto === id && r && !r._prevs && r.account_id && r.bill) {
         try {
+          // sem filtro de conta: previsão de QUALQUER conta pode ser vinculada
+          // (caso Terapia 12/09: previsão no Bradesco, PIX saiu do Nubank)
           const { data } = await window.sbClient.from('transactions')
-            .select('description,category,amount,installment_current,installment_total,source_file,raw')
-            .eq('account_id', r.account_id).eq('source', 'forecast').in('source_file', ['projecao', 'recorrencia']);
+            .select('description,category,amount,installment_current,installment_total,source_file,raw,account_id')
+            .eq('source', 'forecast').in('source_file', ['projecao', 'recorrencia']);
           r._prevs = (data || []).filter(f => (f.raw || {}).bill === r.bill)
-            .sort((a, b) => Math.abs(Number(a.amount) - r.valor) - Math.abs(Number(b.amount) - r.valor));
+            .sort((a, b) => ((a.account_id === r.account_id) === (b.account_id === r.account_id))
+              ? Math.abs(Number(a.amount) - r.valor) - Math.abs(Number(b.amount) - r.valor)
+              : (a.account_id === r.account_id ? -1 : 1));
           if (confAberto === id) renderReview();
         } catch (e2) { console.warn('[finapp] previsões:', e2.message || e2); }
       }
