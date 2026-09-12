@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-12T11:39:06-03:00">
+<meta name="hub-build" content="2026-09-12T11:39:25-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3800,6 +3800,8 @@ table.data-table tr:hover td { background: var(--bg); }
       if (!r.ok && r.status !== 206) return;
       const txt = await r.text();
       const m = txt.match(/<meta name="hub-build" content="([^"]+)"/);
+      window.__hubLastCheck = new Date();
+      if (window.hubRenderStatusChip) window.hubRenderStatusChip();
       // Só recarrega se o servidor tem versão MAIS NOVA (o KV pode devolver a antiga por ~60s após publicar)
       const toTs = v => Date.parse(/[+-]\d\d:\d\d$|Z$/.test(v) ? v : v + 'Z');
       if (!m || !(toTs(m[1]) > toTs(mine))) return;
@@ -13225,9 +13227,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           syncInfo = data.ok ? `Sync Google → Hub: ${dStr} (OK)` : `Sync Google → Hub: ${dStr}\nErro: ${data.error || '(sem detalhe)'}`;
           if (!data.ok) cls = 'hub-sync-status err';
         }
-        el.className = cls;
-        el.innerHTML = (cls.endsWith('err') ? '⚠ ' : '🛰 ') + 'atualizado ' + bStr;
-        el.title = `Hub atualizado ${bStr}\n${syncInfo}`;
+        window.hubRenderStatusChip = () => {
+          const lc = window.__hubLastCheck;
+          const cStr = lc ? lc.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
+          el.className = cls;
+          el.innerHTML = (cls.endsWith('err') ? '⚠ ' : '🛰 ') + 'atualizado ' + bStr + ' <span style="opacity:.55">· checado ' + cStr + '</span>';
+          el.title = `Versão do hub publicada ${bStr}\nÚltima checagem por versão nova: ${cStr}\n${syncInfo}`;
+        };
+        window.hubRenderStatusChip();
       } catch (e) {
         console.warn('[sync-status]', e);
       }
