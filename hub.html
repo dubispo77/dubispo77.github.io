@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-12T11:39:25-03:00">
+<meta name="hub-build" content="2026-09-12T12:07:15-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -8029,7 +8029,7 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     // Badge da Agenda = TODAS as tarefas/compromissos de HOJE ainda abertos (qualquer categoria),
     // menos os vídeos de outro editor (que a agenda também não mostra). Pedido 11/09.
     const { data: agendaItems } = await sb.from('items')
-      .select('id,area,metadata')
+      .select('id,area,metadata,google_calendar_id')
       .eq('is_roadmap', false)
       .not('status', 'eq', 'done')
       .not('status', 'eq', 'cancelled')
@@ -8038,6 +8038,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     byArea.agenda = (agendaItems || []).filter(i => {
       const md = i.metadata || {};
       if (md.video && md.editor && md.editor !== 'Eduardo') return false;
+      // Jogos do calendário read-only do Santos não são tarefas (e duplicariam os que ele narra)
+      if (i.google_calendar_id === 'f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.com') return false;
       return true;
     }).length;
 
