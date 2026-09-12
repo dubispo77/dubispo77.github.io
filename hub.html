@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-12T12:07:15-03:00">
+<meta name="hub-build" content="2026-09-12T12:20:19-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2542,6 +2542,9 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .status-icon.pending{ background: #f59e0b; }
 #finapp .status-icon.overdue{ background: var(--red); }
 #finapp .status-icon svg.status-svg{ width: 12px; height: 12px; stroke: white; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; display: block; }
+#finapp .tx-del{ visibility: hidden; border: 0; background: transparent; color: var(--red); font-size: 15px; font-weight: 700; cursor: pointer; padding: 0 4px; line-height: 1; vertical-align: middle; }
+#finapp tr:hover .tx-del{ visibility: visible; }
+#finapp .tx-del:hover{ transform: scale(1.25); }
 #finapp .cat-icon-classic{
     display: inline-flex;
     width: 30px;
@@ -13668,10 +13671,32 @@ function renderTrans() {
       + '<td>' + catCell(t.cat) + '</td>'
       + (SEL_UNI.size === 1 ? '' : '<td>' + accBadge(t.acc) + '</td>')
       + '<td style="text-align:right;color:' + color + '">' + fmt(t.val) + '</td>'
-      + '<td>' + varHtml + '</td>'
+      + '<td>' + varHtml + (t.st === 'pending' && t.id && (t.sf === 'projecao' || t.sf === 'recorrencia')
+          ? '<button class="tx-del" data-del="' + t.id + '" title="Excluir esta previsão">×</button>' : '') + '</td>'
       + '</tr>';
   }).join('');
 }
+
+// excluir previsão pendente (efetivada o banco recusa) — supressão persiste e tudo recalcula
+document.addEventListener('click', async ev => {
+  const btn = ev.target.closest && ev.target.closest('.tx-del');
+  if (!btn) return;
+  const id = btn.dataset.del;
+  const t = DATA.transactions.find(x => x.id === id);
+  if (!t) return;
+  if (!confirm('Excluir a previsão "' + t.desc + '" (' + fmt(t.val) + ') deste mês? Ela não volta no recálculo.')) return;
+  btn.disabled = true;
+  try {
+    const { data, error } = await window.sbClient.rpc('deletar_previsao', { p_id: id });
+    if (error) throw error;
+    if (data && data.ok === false) throw new Error(data.erro || 'não foi possível excluir');
+    if (typeof finToast === 'function') finToast('✓ Previsão excluída');
+    if (window.finRecarregar) await window.finRecarregar();
+  } catch (e) {
+    btn.disabled = false;
+    if (typeof finToast === 'function') finToast('✗ ' + (e.message || e), true);
+  }
+});
 
 // ===== TRANSFERÊNCIAS EM PARES (origem → destino) =====
 function renderTransfersPaired(tbody) {
