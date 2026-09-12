@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-11T11:12:37">
+<meta name="hub-build" content="2026-09-12T11:09:11-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3775,9 +3775,24 @@ table.data-table tr:hover td { background: var(--bg); }
   const meta = document.querySelector('meta[name="hub-build"]');
   const mine = meta ? meta.content : '';
   if (!mine || location.protocol === 'file:') return;
-  let busy = false;
+  let busy = false, pendingBuild = null;
+  function typing() {
+    // Só segura o reload se há texto NÃO salvo sendo digitado (campo focado E com conteúdo).
+    const ae = document.activeElement;
+    if (!ae) return false;
+    if (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA') return !!(ae.value && ae.value.trim());
+    if (ae.isContentEditable) return !!(ae.textContent && ae.textContent.trim());
+    return false;
+  }
+  function reloadNow(build) {
+    try { sessionStorage.setItem('HUB_RELOADED_FOR', build + '|' + Date.now()); } catch (_) {}
+    if (window.hubToast) window.hubToast('Atualizando o hub…');
+    // Reload "duro": cache-busting na URL derruba qualquer cache (navegador/CDN/KV) — a página
+    // limpa a query logo ao carregar (ver abaixo), então a barra de endereço fica normal.
+    setTimeout(() => location.replace(location.pathname + '?hubreload=' + Date.now()), 250);
+  }
   async function check() {
-    if (busy || document.hidden) return;
+    if (busy) return; // roda também com a aba em segundo plano: quando você voltar, já está nova
     busy = true;
     try {
       const url = location.pathname + '?hubchk=' + Date.now();
@@ -3785,22 +3800,29 @@ table.data-table tr:hover td { background: var(--bg); }
       if (!r.ok && r.status !== 206) return;
       const txt = await r.text();
       const m = txt.match(/<meta name="hub-build" content="([^"]+)"/);
-      if (!m || m[1] === mine) return;
-      // Não recarrega no meio de uma digitação — tenta de novo no próximo ciclo.
-      const ae = document.activeElement;
-      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
-      // Evita loop se o reload ainda vier do cache: só tenta de novo após 3min.
+      // Só recarrega se o servidor tem versão MAIS NOVA (o KV pode devolver a antiga por ~60s após publicar)
+      const toTs = v => Date.parse(/[+-]\d\d:\d\d$|Z$/.test(v) ? v : v + 'Z');
+      if (!m || !(toTs(m[1]) > toTs(mine))) return;
+      // Evita loop se o servidor ainda estiver servindo a versão antiga (KV leva até ~60s
+      // pra propagar): tenta de novo só depois de 45s.
       let last = null;
       try { last = sessionStorage.getItem('HUB_RELOADED_FOR'); } catch (_) {}
-      if (last) { const [b, t] = last.split('|'); if (b === m[1] && Date.now() - Number(t) < 3 * 60 * 1000) return; }
-      try { sessionStorage.setItem('HUB_RELOADED_FOR', m[1] + '|' + Date.now()); } catch (_) {}
-      location.reload();
+      if (last) { const [b, t] = last.split('|'); if (b === m[1] && Date.now() - Number(t) < 20 * 1000) return; }
+      if (typing()) { pendingBuild = m[1]; return; } // recarrega assim que sair do campo
+      reloadNow(m[1]);
     } catch (_) {} finally { busy = false; }
   }
+  // Limpa a query de cache-busting sem recarregar
+  if (/[?&]hubreload=/.test(location.search)) {
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch (_) {}
+  }
+  document.addEventListener('focusout', () => { if (pendingBuild && !typing()) { const b = pendingBuild; pendingBuild = null; reloadNow(b); } });
   check();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
   window.addEventListener('focus', check);
-  setInterval(check, 20 * 1000);
+  window.addEventListener('pageshow', e => { if (e.persisted) check(); });
+  // 5s com a aba visível (o navegador mesmo reduz pra ~1/min quando está em segundo plano)
+  setInterval(check, 5 * 1000);
 })();
 // ── AUTH (Fase 3) ── Verifica login antes de renderizar o hub.
 const SUPABASE_URL  = 'https://bpyoaxdmejnnyixrjxel.supabase.co';
@@ -13187,27 +13209,25 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           .maybeSingle();
         const el = document.getElementById('hubSyncStatus');
         if (!el) return;
-        if (error || !data) {
-          el.className = 'hub-sync-status';
-          el.textContent = '';
-          return;
+        const fmt = (d) => {
+          const now = new Date();
+          const t = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          return d.toDateString() === now.toDateString() ? `hoje ${t}` : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + t;
+        };
+        // Chip = hora da ÚLTIMA ATUALIZAÇÃO DO HUB (build publicado). Stamp sem fuso = UTC.
+        const bm = (document.querySelector('meta[name="hub-build"]') || {}).content || '';
+        const bd = bm ? new Date(/[+-]\d\d:\d\d$|Z$/.test(bm) ? bm : bm + 'Z') : null;
+        const bStr = bd && !isNaN(bd) ? fmt(bd) : '';
+        let syncInfo = 'Sync Google → Hub: sem registro';
+        let cls = 'hub-sync-status ok';
+        if (!error && data) {
+          const dStr = fmt(new Date(data.ran_at));
+          syncInfo = data.ok ? `Sync Google → Hub: ${dStr} (OK)` : `Sync Google → Hub: ${dStr}\nErro: ${data.error || '(sem detalhe)'}`;
+          if (!data.ok) cls = 'hub-sync-status err';
         }
-        const ran = new Date(data.ran_at);
-        const now = new Date();
-        const sameDay = ran.toDateString() === now.toDateString();
-        const tStr = ran.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        const dStr = sameDay
-          ? `hoje ${tStr}`
-          : ran.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + tStr;
-        if (data.ok) {
-          el.className = 'hub-sync-status ok';
-          el.innerHTML = `📡 sync ${dStr}`;
-          el.title = `Sincronização Google → Hub: ${dStr} (OK)`;
-        } else {
-          el.className = 'hub-sync-status err';
-          el.innerHTML = `⚠ sync ${dStr}`;
-          el.title = `Sincronização Google → Hub: ${dStr}\nErro: ${data.error || '(sem detalhe)'}`;
-        }
+        el.className = cls;
+        el.innerHTML = (cls.endsWith('err') ? '⚠ ' : '🛰 ') + 'atualizado ' + bStr;
+        el.title = `Hub atualizado ${bStr}\n${syncInfo}`;
       } catch (e) {
         console.warn('[sync-status]', e);
       }
