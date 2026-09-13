@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-12T23:48:48-03:00">
+<meta name="hub-build" content="2026-09-12T23:53:10-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2539,7 +2539,9 @@ table.data-table tr:hover td { background: var(--bg); }
     color: white;
   }
 #finapp .status-icon.paid{ background: var(--green); }
-#finapp .status-icon.half{ background: #fff; border: 2px solid var(--green); color: var(--green); box-sizing: border-box; }
+#finapp .status-icon.half-wrap{ position: relative; overflow: visible; }
+#finapp .half-clock{ position: absolute; right: -5px; bottom: -4px; font-size: 10px; line-height: 1; filter: none; }
+#finapp .half-clock img.emoji{ width: 11px !important; height: 11px !important; }
 #finapp .status-icon.pending{ background: #f59e0b; }
 #finapp .status-icon.overdue{ background: var(--red); }
 #finapp .status-icon svg.status-svg{ width: 12px; height: 12px; stroke: white; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; display: block; }
@@ -13615,7 +13617,7 @@ function accBadge(key) {
 }
 function statusIcon(st) {
   if (st === 'paid')    return '<span class="status-icon paid">✓</span>';
-  if (st === 'half')    return '<span class="status-icon half" title="conferido — fatura ainda não paga">✓</span>';
+  if (st === 'half')    return '<span class="status-icon paid half-wrap" title="conferido — fatura ainda não paga">✓<span class="half-clock">🕓</span></span>';
   if (st === 'overdue') return '<span class="status-icon overdue">!</span>';
   return '<span class="status-icon pending"><svg class="status-svg"><use href="#i-clock"/></svg></span>';
 }
