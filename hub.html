@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-12T20:59:15-03:00">
+<meta name="hub-build" content="2026-09-12T23:48:48-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2539,6 +2539,7 @@ table.data-table tr:hover td { background: var(--bg); }
     color: white;
   }
 #finapp .status-icon.paid{ background: var(--green); }
+#finapp .status-icon.half{ background: #fff; border: 2px solid var(--green); color: var(--green); box-sizing: border-box; }
 #finapp .status-icon.pending{ background: #f59e0b; }
 #finapp .status-icon.overdue{ background: var(--red); }
 #finapp .status-icon svg.status-svg{ width: 12px; height: 12px; stroke: white; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; display: block; }
@@ -13614,6 +13615,7 @@ function accBadge(key) {
 }
 function statusIcon(st) {
   if (st === 'paid')    return '<span class="status-icon paid">✓</span>';
+  if (st === 'half')    return '<span class="status-icon half" title="conferido — fatura ainda não paga">✓</span>';
   if (st === 'overdue') return '<span class="status-icon overdue">!</span>';
   return '<span class="status-icon pending"><svg class="status-svg"><use href="#i-clock"/></svg></span>';
 }
@@ -13630,7 +13632,7 @@ function renderTrans() {
   if (transferMode()) { renderTransfersPaired(tbody); return; }
   let tx = txOf(currentMonth).filter(t => {
     if (SEL_UNI.size && !SEL_UNI.has(t.acc)) return false;
-    if (VIEW.st.size && !VIEW.st.has(t.st)) return false;
+    if (VIEW.st.size && !VIEW.st.has(t.st === 'half' ? 'paid' : t.st)) return false;
     if (VIEW.cat.size && !VIEW.cat.has(t.cat)) return false;
     if (VIEW.acc.size && !VIEW.acc.has(t.acc)) return false;
     if (VIEW.q && !t.desc.toLowerCase().includes(VIEW.q.toLowerCase())) return false;
@@ -13640,7 +13642,7 @@ function renderTrans() {
   if (foot0) { foot0.cells[0].colSpan = SEL_UNI.size === 1 ? 6 : 7; foot0.cells[2].style.display = ''; }
   const dir = VIEW.dir === 'asc' ? 1 : -1;
   const key = {
-    st:   t => ({paid:0, pending:1, overdue:2})[t.st],
+    st:   t => ({paid:0, half:0.5, pending:1, overdue:2})[t.st],
     date: t => effDate(t),
     desc: t => t.desc.toLowerCase(),
     parc: t => t.parc ? t.parc[0]/t.parc[1] : -1,
@@ -13715,7 +13717,7 @@ function renderTransfersPaired(tbody) {
   // filtros ativos
   pairs = pairs.filter(pr => {
     if (SEL_UNI.size && !(SEL_UNI.has(pr.from) || (pr.to && SEL_UNI.has(pr.to)))) return false;
-    if (VIEW.st.size && !VIEW.st.has(pr.st)) return false;
+    if (VIEW.st.size && !VIEW.st.has(pr.st === 'half' ? 'paid' : pr.st)) return false;
     if (VIEW.cat.size && !VIEW.cat.has(pr.cat)) return false;
     if (VIEW.acc.size && !(VIEW.acc.has(pr.from) || (pr.to && VIEW.acc.has(pr.to)))) return false;
     if (VIEW.q && !pr.desc.toLowerCase().includes(VIEW.q.toLowerCase())) return false;
@@ -13723,7 +13725,7 @@ function renderTransfersPaired(tbody) {
   });
   const dir = VIEW.dir === 'asc' ? 1 : -1;
   const key = {
-    st: x => ({paid:0,pending:1,overdue:2})[x.st], date: x => x.d, desc: x => x.desc.toLowerCase(),
+    st: x => ({paid:0,half:0.5,pending:1,overdue:2})[x.st], date: x => x.d, desc: x => x.desc.toLowerCase(),
     cat: x => (DATA.cats[x.cat]||{name:''}).name.toLowerCase(),
     from: x => DATA.accounts[x.from].name.toLowerCase(),
     to: x => x.to ? DATA.accounts[x.to].name.toLowerCase() : '',
@@ -13785,10 +13787,10 @@ function renderKPIs() {
   setText('kpiDesp', fmt(sum(desp)));
   setText('kpiBal', fmtS(sum(rec) + sum(desp)));
   setText('kpiDespPend', fmt(sum(desp.filter(t => t.st !== 'paid'))));
-  setText('kpiDespPagas', fmt(sum(desp.filter(t => t.st === 'paid'))));
+  setText('kpiDespPagas', fmt(sum(desp.filter(t => t.st === 'paid' || t.st === 'half'))));
   setText('kpiDespTotal', fmt(sum(desp)));
   setText('kpiRecPend', fmt(sum(rec.filter(t => t.st !== 'paid'))));
-  setText('kpiRecReceb', fmt(sum(rec.filter(t => t.st === 'paid'))));
+  setText('kpiRecReceb', fmt(sum(rec.filter(t => t.st === 'paid' || t.st === 'half'))));
   setText('kpiRecTotal', fmt(sum(rec)));
   setText('kpiTransfCount', String(trf.length));
   setText('kpiTransfTotal', fmt(trf.filter(t => t.val > 0).reduce((s,t) => s + t.val, 0)));
@@ -13805,7 +13807,7 @@ function renderPlan() {
   const slugs = [...new Set([...Object.keys(DATA.budgets), ...gastoSlugs])];
   let rows = slugs.map(slug => {
     const meta = DATA.budgets[slug] || 0;
-    const pagas = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && t.st === 'paid').reduce((s,t) => s + t.val, 0);
+    const pagas = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && (t.st === 'paid' || t.st === 'half')).reduce((s,t) => s + t.val, 0);
     const prev  = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && t.st !== 'paid').reduce((s,t) => s + t.val, 0);
     const total = pagas + prev;
     return { slug, meta, pagas, prev, total, restam: meta - total };
@@ -15560,7 +15562,7 @@ function finAviso(msg) {
       let rows = [], from = 0;
       while (true) {
         const { data: chunk, error: e2 } = await sb.from('transactions')
-          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,transfer_pair_id,installment_current,installment_total,source_file,purchase_date:raw->>purchase_date')
+          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,transfer_pair_id,installment_current,installment_total,source_file,purchase_date:raw->>purchase_date,bill:raw->>bill')
           .order('date', { ascending: true }).range(from, from + 999);
         if (e2) throw e2;
         rows = rows.concat(chunk || []);
@@ -15598,7 +15600,17 @@ function finAviso(msg) {
         DATA.transactions.push({
           id: r.id, sf: r.source_file, pd: r.purchase_date || undefined,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
-          acc, val: parseFloat(r.amount), st: (r.source_file === 'projecao' || r.source_file === 'recorrencia') ? 'pending' : 'paid', tr: !!r.is_transfer, pair: r.transfer_pair_id || undefined,
+          acc, val: parseFloat(r.amount), st: (function () {
+            if (r.source_file === 'projecao' || r.source_file === 'recorrencia') return 'pending';
+            // meio-verde (regra 12/09): item de CARTÃO conferido, mas fatura ainda não venceu/foi paga
+            const DUE = { 'bccf960f-8766-4058-b4c9-1ca401a2df56': 10, 'df0396d3-7c58-4ded-948b-1bbe1dd50c8d': 18, '9fd2b8fd-c0e8-479b-9687-985323e812c7': 15 };
+            const dd = DUE[r.account_id];
+            if (!dd) return 'paid';
+            const bill = r.bill || r.date.slice(0, 7);
+            const due = bill + '-' + String(dd).padStart(2, '0');
+            const hj = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            return due > hj ? 'half' : 'paid';
+          })(), tr: !!r.is_transfer, pair: r.transfer_pair_id || undefined,
           parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
         });
       });
