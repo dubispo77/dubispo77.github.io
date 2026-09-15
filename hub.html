@@ -9427,8 +9427,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         : d.getDate() === lastOfMonth.getDate());
       // Items: todos os dias quando chrono, só do mês ativo quando normal.
       const items = isOut ? [] : itemsForDate(d);
-      const visible = items.slice(0, 5);
-      const extra = items.length - visible.length;
+      // Sem corte: mostra TODOS os compromissos e deixa a célula crescer pra baixo
+      // (grid-auto-rows:1fr = minmax(auto,1fr), então a linha estica conforme o conteúdo).
+      const visible = items;
       const evHtml = visible.map(it => {
         const spanClass = it.is_span ? ` calM-ev-span calM-ev-span-${it.span_position || 'mid'}` : '';
         const klass = `calM-ev event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}${spanClass}`;
@@ -9459,7 +9460,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           ${actions}
         </div>`;
       }).join('');
-      const moreHtml = extra > 0 ? `<span class="calM-more">+ ${extra} mais</span>` : '';
+      const moreHtml = '';
       const classes = [
         isOut ? 'is-out' : '',
         isToday ? 'is-today' : '',
