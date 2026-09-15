@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-15T12:37:12-03:00">
+<meta name="hub-build" content="2026-09-15T12:38:41-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1085,8 +1085,11 @@ table.data-table tr:hover td { background: var(--bg); }
 @media (hover: hover) and (pointer: fine) {
   .calM-cell.has-more .calM-more { pointer-events: none; }
   .calM-cell.has-more .calM-overflow {
-    display: block; position: absolute; top: 100%; left: -1px; right: -1px;
-    background: inherit; padding: 0 8px 9px; margin-top: -1px;
+    display: block; position: absolute; left: -1px; right: -1px;
+    /* começa exatamente onde o último card visível termina (cobre o espaço do "+N mais"),
+       pra gaveta emendar na célula sem buraco */
+    top: calc(100% - 34px);
+    background: inherit; padding: 0 8px 9px;
     border: 1px solid #d4d4d8; border-top: none; border-radius: 0 0 9px 9px;
     box-shadow: 0 16px 30px rgba(30,20,60,.22);
     opacity: 0; visibility: hidden; transform: translateY(-8px);
