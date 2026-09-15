@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Política de Privacidade — Hub Eduardo</title>
+<style>
+  :root { --roxo:#5b4fcf; --text:#2d2460; --faint:#6b637a; --line:#e6e3f0; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#f6f5fb; color:var(--text);
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+         line-height:1.65; padding:48px 20px 80px; }
+  main { max-width:720px; margin:0 auto; background:#fff; border:1px solid var(--line);
+         border-radius:16px; padding:44px 40px; box-shadow:0 4px 24px rgba(30,20,60,.06); }
+  h1 { font-size:26px; margin:0 0 6px; letter-spacing:-.01em; }
+  .sub { color:var(--faint); font-size:13.5px; margin:0 0 30px; }
+  h2 { font-size:16px; margin:32px 0 8px; color:var(--roxo); }
+  p, li { font-size:15px; }
+  ul { padding-left:20px; }
+  li { margin-bottom:6px; }
+  a { color:var(--roxo); }
+  footer { max-width:720px; margin:22px auto 0; text-align:center; font-size:12.5px; color:var(--faint); }
+  @media (max-width:600px) { main { padding:30px 22px; } body { padding:24px 14px 60px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Política de Privacidade</h1>
+  <p class="sub">Hub Eduardo &middot; aplicativo pessoal &middot; atualizada em 15 de setembro de 2026</p>
+
+  <p>O Hub Eduardo é um aplicativo de uso pessoal, desenvolvido e mantido por Eduardo Romano Bispo para organizar a própria agenda, tarefas e finanças. Ele não é oferecido comercialmente e não possui base de usuários além do próprio desenvolvedor.</p>
+
+  <h2>Dados que o aplicativo acessa</h2>
+  <p>Quando o usuário autoriza a conexão com a Conta do Google, o aplicativo acessa exclusivamente:</p>
+  <ul>
+    <li>eventos dos calendários do Google Agenda da conta autorizada, incluindo título, data, horário, descrição e local;</li>
+    <li>a lista de calendários da conta, para saber em qual calendário cada compromisso deve ser criado ou atualizado.</li>
+  </ul>
+  <p>O aplicativo não acessa e-mails, contatos, arquivos, fotos ou qualquer outro serviço do Google.</p>
+
+  <h2>Para que esses dados são usados</h2>
+  <p>Os dados do calendário são usados com uma única finalidade: manter os compromissos sincronizados entre o Google Agenda e o Hub, nos dois sentidos. Compromissos criados ou editados no Hub são gravados no calendário correspondente, e alterações feitas no Google Agenda aparecem no Hub.</p>
+
+  <h2>Onde os dados ficam</h2>
+  <p>As informações sincronizadas ficam armazenadas em um banco de dados privado (Supabase), acessível apenas mediante autenticação da própria conta. As credenciais de acesso ao Google são guardadas de forma restrita no mesmo ambiente e usadas somente para renovar a sessão de sincronização.</p>
+
+  <h2>Compartilhamento</h2>
+  <p>Nenhum dado obtido pelas APIs do Google é vendido, alugado, compartilhado com terceiros, usado para publicidade, usado para criar perfis de marketing ou utilizado para treinar modelos de inteligência artificial. O uso das informações recebidas das APIs do Google segue a <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Política de Dados do Usuário dos Serviços de API do Google</a>, incluindo os requisitos de Uso Limitado.</p>
+
+  <h2>Retenção e exclusão</h2>
+  <p>Os dados permanecem armazenados enquanto a conexão com o Google estiver ativa. Ao desconectar a conta dentro do Hub, as credenciais de acesso são apagadas e a sincronização é interrompida. A autorização também pode ser revogada a qualquer momento em <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a>.</p>
+
+  <h2>Contato</h2>
+  <p>Dúvidas sobre esta política podem ser enviadas para <a href="mailto:eduardo.romanobispo@gmail.com">eduardo.romanobispo@gmail.com</a>.</p>
+</main>
+<footer><a href="https://eduardobispo.com.br/hub.html">Hub Eduardo</a> &middot; <a href="https://eduardobispo.com.br/termos.html">Termos de Serviço</a></footer>
+</body>
+</html>
