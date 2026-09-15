@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-15T19:58:12-03:00">
+<meta name="hub-build" content="2026-09-15T20:00:20-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -9593,8 +9593,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   function normalizeItem(it) {
     const d = parseDbDate(it.date_start);
     let hr = '';
-    // Só a hora de INÍCIO no card (pedido 15/09) — a hora de fim continua no card de detalhe
-    if (it.has_time) hr = fmtTime(d);
+    // Só a hora de INÍCIO no card (pedido 15/09) — a hora de fim continua no card de detalhe.
+    // Finanças (administracao) não tem horário: 15:00/15:15/15:30/15:45 é carimbo automático da
+    // importação de contas, não hora escolhida. Hora fora desse bloco é dele e continua aparecendo.
+    if (it.has_time) {
+      const t = fmtTime(d);
+      const carimboAuto = it.area === 'administracao' && ['15:00','15:15','15:30','15:45'].includes(t);
+      if (!carimboAuto) hr = t;
+    }
     // Título já com prefixo strippado + abreviações expandidas (Santos rule #1)
     const expandedTitle = expandTeamCodes(stripTagPrefix(it.title));
     const itIsSantos = isSantosGame(expandedTitle);
@@ -9790,7 +9796,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         </div>`;
         return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
           ${overdueBadge}
-          ${it.has_time ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}
+          ${it.hr ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}
           <span class="ti">${badges}${escHtml(it.title)}</span>
           ${actions}
         </div>`;
@@ -10024,7 +10030,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           return `<div class="${klass}" data-item-id="${it.id}">
             ${overdueBadge}
             ${it.from_gcal ? '<span class="badge-gcal" title="Sincronizado do Google Calendar">📆</span>' : ''}
-            ${it.has_time ? `<div class="hr">${escHtml(it.hr)}</div>` : '<div class="hr">dia inteiro</div>'}
+            ${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : '<div class="hr">dia inteiro</div>'}
             <div class="ti">${escHtml(it.title)}</div>
           </div>`;
         }).join('');
@@ -10263,7 +10269,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         return 0;
       });
       const cards = sorted.length
-        ? sorted.map(it => `<div class="calW-card proj-${it.project}" data-item-id="${it.id}" title="${escHtml(it.title)}"><div class="ti">${escHtml(it.title)}</div>${it.has_time ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
+        ? sorted.map(it => `<div class="calW-card proj-${it.project}" data-item-id="${it.id}" title="${escHtml(it.title)}"><div class="ti">${escHtml(it.title)}</div>${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
         : '<div class="calW-empty">—</div>';
       html += `<div class="calW-day ${isToday?'is-today':''} ${isPast?'is-past':''}" data-date="${ymd(d)}">
         <div class="calW-head ${isToday?'is-today':''}">
