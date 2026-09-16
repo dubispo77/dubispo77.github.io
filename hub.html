@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T14:24:16-03:00">
+<meta name="hub-build" content="2026-09-16T14:28:34-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1120,6 +1120,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev .hr { font-size: 11px; opacity: .92; line-height: 1.2; display: block; font-weight: 700; letter-spacing: -.01em; }
 .calM-ev .ti { font-size: 12.5px; font-weight: 650; line-height: 1.3; }
 .calM-ev.proj-pessoal       { background: #fca5a5; border-color: #dc2626; color: #7f1d1d; }
+.calM-ev.proj-agenda_awvz   { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
 .calM-ev.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
 .calM-ev.proj-saude         { background: #bae6fd; border-color: #0ea5e9; color: #075985; }
 .calM-ev.proj-administracao { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
@@ -1235,6 +1236,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calW-card .ti { font-size: 12px; font-weight: 600; line-height: 1.3; }
 .calW-card .hr { font-size: 10px; opacity: .8; margin-top: 2px; font-weight: 500; }
 .calW-card.proj-pessoal       { background: #fca5a5; color: #7f1d1d; border-left: 3px solid #dc2626; }
+.calW-card.proj-agenda_awvz   { background: #bfdbfe; color: #1e3a8a; border-left: 3px solid #2563eb; }
 .calW-card.proj-trabalho      { background: #93c5fd; color: #1e3a8a; border-left: 3px solid #2563eb; }
 .calW-card.proj-saude         { background: #bae6fd; color: #075985; border-left: 3px solid #0ea5e9; }
 .calW-card.proj-administracao { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
@@ -1286,6 +1288,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calMM-card.is-overdue { border-left-color: #dc2626 !important; border-left-width: 5px !important; }
 .calMM-card .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 700; line-height: 1.2; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .calMM-card.proj-pessoal       { background: #fca5a5; border-color: #dc2626; color: #7f1d1d; }
+.calMM-card.proj-agenda_awvz   { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
 .calMM-card.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
 .calMM-card.proj-saude         { background: #bae6fd; border-color: #0ea5e9; color: #075985; }
 .calMM-card.proj-administracao { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
@@ -1318,6 +1321,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-head.area-eventos       { background: linear-gradient(135deg, #ea580c, #9a3412); }
 .tdm-head.area-brasileirao_play { background: linear-gradient(135deg, #16a34a, #15803d); }
 .tdm-head.area-aw_vz         { background: linear-gradient(135deg, #ff1493, #be185d); }
+.tdm-head.area-agenda_awvz   { background: linear-gradient(135deg, #3b82f6, #1e40af); }
 .tdm-head.area-aniversarios  { background: linear-gradient(135deg, #f9a8d4, #db2777); }
 .tdm-head.area-financas      { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
 .tdm-head.area-rotina        { background: linear-gradient(135deg, #dc2626, #991b1b); }
@@ -1415,6 +1419,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-head.area-eventos .tdm-wdc-month       { color: #9a3412; }
 .tdm-head.area-brasileirao_play .tdm-wdc-month { color: #15803d; }
 .tdm-head.area-aw_vz .tdm-wdc-month         { color: #be185d; }
+.tdm-head.area-agenda_awvz .tdm-wdc-month   { color: #1e40af; }
 .tdm-head.area-aniversarios .tdm-wdc-month  { color: #9d174d; }
 .tdm-head.area-brasileirao .tdm-wdc-month   { color: #064e3b; }
 /* Input de data: tem que estar renderizado pro showPicker() funcionar.
@@ -1936,6 +1941,7 @@ table.data-table tr:hover td { background: var(--bg); }
         <div class="nav-subitem" data-cat="administracao"><span class="cat-dot" style="--c:#7c3aed"></span><span class="ni-text">Finanças</span></div>
         <div class="nav-subitem" data-cat="casa"><span class="cat-dot" style="--c:#eab308"></span><span class="ni-text">Casa</span></div>
         <div class="nav-subitem" data-cat="aw_vz"><span class="cat-dot" style="--c:#ff1493"></span><span class="ni-text">AW+VZ</span></div>
+        <div class="nav-subitem" data-cat="agenda_awvz"><span class="cat-dot" style="--c:#2563eb"></span><span class="ni-text">Agenda AW+VZ</span></div>
         <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#f9a8d4"></span><span class="ni-text">Aniversários</span></div>
       </div>
       <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span><span class="ni-caret" style="visibility:hidden">▸</span></div>
@@ -4608,6 +4614,15 @@ window.HUB_READONLY_CALS = ['f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.co
 // Jogo importado do calendário do Santos: aparece SÓ na agenda geral (pedido 16/09).
 // Nas páginas de categoria (Pessoal e companhia) ele é escondido — lá ficam só as
 // coisas que o Eduardo realmente cadastrou naquela categoria.
+// Áreas que existem como categoria própria mas NÃO aparecem na agenda geral.
+// 'agenda_awvz' é o espelho da agenda das chefes: é consulta, não é a agenda dele.
+window.HUB_AREAS_FORA_DA_GERAL = ['agenda_awvz'];
+// Áreas espelhadas de outra conta Google: o hub NUNCA escreve nelas.
+window.HUB_AREAS_SO_LEITURA = ['agenda_awvz'];
+window.hubSoLeitura = function(it) {
+  const a = it && (it.area || (it.raw && it.raw.area));
+  return !!a && (window.HUB_AREAS_SO_LEITURA || []).includes(a);
+};
 window.hubEhJogoSoDoGoogle = function(it) {
   if (!it) return false;
   const cal = it.google_calendar_id || (it.raw && it.raw.google_calendar_id);
@@ -4959,6 +4974,7 @@ const CATLIST_META = {
   administracao:    { name: 'Finanças',         color: '#7c3aed' },
   casa:             { name: 'Casa',             color: '#eab308' },
   aw_vz:            { name: 'AW+VZ',            color: '#ff1493' },
+  agenda_awvz:      { name: 'Agenda AW+VZ',      color: '#2563eb' },
   aniversarios:     { name: 'Aniversários',     color: '#f9a8d4' },
 };
 window.CATLIST_META = CATLIST_META;
@@ -7082,6 +7098,7 @@ function _dateToMRoadmap(d) {
 
 const AREA_DEFAULTS = {
   pessoal:       { emoji: '🙋', colorSoft: '#fca5a5', badgeColor: '#dc2626', badge: '' },
+  agenda_awvz:   { emoji: '🏢', colorSoft: '#bfdbfe', badgeColor: '#2563eb', badge: '' },
   trabalho:      { emoji: '💼', colorSoft: '#93c5fd', badgeColor: '#2563eb', badge: '' },
   saude:         { emoji: '🏃', colorSoft: '#86efac', badgeColor: '#16a34a', badge: '' },
   administracao: { emoji: '💰', colorSoft: '#c4b5fd', badgeColor: '#7c3aed', badge: '' },
@@ -8231,7 +8248,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       .gte('date_start', today.toISOString())
       .lt('date_start', tomorrow.toISOString());
 
-    const items = (data || []).filter(i => !window.hubEhJogoSoDoGoogle(i));
+    const items = (data || []).filter(i =>
+      !window.hubEhJogoSoDoGoogle(i) && !(window.HUB_AREAS_FORA_DA_GERAL || []).includes(i.area));
 
     const byArea = { agenda: 0, administracao: 0, saude: 0, trabalho: 0, casa: 0, eventos: 0, pessoal: 0 };
 
@@ -8273,6 +8291,8 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
       if (md.video && md.editor && md.editor !== 'Eduardo') return false;
       // Jogos do calendário read-only do Santos não são tarefas (e duplicariam os que ele narra)
       if (i.google_calendar_id === 'f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.com') return false;
+      // Agenda espelhada das chefes: é consulta, não tarefa dele.
+      if ((window.HUB_AREAS_FORA_DA_GERAL || []).includes(i.area)) return false;
       return true;
     }).length;
 
@@ -9093,7 +9113,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   function areaColor(area) {
-    return { saude:'#0ea5e9', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', pessoal:'#dc2626', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#f9a8d4', financas:'#7c3aed', rotina:'#dc2626' }[area] || '#6b637a';
+    return { saude:'#0ea5e9', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', pessoal:'#dc2626', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#f9a8d4', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' }[area] || '#6b637a';
   }
 
   // ── Carrega projetos (constrói mapa id → projeto) ──
@@ -9770,7 +9790,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
   function itemsForDate(d) {
     const t = ymd(d);
-    const passArea = i => !areaFilter || (i.raw && i.raw.area === areaFilter && !window.hubEhJogoSoDoGoogle(i.raw));
+    const passArea = i => {
+      const a = i.raw && i.raw.area;
+      // Sem filtro = agenda geral: esconde as áreas que só existem como categoria.
+      if (!areaFilter) return !(window.HUB_AREAS_FORA_DA_GERAL || []).includes(a);
+      return a === areaFilter && !window.hubEhJogoSoDoGoogle(i.raw);
+    };
     const direct = itemsCache.filter(i => i.date === t && passArea(i));
     const recurring = itemsCache.filter(i => i.is_recurring && passArea(i) && recurrenceMatchesDay(i, d))
       .map(p => makeVirtualOccurrence(p, d));
@@ -10506,7 +10531,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const old = document.querySelector('.cal-day-popover');
     if (old) old.remove();
   }
-  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#0ea5e9', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#f9a8d4', financas:'#7c3aed', rotina:'#dc2626' };
+  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#0ea5e9', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#f9a8d4', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' };
 
   function openPopoverFor(cellEl, dateStr) {
     closePopover();
@@ -11433,7 +11458,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const AREA_LABELS = {
         pessoal: 'Pessoal', trabalho: 'Trabalho',
         administracao: 'Finanças', casa: 'Casa', eventos: 'Eventos',
-        brasileirao_play: 'Brasileirão Play', aw_vz: 'AW+VZ', aniversarios: 'Aniversários',
+        brasileirao_play: 'Brasileirão Play', aw_vz: 'AW+VZ', aniversarios: 'Aniversários', agenda_awvz: 'Agenda AW+VZ',
       };
       const innerSub = editMode
         ? (() => {
@@ -12085,6 +12110,11 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // o Google devolve 403 e não adianta tentar — a mudança fica só no hub.
   function tdmSyncGcal() {
     if (!currentItem || !window.syncToGcal) return;
+    // Espelho de outra conta Google (agenda das chefes): leitura pura.
+    if (window.hubSoLeitura && window.hubSoLeitura(currentItem)) {
+      if (window.hubToast) window.hubToast('Essa agenda é só leitura — nada foi enviado ao Google');
+      return;
+    }
     const cal = currentItem.google_calendar_id || '';
     if (window.HUB_READONLY_CALS && window.HUB_READONLY_CALS.includes(cal)) {
       if (window.hubToast) window.hubToast('Salvo no hub (esse calendário do Google é só leitura)');
