@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T15:20:54-03:00">
+<meta name="hub-build" content="2026-09-16T15:26:17-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1171,6 +1171,12 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .calM-ev.is-done { opacity: .55; text-decoration: line-through; }
 /* Já aconteceu (agenda espelhada): apagado, mas sem risco — não foi "concluído". */
+/* Item de agenda espelhada não tem ✓/✕, então não faz sentido esticar pra direita:
+   no hover ele só cresce pra baixo pra mostrar o nome inteiro. */
+.calM-ev.so-leitura:hover { width: 100%; padding-right: 9px; }
+.calM-cell:nth-child(7n) .calM-ev.so-leitura:hover { margin-left: 0; padding-left: 9px; }
+.calM-ev.so-leitura:hover .calM-ev-in { padding-right: 9px; }
+.calM-cell:nth-child(7n) .calM-ev.so-leitura:hover .calM-ev-in { padding-left: 9px; }
 /* Passou é passado: continua apagado inclusive no hover (pedido 16/09). */
 .calM-ev.is-past { opacity: .45; }
 /* Jogo do Santos que já acabou: escurece E desbota (pedido 16/09). Só desbotar
@@ -1717,6 +1723,29 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-add-chip svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Footer com botões de ação */
+/* Agenda espelhada (Andrea): nada pode ser editado daqui. Some tudo que muda
+   o item e o que sobra fica inerte. (pedido 16/09) */
+.tdm.somente-leitura #tdmAllDayToggle,
+.tdm.somente-leitura #tdmDurationWrap,
+.tdm.somente-leitura #tdmEdit,
+.tdm.somente-leitura #tdmSave,
+.tdm.somente-leitura #tdmDelete,
+.tdm.somente-leitura #tdmWhenTimeLabel { display: none !important; }
+.tdm.somente-leitura #tdmWhenDateBtn,
+.tdm.somente-leitura #tdmWhenTimeBtn,
+.tdm.somente-leitura #tdmAreaPill,
+.tdm.somente-leitura .tdm-title { pointer-events: none; cursor: default; }
+.tdm.somente-leitura #tdmWhenDateBtn:hover { transform: none; }
+.tdm.somente-leitura #tdmWhenTimeBtn::after { content: none; }
+.tdm-selo-leitura {
+  display: none; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 650; color: #fff;
+  background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+  padding: 4px 10px; border-radius: 999px; margin-right: auto;
+}
+.tdm.somente-leitura .tdm-selo-leitura { display: inline-flex; }
+.tdm.somente-leitura .tdm-foot { justify-content: flex-start; background: #fafafb; }
+.tdm.somente-leitura .tdm-selo-leitura { color: #6b7280; background: #f3f4f6; border-color: #e5e7eb; }
 .tdm-foot { padding: 12px 22px; border-top: 0.5px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; background: #fafafb; }
 .tdm-btn { padding: 8px 16px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; border: 0.5px solid #c8c8cc; background: #fff; color: #374151; }
 .tdm-btn:hover { background: #f3f4f6; }
@@ -8328,19 +8357,31 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     setBadge('badgePessoal',       byArea.pessoal,       1);
   }
 
-  await updateBadges();
+  // Exposto: qualquer ação que mexa em item pode pedir o recálculo na hora,
+  // sem depender do realtime chegar. Agrupa chamadas seguidas em uma só.
+  let _badgeTimer = null;
+  window.hubUpdateBadges = function () {
+    clearTimeout(_badgeTimer);
+    _badgeTimer = setTimeout(() => {
+      updateBadges().catch(e => console.warn('[badges] falhou:', e));
+    }, 150);
+  };
 
-  sb.channel('sidebar-badges-rt')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async () => {
-      await updateBadges();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'import_review' }, async () => {
-      await updateBadges();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'inbox_transactions' }, async () => {
-      await updateBadges();
-    })
+  await updateBadges().catch(e => console.warn('[badges] falhou:', e));
+
+  // Um canal por tabela: assim um binding com problema não derruba os outros
+  // (era o caso — o número da Agenda ficava parado até recarregar a página).
+  sb.channel('badges-items-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, () => window.hubUpdateBadges())
     .subscribe();
+  sb.channel('badges-review-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'import_review' }, () => window.hubUpdateBadges())
+    .subscribe();
+
+  // Redes de segurança: ao voltar pra aba e de tempos em tempos.
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) window.hubUpdateBadges(); });
+  window.addEventListener('focus', () => window.hubUpdateBadges());
+  setInterval(() => { if (!document.hidden) window.hubUpdateBadges(); }, 45000);
 })();
 
 // ── PESSOAL DINÂMICA (puxado de public.items onde area='pessoal')
@@ -10027,7 +10068,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const extra = items.length - visible.length;
       const cardHtml = (it) => {
         const spanClass = it.is_span ? ` calM-ev-span calM-ev-span-${it.span_position || 'mid'}` : '';
-        const klass = `calM-ev event-block proj-${it.project}${it.hr ? ' has-hr' : ''}${it.is_done ? ' is-done' : ''}${it.is_past ? ' is-past' : ''}${it.is_overdue ? ' is-overdue' : ''}${spanClass}`;
+        const klass = `calM-ev event-block proj-${it.project}${it.hr ? ' has-hr' : ''}${it.is_done ? ' is-done' : ''}${it.is_past ? ' is-past' : ''}${it.is_overdue ? ' is-overdue' : ''}${(window.hubSoLeitura && window.hubSoLeitura(it.raw || it)) ? ' so-leitura' : ''}${spanClass}`;
         const badges = [
           it.is_done ? '<span class="bd dn">✓</span>' : '',
           it.is_recurring ? '<span class="bd rc">♻</span>' : '',
@@ -10045,7 +10086,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const ICO_LINK = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M9.5 6.5 L 13 3 a 2.5 2.5 0 0 1 3.5 3.5 L 13 10"/><path d="M6.5 9.5 L 3 13 a 2.5 2.5 0 0 0 3.5 3.5 L 10 13"/><path d="M6.5 9.5 L 9.5 6.5"/></svg>';
         const ICO_X = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg>';
         const ICO_PEN = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M11.5 2.5 L 13.5 4.5 L 5.5 12.5 L 3 13 L 3.5 10.5 Z"/></svg>';
-        const actions = `<div class="eb-actions">
+        const soLeitura = !!(window.hubSoLeitura && window.hubSoLeitura(it.raw || it));
+        const actions = soLeitura ? '' : `<div class="eb-actions">
           <button class="eb-btn calM-act" data-act="toggle" data-id="${it.id}" title="${it.is_done ? 'Desfazer' : 'Concluir'}">${it.is_done ? ICO_UNDO : ICO_CHECK}</button>
           <button class="eb-btn calM-act" data-act="del" data-id="${it.id}" title="Apagar">${ICO_X}</button>
         </div>`;
@@ -10657,6 +10699,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   document.addEventListener('click', async e => {
     const btn = e.target.closest('.calM-act');
     if (!btn) return;
+    // Concluir/apagar muda a contagem de hoje: pede o recálculo sem esperar o realtime.
+    setTimeout(() => { if (window.hubUpdateBadges) window.hubUpdateBadges(); }, 400);
     e.stopPropagation();
     e.preventDefault();
     const id = btn.dataset.id;
@@ -10945,6 +10989,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     e.preventDefault();
     const id = e.dataTransfer.getData('text/plain');
     await aplicarDropEmCelula(id, cell);
+    if (window.hubUpdateBadges) window.hubUpdateBadges();
   });
 
   // ── Drag MOBILE (touch) ──
@@ -11270,6 +11315,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     </div>
     <div class="tdm-body" id="tdmBody"></div>
     <div class="tdm-foot">
+      <span class="tdm-selo-leitura">🔒 Só leitura — agenda de outra pessoa</span>
       <button class="tdm-btn tdm-btn-danger" id="tdmDelete" type="button">Apagar</button>
       <button class="tdm-btn" id="tdmEdit" type="button">Editar</button>
       <button class="tdm-btn tdm-btn-primary" id="tdmSave" type="button" style="display:none">Salvar</button>
@@ -12015,6 +12061,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     head.className = 'tdm-head area-' + (isBrasi ? 'brasileirao' : (item.area || 'pessoal'));
     elArea.textContent = areaPillLabel(item);
 
+    // Agenda espelhada: trava o card inteiro em modo consulta.
+    const tdmEl = document.getElementById('tdm');
+    if (tdmEl) tdmEl.classList.toggle('somente-leitura', !!(window.hubSoLeitura && window.hubSoLeitura(item)));
+
     // Data + hora + dia inteiro (render centralizado)
     tdmRenderWhen();
 
@@ -12154,6 +12204,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // Persiste data/hora e devolve true/false (com rollback visual)
   async function tdmSaveWhen(startIso, endIso, hasTime, okMsg) {
     if (!currentItem) return false;
+    if (window.hubSoLeitura && window.hubSoLeitura(currentItem)) {
+      if (window.hubToast) window.hubToast('Essa agenda é só leitura — nada foi alterado');
+      return false;
+    }
     const prev = { ds: currentItem.date_start, de: currentItem.date_end, ht: currentItem.has_time };
     currentItem.date_start = startIso;
     currentItem.date_end = endIso;
@@ -12172,6 +12226,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     if (window.hubToast) window.hubToast(okMsg || 'Salvo ✓');
     tdmSyncGcal();
+    if (window.hubUpdateBadges) window.hubUpdateBadges();
     return true;
   }
 
