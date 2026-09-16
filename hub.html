@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T10:19:56-03:00">
+<meta name="hub-build" content="2026-09-16T10:22:56-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1048,20 +1048,37 @@ table.data-table tr:hover td { background: var(--bg); }
    passa por cima do que está embaixo, mostrando o nome inteiro em várias linhas. */
 .calM-ev { height: 32px; }
 .calM-ev.has-hr { height: 44px; }
-.calM-ev-in { display: block; }
-.calM-ev:hover .calM-ev-in, .calM-ev.show-actions .calM-ev-in {
+/* A camada é SEMPRE flutuante (nunca troca de position no hover — era isso que
+   dava o "tranco"). Fechada, ela tem a altura exata do card e esconde o resto;
+   no hover a altura cresce e as linhas de baixo aparecem deslizando. */
+.calM-ev-in {
   position: absolute; top: 0; left: -4px; right: 0;
   box-sizing: border-box;
-  padding: 7px 68px 8px 9px;
+  padding: 7px 9px 8px 9px;
   background: inherit; color: inherit;
   border-left: 4px solid; border-color: inherit;
   border-radius: 7px;
-  box-shadow: 0 10px 22px rgba(30,20,60,.20);
+  overflow: hidden;
+  max-height: 32px;
+  box-shadow: 0 0 0 rgba(30,20,60,0);
+  transition: max-height .26s cubic-bezier(.2,.8,.3,1),
+              padding .22s cubic-bezier(.2,.8,.3,1),
+              box-shadow .26s ease;
   z-index: 1;
 }
-.calM-ev:hover .ti, .calM-ev.show-actions .ti {
-  white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word;
+.calM-ev.has-hr .calM-ev-in { max-height: 44px; }
+.calM-ev:hover .calM-ev-in, .calM-ev.show-actions .calM-ev-in {
+  max-height: 132px;
+  padding-right: 68px;
+  box-shadow: 0 10px 22px rgba(30,20,60,.18);
 }
+/* O texto já fica quebrado em linhas nos dois estados — fechado só mostra a 1ª
+   (com reticências). Assim a primeira linha NÃO muda de lugar ao abrir. */
+.calM-ev .ti {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1;
+  white-space: normal; overflow: hidden; text-overflow: ellipsis; word-break: break-word;
+}
+.calM-ev:hover .ti, .calM-ev.show-actions .ti { -webkit-line-clamp: 6; }
 /* a célula e o grid precisam deixar a camada vazar pra fora */
 .calM-cell:has(.calM-ev:hover), .calM-cell:has(.calM-ev.show-actions) { z-index: 70; }
 .calM-grid:has(.calM-ev:hover), .calM-grid:has(.calM-ev.show-actions) { overflow: visible; }
@@ -1071,7 +1088,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell:nth-child(7n) .calM-ev:hover, .calM-cell:nth-child(7n) .calM-ev.show-actions { margin-left: -62px; padding-right: 9px; padding-left: 71px; }
 .calM-cell:nth-child(7n) .calM-ev .eb-actions { right: auto; left: 9px; }
 .calM-cell:nth-child(7n) .calM-ev:hover .calM-ev-in,
-.calM-cell:nth-child(7n) .calM-ev.show-actions .calM-ev-in { padding: 7px 9px 8px 71px; }
+.calM-cell:nth-child(7n) .calM-ev.show-actions .calM-ev-in { padding-right: 9px; padding-left: 71px; }
 /* Célula em hover sobe na pilha pra o card esticado passar por cima do vizinho */
 .calM-cell:hover, .calM-cell:has(.calM-ev.show-actions) { z-index: 5; }
 .calM-ev .eb-actions .eb-btn { background: transparent; border-radius: 999px; width: 24px; height: 24px; box-shadow: none; }
@@ -1082,7 +1099,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev .eb-actions .eb-btn[data-act="del"]    { color: #dc2626; }
 .calM-ev:active { cursor: pointer; }
 .calM-ev .hr { font-size: 11px; opacity: .92; line-height: 1.2; display: block; font-weight: 700; letter-spacing: -.01em; }
-.calM-ev .ti { font-size: 12.5px; font-weight: 650; line-height: 1.3; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calM-ev .ti { font-size: 12.5px; font-weight: 650; line-height: 1.3; }
 .calM-ev.proj-pessoal       { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
 .calM-ev.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
 .calM-ev.proj-saude         { background: #bae6fd; border-color: #0ea5e9; color: #075985; }
