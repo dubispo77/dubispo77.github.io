@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T15:20:37-03:00">
+<meta name="hub-build" content="2026-09-16T15:20:54-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1171,14 +1171,12 @@ table.data-table tr:hover td { background: var(--bg); }
 }
 .calM-ev.is-done { opacity: .55; text-decoration: line-through; }
 /* Já aconteceu (agenda espelhada): apagado, mas sem risco — não foi "concluído". */
+/* Passou é passado: continua apagado inclusive no hover (pedido 16/09). */
 .calM-ev.is-past { opacity: .45; }
 /* Jogo do Santos que já acabou: escurece E desbota (pedido 16/09). Só desbotar
    deixava o card preto virar um cinza lavado. */
 .calM-ev.proj-santos.is-past { filter: brightness(0.7); opacity: .5; }
-.calM-ev.proj-santos.is-past:hover { filter: none; opacity: .95; }
-.calM-ev.is-past:hover { opacity: .9; }
 .calW-card.is-past { opacity: .45; }
-.calW-card.is-past:hover { opacity: .9; }
 .calM-ev.is-overdue { border-left-color: #dc2626 !important; border-left-width: 4px !important; }
 .calM-ev .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 1px 5px; border-radius: 999px; font-size: 8px; font-weight: 700; line-height: 1.2; pointer-events: none; box-shadow: 0 1px 2px rgba(0,0,0,.2); z-index: 5; }
 .calM-ev.is-dragging { opacity: .35; transform: scale(.98); transition: opacity .12s, transform .12s; }
