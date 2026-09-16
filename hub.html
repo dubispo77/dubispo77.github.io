@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T10:07:52-03:00">
+<meta name="hub-build" content="2026-09-16T10:19:56-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -9713,8 +9713,17 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // Calendário read-only do time do Eduardo (Santos FC). Jogos importados dele.
   const SANTOS_CAL_ID = 'f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.com';
   // Chave do jogo: times (ordenados, sem depender de mandante) + dia.
+  // Normaliza forte: tira emoji (o ⚽ do Brasileirão Play), acentos, hífen e pontuação —
+  // senão "⚽ Remo x Santos" não casa com "Remo x Santos" e o jogo aparece duplicado.
   function _gameKey(title, date) {
-    const parts = String(title || '').toLowerCase().replace(/×/g, 'x').split(/\s+x\s+/).map(s => s.trim()).filter(Boolean);
+    const limpo = String(title || '')
+      .toLowerCase()
+      .replace(/×/g, 'x')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const parts = limpo.split(/\s+x\s+/).map(s => s.trim()).filter(Boolean);
     if (parts.length === 2) parts.sort();
     return parts.join(' x ') + '|' + date;
   }
