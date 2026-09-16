@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-15T22:13:51-03:00">
+<meta name="hub-build" content="2026-09-16T10:07:52-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1040,7 +1040,7 @@ table.data-table tr:hover td { background: var(--bg); }
 /* Ações (✓ ✕): no hover o PRÓPRIO card se estica pra direita (62px) e os botões
    aparecem dentro da parte nova. O nome não é coberto; o card passa por cima do vizinho. */
 .calM-ev { width: 100%; box-sizing: border-box; }
-.calM-ev:hover, .calM-ev.show-actions { width: calc(100% + 62px); padding-right: 68px; z-index: 30; }
+.calM-ev:hover, .calM-ev.show-actions { width: calc(100% + 62px); padding-right: 68px; z-index: 70; }
 
 /* ── Nome maior que o card: no hover ele também CRESCE PRA BAIXO (16/09) ──
    O conteúdo vira uma camada flutuante com a mesma cor do card. Como a altura
@@ -1063,7 +1063,7 @@ table.data-table tr:hover td { background: var(--bg); }
   white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word;
 }
 /* a célula e o grid precisam deixar a camada vazar pra fora */
-.calM-cell:has(.calM-ev:hover), .calM-cell:has(.calM-ev.show-actions) { z-index: 60; }
+.calM-cell:has(.calM-ev:hover), .calM-cell:has(.calM-ev.show-actions) { z-index: 70; }
 .calM-grid:has(.calM-ev:hover), .calM-grid:has(.calM-ev.show-actions) { overflow: visible; }
 .calM-ev .eb-actions { top: 50%; bottom: auto; left: auto; right: 7px; margin: 0; padding: 0; gap: 4px; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; transform: translateY(-50%); opacity: 0; transition: opacity .15s ease .06s; z-index: 2; white-space: nowrap; }
 .calM-ev:hover .eb-actions, .calM-ev.show-actions .eb-actions { opacity: 1; pointer-events: auto; transform: translateY(-50%); }
