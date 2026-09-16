@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T14:30:55-03:00">
+<meta name="hub-build" content="2026-09-16T14:43:53-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1072,19 +1072,20 @@ table.data-table tr:hover td { background: var(--bg); }
   padding-right: 68px;
   box-shadow: 0 10px 22px rgba(30,20,60,.18);
 }
-/* O texto já fica quebrado em linhas nos dois estados — fechado só mostra a 1ª
-   (com reticências). Assim a primeira linha NÃO muda de lugar ao abrir. */
+/* Fechado: UMA linha com corte clássico — as reticências só aparecem quando o
+   nome de fato não cabe. (O -webkit-line-clamp que estava aqui antes punha
+   "..." mesmo em nome curto, dependendo da largura da célula.) */
 .calM-ev .ti {
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1;
-  white-space: normal; overflow: hidden; text-overflow: ellipsis; word-break: break-word;
+  display: block;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; word-break: break-word;
 }
 /* A troca de quebra do texto não pode acontecer antes da caixa abrir: senão as
    reticências somem e a 1ª linha se reescreve com o card ainda fechado.
    line-clamp não aceita transition, mas aceita animation — e animation tem delay,
    então ela vira no mesmo instante em que a altura começa a crescer. */
-@keyframes calmEvSoltarTexto { to { -webkit-line-clamp: 5; } }
+@keyframes calmEvSoltarTexto { to { white-space: normal; } }
 .calM-ev:hover .ti { animation: calmEvSoltarTexto 1ms linear .3s both; }
-.calM-ev.show-actions .ti { -webkit-line-clamp: 5; animation: none; }
+.calM-ev.show-actions .ti { white-space: normal; animation: none; }
 /* a célula e o grid precisam deixar a camada vazar pra fora */
 .calM-cell:has(.calM-ev:hover), .calM-cell:has(.calM-ev.show-actions) { z-index: 70; }
 /* Atraso pra ABRIR (16/09): passar o mouse de raspão não expande mais nada.
