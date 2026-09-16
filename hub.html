@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T14:28:34-03:00">
+<meta name="hub-build" content="2026-09-16T14:30:55-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -9833,7 +9833,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const santosAutoDone = itIsSantos && endMs > 0 && endMs < now;
     const isDone = it.status === 'done' || santosAutoDone;
     // Santos rule #2: NUNCA badge de atrasado
-    const isOverdue = !isDone && !itIsSantos && (window.isOverdue ? window.isOverdue(it.date_start, it.status) : false);
+    // Agenda espelhada (só leitura) nunca fica "atrasada": não é tarefa dele pra concluir.
+    const isOverdue = !isDone && !itIsSantos && !(window.hubSoLeitura && window.hubSoLeitura(it))
+      && (window.isOverdue ? window.isOverdue(it.date_start, it.status) : false);
     const isRecurring = !!it.recurrence;
     // Project token: usa nome do project (slug) se conhecido, senão a área. Ex: 'santos' pra Santos F.C.
     const projInfo = it.project_id && projectsMap[it.project_id] ? projectsMap[it.project_id] : null;
