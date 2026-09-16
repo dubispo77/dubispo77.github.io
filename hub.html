@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T15:09:15-03:00">
+<meta name="hub-build" content="2026-09-16T15:10:14-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1172,6 +1172,10 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.is-done { opacity: .55; text-decoration: line-through; }
 /* Já aconteceu (agenda espelhada): apagado, mas sem risco — não foi "concluído". */
 .calM-ev.is-past { opacity: .45; }
+/* Jogo do Santos que já acabou: escurece E desbota (pedido 16/09). Só desbotar
+   deixava o card preto virar um cinza lavado. */
+.calM-ev.proj-santos.is-past { filter: brightness(0.7); opacity: .5; }
+.calM-ev.proj-santos.is-past:hover { filter: none; opacity: .95; }
 .calM-ev.is-past:hover { opacity: .9; }
 .calW-card.is-past { opacity: .45; }
 .calW-card.is-past:hover { opacity: .9; }
