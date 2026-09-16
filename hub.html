@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T14:09:42-03:00">
+<meta name="hub-build" content="2026-09-16T14:24:16-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15965,10 +15965,26 @@ function finToast(msg, erro) {
 async function persistTxEdit(txId, campos) {
   if (!txId || !window.sbClient) return;
   try {
-    const { error } = await window.sbClient.from('transactions').update(Object.assign({}, campos, { updated_at: new Date().toISOString() })).eq('id', txId);
-    if (error) throw error;
-    finToast('✓ Salvo no banco' + (campos.category ? ' — ' + campos.category : ''));
-    console.log('[finapp] edição salva:', txId, campos);
+    // Renomear vai pela RPC: se a linha for PREVISÃO (recorrência ou parcela projetada), ela é
+    // apagada e recriada a cada sync — a RPC renomeia a FONTE (recorrencias.description ou a
+    // cadeia real), senão o nome volta sozinho no próximo sync. (bronca 16/09: Cabesp)
+    let escopo = null;
+    if (campos.description) {
+      const { data, error: eR } = await window.sbClient.rpc('renomear_lancamento', { p_tx_id: txId, p_nome: campos.description });
+      if (eR) throw eR;
+      escopo = data && data.escopo;
+      delete campos.description; delete campos.description_clean;
+    }
+    const resto = Object.keys(campos).length > 0;
+    if (resto) {
+      const { error } = await window.sbClient.from('transactions').update(Object.assign({}, campos, { updated_at: new Date().toISOString() })).eq('id', txId);
+      if (error) throw error;
+    }
+    const extra = escopo === 'recorrencia' ? ' — recorrência renomeada, vale pros meses seguintes'
+                : escopo === 'cadeia de parcelas' ? ' — cadeia de parcelas renomeada'
+                : (campos.category ? ' — ' + campos.category : '');
+    finToast('✓ Salvo no banco' + extra);
+    console.log('[finapp] edição salva:', txId, campos, escopo);
   } catch (e) { finToast('✗ NÃO salvou: ' + (e.message || e), true); }
 }
 // descrição: salva no blur (delegação, pega células contenteditable da tabela)
