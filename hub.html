@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-15T21:11:31-03:00">
+<meta name="hub-build" content="2026-09-15T21:30:43-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1362,15 +1362,20 @@ table.data-table tr:hover td { background: var(--bg); }
   left: 0; top: 0; width: 1px; height: 1px;
   border: 0; padding: 0; margin: 0;
 }
-.tdm-when-time-input {
-  background: none; color: #fff; border: none;
-  font-size: 34px; font-weight: 700; padding: 0;
-  font-family: inherit; line-height: 1;
-  width: 130px; cursor: pointer;
+/* O <input type=time> nativo ficava cortado e o picker do Chrome nao abria direito.
+   Agora ele so guarda o valor (escondido) e quem aparece e o botao + hubTimePicker. */
+.tdm-when-time-input { display: none !important; }
+.tdm-when-time-btn {
+  background: none; border: none; color: #fff;
+  font-size: 34px; font-weight: 700; line-height: 1;
+  padding: 2px 6px 2px 2px; margin-left: -2px;
+  font-family: inherit; cursor: pointer;
+  display: inline-flex; align-items: baseline; gap: 7px;
+  border-radius: 8px; white-space: nowrap;
+  transition: background .15s;
 }
-.tdm-when-time-input::-webkit-calendar-picker-indicator {
-  cursor: pointer; opacity: 0.5; filter: invert(1); margin-left: 4px;
-}
+.tdm-when-time-btn:hover { background: rgba(255,255,255,0.16); }
+.tdm-when-time-btn::after { content: '\25be'; font-size: 15px; opacity: .7; font-weight: 700; }
 .tdm-when-time-label {
   font-size: 34px; font-weight: 700; cursor: pointer; line-height: 1;
 }
@@ -11006,7 +11011,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         </button>
         <input type="date" class="tdm-when-date-input" id="tdmWhenDateInput">
         <div class="tdm-when-time-col">
-          <input type="time" class="tdm-when-time-input" id="tdmWhenTimeInput" style="display:none">
+          <input type="time" class="tdm-when-time-input" id="tdmWhenTimeInput">
+          <button class="tdm-when-time-btn" id="tdmWhenTimeBtn" type="button" style="display:none">--:--</button>
           <span class="tdm-when-time-label" id="tdmWhenTimeLabel"></span>
           <button class="tdm-allday" id="tdmAllDayToggle" type="button" style="display:none">
             <span class="sw"></span><span class="tx">Dia inteiro</span>
@@ -11837,6 +11843,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       dateBtn:   document.getElementById('tdmWhenDateBtn'),
       dateInput: document.getElementById('tdmWhenDateInput'),
       timeInput: document.getElementById('tdmWhenTimeInput'),
+      timeBtn:   document.getElementById('tdmWhenTimeBtn'),
       timeLabel: document.getElementById('tdmWhenTimeLabel'),
       allDay:    document.getElementById('tdmAllDayToggle'),
       durWrap:   document.getElementById('tdmDurationWrap'),
@@ -11850,7 +11857,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (!E.dateInput) return;
     if (!item || !item.date_start) {
       fillDateCard(null);
-      E.timeInput.style.display = 'none';
+      if (E.timeBtn) E.timeBtn.style.display = 'none';
       E.timeLabel.style.display = 'none';
       if (E.allDay) E.allDay.style.display = 'none';
       if (E.durWrap) E.durWrap.style.display = 'none';
@@ -11865,12 +11872,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       E.allDay.classList.toggle('on', !item.has_time);
     }
     if (item.has_time) {
-      E.timeInput.value = fmtTimeHHMM(item.date_start);
-      E.timeInput.style.display = '';
+      const hhmm = fmtTimeHHMM(item.date_start);
+      E.timeInput.value = hhmm;
+      if (E.timeBtn) { E.timeBtn.textContent = hhmm; E.timeBtn.style.display = ''; }
       E.timeLabel.style.display = 'none';
       E.timeLabel.classList.remove('is-allday');
     } else {
-      E.timeInput.style.display = 'none';
+      if (E.timeBtn) E.timeBtn.style.display = 'none';
       E.timeLabel.style.display = '';
       E.timeLabel.textContent = '+ hora';
       E.timeLabel.classList.add('is-allday');
@@ -11930,8 +11938,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const E = tdmWhenEls();
     const ymd = E.dateInput.value;
     if (!ymd) return;
-    const timeVisible = E.timeInput.style.display !== 'none';
-    const hhmm = timeVisible ? E.timeInput.value : '';
+    const hasTimeNow = !!(currentItem && currentItem.has_time);
+    const hhmm = hasTimeNow
+      ? (E.timeInput.value || (currentItem.date_start ? fmtTimeHHMM(currentItem.date_start) : ''))
+      : '';
     const old = currentItem.date_start ? new Date(currentItem.date_start) : null;
     const oldEnd = currentItem.date_end ? new Date(currentItem.date_end) : null;
     const durMs = (old && oldEnd && currentItem.has_time) ? (oldEnd - old) : 0;
@@ -11957,7 +11967,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const start = new Date(`${ymd}T${hhmm}:00${tzOffset()}`);
       const end = new Date(start.getTime() + 60 * 60000);
       const ok = await tdmSaveWhen(start.toISOString(), end.toISOString(), true, 'Hora definida ✓');
-      if (ok) { try { if (E.timeInput.showPicker) E.timeInput.showPicker(); } catch {} }
+      if (ok) tdmOpenTimePicker();
     }
   }
 
@@ -11987,12 +11997,40 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
   });
   document.getElementById('tdmWhenDateInput').addEventListener('change', applyDateTimeChange);
-  document.getElementById('tdmWhenTimeInput').addEventListener('change', applyDateTimeChange);
-  // Click direto no input de hora também tenta abrir o picker
-  document.getElementById('tdmWhenTimeInput').addEventListener('click', (e) => {
+
+  // ── Hora: picker próprio (o <input type=time> nativo ficava cortado e o
+  //    dropdown do Chrome não abria de forma confiável dentro do modal) ──
+  function tdmOpenTimePicker() {
+    const E = tdmWhenEls();
+    const btn = E.timeBtn || E.timeLabel;
+    if (!btn) return;
+    btn.setAttribute('data-htp-anchor', '1');
+    const atual = E.timeInput.value
+      || (currentItem && currentItem.has_time && currentItem.date_start ? fmtTimeHHMM(currentItem.date_start) : '09:00');
+    if (window.hubTimePicker) {
+      window.hubTimePicker.open({ anchor: btn, value: atual, onSelect: (hhmm) => tdmApplyTime(hhmm) });
+    }
+  }
+
+  // Aplica uma hora nova mantendo a duração (ou 1h, se não tinha)
+  async function tdmApplyTime(hhmm) {
+    if (!currentItem || !/^\d{2}:\d{2}$/.test(hhmm || '')) return;
+    const E = tdmWhenEls();
+    const ymd = E.dateInput.value || (currentItem.date_start ? ymdLocal(new Date(currentItem.date_start)) : '');
+    if (!ymd) return;
+    const old = currentItem.date_start ? new Date(currentItem.date_start) : null;
+    const oldEnd = currentItem.date_end ? new Date(currentItem.date_end) : null;
+    let durMs = (old && oldEnd && currentItem.has_time) ? (oldEnd - old) : 0;
+    if (!(durMs > 0)) durMs = 60 * 60000;
+    const start = new Date(`${ymd}T${hhmm}:00${tzOffset()}`);
+    const end = new Date(start.getTime() + durMs);
+    E.timeInput.value = hhmm;
+    await tdmSaveWhen(start.toISOString(), end.toISOString(), true, 'Hora salva ✓');
+  }
+
+  document.getElementById('tdmWhenTimeBtn').addEventListener('click', (e) => {
     e.stopPropagation();
-    const t = e.currentTarget;
-    try { if (t.showPicker) t.showPicker(); } catch {}
+    tdmOpenTimePicker();
   });
   // "+ hora" (item dia inteiro) → passa a ter hora
   document.getElementById('tdmWhenTimeLabel').addEventListener('click', (e) => {
@@ -12486,6 +12524,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // Se o date picker estiver aberto, o Esc fecha só ele (handler do picker) — não o modal
     const hdp = document.getElementById('hubDatePickerPop');
     if (hdp && hdp.classList.contains('open')) return;
+    const htp = document.getElementById('hubTimePickerPop');
+    if (htp && htp.classList.contains('open')) return;
     close();
   });
 
@@ -13308,6 +13348,137 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     pop.style.transform = '';
   }
   window.hubDatePicker = { open, close };
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SELETOR DE HORA CUSTOM (16/09) — o <input type=time> nativo ficava
+     cortado no header do modal e o dropdown do Chrome não abria direito.
+     Uso: window.hubTimePicker.open({ anchor, value:'HH:MM', onSelect })
+     ═══════════════════════════════════════════════════════════════════════ -->
+<style>
+.htp-pop {
+  position: fixed; z-index: 9999; display: none;
+  background: #fff; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22); width: 196px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+.htp-pop.open { display: block; }
+.htp-hdr { display: flex; gap: 6px; padding: 10px; border-bottom: 1px solid #f3f4f6; }
+.htp-hdr input {
+  flex: 1; min-width: 0; padding: 8px 6px;
+  border: 1px solid #d4d4d8; border-radius: 8px;
+  font-family: inherit; font-size: 17px; font-weight: 700;
+  text-align: center; color: #111; letter-spacing: .02em;
+}
+.htp-hdr input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 2px #ede9fe; }
+.htp-ok {
+  border: none; background: #7c3aed; color: #fff; border-radius: 8px;
+  padding: 0 14px; font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
+}
+.htp-ok:hover { background: #6d28d9; }
+.htp-list { max-height: 216px; overflow-y: auto; }
+.htp-item { padding: 8px 14px; font-size: 14px; color: #374151; cursor: pointer; }
+.htp-item:hover { background: #f3f4f6; }
+.htp-item.sel { background: #7c3aed; color: #fff; font-weight: 700; }
+</style>
+<div class="htp-pop" id="hubTimePickerPop" role="dialog" aria-modal="false" aria-label="Hora">
+  <div class="htp-hdr">
+    <input type="text" id="htpManual" inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off">
+    <button class="htp-ok" id="htpOk" type="button">OK</button>
+  </div>
+  <div class="htp-list" id="htpList"></div>
+</div>
+<script>
+(function setupHubTimePicker() {
+  const pop = document.getElementById('hubTimePickerPop');
+  const manual = document.getElementById('htpManual');
+  const list = document.getElementById('htpList');
+  const btnOk = document.getElementById('htpOk');
+  let onSelect = null;
+
+  // Aceita 9, 930, 9:30, 9h30, 09.30 → '09:30'
+  function norm(v) {
+    let t = String(v == null ? '' : v).trim().toLowerCase().replace(/[h.,\s]/g, ':').replace(/::+/g, ':');
+    if (/^\d{1,2}$/.test(t)) t = t.padStart(2, '0') + ':00';
+    else if (/^\d{3}$/.test(t)) t = '0' + t[0] + ':' + t.slice(1);
+    else if (/^\d{4}$/.test(t)) t = t.slice(0, 2) + ':' + t.slice(2);
+    else if (/^\d{1,2}:$/.test(t)) t = t.replace(':', '').padStart(2, '0') + ':00';
+    const m = t.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (!m) return null;
+    const h = parseInt(m[1], 10), mi = parseInt(m[2], 10);
+    if (isNaN(h) || isNaN(mi) || h > 23 || mi > 59) return null;
+    return String(h).padStart(2, '0') + ':' + String(mi).padStart(2, '0');
+  }
+
+  function render(cur) {
+    let html = '';
+    for (let t = 0; t < 24 * 60; t += 15) {
+      const v = String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+      html += '<div class="htp-item' + (v === cur ? ' sel' : '') + '" data-v="' + v + '">' + v + '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  function pick(v) {
+    const n = norm(v);
+    if (!n) { manual.focus(); manual.select(); return; }
+    const cb = onSelect;
+    close();
+    if (cb) cb(n);
+  }
+
+  list.addEventListener('click', (e) => {
+    const it = e.target.closest('.htp-item');
+    if (it) { e.stopPropagation(); pick(it.dataset.v); }
+  });
+  btnOk.addEventListener('click', (e) => { e.stopPropagation(); pick(manual.value); });
+  manual.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); pick(manual.value); }
+    else if (e.key === 'Escape') { e.preventDefault(); close(); }
+  });
+  pop.addEventListener('click', (e) => e.stopPropagation());
+  pop.addEventListener('mousedown', (e) => e.stopPropagation());
+  document.addEventListener('mousedown', (e) => {
+    if (!pop.classList.contains('open')) return;
+    if (pop.contains(e.target) || e.target.closest('[data-htp-anchor]')) return;
+    close();
+  });
+
+  function open(opts) {
+    opts = opts || {};
+    onSelect = opts.onSelect || null;
+    const cur = norm(opts.value) || '09:00';
+    manual.value = cur;
+    render(cur);
+    pop.classList.add('open');
+    const anchor = opts.anchor;
+    if (anchor && anchor.getBoundingClientRect) {
+      const r = anchor.getBoundingClientRect();
+      let top = r.bottom + 6;
+      let left = r.left;
+      const w = pop.offsetWidth || 196;
+      const h = pop.offsetHeight || 290;
+      if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+      if (top + h > window.innerHeight - 8) top = r.top - h - 6;
+      if (left < 8) left = 8;
+      if (top < 8) top = 8;
+      pop.style.top = top + 'px';
+      pop.style.left = left + 'px';
+      pop.style.transform = '';
+    } else {
+      pop.style.top = '50%';
+      pop.style.left = '50%';
+      pop.style.transform = 'translate(-50%,-50%)';
+    }
+    const sel = list.querySelector('.htp-item.sel');
+    if (sel) list.scrollTop = Math.max(0, sel.offsetTop - (list.clientHeight / 2) + (sel.offsetHeight / 2));
+    setTimeout(() => { try { manual.focus(); manual.select(); } catch (e) {} }, 30);
+  }
+  function close() { pop.classList.remove('open'); onSelect = null; }
+
+  window.hubTimePicker = { open, close };
 })();
 
 // ── Status da última sincronização Google → Hub ──
