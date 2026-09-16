@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T15:06:08-03:00">
+<meta name="hub-build" content="2026-09-16T15:09:15-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -9841,11 +9841,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const now = Date.now();
     const startMs = it.date_start ? new Date(it.date_start).getTime() : 0;
     const endMs = it.date_end ? new Date(it.date_end).getTime() : startMs;
-    const santosAutoDone = itIsSantos && endMs > 0 && endMs < now;
+    // "Espelho" = veio de fora e ele não gerencia: agenda de outra conta Google
+    // (as chefes) OU calendário que ele só assina (jogos do Santos).
+    const ehEspelho = !!((window.hubSoLeitura && window.hubSoLeitura(it))
+      || (window.hubEhJogoSoDoGoogle && window.hubEhJogoSoDoGoogle(it)));
+    // Jogo que ele NARRA (Brasileirão Play) continua virando "concluído" sozinho;
+    // jogo que ele só acompanha não é tarefa pra concluir — só passa.
+    const santosAutoDone = itIsSantos && !ehEspelho && endMs > 0 && endMs < now;
     const isDone = it.status === 'done' || santosAutoDone;
-    // Agenda espelhada (só leitura): compromisso que já aconteceu fica apagado —
-    // não é "concluído" (não é tarefa dele), é só passado.
-    const ehEspelho = !!(window.hubSoLeitura && window.hubSoLeitura(it));
+    // Já aconteceu: fica apagado, sem risco no texto (não é tarefa concluída).
     const isPast = ehEspelho && !isDone && (endMs || startMs) > 0 && (endMs || startMs) < now;
     // Santos rule #2: NUNCA badge de atrasado
     // Agenda espelhada (só leitura) nunca fica "atrasada": não é tarefa dele pra concluir.
