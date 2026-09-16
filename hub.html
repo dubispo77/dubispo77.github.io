@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T13:54:31-03:00">
+<meta name="hub-build" content="2026-09-16T13:58:35-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -4515,6 +4515,14 @@ window.WebAuthnHelpers = (function() {
 // Fire-and-forget. Não bloqueia UI. Loga erros no console.
 // Calendários que o Eduardo apenas assina no Google (não são dele) — escrita dá 403.
 window.HUB_READONLY_CALS = ['f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.com'];
+// Jogo importado do calendário do Santos: aparece SÓ na agenda geral (pedido 16/09).
+// Nas páginas de categoria (Pessoal e companhia) ele é escondido — lá ficam só as
+// coisas que o Eduardo realmente cadastrou naquela categoria.
+window.hubEhJogoSoDoGoogle = function(it) {
+  if (!it) return false;
+  const cal = it.google_calendar_id || (it.raw && it.raw.google_calendar_id);
+  return !!cal && (window.HUB_READONLY_CALS || []).includes(cal);
+};
 
 window.syncToGcal = async function(action, itemId) {
   if (!action || !itemId) return;
@@ -4975,13 +4983,13 @@ async function renderCatList(slug) {
   if (!sb) { body.innerHTML = '<div class="catlist-empty">Entre na sua conta pra ver os itens.</div>'; pastBtn.style.display = 'none'; countEl.textContent = ''; return; }
   if (!body.children.length) body.innerHTML = '<div class="catlist-empty">Carregando…</div>';
   const { data, error } = await sb.from('items')
-    .select('id,title,area,type,date_start,date_end,has_time,status,address')
+    .select('id,title,area,type,date_start,date_end,has_time,status,address,google_calendar_id')
     .eq('area', slug).eq('is_roadmap', false)
     .order('date_start', { ascending: true });
   if (error) { body.innerHTML = '<div class="catlist-empty">Erro ao carregar: ' + _catEsc(error.message) + '</div>'; return; }
   if (_catlistSlug !== slug) return; // trocou de categoria enquanto carregava
   const todayStr = _catTodayStr();
-  const all = data || [];
+  const all = (data || []).filter(i => !window.hubEhJogoSoDoGoogle(i));
   const future = all.filter(it => _catDayStr(it) >= todayStr);
   const past = all.filter(it => _catDayStr(it) < todayStr).reverse(); // mais recentes primeiro
   let html = '';
@@ -8126,14 +8134,14 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
     const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
 
     const { data } = await sb.from('items')
-      .select('area,type,status,date_start')
+      .select('area,type,status,date_start,google_calendar_id')
       .eq('is_roadmap', false)
       .not('status', 'eq', 'done')
       .not('status', 'eq', 'cancelled')
       .gte('date_start', today.toISOString())
       .lt('date_start', tomorrow.toISOString());
 
-    const items = data || [];
+    const items = (data || []).filter(i => !window.hubEhJogoSoDoGoogle(i));
 
     const byArea = { agenda: 0, administracao: 0, saude: 0, trabalho: 0, casa: 0, eventos: 0, pessoal: 0 };
 
@@ -9672,7 +9680,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
   function itemsForDate(d) {
     const t = ymd(d);
-    const passArea = i => !areaFilter || (i.raw && i.raw.area === areaFilter);
+    const passArea = i => !areaFilter || (i.raw && i.raw.area === areaFilter && !window.hubEhJogoSoDoGoogle(i.raw));
     const direct = itemsCache.filter(i => i.date === t && passArea(i));
     const recurring = itemsCache.filter(i => i.is_recurring && passArea(i) && recurrenceMatchesDay(i, d))
       .map(p => makeVirtualOccurrence(p, d));
