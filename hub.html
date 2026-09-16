@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-15T21:30:43-03:00">
+<meta name="hub-build" content="2026-09-15T21:32:39-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1370,12 +1370,12 @@ table.data-table tr:hover td { background: var(--bg); }
   font-size: 34px; font-weight: 700; line-height: 1;
   padding: 2px 6px 2px 2px; margin-left: -2px;
   font-family: inherit; cursor: pointer;
-  display: inline-flex; align-items: baseline; gap: 7px;
+  display: inline-flex; align-items: center; gap: 8px;
   border-radius: 8px; white-space: nowrap;
   transition: background .15s;
 }
 .tdm-when-time-btn:hover { background: rgba(255,255,255,0.16); }
-.tdm-when-time-btn::after { content: '\25be'; font-size: 15px; opacity: .7; font-weight: 700; }
+.tdm-when-time-btn::after { content: '\25be'; font-size: 20px; opacity: .8; font-weight: 700; line-height: 1; }
 .tdm-when-time-label {
   font-size: 34px; font-weight: 700; cursor: pointer; line-height: 1;
 }
@@ -4451,6 +4451,9 @@ window.WebAuthnHelpers = (function() {
 
 // ── Helper global pra sync hub → Google Calendar (write) ──
 // Fire-and-forget. Não bloqueia UI. Loga erros no console.
+// Calendários que o Eduardo apenas assina no Google (não são dele) — escrita dá 403.
+window.HUB_READONLY_CALS = ['f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.com'];
+
 window.syncToGcal = async function(action, itemId) {
   if (!action || !itemId) return;
   const sb = window.sbClient;
@@ -4472,7 +4475,13 @@ window.syncToGcal = async function(action, itemId) {
       if (!r.ok || (j && j.error)) {
         const msg = (j && (j.error || j.message)) || ('HTTP ' + r.status);
         console.warn('[gcal-write]', action, msg);
-        if (window.hubToast) window.hubToast('⚠ Sync com o Google falhou: ' + msg, true);
+        if (window.hubToast) {
+          if (/forbidden|403/i.test(String(msg))) {
+            window.hubToast('Salvo no hub — esse calendário do Google é só leitura', true);
+          } else {
+            window.hubToast('⚠ Sync com o Google falhou: ' + msg, true);
+          }
+        }
       } else {
         console.log('[gcal-write]', action, j);
       }
@@ -11900,9 +11909,16 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
   window.tdmRenderWhen = tdmRenderWhen;
 
-  // Sincroniza com o Google sempre que o item existe lá (ou é evento)
+  // Sincroniza com o Google sempre que o item existe lá (ou é evento).
+  // Calendários assinados (só-leitura, ex: jogos do Santos) não aceitam escrita:
+  // o Google devolve 403 e não adianta tentar — a mudança fica só no hub.
   function tdmSyncGcal() {
     if (!currentItem || !window.syncToGcal) return;
+    const cal = currentItem.google_calendar_id || '';
+    if (window.HUB_READONLY_CALS && window.HUB_READONLY_CALS.includes(cal)) {
+      if (window.hubToast) window.hubToast('Salvo no hub (esse calendário do Google é só leitura)');
+      return;
+    }
     if (currentItem.google_event_id || currentItem.type === 'event') {
       window.syncToGcal('update', currentItem.id);
     }
