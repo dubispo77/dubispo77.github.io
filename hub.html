@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T13:58:35-03:00">
+<meta name="hub-build" content="2026-09-16T14:09:42-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3830,6 +3830,15 @@ table.data-table tr:hover td { background: var(--bg); }
             </div>
             <div id="gcalSyncResult" style="font-size:11px;color:var(--text-faint);padding:0 14px 8px;line-height:1.5"></div>
           </div>
+          <div class="setup-group" id="gcalExtraGroup">
+            <div class="setup-group-header">🏢 Agenda de trabalho (só leitura)</div>
+            <div id="gcalExtraStatus" class="setup-row" style="color:var(--text-faint)">Verificando...</div>
+            <div style="display:flex;gap:6px;padding:8px 14px">
+              <button id="gcalExtraConnectBtn" type="button" style="flex:1;padding:8px 12px;border:none;background:#2563eb;color:#fff;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600">Conectar conta profissional</button>
+              <button id="gcalExtraDisconnectBtn" type="button" style="padding:8px 12px;border:0.5px solid var(--border);background:var(--card);border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;color:#dc2626;display:none" title="Desconectar">✕</button>
+            </div>
+            <div id="gcalExtraResult" style="font-size:11px;color:var(--text-faint);padding:0 14px 10px;line-height:1.5"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -4496,6 +4505,87 @@ window.WebAuthnHelpers = (function() {
       syncBtn.disabled = false; syncBtn.textContent = '↻ Sincronizar agora';
     }
   });
+
+  // ── Segunda conta Google (profissional) — SÓ LEITURA ───────────────────────
+  // Serve pra espelhar no hub agendas de terceiros às quais o Eduardo tem acesso
+  // (ex: a agenda das chefes). Nunca escreve nada lá: o escopo pedido é apenas
+  // calendar.readonly, e o gcal-write não conhece essa conta.
+  (function setupContaExtra() {
+    const bt = document.getElementById('gcalExtraConnectBtn');
+    const btOff = document.getElementById('gcalExtraDisconnectBtn');
+    const st = document.getElementById('gcalExtraStatus');
+    const res = document.getElementById('gcalExtraResult');
+    if (!bt || !st) return;
+
+    async function atualiza() {
+      try {
+        const { data } = await sb.from('gcal_contas_extras').select('email, calendarios, last_sync_at, ativo, erro');
+        const c = (data || [])[0];
+        if (!c) {
+          st.textContent = 'Nenhuma conta extra conectada.';
+          bt.textContent = 'Conectar conta profissional';
+          btOff.style.display = 'none';
+          res.textContent = '';
+          return;
+        }
+        const qtd = (c.calendarios || []).length;
+        st.textContent = (c.email || '(conta)') + (c.ativo ? '' : ' — pausada');
+        bt.textContent = 'Reconectar';
+        btOff.style.display = 'block';
+        const quando = c.last_sync_at ? new Date(c.last_sync_at).toLocaleString('pt-BR') : 'ainda não sincronizou';
+        res.textContent = qtd
+          ? `${qtd} agenda(s) espelhada(s) · última leitura: ${quando}` + (c.erro ? ` · ⚠ ${c.erro}` : '')
+          : 'Conectada, mas nenhuma agenda selecionada ainda.';
+      } catch (e) {
+        st.textContent = 'Erro ao ler: ' + e.message;
+      }
+    }
+
+    bt.addEventListener('click', async () => {
+      bt.disabled = true; const txt = bt.textContent; bt.textContent = 'Abrindo...';
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const { data: { user } } = await sb.auth.getUser();
+        if (!session || !user) throw new Error('faça login primeiro');
+        const resp = await fetch(`${window.SUPABASE_URL || 'https://bpyoaxdmejnnyixrjxel.supabase.co'}/functions/v1/gcal-oauth-init`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': sb.supabaseKey || 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1' },
+          body: '{}',
+        });
+        const data = await resp.json();
+        if (!data || !data.url) throw new Error((data && data.error) || 'sem URL');
+        // Só leitura de agenda nesta conta — nada de Gmail nem escrita.
+        const u = new URL(data.url);
+        u.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar.readonly');
+        u.searchParams.set('prompt', 'select_account consent');
+        u.searchParams.set('include_granted_scopes', 'false');
+        u.searchParams.set('state', user.id + '|extra');
+        const w = window.open(u.toString(), 'gcal-extra', 'width=520,height=720');
+        if (!w) alert('Popup bloqueado — libere popups pra conectar.');
+      } catch (e) {
+        alert('Erro: ' + e.message);
+      } finally {
+        bt.disabled = false; bt.textContent = txt;
+      }
+    });
+
+    btOff.addEventListener('click', async () => {
+      if (!confirm('Desconectar a conta profissional? Os eventos já espelhados continuam no hub.')) return;
+      const { error } = await sb.from('gcal_contas_extras').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) { alert('Erro: ' + error.message); return; }
+      atualiza();
+    });
+
+    window.addEventListener('message', (e) => {
+      if (e.data?.type === 'gcal-oauth-extra-success') {
+        res.textContent = '✓ Conta conectada. Agora escolha as agendas.';
+        atualiza();
+      }
+    });
+
+    window.hubAtualizaContaExtra = atualiza;
+    atualiza();
+  })();
 
   disconnectBtn.addEventListener('click', async () => {
     if (!confirm('Desconectar do Google Calendar? Os eventos já sincronizados ficam, mas não atualizam mais.')) return;
