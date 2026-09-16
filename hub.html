@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T10:27:15-03:00">
+<meta name="hub-build" content="2026-09-16T12:54:06-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1081,6 +1081,15 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev:hover .ti, .calM-ev.show-actions .ti { -webkit-line-clamp: 5; }
 /* a célula e o grid precisam deixar a camada vazar pra fora */
 .calM-cell:has(.calM-ev:hover), .calM-cell:has(.calM-ev.show-actions) { z-index: 70; }
+/* Atraso pra ABRIR (16/09): passar o mouse de raspão não expande mais nada.
+   Fechar continua imediato — o delay só vale no :hover. No toque (.show-actions)
+   não há espera: o toque já é uma escolha. */
+.calM-ev:hover { transition-delay: .3s; }
+.calM-ev:hover .calM-ev-in { transition-delay: .3s; }
+.calM-ev:hover .eb-actions { transition-delay: .36s; }
+.calM-ev.show-actions,
+.calM-ev.show-actions .calM-ev-in,
+.calM-ev.show-actions .eb-actions { transition-delay: 0s; }
 .calM-grid:has(.calM-ev:hover), .calM-grid:has(.calM-ev.show-actions) { overflow: visible; }
 .calM-ev .eb-actions { top: 50%; bottom: auto; left: auto; right: 7px; margin: 0; padding: 0; gap: 4px; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; transform: translateY(-50%); opacity: 0; transition: opacity .15s ease .06s; z-index: 2; white-space: nowrap; }
 .calM-ev:hover .eb-actions, .calM-ev.show-actions .eb-actions { opacity: 1; pointer-events: auto; transform: translateY(-50%); }
@@ -1141,7 +1150,7 @@ table.data-table tr:hover td { background: var(--bg); }
   }
   .calM-cell.has-more:hover .calM-overflow {
     opacity: 1; visibility: visible; transform: translateY(0);
-    transition: opacity .16s ease, transform .22s cubic-bezier(.2,.8,.3,1), visibility 0s;
+    transition: opacity .16s ease .3s, transform .22s cubic-bezier(.2,.8,.3,1) .3s, visibility 0s linear .3s;
   }
   .calM-cell.has-more:hover .calM-more { opacity: 0; }
   .calM-cell.has-more:hover { z-index: 60; }
