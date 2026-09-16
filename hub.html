@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T13:49:53-03:00">
+<meta name="hub-build" content="2026-09-16T13:50:56-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15254,12 +15254,12 @@ document.addEventListener('click', async e => {
 // Layout escolhido em 06/09: conciliação "previsto × chegou × diferença" (opção 10)
 // com dossiê expansível por linha (opção 5). Cartão vem da sala de espera import_review
 // (tx_id null até aprovar → RPC aprovar_review cria a transação); conta vem de inbox_transactions.
-const REV_CATS = ['Alimentação','Aluguel','Assinaturas','Bebidas','Coisas para casa','Conveniência','Doações','Extras','Green','Imposto','Investimento','Lazer','Mercado','Moradia','Pessoais','Presentes','Profissionais','Reembolso','Resgate','Salário','Saúde','Seguros','Transporte','TRANSFER'];
+const REV_CATS = ['Alimentação','Aluguel','Assinaturas','Coisas para casa','Conveniência','Doações','Extras','Green','Imposto','Investimento','Lazer','Mercado','Moradia','Pessoais','Presentes','Profissionais','Reembolso','Resgate','Salário','Saúde','Seguros','Transporte','TRANSFER'];
 // tipo de cada categoria (r=receita, d=despesa, n=neutra) + emoji do ícone — decisão do Eduardo 07/09:
 // dropdown "inteligente com todas": o grupo do sinal do lançamento vem primeiro, mas nada some.
 const CAT_META = {
   'Salário':['💵','r'], 'Aluguel':['🔑','r'], 'Reembolso':['🔄','r'], 'Resgate':['💱','r'],
-  'Alimentação':['🍽️','d'], 'Assinaturas':['✍️','d'], 'Bebidas':['🍺','d'], 'Coisas para casa':['🛋️','d'],
+  'Alimentação':['🍽️','d'], 'Assinaturas':['✍️','d'], 'Coisas para casa':['🛋️','d'],
   'Conveniência':['🏪','d'], 'Doações':['❤️','d'], 'Green':['🌿','d'], 'Imposto':['🦁','d'],
   'Investimento':['📈','d'], 'Lazer':['🏖️','d'], 'Mercado':['🛒','d'], 'Moradia':['🏠','d'],
   'Pessoais':['👕','d'], 'Presentes':['🎁','d'], 'Profissionais':['💼','d'], 'Saúde':['💊','d'],
