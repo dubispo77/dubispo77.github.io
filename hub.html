@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T12:54:06-03:00">
+<meta name="hub-build" content="2026-09-16T13:49:53-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1061,9 +1061,9 @@ table.data-table tr:hover td { background: var(--bg); }
   overflow: hidden;
   max-height: 32px;
   box-shadow: 0 0 0 rgba(30,20,60,0);
-  transition: max-height .3s cubic-bezier(.2,.8,.3,1),
-              padding .26s cubic-bezier(.2,.8,.3,1),
-              box-shadow .3s ease;
+  transition: max-height .16s cubic-bezier(.2,.8,.3,1),
+              padding .16s cubic-bezier(.2,.8,.3,1),
+              box-shadow .16s ease;
   z-index: 1;
 }
 .calM-ev.has-hr .calM-ev-in { max-height: 44px; }
@@ -1078,18 +1078,28 @@ table.data-table tr:hover td { background: var(--bg); }
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1;
   white-space: normal; overflow: hidden; text-overflow: ellipsis; word-break: break-word;
 }
-.calM-ev:hover .ti, .calM-ev.show-actions .ti { -webkit-line-clamp: 5; }
+/* A troca de quebra do texto não pode acontecer antes da caixa abrir: senão as
+   reticências somem e a 1ª linha se reescreve com o card ainda fechado.
+   line-clamp não aceita transition, mas aceita animation — e animation tem delay,
+   então ela vira no mesmo instante em que a altura começa a crescer. */
+@keyframes calmEvSoltarTexto { to { -webkit-line-clamp: 5; } }
+.calM-ev:hover .ti { animation: calmEvSoltarTexto 1ms linear .3s both; }
+.calM-ev.show-actions .ti { -webkit-line-clamp: 5; animation: none; }
 /* a célula e o grid precisam deixar a camada vazar pra fora */
 .calM-cell:has(.calM-ev:hover), .calM-cell:has(.calM-ev.show-actions) { z-index: 70; }
 /* Atraso pra ABRIR (16/09): passar o mouse de raspão não expande mais nada.
    Fechar continua imediato — o delay só vale no :hover. No toque (.show-actions)
    não há espera: o toque já é uma escolha. */
 .calM-ev:hover { transition-delay: .3s; }
-.calM-ev:hover .calM-ev-in { transition-delay: .3s; }
+.calM-ev:hover .calM-ev-in {
+  transition: max-height .3s cubic-bezier(.2,.8,.3,1) .3s,
+              padding .26s cubic-bezier(.2,.8,.3,1) .3s,
+              box-shadow .3s ease .3s;
+}
 .calM-ev:hover .eb-actions { transition-delay: .36s; }
 .calM-ev.show-actions,
-.calM-ev.show-actions .calM-ev-in,
 .calM-ev.show-actions .eb-actions { transition-delay: 0s; }
+.calM-ev.show-actions .calM-ev-in { transition-delay: 0s; }
 .calM-grid:has(.calM-ev:hover), .calM-grid:has(.calM-ev.show-actions) { overflow: visible; }
 .calM-ev .eb-actions { top: 50%; bottom: auto; left: auto; right: 7px; margin: 0; padding: 0; gap: 4px; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; transform: translateY(-50%); opacity: 0; transition: opacity .15s ease .06s; z-index: 2; white-space: nowrap; }
 .calM-ev:hover .eb-actions, .calM-ev.show-actions .eb-actions { opacity: 1; pointer-events: auto; transform: translateY(-50%); }
