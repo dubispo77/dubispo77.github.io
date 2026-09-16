@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T14:59:20-03:00">
+<meta name="hub-build" content="2026-09-16T15:01:51-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -10479,7 +10479,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (target) {
       const scroller = container.querySelector('.calM-scroll');
       _suppressLabelUpdate = true;
-      scroller.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+      // Instantâneo de propósito: a rolagem SUAVE era cancelada pelo controle da
+      // timeline (que mexe no scroll ao carregar meses), e o "Hoje" não saía do lugar.
+      scroller.scrollTo({ top: target.offsetTop, behavior: 'auto' });
       updateLabelFromMonth(year, month);
       setTimeout(() => { _suppressLabelUpdate = false; }, 600);
     }
