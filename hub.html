@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-15T21:32:39-03:00">
+<meta name="hub-build" content="2026-09-15T22:12:33-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1041,11 +1041,37 @@ table.data-table tr:hover td { background: var(--bg); }
    aparecem dentro da parte nova. O nome não é coberto; o card passa por cima do vizinho. */
 .calM-ev { width: 100%; box-sizing: border-box; }
 .calM-ev:hover, .calM-ev.show-actions { width: calc(100% + 62px); padding-right: 68px; z-index: 30; }
+
+/* ── Nome maior que o card: no hover ele também CRESCE PRA BAIXO (16/09) ──
+   O conteúdo vira uma camada flutuante com a mesma cor do card. Como a altura
+   do card é fixa (32px / 44px com hora), nada se mexe de lugar: a camada só
+   passa por cima do que está embaixo, mostrando o nome inteiro em várias linhas. */
+.calM-ev { height: 32px; }
+.calM-ev.has-hr { height: 44px; }
+.calM-ev-in { display: block; }
+.calM-ev:hover .calM-ev-in, .calM-ev.show-actions .calM-ev-in {
+  position: absolute; top: 0; left: -4px; right: 0;
+  box-sizing: border-box;
+  padding: 7px 68px 8px 9px;
+  background: inherit; color: inherit;
+  border-left: 4px solid; border-color: inherit;
+  border-radius: 7px;
+  box-shadow: 0 10px 22px rgba(30,20,60,.20);
+  z-index: 1;
+}
+.calM-ev:hover .ti, .calM-ev.show-actions .ti {
+  white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word;
+}
+/* a célula e o grid precisam deixar a camada vazar pra fora */
+.calM-cell:has(.calM-ev:hover), .calM-cell:has(.calM-ev.show-actions) { z-index: 60; }
+.calM-grid:has(.calM-ev:hover), .calM-grid:has(.calM-ev.show-actions) { overflow: visible; }
 .calM-ev .eb-actions { top: 50%; bottom: auto; left: auto; right: 7px; margin: 0; padding: 0; gap: 4px; background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; transform: translateY(-50%); opacity: 0; transition: opacity .15s ease .06s; z-index: 2; white-space: nowrap; }
 .calM-ev:hover .eb-actions, .calM-ev.show-actions .eb-actions { opacity: 1; pointer-events: auto; transform: translateY(-50%); }
 /* Domingo (última coluna): o grid corta o que sai pela direita, então o card cresce pra esquerda */
 .calM-cell:nth-child(7n) .calM-ev:hover, .calM-cell:nth-child(7n) .calM-ev.show-actions { margin-left: -62px; padding-right: 9px; padding-left: 71px; }
 .calM-cell:nth-child(7n) .calM-ev .eb-actions { right: auto; left: 9px; }
+.calM-cell:nth-child(7n) .calM-ev:hover .calM-ev-in,
+.calM-cell:nth-child(7n) .calM-ev.show-actions .calM-ev-in { padding: 7px 9px 8px 71px; }
 /* Célula em hover sobe na pilha pra o card esticado passar por cima do vizinho */
 .calM-cell:hover, .calM-cell:has(.calM-ev.show-actions) { z-index: 5; }
 .calM-ev .eb-actions .eb-btn { background: transparent; border-radius: 999px; width: 24px; height: 24px; box-shadow: none; }
@@ -9809,11 +9835,11 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const extra = items.length - visible.length;
       const cardHtml = (it) => {
         const spanClass = it.is_span ? ` calM-ev-span calM-ev-span-${it.span_position || 'mid'}` : '';
-        const klass = `calM-ev event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}${spanClass}`;
+        const klass = `calM-ev event-block proj-${it.project}${it.hr ? ' has-hr' : ''}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}${spanClass}`;
         const badges = [
           it.is_done ? '<span class="bd dn">✓</span>' : '',
           it.is_recurring ? '<span class="bd rc">♻</span>' : '',
-          it.from_gcal ? '<span class="bd gc" title="Sincronizado do Google Calendar">📆</span>' : '',
+          it.from_gcal ? '<span class="bd gc">📆</span>' : '',
         ].join('');
         let overdueBadge = '';
         if (it.is_overdue && it.raw && it.raw.date_start) {
@@ -9833,8 +9859,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         </div>`;
         return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
           ${overdueBadge}
-          ${it.hr ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}
-          <span class="ti">${badges}${escHtml(it.title)}</span>
+          <div class="calM-ev-in">
+            ${it.hr ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}
+            <span class="ti">${badges}${escHtml(it.title)}</span>
+          </div>
           ${actions}
         </div>`;
       };
@@ -10306,7 +10334,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         return 0;
       });
       const cards = sorted.length
-        ? sorted.map(it => `<div class="calW-card proj-${it.project}" data-item-id="${it.id}" title="${escHtml(it.title)}"><div class="ti">${escHtml(it.title)}</div>${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
+        ? sorted.map(it => `<div class="calW-card proj-${it.project}" data-item-id="${it.id}"><div class="ti">${escHtml(it.title)}</div>${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
         : '<div class="calW-empty">—</div>';
       html += `<div class="calW-day ${isToday?'is-today':''} ${isPast?'is-past':''}" data-date="${ymd(d)}">
         <div class="calW-head ${isToday?'is-today':''}">
