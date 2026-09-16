@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-15T21:00:13-03:00">
+<meta name="hub-build" content="2026-09-15T21:11:31-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1375,6 +1375,33 @@ table.data-table tr:hover td { background: var(--bg); }
   font-size: 34px; font-weight: 700; cursor: pointer; line-height: 1;
 }
 .tdm-when-time-label:hover { opacity: 0.85; }
+/* Coluna hora + toggle "dia inteiro" */
+.tdm-when-time-col { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; min-width: 0; }
+.tdm-when-time-col .tdm-when-time-label.is-allday { font-size: 26px; opacity: .95; }
+.tdm-allday {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.30);
+  color: #fff; border-radius: 999px;
+  padding: 4px 11px 4px 5px; cursor: pointer;
+  font-family: inherit; font-size: 11.5px; font-weight: 650;
+  letter-spacing: .01em; line-height: 1;
+  transition: background .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tdm-allday:hover { background: rgba(255,255,255,0.28); }
+.tdm-allday .sw {
+  width: 30px; height: 17px; border-radius: 999px; flex-shrink: 0;
+  background: rgba(0,0,0,0.28); position: relative; transition: background .18s;
+}
+.tdm-allday .sw::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 13px; height: 13px; border-radius: 50%; background: #fff;
+  transition: transform .18s; box-shadow: 0 1px 2px rgba(0,0,0,.3);
+}
+.tdm-allday.on { background: rgba(255,255,255,0.92); color: #111; border-color: rgba(255,255,255,0.92); }
+.tdm-allday.on .sw { background: #16a34a; }
+.tdm-allday.on .sw::after { transform: translateX(13px); }
 /* Duração no canto sup-direito do header, abaixo do X */
 .tdm-duration {
   position: absolute; top: 54px; right: 14px;
@@ -10978,8 +11005,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           <span class="tdm-wdc-dow" id="tdmWdcDow">—</span>
         </button>
         <input type="date" class="tdm-when-date-input" id="tdmWhenDateInput">
-        <input type="time" class="tdm-when-time-input" id="tdmWhenTimeInput" style="display:none">
-        <span class="tdm-when-time-label" id="tdmWhenTimeLabel"></span>
+        <div class="tdm-when-time-col">
+          <input type="time" class="tdm-when-time-input" id="tdmWhenTimeInput" style="display:none">
+          <span class="tdm-when-time-label" id="tdmWhenTimeLabel"></span>
+          <button class="tdm-allday" id="tdmAllDayToggle" type="button" style="display:none">
+            <span class="sw"></span><span class="tx">Dia inteiro</span>
+          </button>
+        </div>
       </div>
       <div class="tdm-duration" id="tdmDurationWrap" style="display:none">
         <div class="tdm-duration-label">Duração</div>
@@ -11746,46 +11778,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     head.className = 'tdm-head area-' + (isBrasi ? 'brasileirao' : (item.area || 'pessoal'));
     elArea.textContent = areaPillLabel(item);
 
-    // Data + hora (pickers nativos)
-    const dateBtn = document.getElementById('tdmWhenDateBtn');
-    const dateInput = document.getElementById('tdmWhenDateInput');
-    const timeInput = document.getElementById('tdmWhenTimeInput');
-    const timeLabel = document.getElementById('tdmWhenTimeLabel');
-    if (item.date_start) {
-      const ds = (typeof item.date_start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.date_start))
-        ? new Date(item.date_start + 'T00:00:00') : new Date(item.date_start);
-      fillDateCard(ds);
-      dateInput.value = ymdLocal(ds);
-      if (item.has_time) {
-        timeInput.value = fmtTimeHHMM(item.date_start);
-        timeInput.style.display = '';
-        timeLabel.style.display = 'none';
-      } else {
-        timeInput.style.display = 'none';
-        timeLabel.style.display = '';
-        timeLabel.textContent = '+ hora';
-      }
-    } else {
-      fillDateCard(null);
-      timeInput.style.display = 'none';
-      timeLabel.style.display = 'none';
-    }
-
-    // Duração
-    const durWrap = document.getElementById('tdmDurationWrap');
-    const durBtn = document.getElementById('tdmDuration');
-    if (item.has_time && item.date_start && item.date_end) {
-      const ds = new Date(item.date_start), de = new Date(item.date_end);
-      const mins = Math.round((de - ds) / 60000);
-      if (mins > 0) {
-        durBtn.textContent = fmtMinutes(mins) + ' ▾';
-        durWrap.style.display = 'flex';
-      } else {
-        durWrap.style.display = 'none';
-      }
-    } else {
-      durWrap.style.display = 'none';
-    }
+    // Data + hora + dia inteiro (render centralizado)
+    tdmRenderWhen();
 
     btnEdit.style.display = 'inline-block';
     btnSave.style.display = 'none';
@@ -11837,47 +11831,136 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     loadFavorites().then(() => { if (editMode) renderBody(); });
   }
 
-  // ── Handlers do header (data, hora, duração, área) ──
-  async function applyDateTimeChange() {
-    if (!currentItem) return;
-    const dateInput = document.getElementById('tdmWhenDateInput');
-    const timeInput = document.getElementById('tdmWhenTimeInput');
-    const dateBtn = document.getElementById('tdmWhenDateBtn');
-    const ymd = dateInput.value;
-    const hhmm = timeInput.value;
-    if (!ymd) return;
-    // Calcula novo date_start e date_end (preserva duração)
-    const old = currentItem.date_start ? new Date(currentItem.date_start) : null;
-    const oldEnd = currentItem.date_end ? new Date(currentItem.date_end) : null;
-    const durMs = (old && oldEnd) ? (oldEnd - old) : 0;
-    let newStart;
-    let hasTime = !!hhmm;
-    if (hhmm) {
-      newStart = new Date(`${ymd}T${hhmm}:00${tzOffset()}`);
-    } else {
-      newStart = new Date(`${ymd}T00:00:00${tzOffset()}`);
-    }
-    const newEnd = durMs > 0 ? new Date(newStart.getTime() + durMs) : null;
-    const _prev = { ds: currentItem.date_start, de: currentItem.date_end, ht: currentItem.has_time };
-    currentItem.date_start = newStart.toISOString();
-    currentItem.date_end = newEnd ? newEnd.toISOString() : null;
-    currentItem.has_time = hasTime;
-    fillDateCard(newStart);
-    // Salva no banco (com confirmação visível e rollback em caso de erro)
-    const { error: dtErr } = await sb.from('items').update({
-      date_start: currentItem.date_start,
-      date_end: currentItem.date_end,
-      has_time: hasTime,
-    }).eq('id', currentItem.id);
-    if (dtErr) {
-      currentItem.date_start = _prev.ds; currentItem.date_end = _prev.de; currentItem.has_time = _prev.ht;
-      if (_prev.ds) fillDateCard(new Date(_prev.ds));
-      if (window.hubToast) window.hubToast('⚠ Não salvou a data: ' + dtErr.message, true);
+  // ── Handlers do header (data, hora, dia inteiro, duração, área) ──
+  function tdmWhenEls() {
+    return {
+      dateBtn:   document.getElementById('tdmWhenDateBtn'),
+      dateInput: document.getElementById('tdmWhenDateInput'),
+      timeInput: document.getElementById('tdmWhenTimeInput'),
+      timeLabel: document.getElementById('tdmWhenTimeLabel'),
+      allDay:    document.getElementById('tdmAllDayToggle'),
+      durWrap:   document.getElementById('tdmDurationWrap'),
+      durBtn:    document.getElementById('tdmDuration'),
+    };
+  }
+  // Desenha data / hora / toggle "dia inteiro" / duração a partir de currentItem
+  function tdmRenderWhen() {
+    const item = currentItem;
+    const E = tdmWhenEls();
+    if (!E.dateInput) return;
+    if (!item || !item.date_start) {
+      fillDateCard(null);
+      E.timeInput.style.display = 'none';
+      E.timeLabel.style.display = 'none';
+      if (E.allDay) E.allDay.style.display = 'none';
+      if (E.durWrap) E.durWrap.style.display = 'none';
       return;
     }
-    if (window.hubToast) window.hubToast('Data salva ✓');
-    if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+    const ds = (typeof item.date_start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.date_start))
+      ? new Date(item.date_start + 'T00:00:00') : new Date(item.date_start);
+    fillDateCard(ds);
+    E.dateInput.value = ymdLocal(ds);
+    if (E.allDay) {
+      E.allDay.style.display = '';
+      E.allDay.classList.toggle('on', !item.has_time);
+    }
+    if (item.has_time) {
+      E.timeInput.value = fmtTimeHHMM(item.date_start);
+      E.timeInput.style.display = '';
+      E.timeLabel.style.display = 'none';
+      E.timeLabel.classList.remove('is-allday');
+    } else {
+      E.timeInput.style.display = 'none';
+      E.timeLabel.style.display = '';
+      E.timeLabel.textContent = '+ hora';
+      E.timeLabel.classList.add('is-allday');
+    }
+    // Duração (só faz sentido com hora)
+    if (E.durWrap && E.durBtn) {
+      if (item.has_time && item.date_end) {
+        const mins = Math.round((new Date(item.date_end) - ds) / 60000);
+        if (mins > 0) {
+          E.durBtn.textContent = fmtMinutes(mins) + ' ▾';
+          E.durWrap.style.display = 'flex';
+        } else {
+          E.durWrap.style.display = 'none';
+        }
+      } else {
+        E.durWrap.style.display = 'none';
+      }
+    }
   }
+  window.tdmRenderWhen = tdmRenderWhen;
+
+  // Sincroniza com o Google sempre que o item existe lá (ou é evento)
+  function tdmSyncGcal() {
+    if (!currentItem || !window.syncToGcal) return;
+    if (currentItem.google_event_id || currentItem.type === 'event') {
+      window.syncToGcal('update', currentItem.id);
+    }
+  }
+
+  // Persiste data/hora e devolve true/false (com rollback visual)
+  async function tdmSaveWhen(startIso, endIso, hasTime, okMsg) {
+    if (!currentItem) return false;
+    const prev = { ds: currentItem.date_start, de: currentItem.date_end, ht: currentItem.has_time };
+    currentItem.date_start = startIso;
+    currentItem.date_end = endIso;
+    currentItem.has_time = hasTime;
+    tdmRenderWhen();
+    const { error } = await sb.from('items').update({
+      date_start: startIso,
+      date_end: endIso,
+      has_time: hasTime,
+    }).eq('id', currentItem.id);
+    if (error) {
+      currentItem.date_start = prev.ds; currentItem.date_end = prev.de; currentItem.has_time = prev.ht;
+      tdmRenderWhen();
+      if (window.hubToast) window.hubToast('⚠ Não salvou: ' + error.message, true);
+      return false;
+    }
+    if (window.hubToast) window.hubToast(okMsg || 'Salvo ✓');
+    tdmSyncGcal();
+    return true;
+  }
+
+  // Muda a data (mantendo hora/duração) e/ou a hora
+  async function applyDateTimeChange() {
+    if (!currentItem) return;
+    const E = tdmWhenEls();
+    const ymd = E.dateInput.value;
+    if (!ymd) return;
+    const timeVisible = E.timeInput.style.display !== 'none';
+    const hhmm = timeVisible ? E.timeInput.value : '';
+    const old = currentItem.date_start ? new Date(currentItem.date_start) : null;
+    const oldEnd = currentItem.date_end ? new Date(currentItem.date_end) : null;
+    const durMs = (old && oldEnd && currentItem.has_time) ? (oldEnd - old) : 0;
+    const hasTime = !!hhmm;
+    const newStart = hasTime
+      ? new Date(`${ymd}T${hhmm}:00${tzOffset()}`)
+      : new Date(`${ymd}T00:00:00${tzOffset()}`);
+    const newEnd = (hasTime && durMs > 0) ? new Date(newStart.getTime() + durMs) : null;
+    await tdmSaveWhen(newStart.toISOString(), newEnd ? newEnd.toISOString() : null, hasTime, 'Data salva ✓');
+  }
+
+  // Liga/desliga "dia inteiro" (reflete no Google automaticamente)
+  async function tdmSetAllDay(on) {
+    if (!currentItem || !currentItem.date_start) return;
+    const E = tdmWhenEls();
+    const ymd = E.dateInput.value || ymdLocal(new Date(currentItem.date_start));
+    if (on) {
+      // vira dia todo: sem hora, sem duração
+      await tdmSaveWhen(new Date(`${ymd}T00:00:00${tzOffset()}`).toISOString(), null, false, 'Virou dia inteiro ✓');
+    } else {
+      // volta a ter hora: usa a última hora conhecida, senão 09:00
+      let hhmm = (E.timeInput.value && /^\d{2}:\d{2}$/.test(E.timeInput.value)) ? E.timeInput.value : '09:00';
+      const start = new Date(`${ymd}T${hhmm}:00${tzOffset()}`);
+      const end = new Date(start.getTime() + 60 * 60000);
+      const ok = await tdmSaveWhen(start.toISOString(), end.toISOString(), true, 'Hora definida ✓');
+      if (ok) { try { if (E.timeInput.showPicker) E.timeInput.showPicker(); } catch {} }
+    }
+  }
+
   function tzOffset() {
     const tz = -new Date().getTimezoneOffset() / 60;
     const sign = tz >= 0 ? '+' : '-';
@@ -11896,7 +11979,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         value: inp.value || null,
         onSelect: (ymd) => {
           inp.value = ymd;
-          // Dispara o handler que persiste a mudança
           applyDateTimeChange();
         },
       });
@@ -11906,21 +11988,22 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   });
   document.getElementById('tdmWhenDateInput').addEventListener('change', applyDateTimeChange);
   document.getElementById('tdmWhenTimeInput').addEventListener('change', applyDateTimeChange);
-  // Click direto no input de hora também tenta abrir o picker (Chrome faz nativo, mas garantimos)
+  // Click direto no input de hora também tenta abrir o picker
   document.getElementById('tdmWhenTimeInput').addEventListener('click', (e) => {
     e.stopPropagation();
     const t = e.currentTarget;
     try { if (t.showPicker) t.showPicker(); } catch {}
   });
+  // "+ hora" (item dia inteiro) → passa a ter hora
   document.getElementById('tdmWhenTimeLabel').addEventListener('click', (e) => {
     e.stopPropagation();
-    const t = document.getElementById('tdmWhenTimeInput');
-    t.style.display = '';
-    document.getElementById('tdmWhenTimeLabel').style.display = 'none';
-    t.value = t.value || '09:00';
-    // Só salva quando o usuário confirmar a hora no input (evento 'change') —
-    // clique acidental no "+ hora" não grava mais 09:00 no banco
-    try { if (t.showPicker) t.showPicker(); } catch {}
+    tdmSetAllDay(false);
+  });
+  // Toggle "Dia inteiro"
+  document.getElementById('tdmAllDayToggle').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const on = e.currentTarget.classList.contains('on');
+    tdmSetAllDay(!on);
   });
 
   // ── Duração dropdown ──
@@ -11964,7 +12047,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const { error: durErr } = await sb.from('items').update({ date_end: newEnd }).eq('id', currentItem.id);
         if (durErr) { if (window.hubToast) window.hubToast('⚠ Não salvou a duração: ' + durErr.message, true); return; }
         if (window.hubToast) window.hubToast('Duração salva ✓');
-        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+        tdmSyncGcal();
       });
     });
   });
@@ -12087,7 +12170,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         }).eq('id', currentItem.id);
         if (areaErr) { if (window.hubToast) window.hubToast('⚠ Não salvou a área: ' + areaErr.message, true); }
         else if (window.hubToast) window.hubToast('Área salva ✓');
-        if (!areaErr && currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+        if (!areaErr) tdmSyncGcal();
         renderBrasileiraoUI();
         renderBody(); // pra atualizar o Sub do Roadmap exibido no body
       });
@@ -12124,7 +12207,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         document.getElementById('tdmHead').className = 'tdm-head area-' + slug;
         document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
         await sb.from('items').update({ area: slug, parent_id: data.id }).eq('id', currentItem.id);
-        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+        tdmSyncGcal();
         // Re-render dropdown pra mostrar o novo sub e atualizar o body
         ad.style.display = 'none';
         renderBody();
@@ -12227,7 +12310,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         document.getElementById('tdmHead').className = 'tdm-head area-' + (currentItem.metadata && currentItem.metadata.brasileirao ? 'brasileirao' : (currentItem.area || 'pessoal'));
         document.getElementById('tdmAreaPill').textContent = areaPillLabel(currentItem);
         renderBrasileiraoUI();
-        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+        tdmSyncGcal();
       });
     });
   }
@@ -12331,7 +12414,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           title: currentItem.title,
           metadata: currentItem.metadata,
         }).eq('id', currentItem.id);
-        if (currentItem.type === 'event' && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+        tdmSyncGcal();
       });
     });
     // Fechar ao clicar fora
