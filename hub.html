@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T15:01:51-03:00">
+<meta name="hub-build" content="2026-09-16T15:06:08-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1170,6 +1170,11 @@ table.data-table tr:hover td { background: var(--bg); }
   .calM-grid:has(.calM-cell.has-more:hover) { overflow: visible; }
 }
 .calM-ev.is-done { opacity: .55; text-decoration: line-through; }
+/* Já aconteceu (agenda espelhada): apagado, mas sem risco — não foi "concluído". */
+.calM-ev.is-past { opacity: .45; }
+.calM-ev.is-past:hover { opacity: .9; }
+.calW-card.is-past { opacity: .45; }
+.calW-card.is-past:hover { opacity: .9; }
 .calM-ev.is-overdue { border-left-color: #dc2626 !important; border-left-width: 4px !important; }
 .calM-ev .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 1px 5px; border-radius: 999px; font-size: 8px; font-weight: 700; line-height: 1.2; pointer-events: none; box-shadow: 0 1px 2px rgba(0,0,0,.2); z-index: 5; }
 .calM-ev.is-dragging { opacity: .35; transform: scale(.98); transition: opacity .12s, transform .12s; }
@@ -9838,6 +9843,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const endMs = it.date_end ? new Date(it.date_end).getTime() : startMs;
     const santosAutoDone = itIsSantos && endMs > 0 && endMs < now;
     const isDone = it.status === 'done' || santosAutoDone;
+    // Agenda espelhada (só leitura): compromisso que já aconteceu fica apagado —
+    // não é "concluído" (não é tarefa dele), é só passado.
+    const ehEspelho = !!(window.hubSoLeitura && window.hubSoLeitura(it));
+    const isPast = ehEspelho && !isDone && (endMs || startMs) > 0 && (endMs || startMs) < now;
     // Santos rule #2: NUNCA badge de atrasado
     // Agenda espelhada (só leitura) nunca fica "atrasada": não é tarefa dele pra concluir.
     const isOverdue = !isDone && !itIsSantos && !(window.hubSoLeitura && window.hubSoLeitura(it))
@@ -9859,6 +9868,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       project: projectToken,
       status: it.status,
       is_done: isDone,
+      is_past: isPast,
       is_overdue: isOverdue,
       is_recurring: isRecurring,
       from_gcal: !!it.google_event_id,
@@ -10011,7 +10021,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const extra = items.length - visible.length;
       const cardHtml = (it) => {
         const spanClass = it.is_span ? ` calM-ev-span calM-ev-span-${it.span_position || 'mid'}` : '';
-        const klass = `calM-ev event-block proj-${it.project}${it.hr ? ' has-hr' : ''}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}${spanClass}`;
+        const klass = `calM-ev event-block proj-${it.project}${it.hr ? ' has-hr' : ''}${it.is_done ? ' is-done' : ''}${it.is_past ? ' is-past' : ''}${it.is_overdue ? ' is-overdue' : ''}${spanClass}`;
         const badges = [
           it.is_done ? '<span class="bd dn">✓</span>' : '',
           it.is_recurring ? '<span class="bd rc">♻</span>' : '',
@@ -10512,7 +10522,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         return 0;
       });
       const cards = sorted.length
-        ? sorted.map(it => `<div class="calW-card proj-${it.project}" data-item-id="${it.id}"><div class="ti">${escHtml(it.title)}</div>${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
+        ? sorted.map(it => `<div class="calW-card proj-${it.project}${it.is_past ? ' is-past' : ''}" data-item-id="${it.id}"><div class="ti">${escHtml(it.title)}</div>${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
         : '<div class="calW-empty">—</div>';
       html += `<div class="calW-day ${isToday?'is-today':''} ${isPast?'is-past':''}" data-date="${ymd(d)}">
         <div class="calW-head ${isToday?'is-today':''}">
