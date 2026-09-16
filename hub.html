@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-15T20:00:20-03:00">
+<meta name="hub-build" content="2026-09-15T21:00:13-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -9594,13 +9594,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const d = parseDbDate(it.date_start);
     let hr = '';
     // Só a hora de INÍCIO no card (pedido 15/09) — a hora de fim continua no card de detalhe.
-    // Finanças (administracao) não tem horário: 15:00/15:15/15:30/15:45 é carimbo automático da
-    // importação de contas, não hora escolhida. Hora fora desse bloco é dele e continua aparecendo.
-    if (it.has_time) {
-      const t = fmtTime(d);
-      const carimboAuto = it.area === 'administracao' && ['15:00','15:15','15:30','15:45'].includes(t);
-      if (!carimboAuto) hr = t;
-    }
+    // (Os 157 itens de Finanças com carimbo 15:00/15:15/15:30/15:45 viraram dia-todo no banco
+    //  E no Google em 15/09, então não existe mais filtro de exibição aqui.)
+    if (it.has_time) hr = fmtTime(d);
     // Título já com prefixo strippado + abreviações expandidas (Santos rule #1)
     const expandedTitle = expandTeamCodes(stripTagPrefix(it.title));
     const itIsSantos = isSantosGame(expandedTitle);
