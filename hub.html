@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-18T14:11:41-03:00">
+<meta name="hub-build" content="2026-09-18T14:28:37-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1130,12 +1130,22 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.proj-brasileirao_play { background: #86efac; border-color: #16a34a; color: #14532d; }
 .calM-ev.proj-aw_vz         { background: #fbcfe8; border-color: #ff1493; color: #831843; }
 .calM-ev.proj-aniversarios  { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
+/* Santos: mesmo formato de todas as outras áreas — só background, cor da borda e
+   cor do texto. Antes esta regra redefinia 'border' e 'border-radius', e como quem
+   desenha o card hoje é a camada .calM-ev-in (raio 7px, borda esquerda de 4px), as
+   duas bordas ficavam desencontradas: sobrava um contorno cinza de canto reto
+   aparecendo por baixo. O filete cinza claro (o card é quase branco) virou borda da
+   própria camada, logo abaixo. */
 .calM-ev.proj-santos {
   background: #fafafa;
-  border: 0.5px solid #d4d4d8;
-  border-left: 4px solid #000000;
-  border-radius: 0 6px 6px 0;
+  border-color: #000000;
   color: #000000;
+}
+.calM-ev.proj-santos .calM-ev-in {
+  border-top: 0.5px solid #d4d4d8;
+  border-right: 0.5px solid #d4d4d8;
+  border-bottom: 0.5px solid #d4d4d8;
+  border-left-color: #000000;
 }
 /* Aliases retrocompat — strings antigas mapeadas pras cores novas */
 .calM-ev.proj-financas      { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
