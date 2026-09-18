@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-16T15:27:48-03:00">
+<meta name="hub-build" content="2026-09-18T14:02:08-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -9876,7 +9876,16 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // Só a hora de INÍCIO no card (pedido 15/09) — a hora de fim continua no card de detalhe.
     // (Os 157 itens de Finanças com carimbo 15:00/15:15/15:30/15:45 viraram dia-todo no banco
     //  E no Google em 15/09, então não existe mais filtro de exibição aqui.)
-    if (it.has_time) hr = fmtTime(d);
+    if (it.has_time) {
+      hr = fmtTime(d);
+      // Duracao no card fechado: so quando ele ligou a duracao de proposito
+      // (evento importado do Google sempre tem fim, e ele nao quer o intervalo neles).
+      const md = it.metadata || {};
+      if (md.mostrar_duracao && it.date_end) {
+        const de = parseDbDate(it.date_end);
+        if (de > d) hr += '\u2013' + fmtTime(de);
+      }
+    }
     // Título já com prefixo strippado + abreviações expandidas (Santos rule #1)
     const expandedTitle = expandTeamCodes(stripTagPrefix(it.title));
     const itIsSantos = isSantosGame(expandedTitle);
@@ -12387,7 +12396,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         currentItem.date_end = newEnd;
         document.getElementById('tdmDuration').textContent = fmtMinutes(m) + ' ▾';
         dd.style.display = 'none';
-        const { error: durErr } = await sb.from('items').update({ date_end: newEnd }).eq('id', currentItem.id);
+        const novaMeta = Object.assign({}, currentItem.metadata || {}, { mostrar_duracao: true });
+        currentItem.metadata = novaMeta;
+        const { error: durErr } = await sb.from('items').update({ date_end: newEnd, metadata: novaMeta }).eq('id', currentItem.id);
         if (durErr) { if (window.hubToast) window.hubToast('⚠ Não salvou a duração: ' + durErr.message, true); return; }
         if (window.hubToast) window.hubToast('Duração salva ✓');
         tdmSyncGcal();
@@ -12981,6 +12992,23 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   let qaViewYear  = new Date().getFullYear();
   let qaViewMonth = new Date().getMonth();
   let qaArea = 'pessoal';
+  let qaAllDay = false;          // toggle "Dia inteiro"
+  let qaAllDayTocado = false;    // ele mexeu no toggle? entao a area para de mandar
+  let qaHora = '09:00';
+  let qaDurOn = true;            // toggle da duracao
+  // Areas que abrem como dia-inteiro (regra: administrativo nao mostra hora)
+  const QA_AREAS_DIA_INTEIRO = ['administracao', 'aniversarios'];
+  // Calendario do Google por area (mesmo mapa do robo do WhatsApp).
+  // Explicito de proposito: a area 'pessoal' tem 2 calendarios no banco e um deles
+  // e o do Santos, que e SO LEITURA.
+  const QA_AREA_CAL = {
+    pessoal: 'eduardo.romanobispo@gmail.com',
+    administracao: '87f2c55fe83824ab64b1f8ff5877fdf30db973705a0863a51f1de6704ea294e7@group.calendar.google.com',
+    casa: '9ade00a183d369b2ae6ed95d8bc32b3fa7091e7e51bd5c7a26c919cd16ec9d5e@group.calendar.google.com',
+    eventos: '2a3e2a009db98a6c44fcd5e37d9dfa6a1326a671a4f7fc927b5d020f8390527d@group.calendar.google.com',
+    brasileirao_play: '741f26e00cbab62b59c8fc9526c84689a52b1410c7013079031b97ed7f55be51@group.calendar.google.com',
+    aw_vz: 'b04e643de22c30494d5b125d2fddb5a20bb679e7ad041ee6bd076a119ae2b132@group.calendar.google.com',
+  };
   let qaParentId = null;
   let qaExpandedAreas = new Set();   // áreas expandidas no dropdown
   let qaExpandedSubs  = new Set();   // subs expandidos no dropdown
@@ -12993,6 +13021,17 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     wrap.id = 'hubQuickAddBackdrop';
     wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9998;display:none;align-items:center;justify-content:center;';
     wrap.innerHTML = `
+      <style>
+        #hubQuickAdd .hqa-rot{font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+        #hubQuickAdd .hqa-sw{display:flex;align-items:center;gap:8px;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;font-size:12.5px;color:#374151;}
+        #hubQuickAdd .hqa-sw-b{width:34px;height:20px;border-radius:99px;background:#d8d8de;position:relative;transition:.18s;flex:none;}
+        #hubQuickAdd .hqa-sw-b::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.18s;}
+        #hubQuickAdd .hqa-sw.on .hqa-sw-b{background:#7c3aed;}
+        #hubQuickAdd .hqa-sw.on .hqa-sw-b::after{transform:translateX(14px);}
+        #hubQuickAdd .hqa-off{opacity:.34;pointer-events:none;}
+        #hubQuickAdd #hqaTimeBtn{width:100%;padding:8px 10px;border:0.5px solid #d4d4d8;border-radius:8px;background:#fff;font-family:inherit;font-size:15px;font-weight:600;color:#111;cursor:pointer;text-align:center;}
+        #hubQuickAdd #hqaTimeBtn:hover{border-color:#7c3aed;}
+      </style>
       <div id="hubQuickAdd" style="background:#fff;color:#111;border-radius:14px;width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 60px);overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.32);position:relative;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:0.5px solid #f3f4f6;">
           <h3 style="margin:0;font-size:17px;font-weight:600;color:#111;">Novo item</h3>
@@ -13008,13 +13047,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
             </div>
             <div id="hqaCalendar" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:11px;"></div>
 
-            <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
-              <div>
-                <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Hora</div>
-                <input id="hqaTime" type="time" style="width:100%;padding:8px 10px;border:0.5px solid #d4d4d8;border-radius:8px;font-family:inherit;font-size:15px;">
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:11px;">
+              <button type="button" id="hqaAllDay" class="hqa-sw"><span class="hqa-sw-b"></span>Dia inteiro</button>
+              <div id="hqaTimeWrap">
+                <div class="hqa-rot">Hora</div>
+                <button type="button" id="hqaTimeBtn" data-htp-anchor>&#128336; 09:00</button>
+                <input id="hqaTime" type="hidden" value="">
               </div>
-              <div>
-                <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Duração</div>
+              <div id="hqaDurWrap">
+                <button type="button" id="hqaDurSw" class="hqa-sw" style="margin-bottom:5px"><span class="hqa-sw-b"></span>Dura&ccedil;&atilde;o</button>
                 <select id="hqaDuration" style="width:100%;padding:8px 10px;border:0.5px solid #d4d4d8;border-radius:8px;font-family:inherit;font-size:14px;background:#fff;">
                   <option value="">— sem duração —</option>
                   <option value="15">15 min</option>
@@ -13059,6 +13100,17 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     $('hqaPrevMonth').addEventListener('click', () => navMonth(-1));
     $('hqaNextMonth').addEventListener('click', () => navMonth(1));
     $('hqaAreaPill').addEventListener('click', toggleAreaDropdown);
+    $('hqaAllDay').addEventListener('click', () => { qaAllDay = !qaAllDay; qaAllDayTocado = true; qaRenderWhen(); });
+    $('hqaDurSw').addEventListener('click', () => { qaDurOn = !qaDurOn; qaRenderWhen(); });
+    $('hqaTimeBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!window.hubTimePicker) return;
+      window.hubTimePicker.open({
+        anchor: $('hqaTimeBtn'),
+        value: qaHora,
+        onSelect: (hhmm) => { qaHora = hhmm; qaAllDay = false; qaAllDayTocado = true; qaRenderWhen(); },
+      });
+    });
     $('hqaAddr').addEventListener('input', onAddrInput);
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && wrap.style.display === 'flex') close();
@@ -13073,6 +13125,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       }
     });
     return $('hubQuickAdd');
+  }
+
+  // Desenha a faixa Dia inteiro / Hora / Duracao a partir do estado
+  function qaRenderWhen() {
+    const sw = $('hqaAllDay'); if (!sw) return;
+    sw.classList.toggle('on', qaAllDay);
+    $('hqaTimeWrap').classList.toggle('hqa-off', qaAllDay);
+    $('hqaDurWrap').classList.toggle('hqa-off', qaAllDay);
+    $('hqaDurSw').classList.toggle('on', qaDurOn);
+    $('hqaDuration').style.display = qaDurOn ? '' : 'none';
+    $('hqaTimeBtn').textContent = '\u{1F550} ' + qaHora;
+    $('hqaTime').value = qaAllDay ? '' : qaHora;
   }
 
   function renderCalendar() {
@@ -13205,6 +13269,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         qaArea = slug;
         qaParentId = subId || null;
         $('hqaAreaPill').textContent = areaLabel();
+        if (!qaAllDayTocado) { qaAllDay = QA_AREAS_DIA_INTEIRO.includes(qaArea); qaRenderWhen(); }
         dd.style.display = 'none';
       });
     });
@@ -13373,7 +13438,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const type = 'task'; // Eduardo: tudo é tarefa, sem diferenciação
     const timeStr = $('hqaTime').value;
     const hasTime = !!timeStr;
-    const durMin = parseInt($('hqaDuration').value || '0', 10);
+    const durMin = (hasTime && qaDurOn) ? parseInt($('hqaDuration').value || '0', 10) : 0;
     const ymd = `${qaSelDate.getFullYear()}-${String(qaSelDate.getMonth()+1).padStart(2,'0')}-${String(qaSelDate.getDate()).padStart(2,'0')}`;
     const date_start = hasTime
       ? new Date(`${ymd}T${timeStr}:00`).toISOString()
@@ -13392,6 +13457,11 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       date_start, date_end, has_time: hasTime, status: 'planned',
       notes: $('hqaNotes').value.trim() || null,
       address,
+      // Calendario explicito: sem isso o gcal-write chuta pela area e, em 'pessoal',
+      // pode cair no calendario do Santos (so leitura -> 403).
+      google_calendar_id: QA_AREA_CAL[qaArea] || null,
+      // So mostra o intervalo no card quando ELE ligou a duracao.
+      metadata: durMin > 0 ? { mostrar_duracao: true } : null,
     };
     if (address && qaPendingGeo && qaPendingGeo.address === address && qaPendingGeo.lat != null) {
       payload.address_lat = qaPendingGeo.lat;
@@ -13401,7 +13471,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const { data, error } = await sb.from('items').insert(payload).select().single();
     if (error) { showError(error.message); return; }
     if (window.hubToast) window.hubToast('Item criado ✓');
-    if (type === 'event' && data && window.syncToGcal) window.syncToGcal('update', data.id);
+    // Antes isso nunca rodava: a janela cria tudo como 'task' e a condicao exigia 'event'.
+    if (data && QA_AREA_CAL[qaArea] && window.syncToGcal) window.syncToGcal('insert', data.id);
     close();
     } finally {
       qaSaving = false;
@@ -13431,8 +13502,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     qaPendingGeo = null;
     qaAddrSession = null;
     $('hqaTitle').value = '';
-    $('hqaTime').value = '';
+    qaHora = '09:00';
+    qaDurOn = true;
+    qaAllDayTocado = false;
+    qaAllDay = QA_AREAS_DIA_INTEIRO.includes(qaArea);
     $('hqaDuration').value = '60';
+    qaRenderWhen();
     $('hqaNotes').value = '';
     $('hqaAddr').value = '';
     $('hqaError').style.display = 'none';
