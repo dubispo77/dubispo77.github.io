@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-18T14:29:43-03:00">
+<meta name="hub-build" content="2026-09-18T14:32:07-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -4669,6 +4669,20 @@ window.HUB_AREAS_SO_LEITURA = ['agenda_awvz'];
 window.hubSoLeitura = function(it) {
   const a = it && (it.area || (it.raw && it.raw.area));
   return !!a && (window.HUB_AREAS_SO_LEITURA || []).includes(a);
+};
+// Regra Eduardo (18/09): nome de tarefa não leva emoji na frente — só o Brasileirão
+// Play mantém a bola (⚽), que é regra dele e é colocada por um trigger no banco.
+// Tira só do COMEÇO do título; emoji no meio do nome continua intacto.
+window.hubTiraEmoji = function(titulo, area) {
+  if (!titulo) return titulo;
+  if (area === 'brasileirao_play') return titulo;
+  try {
+    return String(titulo)
+      .replace(/^(?:[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{FE0F}\u{FE0E}\u{200D}\u{20E3}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{2600}-\u{27BF}]|\s)+/u, '')
+      .trim() || String(titulo);
+  } catch (e) {
+    return titulo; // navegador sem \p{...}: deixa como está
+  }
 };
 window.hubEhJogoSoDoGoogle = function(it) {
   if (!it) return false;
@@ -9897,7 +9911,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       }
     }
     // Título já com prefixo strippado + abreviações expandidas (Santos rule #1)
-    const expandedTitle = expandTeamCodes(stripTagPrefix(it.title));
+    const expandedTitle = expandTeamCodes(window.hubTiraEmoji ? window.hubTiraEmoji(stripTagPrefix(it.title), it.area) : stripTagPrefix(it.title));
     const itIsSantos = isSantosGame(expandedTitle);
     // Santos rule #3: auto-done quando o jogo já passou
     const now = Date.now();
@@ -12080,7 +12094,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     currentItem = item;
     editMode = false;
     activeFields = new Set();
-    elTitle.textContent = item.title || '(sem título)';
+    elTitle.textContent = (window.hubTiraEmoji ? window.hubTiraEmoji(item.title, item.area) : item.title) || '(sem título)';
     // Header colorido pela área (ou gradient esmeralda Brasileirão)
     const head = document.getElementById('tdmHead');
     const isBrasi = !!(item.metadata && item.metadata.brasileirao);
