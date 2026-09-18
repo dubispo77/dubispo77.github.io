@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-18T14:02:32-03:00">
+<meta name="hub-build" content="2026-09-18T14:06:07-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -12995,7 +12995,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   let qaAllDay = false;          // toggle "Dia inteiro"
   let qaAllDayTocado = false;    // ele mexeu no toggle? entao a area para de mandar
   let qaHora = '09:00';
-  let qaDurOn = true;            // toggle da duracao
+  let qaDurOn = false;           // toggle da duracao (sempre comeca desligado)
   // Areas que abrem como dia-inteiro (regra: administrativo nao mostra hora)
   const QA_AREAS_DIA_INTEIRO = ['administracao', 'aniversarios'];
   // Calendario do Google por area (mesmo mapa do robo do WhatsApp).
@@ -13502,7 +13502,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     qaAddrSession = null;
     $('hqaTitle').value = '';
     qaHora = '09:00';
-    qaDurOn = true;
+    qaDurOn = false;
     qaAllDayTocado = false;
     qaAllDay = QA_AREAS_DIA_INTEIRO.includes(qaArea);
     $('hqaDuration').value = '60';
