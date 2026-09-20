@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:38:11-03:00">
+<meta name="hub-build" content="2026-09-20T20:39:15-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1330,7 +1330,9 @@ table.data-table tr:hover td { background: var(--bg); }
 .calMM-day-header .car { margin-left: auto; color: var(--text-faint); font-size: 12px; width: 16px; text-align: center; transition: transform .15s; }
 .calMM-day-section.closed .calMM-day-header .car { transform: rotate(180deg); }
 .calMM-day-section.closed .calMM-day-header:not(.calMM-hoje) { color: var(--text-dim); font-weight: 600; }
-.calMM-day-section.closed .calMM-body { display: none; }
+.calMM-body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .28s cubic-bezier(.2,.8,.3,1); }
+.calMM-body > .calMM-body-in { min-height: 0; overflow: hidden; }
+.calMM-day-section.closed .calMM-body { grid-template-rows: 0fr; }
 .calMM-day-header.is-overdue-day { color: #dc2626 !important; }
 .calMM-day-header.is-overdue-day .cnt { color: #dc2626; background: #fee2e2; }
 .calMM-day-header.vazio { padding: 5px 12px 3px !important; font-size: 10.5px !important; color: var(--text-faint) !important; font-weight: 600 !important; cursor: default !important; }
@@ -1370,10 +1372,14 @@ table.data-table tr:hover td { background: var(--bg); }
 .calMM-card.proj-rotina        { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
 
 /* ── MODAL DETALHADO DA TAREFA ─────────────────────────────────────────── */
-.tdm-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity .2s; }
-.tdm-overlay.open { display: flex; opacity: 1; }
-.tdm { width: 520px; max-width: calc(100vw - 32px); max-height: calc(100vh - 60px); background: #fff; border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,.32); display: flex; flex-direction: column; overflow: hidden; transform: scale(.95); transition: transform .22s cubic-bezier(.34, 1.56, .64, 1); }
-.tdm-overlay.open .tdm { transform: scale(1); }
+/* Abertura em duas etapas (20/09): primeiro .mostrando liga o display, no quadro
+   seguinte .open anima. Trocar display e opacity no mesmo quadro não anima nada —
+   era isso o "corte seco". No fechamento o display só some depois da transição. */
+.tdm-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity .26s ease; }
+.tdm-overlay.mostrando, .tdm-overlay.open { display: flex; }
+.tdm-overlay.open { opacity: 1; }
+.tdm { width: 520px; max-width: calc(100vw - 32px); max-height: calc(100vh - 60px); background: #fff; border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,.32); display: flex; flex-direction: column; overflow: hidden; opacity: 0; transform: translateY(18px) scale(.97); transition: transform .32s cubic-bezier(.2,.8,.3,1), opacity .26s ease; }
+.tdm-overlay.open .tdm { opacity: 1; transform: none; }
 .tdm-head { padding: 18px 70px 16px 22px; flex-shrink: 0; position: relative; color: #fff; }
 .tdm-head.area-pessoal       { background: linear-gradient(135deg, #dc2626, #991b1b); }
 .tdm-head.area-trabalho      { background: linear-gradient(135deg, #2563eb, #1e40af); }
@@ -1810,7 +1816,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-btn.tdm-btn-danger:hover { background: #fee2e2; }
 
 @media (max-width: 600px) {
-  .tdm { width: 100%; max-width: 100%; max-height: calc(100dvh - 20px); border-radius: 12px 12px 0 0; align-self: flex-end; transform: translateY(20px); }
+  .tdm { width: 100%; max-width: 100%; max-height: calc(100dvh - 20px); border-radius: 12px 12px 0 0; align-self: flex-end; opacity: 1; transform: translateY(100%); transition: transform .38s cubic-bezier(.2,.8,.3,1); }
   .tdm-overlay.open .tdm { transform: translateY(0); }
   .tdm-overlay { align-items: flex-end; }
   .tdm-row { grid-template-columns: 1fr; }
@@ -10549,7 +10555,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
             <div class="l1">Hoje <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span><span class="car">⌃</span></div>
             <div class="st">${mmStats(today)}</div>
           </div>
-          <div class="calMM-body">${rows || '<div class="calMM-day-empty">Nada agendado</div>'}</div>
+          <div class="calMM-body"><div class="calMM-body-in">${rows || '<div class="calMM-day-empty">Nada agendado</div>'}</div></div>
         </section>`;
       } else if (items.length === 0) {
         html += `<section class="calMM-day-section closed vazio" data-day="${key}">
@@ -10564,7 +10570,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const cnt = (isPast && overdueCount > 0) ? `${overdueCount} atrasado${overdueCount > 1 ? 's' : ''}` : String(items.length);
         html += `<section class="calMM-day-section${aberto ? '' : ' closed'}" data-day="${key}">
           <div class="calMM-day-header${hc}" data-day="${key}" data-year="${y}" data-month="${m}">${label}<span class="cnt">${cnt}</span><span class="dots">${mmDots(items, 3)}</span><span class="car">⌃</span></div>
-          <div class="calMM-body">${rows}</div>
+          <div class="calMM-body"><div class="calMM-body-in">${rows}</div></div>
         </section>`;
       }
       cur.setDate(cur.getDate() + 1);
@@ -12429,7 +12435,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     } else {
       renderBrasileiraoUI();
     }
-    overlay.classList.add('open');
+    // Duas etapas: liga o display, força o reflow, aí anima.
+    overlay.classList.add('mostrando');
+    overlay.getBoundingClientRect();
+    requestAnimationFrame(() => overlay.classList.add('open'));
     overlay.setAttribute('aria-hidden', 'false');
     loadFavorites().then(() => { if (editMode) renderBody(); });
   }
@@ -13083,6 +13092,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     overlay.setAttribute('aria-hidden', 'true');
     currentItem = null;
     editMode = false;
+    // Some do display só depois da animação de saída (se não reabriu no meio).
+    setTimeout(() => { if (!overlay.classList.contains('open')) overlay.classList.remove('mostrando'); }, 400);
   }
 
   // Expor pra outros módulos
@@ -13317,7 +13328,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if ($('hubQuickAdd')) return $('hubQuickAdd');
     const wrap = document.createElement('div');
     wrap.id = 'hubQuickAddBackdrop';
-    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9998;display:none;align-items:center;justify-content:center;';
+    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9998;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .26s ease;';
     wrap.innerHTML = `
       <style>
         #hubQuickAdd .hqa-rot{font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
@@ -13329,6 +13340,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         #hubQuickAdd .hqa-off{opacity:.34;pointer-events:none;}
         #hubQuickAdd #hqaTimeBtn{width:100%;padding:8px 10px;border:0.5px solid #d4d4d8;border-radius:8px;background:#fff;font-family:inherit;font-size:15px;font-weight:600;color:#111;cursor:pointer;text-align:center;}
         #hubQuickAdd #hqaTimeBtn:hover{border-color:#7c3aed;}
+        #hubQuickAddBackdrop.aberto{opacity:1 !important;}
+        #hubQuickAdd{transform:translateY(16px) scale(.98);opacity:0;transition:transform .32s cubic-bezier(.2,.8,.3,1),opacity .26s ease;}
+        #hubQuickAddBackdrop.aberto #hubQuickAdd{transform:none;opacity:1;}
+        @media (max-width:600px){ #hubQuickAdd{transform:translateY(100%);opacity:1;transition:transform .38s cubic-bezier(.2,.8,.3,1);} }
       </style>
       <div id="hubQuickAdd" style="background:#fff;color:#111;border-radius:14px;width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 60px);overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.32);position:relative;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:0.5px solid #f3f4f6;">
@@ -13410,7 +13425,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     });
     $('hqaAddr').addEventListener('input', onAddrInput);
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && wrap.style.display === 'flex') close();
+      if (e.key === 'Escape' && wrap.classList.contains('aberto')) close();
     });
     // Click fora do dropdown fecha
     document.addEventListener('click', e => {
@@ -13684,7 +13699,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   function close() {
-    const bd = $('hubQuickAddBackdrop'); if (bd) bd.style.display = 'none';
+    const bd = $('hubQuickAddBackdrop');
+    if (bd) { bd.classList.remove('aberto'); setTimeout(() => { if (!bd.classList.contains('aberto')) bd.style.display = 'none'; }, 400); }
     const err = $('hqaError'); if (err) { err.style.display = 'none'; err.textContent = ''; }
   }
 
@@ -13755,6 +13771,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     buildModal();
     const bd = $('hubQuickAddBackdrop');
     bd.style.display = 'flex';
+    bd.getBoundingClientRect();
+    requestAnimationFrame(() => bd.classList.add('aberto'));
     // Reset
     qaSelDate = new Date();
     qaViewYear = qaSelDate.getFullYear();
