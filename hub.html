@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T19:54:24-03:00">
+<meta name="hub-build" content="2026-09-20T20:04:31-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -4704,6 +4704,16 @@ window.hubTiraEmoji = function(titulo, area) {
   } catch (e) {
     return titulo; // navegador sem \p{...}: deixa como está
   }
+};
+// Calendário do Google de cada área. Explícito: 'pessoal' tem 2 calendários no banco
+// e um deles é o do Santos (só leitura) — o chute automático pode cair no errado.
+window.HUB_AREA_CAL = {
+  pessoal: 'eduardo.romanobispo@gmail.com',
+  administracao: '87f2c55fe83824ab64b1f8ff5877fdf30db973705a0863a51f1de6704ea294e7@group.calendar.google.com',
+  casa: '9ade00a183d369b2ae6ed95d8bc32b3fa7091e7e51bd5c7a26c919cd16ec9d5e@group.calendar.google.com',
+  eventos: '2a3e2a009db98a6c44fcd5e37d9dfa6a1326a671a4f7fc927b5d020f8390527d@group.calendar.google.com',
+  brasileirao_play: '741f26e00cbab62b59c8fc9526c84689a52b1410c7013079031b97ed7f55be51@group.calendar.google.com',
+  aw_vz: 'b04e643de22c30494d5b125d2fddb5a20bb679e7ad041ee6bd076a119ae2b132@group.calendar.google.com',
 };
 window.hubEhJogoSoDoGoogle = function(it) {
   if (!it) return false;
@@ -12472,48 +12482,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const allSubs = window.roadmapSubs || [];
     // Padrão: tudo COLAPSADO. Eduardo abre o caminho que quiser.
     // (Se quiser comportamento "auto-abre o caminho do item atual", expande aqui — por enquanto fica tudo fechado.)
+    // Regra Eduardo (20/09): categoria é uma lista plana. Não existem mais subdivisões
+    // ("Sem sub", "+ Novo sub", árvore de subs). Clicou na área, trocou, fechou.
     let html = '<div class="tdm-area-dropdown-section">Área</div>';
     TDM_AREAS.forEach(a => {
-      const expanded = tdmExpandedAreas.has(a.slug);
       const areaActive = (!isBrasi && currentItem.area === a.slug);
-      const areaSubs = allSubs.filter(s => s.area === a.slug);
-      const hasSubs = areaSubs.length > 0;
-      html += `<div class="tdm-area-dropdown-item area ${expanded ? 'expanded' : ''} ${areaActive ? 'selected' : ''}" data-toggle-area="${a.slug}">
-        ${a.emoji} ${a.name}${hasSubs ? `<span class="chev">▸</span>` : ''}
-      </div>`;
-      html += `<div class="tdm-area-subs ${expanded ? 'expanded' : ''}" data-subs-area="${a.slug}">`;
-      // Opção "selecionar só a área (sem sub)"
-      const rootSel = (areaActive && !currentItem.parent_id) ? 'selected' : '';
-      html += `<div class="tdm-area-pick-root ${rootSel}" data-area="${a.slug}" data-parent-id="">Sem sub — só em ${a.name}</div>`;
-      // Árvore de subs (DFS) — cada sub com filhos é colapsável
-      function renderChildren(parentId, depth) {
-        areaSubs.filter(s => (s.parent_id || null) === parentId).forEach(s => {
-          const subSel = (!isBrasi && currentItem.parent_id === s.id) ? 'selected' : '';
-          const indent = 26 + depth * 14;
-          const childrenOfS = areaSubs.filter(x => (x.parent_id || null) === s.id);
-          const hasChildren = childrenOfS.length > 0;
-          const subExpanded = tdmExpandedSubs.has(s.id);
-          const ICO_EDIT = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 2-9 9-3 1 1-3z"/></svg>';
-          const ICO_DEL = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h10M5 5V3.5A1 1 0 016 2.5h4a1 1 0 011 1V5M5.5 5l.7 8a1 1 0 001 .9h2.6a1 1 0 001-.9l.7-8"/></svg>';
-          const ICO_ADD = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>';
-          html += `<div class="tdm-area-dropdown-item sub ${subSel} ${subExpanded ? 'expanded' : ''}" data-area="${a.slug}" data-parent-id="${s.id}" style="padding-left:${indent}px">
-            ${hasChildren ? `<button class="sub-chev" type="button" data-toggle-sub="${s.id}" title="Expandir/colapsar">▸</button>` : '<span class="sub-chev-spacer"></span>'}
-            <span>${escHtml(s.title)}</span>
-            <button class="add-child" type="button" data-edit-sub="${s.id}" title="Renomear" style="color:#6b7280">${ICO_EDIT}</button>
-            <button class="add-child" type="button" data-del-sub="${s.id}" title="Apagar" style="color:#dc2626">${ICO_DEL}</button>
-            <button class="add-child" type="button" data-add-parent="${s.id}" data-add-area="${a.slug}" title="Adicionar sub aqui">${ICO_ADD}</button>
-          </div>`;
-          // Filhos colapsáveis — só renderiza se expandido
-          if (hasChildren && subExpanded) {
-            html += `<div class="tdm-area-sub-children expanded">`;
-            renderChildren(s.id, depth + 1);
-            html += `</div>`;
-          }
-        });
-      }
-      renderChildren(null, 0);
-      html += `<div class="tdm-area-dropdown-add" data-add-area="${a.slug}" data-add-parent="">+ Novo sub em ${a.name}</div>`;
-      html += '</div>'; // .tdm-area-subs
+      html += `<div class="tdm-area-dropdown-item area ${areaActive ? 'selected' : ''}" data-area="${a.slug}" data-parent-id="">${a.emoji} ${a.name}</div>`;
     });
     html += '<div class="tdm-area-dropdown-section" style="border-top:1px solid #e5e7eb;padding-top:6px">Modo especial</div>';
     html += `<div class="tdm-area-dropdown-item ${isBrasi ? 'selected' : ''}" data-brasi="${isBrasi ? '0' : '1'}">⚽ ${isBrasi ? 'Desativar Brasileirão' : 'Brasileirão Play'}</div>`;
@@ -12557,6 +12531,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const parentId = el.dataset.parentId || null;
         currentItem.area = slug;
         currentItem.parent_id = parentId;
+        // Área nova = calendário novo no Google (o gcal-write move o evento de lá).
+        const novoCal = (window.HUB_AREA_CAL && window.HUB_AREA_CAL[slug]) || null;
+        currentItem.google_calendar_id = novoCal;
         // Sai de brasileirão se tava
         if (currentItem.metadata && currentItem.metadata.brasileirao) delete currentItem.metadata.brasileirao;
         document.getElementById('tdmHead').className = 'tdm-head area-' + slug;
@@ -12565,6 +12542,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const { error: areaErr } = await sb.from('items').update({
           area: slug,
           parent_id: parentId,
+          google_calendar_id: novoCal,
           metadata: currentItem.metadata || {},
         }).eq('id', currentItem.id);
         if (areaErr) { if (window.hubToast) window.hubToast('⚠ Não salvou a área: ' + areaErr.message, true); }
@@ -13248,43 +13226,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const dd = $('hqaAreaDropdown');
     const allSubs = window.roadmapSubs || [];
     let html = '<div style="font-size:9px;color:#9ca3af;font-weight:600;padding:6px 10px 4px;text-transform:uppercase;letter-spacing:0.06em;">Área</div>';
+    // Lista plana (regra 20/09): sem subs. Cada linha já é o "pick" da área.
     QA_AREAS.forEach(a => {
-      const expanded = qaExpandedAreas.has(a.slug);
       const isActive = qaArea === a.slug;
-      const areaSubs = allSubs.filter(s => s.area === a.slug);
-      const hasSubs = areaSubs.length > 0;
-      html += `<div data-toggle-area="${a.slug}" style="padding:8px 10px;font-size:13px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:8px;font-weight:600;background:${isActive && !qaParentId ? '#ede9fe' : 'transparent'};color:${isActive && !qaParentId ? '#7c3aed' : '#111'};">
-        ${a.emoji} ${a.name}${hasSubs ? `<span style="margin-left:auto;font-size:11px;color:#9ca3af;${expanded?'transform:rotate(90deg);':''}transition:transform .15s;">▸</span>` : ''}
-      </div>`;
-      if (expanded) {
-        // "selecionar só área"
-        const rootSel = (isActive && !qaParentId) ? 'background:#ede9fe;color:#7c3aed;' : 'color:#6b7280;font-style:italic;';
-        html += `<div data-pick="${a.slug}|" style="padding:5px 10px 5px 26px;font-size:11px;cursor:pointer;border-radius:6px;${rootSel}">Sem sub — só em ${a.name}</div>`;
-        // árvore
-        function renderChildren(parentId, depth) {
-          areaSubs.filter(s => (s.parent_id || null) === parentId).forEach(s => {
-            const sel = (qaArea === a.slug && qaParentId === s.id) ? 'background:#ede9fe;color:#7c3aed;' : 'color:#4b5563;';
-            const childrenOf = areaSubs.filter(x => (x.parent_id || null) === s.id);
-            const subExpanded = qaExpandedSubs.has(s.id);
-            const indent = 26 + depth * 14;
-            const ICO_EDIT_Q = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 2-9 9-3 1 1-3z"/></svg>';
-            const ICO_DEL_Q = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h10M5 5V3.5A1 1 0 016 2.5h4a1 1 0 011 1V5M5.5 5l.7 8a1 1 0 001 .9h2.6a1 1 0 001-.9l.7-8"/></svg>';
-            const ICO_ADD_Q = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>';
-            const ACT_STYLE = 'opacity:0;border:none;background:none;cursor:pointer;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;font-family:inherit;padding:0;';
-            html += `<div class="qa-sub-row" style="padding:5px 10px 5px ${indent}px;font-size:12px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:2px;${sel}">
-              ${childrenOf.length ? `<button type="button" data-toggle-sub="${s.id}" style="width:18px;height:18px;border:none;background:none;color:#9ca3af;cursor:pointer;font-family:inherit;${subExpanded?'transform:rotate(90deg);':''}transition:transform .15s;font-size:11px;padding:0;">▸</button>` : '<span style="width:18px;display:inline-block;"></span>'}
-              <span data-pick="${a.slug}|${s.id}" style="flex:1;">${escHtmlQA(s.title)}</span>
-              <button type="button" class="qa-sub-action" data-edit-sub="${s.id}" title="Renomear" style="${ACT_STYLE}color:#6b7280;">${ICO_EDIT_Q}</button>
-              <button type="button" class="qa-sub-action" data-del-sub="${s.id}" title="Apagar" style="${ACT_STYLE}color:#dc2626;">${ICO_DEL_Q}</button>
-              <button type="button" class="qa-sub-action" data-add-child="${s.id}|${a.slug}" title="Adicionar sub aqui" style="${ACT_STYLE}color:#7c3aed;">${ICO_ADD_Q}</button>
-            </div>`;
-            if (childrenOf.length && subExpanded) renderChildren(s.id, depth + 1);
-          });
-        }
-        renderChildren(null, 0);
-        html += `<div data-add-root="${a.slug}" style="padding:5px 10px 5px 26px;font-size:11px;color:#7c3aed;cursor:pointer;font-style:italic;border-radius:6px;">+ Novo sub em ${a.name}</div>`;
-        html += '<div style="height:1px;background:#f3f4f6;margin:4px 0;"></div>';
-      }
+      html += `<div data-pick="${a.slug}|" style="padding:8px 10px;font-size:13px;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:8px;font-weight:600;background:${isActive ? '#ede9fe' : 'transparent'};color:${isActive ? '#7c3aed' : '#111'};">${a.emoji} ${a.name}</div>`;
     });
     dd.innerHTML = html;
 
