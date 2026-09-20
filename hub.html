@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:57:45-03:00">
+<meta name="hub-build" content="2026-09-20T20:59:46-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1201,6 +1201,21 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev .bd.ov { color: #fecaca; }
 .calM-ev .bd.dn { color: #bbf7d0; }
 .calM-ev .bd.rc { opacity: .85; }
+.bd.rc { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: .8; display: inline-block; vertical-align: -1px; margin-right: 3px; flex: none; }
+.calMM-card .bd.rc { width: 11px; height: 11px; margin-right: 0; }
+.calMM-card .ti .bd.rc { margin-right: 4px; }
+.tdm-serie { display: none; align-items: center; gap: 5px; margin-left: 8px; padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,.18); color: #fff; font-size: 11px; font-weight: 700; vertical-align: middle; }
+.tdm-serie .bd.rc { width: 11px; height: 11px; margin: 0; opacity: 1; }
+.hub-serie-ov { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 100000; display: none; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity .22s ease; }
+.hub-serie-ov.aberto { opacity: 1; }
+.hub-serie-card { background: var(--card,#fff); color: var(--text,#111); border-radius: 16px; padding: 18px 18px 14px; width: 100%; max-width: 340px; box-shadow: 0 16px 40px rgba(0,0,0,.25); transform: translateY(10px) scale(.98); transition: transform .22s ease; }
+.hub-serie-ov.aberto .hub-serie-card { transform: none; }
+.hub-serie-t { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+.hub-serie-t .bd.rc { width: 16px; height: 16px; margin: 0; opacity: 1; color: var(--accent,#5b4fcf); }
+.hub-serie-b { font-size: 13px; line-height: 1.45; opacity: .8; margin-bottom: 14px; }
+.hub-serie-btn { display: block; width: 100%; border: 1.5px solid var(--accent,#5b4fcf); background: transparent; color: var(--accent,#5b4fcf); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+.hub-serie-btn.prim { background: var(--accent,#5b4fcf); color: #fff; }
+.hub-serie-btn.cancel { border-color: transparent; color: var(--text-faint,#888); font-weight: 600; padding: 8px; }
 .calM-ev .bd.gc { opacity: .75; font-size: 8px; vertical-align: 1px; }
 /* Eventos multi-dia (span): visual de faixa atravessando dias */
 .calM-ev.calM-ev-span {
@@ -4850,6 +4865,86 @@ window.hubTiraEmoji = function(titulo, area) {
   } catch (e) {
     return titulo; // navegador sem \p{...}: deixa como está
   }
+};
+// ── Séries (tarefas recorrentes) ──
+// Instância de evento recorrente do Google tem id "<serie>_YYYYMMDD" ou "<serie>_YYYYMMDDTHHMMSSZ".
+// O hub guarda cada instância como uma linha própria; a "chave da série" é o id sem o sufixo.
+window.HUB_ICO_SERIE = '<svg class="bd rc" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 20v-4h4"/></svg>';
+window.hubSerieKey = function(it) {
+  const gid = (it && it.google_event_id) || '';
+  const m = /^(.+)_(\d{8})(T\d{6}Z)?$/.exec(gid);
+  return m ? m[1] : null;
+};
+// Pergunta "só este" ou "este e os próximos". Devolve Promise<'uma'|'todas'|null>.
+window.hubPerguntaSerie = function(item, verbo) {
+  return new Promise((resolve) => {
+    let ov = document.getElementById('hubSerieOv');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'hubSerieOv';
+      ov.className = 'hub-serie-ov';
+      ov.innerHTML = '<div class="hub-serie-card" role="dialog">'
+        + '<div class="hub-serie-t">' + window.HUB_ICO_SERIE + '<span>Esse compromisso se repete</span></div>'
+        + '<div class="hub-serie-b" id="hubSerieB"></div>'
+        + '<button type="button" class="hub-serie-btn prim" data-esc="uma">Só este</button>'
+        + '<button type="button" class="hub-serie-btn" data-esc="todas">Este e os próximos</button>'
+        + '<button type="button" class="hub-serie-btn cancel" data-esc="">Cancelar</button>'
+        + '</div>';
+      document.body.appendChild(ov);
+    }
+    const titulo = (window.hubTiraEmoji ? window.hubTiraEmoji(item.title, item.area) : item.title) || '';
+    const acao = verbo === 'renomear' ? 'Renomear' : 'Mover';
+    document.getElementById('hubSerieB').textContent = '\u00ab' + titulo + '\u00bb faz parte de uma série. ' + acao + ' só este ou este e os próximos?';
+    const fim = (esc) => {
+      ov.classList.remove('aberto');
+      setTimeout(() => { ov.style.display = 'none'; }, 220);
+      ov.onclick = null;
+      resolve(esc || null);
+    };
+    ov.onclick = (e) => {
+      const b = e.target.closest('[data-esc]');
+      if (b) { e.stopPropagation(); fim(b.dataset.esc); return; }
+      if (e.target === ov) { e.stopPropagation(); fim(null); }
+    };
+    ov.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('aberto')));
+  });
+};
+// Aplica a mesma mudança nas instâncias seguintes da série (no hub) e empurra cada uma pro Google.
+// mud: { title } e/ou { delta (ms), has_time, dur (ms) }
+window.hubAplicarNaSerie = async function(item, fromIso, mud) {
+  const sb = window.sbClient;
+  const key = window.hubSerieKey(item);
+  if (!sb || !key || !fromIso) return;
+  const { data, error } = await sb.from('items')
+    .select('id,title,date_start,date_end,has_time,google_event_id,google_calendar_id')
+    .like('google_event_id', key + '_%')
+    .gt('date_start', fromIso)
+    .neq('id', item.id)
+    .order('date_start');
+  if (error) { window.hubToast && window.hubToast('⚠ Não achei os próximos: ' + error.message, true); return; }
+  const irmas = (data || []).filter(x => window.hubSerieKey(x) === key
+    && (x.google_calendar_id || '') === (item.google_calendar_id || ''));
+  if (!irmas.length) { window.hubToast && window.hubToast('Não há próximos dessa série no hub'); return; }
+  let ok = 0, falhas = 0;
+  for (const x of irmas) {
+    const up = {};
+    if (mud.title != null) up.title = mud.title;
+    if (typeof mud.delta === 'number') {
+      const ns = new Date(new Date(x.date_start).getTime() + mud.delta);
+      up.date_start = ns.toISOString();
+      up.has_time = !!mud.has_time;
+      up.date_end = (mud.has_time && mud.dur > 0) ? new Date(ns.getTime() + mud.dur).toISOString() : null;
+      up.order_manual = null;
+    }
+    const { error: e2 } = await sb.from('items').update(up).eq('id', x.id);
+    if (e2) { falhas++; console.warn('[serie]', x.id, e2.message); continue; }
+    ok++;
+    if (window.syncToGcal) window.syncToGcal('update', x.id);
+  }
+  if (window.hubToast) window.hubToast(falhas
+    ? ('⚠ ' + ok + ' próximos atualizados, ' + falhas + ' falharam')
+    : (ok + (ok === 1 ? ' próximo atualizado' : ' próximos atualizados') + ' ✓'));
 };
 // Calendário do Google de cada área. Explícito: 'pessoal' tem 2 calendários no banco
 // e um deles é o do Santos (só leitura) — o chute automático pode cair no errado.
@@ -10108,7 +10203,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     // Agenda espelhada (só leitura) nunca fica "atrasada": não é tarefa dele pra concluir.
     const isOverdue = !isDone && !itIsSantos && !(window.hubSoLeitura && window.hubSoLeitura(it))
       && (window.isOverdue ? window.isOverdue(it.date_start, it.status) : false);
-    const isRecurring = !!it.recurrence;
+    const serieKey = window.hubSerieKey ? window.hubSerieKey(it) : null;
+    const isRecurring = !!it.recurrence || !!serieKey;
     // Project token: usa nome do project (slug) se conhecido, senão a área. Ex: 'santos' pra Santos F.C.
     const projInfo = it.project_id && projectsMap[it.project_id] ? projectsMap[it.project_id] : null;
     let projectToken = it.area || 'pessoal';
@@ -10128,6 +10224,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       is_past: isPast,
       is_overdue: isOverdue,
       is_recurring: isRecurring,
+      serie_key: serieKey,
       from_gcal: !!it.google_event_id,
       recurrence_done_dates: Array.isArray(it.recurrence_done_dates) ? it.recurrence_done_dates : [],
       // Regra Eduardo: NÃO renderizar como multi-dia. Item aparece só no dia de início como card normal.
@@ -10281,7 +10378,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const klass = `calM-ev event-block proj-${it.project}${it.hr ? ' has-hr' : ''}${it.is_done ? ' is-done' : ''}${it.is_past ? ' is-past' : ''}${it.is_overdue ? ' is-overdue' : ''}${(window.hubSoLeitura && window.hubSoLeitura(it.raw || it)) ? ' so-leitura' : ''}${spanClass}`;
         const badges = [
           it.is_done ? '<span class="bd dn">✓</span>' : '',
-          it.is_recurring ? '<span class="bd rc">♻</span>' : '',
+          it.is_recurring ? window.HUB_ICO_SERIE : '',
           it.from_gcal ? '<span class="bd gc">📆</span>' : '',
         ].join('');
         let overdueBadge = '';
@@ -10535,7 +10632,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const _days = Math.max(1, Math.round((_today - _dStart) / 86400000));
       badge = `<span class="badge-overdue">${_days}d</span>`;
     }
-    return `<div class="${klass}" data-item-id="${it.id}">${it.hr ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}<span class="ti">${escHtml(it.title)}</span>${badge}</div>`;
+    return `<div class="${klass}" data-item-id="${it.id}">${it.hr ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}<span class="ti">${it.is_recurring ? window.HUB_ICO_SERIE : ''}${escHtml(it.title)}</span>${badge}</div>`;
   }
   // Os números do quadradinho: itens de hoje, atrasados (no trecho carregado), contas de hoje, próximo horário.
   function mmStats(today) {
@@ -10937,7 +11034,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         return 0;
       });
       const cards = sorted.length
-        ? sorted.map(it => `<div class="calW-card proj-${it.project}${it.is_past ? ' is-past' : ''}" data-item-id="${it.id}"><div class="ti">${escHtml(it.title)}</div>${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
+        ? sorted.map(it => `<div class="calW-card proj-${it.project}${it.is_past ? ' is-past' : ''}" data-item-id="${it.id}"><div class="ti">${it.is_recurring ? window.HUB_ICO_SERIE : ''}${escHtml(it.title)}</div>${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : ''}</div>`).join('')
         : '<div class="calW-empty">—</div>';
       html += `<div class="calW-day ${isToday?'is-today':''} ${isPast?'is-past':''}" data-date="${ymd(d)}">
         <div class="calW-head ${isToday?'is-today':''}">
@@ -11337,8 +11434,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (item.has_time) {
       newD.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
     }
+    let escopoSerie = 'uma';
+    if (item.raw.google_event_id && window.hubSerieKey && window.hubSerieKey(item.raw) && window.hubPerguntaSerie) {
+      escopoSerie = await window.hubPerguntaSerie(item.raw, 'mover');
+      if (!escopoSerie) { render(); return; }
+    }
     if (sb && session) {
       const deltaMs = newD.getTime() - oldDate.getTime();
+      const prevStartIso = item.raw.date_start;
+      const durSerie = (item.has_time && item.raw.date_end) ? (parseDbDate(item.raw.date_end).getTime() - oldDate.getTime()) : 0;
       const updates = { date_start: newD.toISOString(), order_manual: null };
       if (item.raw.date_end) {
         // date_end acompanha o mesmo deslocamento (senão fica duração negativa)
@@ -11356,6 +11460,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       } else {
         if (window.hubToast) window.hubToast('Movido ✓');
         if (item.raw.google_event_id && window.syncToGcal) window.syncToGcal('update', id);
+        if (escopoSerie === 'todas' && window.hubAplicarNaSerie) {
+          window.hubAplicarNaSerie(item.raw, prevStartIso, { delta: deltaMs, has_time: !!item.has_time, dur: durSerie });
+        }
       }
     }
   }
@@ -11655,7 +11762,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   <div class="tdm" id="tdm" role="document">
     <button class="tdm-close" id="tdmClose" type="button" aria-label="Fechar">✕</button>
     <div class="tdm-head" id="tdmHead">
-      <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button>
+      <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button><span class="tdm-serie" id="tdmSerie"><svg class="bd rc" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 20v-4h4"/></svg><span>repete</span></span>
       <div class="tdm-area-dropdown" id="tdmAreaDropdown" style="display:none"></div>
       <div class="tdm-when-row">
         <button class="tdm-when-date-card" id="tdmWhenDateBtn" type="button">
@@ -12445,6 +12552,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const isBrasi = !!(item.metadata && item.metadata.brasileirao);
     head.className = 'tdm-head area-' + (isBrasi ? 'brasileirao' : (item.area || 'pessoal'));
     elArea.textContent = areaPillLabel(item);
+    const serieEl = document.getElementById('tdmSerie');
+    if (serieEl) serieEl.style.display = (item.recurrence || (window.hubSerieKey && window.hubSerieKey(item))) ? 'inline-flex' : 'none';
 
     // Agenda espelhada: trava o card inteiro em modo consulta.
     const tdmEl = document.getElementById('tdm');
@@ -12598,6 +12707,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       return false;
     }
     const prev = { ds: currentItem.date_start, de: currentItem.date_end, ht: currentItem.has_time };
+    // Instância de série do Google: pergunta se muda só esta ou esta e as próximas.
+    let escopoSerie = 'uma';
+    if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
+      escopoSerie = await window.hubPerguntaSerie(currentItem, 'mover');
+      if (!escopoSerie) { tdmRenderWhen(); return false; }
+    }
     currentItem.date_start = startIso;
     currentItem.date_end = endIso;
     currentItem.has_time = hasTime;
@@ -12615,6 +12730,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     if (window.hubToast) window.hubToast(okMsg || 'Salvo ✓');
     tdmSyncGcal();
+    if (escopoSerie === 'todas' && window.hubAplicarNaSerie && prev.ds) {
+      window.hubAplicarNaSerie(currentItem, prev.ds, {
+        delta: new Date(startIso).getTime() - new Date(prev.ds).getTime(),
+        has_time: hasTime,
+        dur: (hasTime && endIso) ? (new Date(endIso).getTime() - new Date(startIso).getTime()) : 0,
+      });
+    }
     if (window.hubUpdateBadges) window.hubUpdateBadges();
     return true;
   }
@@ -13189,12 +13311,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const val = input.value.trim();
       input.remove(); elTitle.style.display = '';
       if (!save || !val || val === currentItem.title) return;
+      let escopoSerie = 'uma';
+      if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
+        escopoSerie = await window.hubPerguntaSerie(currentItem, 'renomear');
+        if (!escopoSerie) return;
+      }
       const { error } = await sb.from('items').update({ title: val }).eq('id', currentItem.id);
       if (error) { window.hubToast && window.hubToast('⚠ Não salvou: ' + error.message, true); return; }
       currentItem.title = val;
       elTitle.textContent = val;
       window.hubToast && window.hubToast('Renomeado ✓');
       if (currentItem.google_event_id && window.syncToGcal) window.syncToGcal('update', currentItem.id);
+      if (escopoSerie === 'todas' && window.hubAplicarNaSerie) window.hubAplicarNaSerie(currentItem, currentItem.date_start, { title: val });
     };
     input.addEventListener('keydown', e => {
       e.stopPropagation();
