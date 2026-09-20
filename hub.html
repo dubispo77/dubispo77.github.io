@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:44:36-03:00">
+<meta name="hub-build" content="2026-09-20T20:46:24-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1310,13 +1310,17 @@ table.data-table tr:hover td { background: var(--bg); }
    demais dias como cabeçalhos que abrem/fecham, e cada item numa linha só de 30px.
    Substitui a A2 v4 (cards grandes), que ele achou pesada demais na tela do celular. */
 .calMM-wrap { display: flex; flex-direction: column; }
-.calMM-strip { display: flex; gap: 3px; padding: 4px 6px 6px; background: var(--card); border-bottom: 1px solid var(--border-soft); flex: none; }
-.calMM-strip .d { flex: 1; text-align: center; padding: 3px 0; border-radius: 8px; font-size: 9px; color: var(--text-faint); line-height: 1.1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.calMM-strip .d b { display: block; font-size: 13px; color: var(--text); font-weight: 700; margin-top: 1px; }
+.calMM-strip { display: flex; gap: 3px; padding: 4px 6px 6px; background: var(--card); border-bottom: 1px solid var(--border-soft); flex: none; position: relative; }
+/* O roxo do dia marcado é uma pílula solta que desliza (20/09): antes o destaque
+   pulava de célula em célula a cada cabeçalho que passava, e parecia um piscar. */
+.calMM-strip-sel { position: absolute; top: 4px; bottom: 6px; left: 0; width: 40px; background: #7c3aed; border-radius: 8px; z-index: 0; transition: transform .32s cubic-bezier(.2,.8,.3,1), width .32s cubic-bezier(.2,.8,.3,1); will-change: transform; }
+.calMM-strip-sel.sem-anim { transition: none; }
+.calMM-strip .d { flex: 1; text-align: center; padding: 3px 0; border-radius: 8px; font-size: 9px; color: var(--text-faint); line-height: 1.1; cursor: pointer; -webkit-tap-highlight-color: transparent; position: relative; z-index: 1; transition: color .25s; }
+.calMM-strip .d b { display: block; font-size: 13px; color: var(--text); font-weight: 700; margin-top: 1px; transition: color .25s; }
 .calMM-strip .d .dots { display: flex; justify-content: center; gap: 2px; margin-top: 2px; height: 3px; }
 .calMM-strip .d .dots i { width: 3px; height: 3px; border-radius: 50%; display: block; }
 .calMM-strip .d.tdy b { color: #7c3aed; }
-.calMM-strip .d.on { background: #7c3aed; color: #fff; }
+.calMM-strip .d.on { background: transparent; color: #fff; }
 .calMM-strip .d.on b { color: #fff; }
 .calMM-strip .d.on .dots i { background: #fff !important; }
 .calMM-scroll { overflow-y: auto; overflow-x: hidden; padding: 0 0 24px; background: var(--card); max-height: calc(100dvh - 190px); position: relative;
@@ -10593,7 +10597,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const dow = anchor.getDay(); const off = dow === 0 ? 6 : dow - 1;
     const mon = new Date(anchor); mon.setHours(0,0,0,0); mon.setDate(anchor.getDate() - off);
     const L = ['S','T','Q','Q','S','S','D'];
-    let h = '';
+    let h = '<div class="calMM-strip-sel sem-anim"></div>';
     for (let i = 0; i < 7; i++) {
       const d = new Date(mon); d.setDate(mon.getDate() + i);
       const k = ymd(d);
@@ -10602,12 +10606,44 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     return h;
   }
+  function mmSemanaKey(dt) {
+    const dow = dt.getDay(); const off = dow === 0 ? 6 : dow - 1;
+    const mon = new Date(dt); mon.setHours(0,0,0,0); mon.setDate(dt.getDate() - off);
+    return ymd(mon);
+  }
+  function mmPosicionaPilula(strip, semAnim) {
+    const pill = strip.querySelector('.calMM-strip-sel');
+    const on = strip.querySelector('.d.on');
+    if (!pill || !on) return;
+    pill.classList.toggle('sem-anim', !!semAnim);
+    pill.style.width = on.offsetWidth + 'px';
+    pill.style.transform = 'translateX(' + on.offsetLeft + 'px)';
+    if (semAnim) requestAnimationFrame(() => pill.classList.remove('sem-anim'));
+  }
   function mmUpdateStrip(dayKey) {
     const strip = container.querySelector('.calMM-strip');
     if (!strip || !dayKey || strip.dataset.sel === dayKey) return;
     const [y, m, d] = dayKey.split('-').map(Number);
-    strip.innerHTML = mmStripHtml(new Date(y, m - 1, d), dayKey);
+    const dt = new Date(y, m - 1, d);
+    const semana = mmSemanaKey(dt);
+    if (strip.dataset.semana !== semana) {
+      // Semana nova: redesenha e coloca a pílula sem animar (senão ela atravessa a tela).
+      strip.innerHTML = mmStripHtml(dt, dayKey);
+      strip.dataset.semana = semana;
+      strip.dataset.sel = dayKey;
+      mmPosicionaPilula(strip, true);
+      return;
+    }
+    // Mesma semana: só troca o marcado e deixa a pílula deslizar.
+    strip.querySelectorAll('.d').forEach(el => el.classList.toggle('on', el.dataset.day === dayKey));
     strip.dataset.sel = dayKey;
+    mmPosicionaPilula(strip, false);
+  }
+  // Ao rolar, a faixa só muda depois de um respiro (senão pisca a cada cabeçalho).
+  let _mmStripTimer = null;
+  function mmUpdateStripSuave(dayKey) {
+    clearTimeout(_mmStripTimer);
+    _mmStripTimer = setTimeout(() => mmUpdateStrip(dayKey), 220);
   }
   // A lista ocupa tudo entre a faixa e a barra de baixo (a sidebar, no celular).
   function mmFit() {
@@ -10619,7 +10655,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     sc.style.height = Math.max(200, window.innerHeight - top - barH) + 'px';
     sc.style.maxHeight = 'none';
   }
-  window.addEventListener('resize', () => { if (isMobile()) mmFit(); });
+  window.addEventListener('resize', () => { if (isMobile()) { mmFit(); const st = container.querySelector('.calMM-strip'); if (st) mmPosicionaPilula(st, true); } });
   function mmScrollToDay(key, suave) {
     const sc = container.querySelector('.calMM-scroll');
     const sec = container.querySelector(`.calMM-day-section[data-day="${key}"]`);
@@ -10689,7 +10725,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const m = parseInt(topVisible.dataset.month, 10);
         updateLabelFromMonth(y, m);
         cursor = new Date(y, m, 1);
-        if (topVisible.dataset.day) mmUpdateStrip(topVisible.dataset.day);
+        if (topVisible.dataset.day) mmUpdateStripSuave(topVisible.dataset.day);
       }
     }, { root: scroller, rootMargin: '-10px 0px -70% 0px', threshold: 0 });
     container.querySelectorAll('.calMM-day-header').forEach(el => _mobileHeaderObserver.observe(el));
