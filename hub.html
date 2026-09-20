@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:09:18-03:00">
+<meta name="hub-build" content="2026-09-20T20:09:57-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3199,6 +3199,7 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .plan-detail table.pd-tb{ width:100%; border-collapse:collapse; font-size:12.5px; }
 #finapp .plan-detail table.pd-tb th{ text-align:left; font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; color:#a89eb8; padding:6px 8px; border-bottom:1px solid #ece9f3; font-weight:700; }
 #finapp .plan-detail table.pd-tb td{ padding:7px 8px; border-bottom:1px solid #f1eff6; vertical-align:middle; }
+#finapp .plan-detail table.pd-tb .acc-badge{ white-space:nowrap; display:inline-flex; align-items:center; }
 #finapp .plan-detail table.pd-tb tr:last-child td{ border-bottom:0; }
 #finapp .plan-detail .pd-tot td{ font-weight:700; border-top:1px solid #e4e0ee; background:#f5f3fa; }
 #finapp .plan-detail .pd-chips{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
@@ -14685,7 +14686,7 @@ function planDetailRow(slug, m) {
     const pagas = tx.filter(t => t.st === 'paid' || t.st === 'half');
     const prevs = tx.filter(t => !(t.st === 'paid' || t.st === 'half'));
     const soma = a => a.reduce((s2, t) => s2 + t.val, 0);
-    html += '<table class="pd-tb"><tr><th style="width:26px"></th><th style="width:70px">Data</th><th>Descrição</th><th style="width:60px">Parcela</th><th style="width:150px">Conta</th><th style="text-align:right;width:120px">Valor</th></tr>'
+    html += '<table class="pd-tb"><tr><th style="width:26px"></th><th style="width:70px">Data</th><th>Descrição</th><th style="width:60px">Parcela</th><th style="width:190px">Conta</th><th style="text-align:right;width:120px">Valor</th></tr>'
       + tx.map(t => '<tr>'
         + '<td>' + statusIcon(t.st) + '</td>'
         + '<td style="white-space:nowrap;color:var(--muted);font-weight:600">' + dayLabel(effDate(t)) + '</td>'
