@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:46:24-03:00">
+<meta name="hub-build" content="2026-09-20T20:46:57-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1970,6 +1970,8 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .cf-inv-vazio { font-size: 11.5px; color: var(--muted); font-style: italic; }
 #finapp .cf-inv-rodape { display: flex; gap: 8px; align-items: center; padding: 0 12px 10px; flex-wrap: wrap; }
 #finapp .cf-inv-fontes { color: var(--muted); font-size: 10.5px; margin-left: auto; }
+#finapp .cf-inv-cred { float: right; text-transform: none; letter-spacing: 0; font-size: 10px; font-weight: 700; color: #0f766e; background: #e0f5f2; border-radius: 999px; padding: 1px 7px; }
+#finapp .cf-inv-cred.low { color: #b45309; background: #fdf1dc; }
 #finapp .cf-inv-link { font-size: 11.5px; font-weight: 700; color: #7c3aed; text-decoration: none; border: 1px solid #ddd6fe; border-radius: 999px; padding: 3px 10px; }
 #finapp .cf-inv-aviso { padding: 0 12px 10px; font-size: 11px; color: #92400e; }
 #finapp .cf-inv-erro { padding: 10px 12px; font-size: 12px; color: #b3372e; }
@@ -16250,7 +16252,7 @@ function cfInvestBox(r) {
     + card('📜 No seu histórico', hist)
     + card('✉️ Gmail · ±3 dias', gmail)
     + card('📅 Agenda do dia', agenda)
-    + card('🌐 Na web', web)
+    + card('🌐 Na web' + (inv.web_creditos ? ' <span class="cf-inv-cred' + (inv.web_creditos.restantes < 200 ? ' low' : '') + '" title="buscas do Google (Serper) que ainda restam no plano grátis">' + Number(inv.web_creditos.restantes).toLocaleString('pt-BR') + ' buscas restantes</span>' : ''), web)
     + '</div>'
     + '<div class="cf-inv-rodape">' + links + '<span class="cf-inv-fontes">' + cfEsc((inv.fontes || []).join(' · ') || '—') + (inv.cache ? ' · guardado' : '') + '</span></div>'
     + avisos + '</details>';
