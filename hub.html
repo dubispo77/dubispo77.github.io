@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:23:36-03:00">
+<meta name="hub-build" content="2026-09-20T20:23:55-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15808,6 +15808,7 @@ async function loadReview() { // nome mantido — é o ponto de entrada chamado 
         parcela: r.parcela, flag: r.flag, ev, tx_id: r.tx_id, pd: r.pd || '',
         account_id: r.account_id, bill,
         vinculo: r.vinculo || null, evCalc: null,
+        _inv: (ev && ev.investigacao) || null, // pistas já pesquisadas ficam guardadas na linha
       };
       if ((!ev || ev.previsto == null) && r.account_id && bill) o.evCalc = calcMelhor(r.account_id, bill, valor);
       return o;
@@ -15824,6 +15825,7 @@ async function loadReview() { // nome mantido — é o ponto de entrada chamado 
         parcela: null, flag: (it.raw && it.raw.flag) || null, ev: (it.raw && it.raw.evidencia) || null, tx_id: null, pd: it.date, it,
         account_id: it.account_id, bill: it.date.slice(0, 7), vinculo: null,
         evCalc: calcMelhor(it.account_id, it.date.slice(0, 7), valor),
+        _inv: (it.raw && it.raw.investigacao) || null,
       };
     });
     const lista = cards.concat(contas).sort((a, b) => String(a.pd).localeCompare(String(b.pd)) || a.ordem - b.ordem);
