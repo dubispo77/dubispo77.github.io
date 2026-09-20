@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:11:23-03:00">
+<meta name="hub-build" content="2026-09-20T20:11:37-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1930,7 +1930,7 @@ table.data-table tr:hover td { background: var(--bg); }
   #finapp .inbox-ok { background: #16a34a; color: white; border: none; border-radius: 7px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
   #finapp .inbox-skip { background: white; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 7px; padding: 7px 10px; font-size: 12px; cursor: pointer; margin-left: 6px; }
   #finapp .coach-inbox-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; align-items: stretch; }
-  #finapp .coach-inbox-row.has-inbox { grid-template-columns: 1fr 1fr; }
+  #finapp .coach-inbox-row.has-inbox { grid-template-columns: 1fr; } /* 20/09: sem o bloco de insights, a linha é só a caixa */
   #finapp .coach-inbox-row.has-inbox .coach { order: 2; }
   #finapp .coach-inbox-row.has-inbox #finInbox { order: 1; }
   #finapp .coach-inbox-row .coach { margin-bottom: 0; }
@@ -3362,23 +3362,8 @@ table.data-table tr:hover td { background: var(--bg); }
   <div class="accounts-strip" id="accountsStrip"><!-- cards ao vivo via JS --></div>
 
   <div class="coach-inbox-row">
-  <!-- COACH (colapsado) -->
-  <details class="coach">
-    <summary>
-      <div class="coach-summary-left">
-        <span class="coach-title">💡 Insights diários</span>
-        <span class="coach-counter">6 insights · atualizado hoje 06:00</span>
-      </div>
-    </summary>
-    <div class="insights-grid">
-      <div class="insight green"><div class="insight-tag">Insight</div><div class="insight-body">Você está gastando <b>33% menos com Lazer</b> esse mês. Mantém o ritmo!</div></div>
-      <div class="insight orange"><div class="insight-tag">Atenção</div><div class="insight-body">Fatura Bradesco vence em <b>22 dias</b> com R$ 20.587. <b>Falta R$ 6k</b> — programe transferência da Caixinha?</div></div>
-      <div class="insight blue"><div class="insight-tag">Padrão</div><div class="insight-body">14 corridas Uber em maio (R$ 252). <b>Considera Uber One</b>? — economiza ~R$ 50/mês</div></div>
-      <div class="insight purple"><div class="insight-tag">Meta</div><div class="insight-body">Você está <b>33% das receitas</b> em sobra esse mês. Excelente!</div></div>
-      <div class="insight red"><div class="insight-tag">Alerta</div><div class="insight-body">3 contas em <b>Coisas para casa</b> excederam o planejado em 427%</div></div>
-      <div class="insight green"><div class="insight-tag">Tendência</div><div class="insight-body">Despesas <b>caíram 9%</b> vs Abril. Maior queda em Saúde (-12%)</div></div>
-    </div>
-  </details>
+  <!-- INSIGHTS DIÁRIOS: removido do ar em 20/09 a pedido do Eduardo ("tira esse bloco por enquanto").
+       Era conteúdo fixo de mock (Lazer -33%, Uber One…), nada vinha do banco. Markup guardado em hub_backup_2026-09-20_*.html. -->
   <div id="finInbox" style="display:none"></div>
 <div id="finReview" style="display:none"></div>
   </div>
