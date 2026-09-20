@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:23:55-03:00">
+<meta name="hub-build" content="2026-09-20T20:26:41-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1803,10 +1803,61 @@ table.data-table tr:hover td { background: var(--bg); }
 .tdm-btn.tdm-btn-danger:hover { background: #fee2e2; }
 
 @media (max-width: 600px) {
-  .tdm { width: 100%; max-width: 100%; max-height: calc(100vh - 30px); border-radius: 12px 12px 0 0; align-self: flex-end; transform: translateY(20px); }
+  .tdm { width: 100%; max-width: 100%; max-height: calc(100dvh - 20px); border-radius: 12px 12px 0 0; align-self: flex-end; transform: translateY(20px); }
   .tdm-overlay.open .tdm { transform: translateY(0); }
   .tdm-overlay { align-items: flex-end; }
   .tdm-row { grid-template-columns: 1fr; }
+
+  /* ── Card de detalhe compacto no celular (20/09/2026) ──
+     Mesmo desenho, metade da altura: cabeçalho numa faixa baixa, data/hora/duração
+     numa linha só, Local e "Sair de casa" apertados, campos com menos ar. */
+  .tdm-head { padding: 10px 14px 10px !important; }
+  .tdm-area-pill { font-size: 11px; padding: 3px 9px; }
+  .tdm-when-row { gap: 10px; margin-top: 8px; }
+  .tdm-when-date-card { width: 60px; border-radius: 8px; }
+  .tdm-wdc-month { font-size: 9px; padding: 3px 0 1px; }
+  .tdm-wdc-day { font-size: 22px; padding: 2px 0; }
+  .tdm-wdc-dow { font-size: 9px; padding: 0 0 4px; }
+  .tdm-when-time-col { gap: 5px; }
+  .tdm-when-time-btn { font-size: 24px; gap: 5px; padding: 0 4px 0 0; }
+  .tdm-when-time-btn::after { font-size: 14px; }
+  .tdm-when-time-label { font-size: 24px; }
+  .tdm-when-time-col .tdm-when-time-label.is-allday { font-size: 18px; }
+  .tdm-allday { font-size: 10.5px; padding: 3px 9px 3px 4px; gap: 6px; }
+  .tdm-allday .sw { width: 26px; height: 15px; }
+  .tdm-allday .sw::after { width: 11px; height: 11px; }
+  .tdm-allday.on .sw::after { transform: translateX(11px); }
+  .tdm-duration { top: 10px; right: 14px; flex-direction: row; align-items: center; gap: 6px; }
+  .tdm-duration-label { font-size: 9.5px; }
+  .tdm-duration-value { font-size: 13px; padding: 4px 9px; min-width: 0; border-radius: 6px; }
+  .tdm-title-wrap { padding: 9px 14px; }
+  .tdm-title { font-size: 17px; line-height: 1.25; }
+  .tdm-title-input { font-size: 17px; }
+  .tdm-local-row { padding: 8px 14px; gap: 8px; }
+  .tdm-local-section-label { font-size: 9px; }
+  .tdm-local-name { font-size: 13.5px; margin-top: 2px; }
+  .tdm-local-addr { font-size: 11.5px; margin-top: 1px; }
+  .tdm-local-actions { gap: 5px; }
+  .tdm-local-btn { padding: 6px 10px; font-size: 11.5px; gap: 4px; }
+  .tdm-local-btn img, .tdm-local-btn svg { width: 14px; height: 14px; }
+  #tdmLeaveSection { padding: 0 14px 4px !important; }
+  .tdm-leave-box { padding: 8px 10px; margin-top: 6px; border-radius: 10px; }
+  .tdm-leave-header { margin-bottom: 6px; }
+  .tdm-leave-label { font-size: 10.5px; }
+  .tdm-leave-info { font-size: 9px; }
+  .tdm-leave-grid { gap: 5px; }
+  .tdm-leave-mode { padding: 6px 4px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .tdm-leave-mode-emoji { font-size: 15px; }
+  .tdm-leave-mode-time { font-size: 15px; margin-top: 0; }
+  .tdm-leave-mode-travel { font-size: 10.5px; margin-top: 0; }
+  .tdm-body { padding: 8px 14px 10px; }
+  .tdm-field { margin-bottom: 8px; }
+  .tdm-field-label { font-size: 10px; margin-bottom: 3px; }
+  .tdm-field-value { font-size: 12.5px; padding: 6px 9px; min-height: 30px; line-height: 1.4; }
+  .tdm-add-chips { padding-top: 8px; margin-top: 8px; gap: 5px; }
+  .tdm-add-chip { padding: 5px 10px; font-size: 11px; }
+  .tdm-foot { padding: 8px 14px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .tdm-btn { padding: 7px 14px; font-size: 12px; }
 }
 
 /* ── Roadmap mobile (Item 7) ── */
