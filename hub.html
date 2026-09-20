@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:48:55-03:00">
+<meta name="hub-build" content="2026-09-20T20:53:10-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -16015,7 +16015,7 @@ async function loadReview() { // nome mantido — é o ponto de entrada chamado 
       };
     });
     const lista = cards.concat(contas).sort((a, b) => String(a.pd).localeCompare(String(b.pd)) || a.ordem - b.ordem);
-    const novoJson = JSON.stringify(lista.map(r => [r.id, r.desc, r.cat, r.flag]));
+    const novoJson = JSON.stringify(lista.map(r => [r.id, r.desc, r.cat, r.flag, r._inv && r._inv.gerado_em])); // pesquisa nova no banco também re-renderiza
     if (novoJson !== window.__revJson) {
       window.__revJson = novoJson;
       CONF = lista;
