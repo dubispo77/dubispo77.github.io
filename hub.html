@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:26:41-03:00">
+<meta name="hub-build" content="2026-09-20T20:29:20-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1543,6 +1543,13 @@ table.data-table tr:hover td { background: var(--bg); }
   z-index: 5;
 }
 .tdm-duration-label { font-size: 10px; opacity: 0.85; font-weight: 600; color: #fff; text-align: center; }
+/* Liga/desliga da duração (20/09): desligado = sem hora de fim (date_end nulo) */
+.tdm-duration-sw { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; color: #fff; -webkit-tap-highlight-color: transparent; }
+.tdm-duration-sw .sw { width: 26px; height: 15px; border-radius: 999px; background: rgba(0,0,0,0.28); position: relative; transition: background .18s; flex-shrink: 0; }
+.tdm-duration-sw .sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: #fff; transition: transform .18s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.tdm-duration.on .tdm-duration-sw .sw { background: #16a34a; }
+.tdm-duration.on .tdm-duration-sw .sw::after { transform: translateX(11px); }
+.tdm-duration.off .tdm-duration-value { display: none; }
 .tdm-duration-value {
   background: rgba(255,255,255,0.18); color: #fff;
   padding: 8px 14px; border-radius: 8px;
@@ -11576,7 +11583,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         </div>
       </div>
       <div class="tdm-duration" id="tdmDurationWrap" style="display:none">
-        <div class="tdm-duration-label">Duração</div>
+        <button class="tdm-duration-sw" id="tdmDurSw" type="button" title="Ligar/desligar duração"><span class="sw"></span><span class="tdm-duration-label">Duração</span></button>
         <button class="tdm-duration-value" id="tdmDuration" type="button">—</button>
         <div class="tdm-duration-dropdown" id="tdmDurationDropdown" style="display:none"></div>
       </div>
@@ -12453,14 +12460,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     // Duração (só faz sentido com hora)
     if (E.durWrap && E.durBtn) {
-      if (item.has_time && item.date_end) {
-        const mins = Math.round((new Date(item.date_end) - ds) / 60000);
-        if (mins > 0) {
-          E.durBtn.textContent = fmtMinutes(mins) + ' ▾';
-          E.durWrap.style.display = 'flex';
-        } else {
-          E.durWrap.style.display = 'none';
-        }
+      // Com hora: o bloco Duração aparece sempre, com liga/desliga.
+      // Ligado = tem hora de fim (date_end); desligado = só a hora de início.
+      if (item.has_time) {
+        const mins = item.date_end ? Math.round((new Date(item.date_end) - ds) / 60000) : 0;
+        const ligado = mins > 0;
+        E.durBtn.textContent = ligado ? fmtMinutes(mins) + ' ▾' : '—';
+        E.durWrap.classList.toggle('on', ligado);
+        E.durWrap.classList.toggle('off', !ligado);
+        E.durWrap.style.display = 'flex';
       } else {
         E.durWrap.style.display = 'none';
       }
@@ -12631,6 +12639,35 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   // ── Duração dropdown ──
   const DURATIONS = [15,30,45,60,90,120,150,180,240,300,360];
+  document.getElementById('tdmDurSw').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (!currentItem || !currentItem.date_start || !currentItem.has_time) return;
+    if (window.hubSoLeitura && window.hubSoLeitura(currentItem)) return;
+    const wrap = document.getElementById('tdmDurationWrap');
+    const ligado = wrap.classList.contains('on');
+    const ds = new Date(currentItem.date_start);
+    let patch;
+    if (ligado) {
+      // Desliga: some a hora de fim. Guarda a última duração pra religar no mesmo valor.
+      const mins = currentItem.date_end ? Math.round((new Date(currentItem.date_end) - ds) / 60000) : 60;
+      currentItem._ultimaDuracao = mins > 0 ? mins : 60;
+      const meta = Object.assign({}, currentItem.metadata || {}); delete meta.mostrar_duracao;
+      currentItem.date_end = null; currentItem.metadata = meta;
+      patch = { date_end: null, metadata: meta };
+    } else {
+      const mins = currentItem._ultimaDuracao || 60;
+      const newEnd = new Date(ds.getTime() + mins * 60000).toISOString();
+      const meta = Object.assign({}, currentItem.metadata || {}, { mostrar_duracao: true });
+      currentItem.date_end = newEnd; currentItem.metadata = meta;
+      patch = { date_end: newEnd, metadata: meta };
+    }
+    tdmRenderWhen(currentItem);
+    const { error } = await sb.from('items').update(patch).eq('id', currentItem.id);
+    if (error) { if (window.hubToast) window.hubToast('⚠ Não salvou a duração: ' + error.message, true); return; }
+    if (window.hubToast) window.hubToast(ligado ? 'Duração desligada ✓' : 'Duração ligada ✓');
+    tdmSyncGcal();
+    if (window.hubUpdateBadges) window.hubUpdateBadges();
+  });
   document.getElementById('tdmDuration').addEventListener('click', async (e) => {
     e.stopPropagation();
     const dd = document.getElementById('tdmDurationDropdown');
