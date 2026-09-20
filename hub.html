@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:29:20-03:00">
+<meta name="hub-build" content="2026-09-20T20:29:30-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1926,23 +1926,39 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .cf-btn:disabled { opacity: .5; cursor: default; }
 #finapp .cf-dossie td { background: #faf9fc; }
 #finapp .cf-dbox { padding: 10px 12px; font-size: 12.5px; }
-#finapp .cf-inv { margin-top: 10px; border: 1px solid #e4dff0; border-radius: 10px; background: #fff; padding: 10px 12px; }
-#finapp .cf-inv-resumo { font-size: 13px; font-weight: 650; margin-bottom: 8px; }
-#finapp .cf-inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
-#finapp .cf-inv-sec { min-width: 0; }
-#finapp .cf-inv-tit { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: #a89eb8; font-weight: 800; margin-bottom: 4px; }
-#finapp .cf-inv-kv { display: flex; gap: 8px; font-size: 12px; padding: 2px 0; border-bottom: 1px dashed #f1eff6; }
-#finapp .cf-inv-kv span { color: var(--muted); min-width: 110px; flex: 0 0 auto; }
-#finapp .cf-inv-kv b { font-weight: 650; }
+#finapp details.cf-inv { margin-top: 10px; border: 1px solid #e4dff0; border-radius: 10px; background: #fff; padding: 0; }
+#finapp details.cf-inv > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 12.5px; }
+#finapp details.cf-inv > summary::-webkit-details-marker { display: none; }
+#finapp details.cf-inv > summary::after { content: '▾'; margin-left: 2px; color: #a89eb8; transition: transform .15s; }
+#finapp details.cf-inv:not([open]) > summary::after { transform: rotate(-90deg); }
+#finapp .cf-inv-lupa { font-size: 13px; }
+#finapp .cf-inv-resumo { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#finapp .cf-inv-cont { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+#finapp .cf-inv-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 0.8fr; gap: 10px; padding: 0 12px 10px; }
+#finapp .cf-inv-card { background: #faf9fc; border: 1px solid #efedf5; border-radius: 9px; padding: 9px 11px; min-width: 0; font-size: 12px; }
+#finapp .cf-inv-tit { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: #a89eb8; font-weight: 800; margin-bottom: 6px; }
+#finapp .cf-inv-nome { font-weight: 800; font-size: 13.5px; }
+#finapp .cf-inv-sub { color: var(--muted); font-size: 11.5px; }
+#finapp .cf-inv-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 8px; }
+#finapp .cf-inv-tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #eeebf5; color: #5b5470; white-space: nowrap; }
+#finapp .cf-inv-tag.ok { background: #e0f5f2; color: #0f766e; } #finapp .cf-inv-tag.warn { background: #fdf1dc; color: #b45309; }
+#finapp .cf-inv-tag.mini { padding: 1px 6px; font-size: 9.5px; margin-left: 4px; }
+#finapp .cf-inv-lin { display: flex; gap: 8px; padding: 3px 0; border-top: 1px dashed #ece9f3; line-height: 1.35; }
+#finapp .cf-inv-lin span { color: var(--muted); flex: 0 0 48px; font-size: 11px; padding-top: 1px; }
 #finapp .cf-inv-tb { width: 100%; border-collapse: collapse; font-size: 12px; }
-#finapp .cf-inv-tb td { padding: 3px 6px 3px 0; border-bottom: 1px dashed #f1eff6; vertical-align: top; }
-#finapp .cf-inv-mail { font-size: 12px; padding: 3px 0; border-bottom: 1px dashed #f1eff6; }
-#finapp .cf-inv-vazio { font-size: 12px; color: var(--muted); font-style: italic; }
-#finapp .cf-inv-rodape { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+#finapp .cf-inv-tb td { padding: 3px 4px 3px 0; border-bottom: 1px dashed #ece9f3; vertical-align: top; }
+#finapp .cf-inv-tb td.d { white-space: nowrap; color: var(--muted); font-size: 11px; } #finapp .cf-inv-tb td.v { text-align: right; white-space: nowrap; font-weight: 700; } #finapp .cf-inv-tb .c { color: var(--muted); }
+#finapp .cf-inv-item { padding: 4px 0; border-top: 1px dashed #ece9f3; }
+#finapp .cf-inv-item .t { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#finapp .cf-inv-item .m { color: var(--muted); font-size: 11px; }
+#finapp .cf-inv-vazio { font-size: 11.5px; color: var(--muted); font-style: italic; }
+#finapp .cf-inv-rodape { display: flex; gap: 8px; align-items: center; padding: 0 12px 10px; flex-wrap: wrap; }
+#finapp .cf-inv-fontes { color: var(--muted); font-size: 10.5px; margin-left: auto; }
 #finapp .cf-inv-link { font-size: 11.5px; font-weight: 700; color: #7c3aed; text-decoration: none; border: 1px solid #ddd6fe; border-radius: 999px; padding: 3px 10px; }
-#finapp .cf-inv-aviso { margin-top: 6px; font-size: 11px; color: #92400e; }
-#finapp .cf-inv-erro { font-size: 12px; color: #b3372e; }
-@media (max-width: 800px) { #finapp .cf-inv-grid { grid-template-columns: 1fr; } }
+#finapp .cf-inv-aviso { padding: 0 12px 10px; font-size: 11px; color: #92400e; }
+#finapp .cf-inv-erro { padding: 10px 12px; font-size: 12px; color: #b3372e; }
+@media (max-width: 1100px) { #finapp .cf-inv-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { #finapp .cf-inv-grid { grid-template-columns: 1fr; } }
 #finapp .cf-cands { width: auto; min-width: 340px; font-size: 11.5px; }
 #finapp .cf-cands th { font-size: 10px; }
 #finapp .cf-cands td { padding: 5px 10px; }
@@ -16076,40 +16092,76 @@ function cfInvestBox(r) {
   const inv = r._inv;
   if (!inv && !r._invErro) return '';
   if (r._invErro) return '<div class="cf-inv"><div class="cf-inv-erro">⚠ ' + cfEsc(r._invErro) + '</div></div>';
-  const sec = (tit, corpo) => corpo ? '<div class="cf-inv-sec"><div class="cf-inv-tit">' + tit + '</div>' + corpo + '</div>' : '';
-  const kv = (k, v) => v ? '<div class="cf-inv-kv"><span>' + k + '</span><b>' + cfEsc(v) + '</b></div>' : '';
   const emp = inv.empresa || null, cp = inv.contraparte || null;
-  let empresa = '';
+  const tag = (t, cls) => '<span class="cf-inv-tag' + (cls ? ' ' + cls : '') + '">' + cfEsc(t) + '</span>';
+  const dataBR = d => d ? String(d).slice(0, 10).split('-').reverse().join('/') : '';
+  const cnpjFmt = c => String(c || '').replace(/\D/g, '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') || String(c || '');
+  const telFmt = t => String(t || '').replace(/\D/g, '').replace(/^(\d{2})(\d{4,5})(\d{4})$/, '($1) $2-$3') || String(t || '');
+  const curta = a => String(a || '').replace(/\s+não especificad[oa]s? anteriormente/gi, '').replace(/,?\s*sem operador/gi, '').replace(/^Atividades de /i, '').trim();
+
+  // ---- título curto pro resumo (o summary do <details>) ----
+  const nome = (emp && (emp.nome_fantasia || emp.razao_social)) || (cp && cp.nome) || inv.nome_base || '';
+  const ativ = emp ? curta(emp.atividade) : '';
+  const nHist = (inv.historico || []).length, nMail = (inv.gmail || []).length, nAg = (inv.agenda || []).length;
+  const resumoCurto = [nome, ativ ? ativ.charAt(0).toUpperCase() + ativ.slice(1).toLowerCase() : '', emp && emp.cidade ? emp.cidade.split('/')[0].replace(/\b\w+/g, w => w.charAt(0) + w.slice(1).toLowerCase()) : '']
+    .filter(Boolean).join(' · ');
+  const contagem = [nHist ? nHist + '× no histórico' : '1ª vez no histórico', nMail ? nMail + ' e-mail' + (nMail > 1 ? 's' : '') : '', nAg ? nAg + ' evento' + (nAg > 1 ? 's' : '') + ' na agenda' : ''].filter(Boolean).join(' · ');
+
+  // ---- card 1: quem recebeu ----
+  let quem = '';
   if (emp) {
-    empresa = kv('Razão social', emp.razao_social) + kv('Nome fantasia', emp.nome_fantasia)
-      + kv('Atividade', emp.atividade)
-      + (emp.atividades_secundarias && emp.atividades_secundarias.length ? kv('Também faz', emp.atividades_secundarias.join(' · ')) : '')
-      + kv('Onde', [emp.endereco, emp.cidade].filter(Boolean).join(' · '))
-      + kv('Porte / situação', [emp.porte, emp.situacao].filter(Boolean).join(' · ') + (emp.abertura ? ' · aberta em ' + emp.abertura.split('-').reverse().join('/') : ''))
-      + kv('Telefone', emp.telefone) + kv('Sócio(s)', (emp.socios || []).join(', '));
+    quem = '<div class="cf-inv-nome">' + cfEsc(emp.nome_fantasia || emp.razao_social) + '</div>'
+      + (emp.nome_fantasia && emp.razao_social !== emp.nome_fantasia ? '<div class="cf-inv-sub">' + cfEsc(emp.razao_social) + '</div>' : '')
+      + '<div class="cf-inv-tags">'
+      + (cp && cp.documento ? tag('CNPJ ' + cnpjFmt(cp.documento)) : '')
+      + (cp && cp.banco ? tag(cp.banco) : '') + (cp && cp.metodo ? tag(cp.metodo) : '')
+      + (emp.porte ? tag(emp.porte.toLowerCase()) : '') + (emp.situacao ? tag(emp.situacao.toLowerCase(), emp.situacao === 'ATIVA' ? 'ok' : 'warn') : '')
+      + (emp.abertura ? tag('aberta em ' + dataBR(emp.abertura)) : '')
+      + '</div>'
+      + '<div class="cf-inv-lin"><span>Faz</span>' + cfEsc(ativ.charAt(0).toUpperCase() + ativ.slice(1).toLowerCase()) + '</div>'
+      + (emp.atividades_secundarias && emp.atividades_secundarias.length ? '<div class="cf-inv-lin"><span>Também</span>' + emp.atividades_secundarias.map(a => cfEsc(curta(a).toLowerCase())).join(' · ') + '</div>' : '')
+      + (emp.endereco || emp.cidade ? '<div class="cf-inv-lin"><span>Onde</span>' + cfEsc([emp.endereco, emp.cidade].filter(Boolean).join(' · ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()).replace(/\/(\w+)$/, m => m.toUpperCase())) + '</div>' : '')
+      + (emp.telefone ? '<div class="cf-inv-lin"><span>Tel.</span>' + cfEsc(telFmt(emp.telefone)) + '</div>' : '')
+      + (emp.socios && emp.socios.length ? '<div class="cf-inv-lin"><span>Sócio</span>' + cfEsc(emp.socios.join(', ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())) + '</div>' : '');
   } else if (cp) {
-    empresa = kv('Nome', cp.nome) + kv('Documento', cp.documento) + kv('Banco', cp.banco) + kv('Meio', cp.metodo) + kv('Categoria (Pluggy)', cp.categoria_pluggy || inv.categoria_pluggy);
+    quem = '<div class="cf-inv-nome">' + cfEsc(cp.nome || inv.nome_base) + '</div>'
+      + '<div class="cf-inv-tags">' + (cp.documento ? tag(cp.documento) : '') + (cp.banco ? tag(cp.banco) : '') + (cp.metodo ? tag(cp.metodo) : '') + (cp.categoria_pluggy || inv.categoria_pluggy ? tag('Pluggy: ' + (cp.categoria_pluggy || inv.categoria_pluggy)) : '') + '</div>';
+  } else {
+    quem = '<div class="cf-inv-nome">' + cfEsc(inv.nome_base || '') + '</div><div class="cf-inv-vazio">o banco não mandou quem recebeu (não é Pix/boleto)</div>';
   }
-  const hist = (inv.historico || []).length
-    ? '<table class="cf-inv-tb">' + inv.historico.map(h => '<tr><td>' + cfEsc(h.data.split('-').reverse().join('/')) + '</td><td><b>' + cfEsc(h.nome) + '</b> <span style="color:var(--muted)">· ' + cfEsc(h.categoria || '') + '</span></td><td style="text-align:right;white-space:nowrap">' + revFmt(Number(h.valor)) + '</td><td style="color:var(--muted);font-size:10.5px">' + cfEsc(h.por) + '</td></tr>').join('') + '</table>'
-    : '<div class="cf-inv-vazio">primeira vez que essa contraparte aparece no seu histórico</div>';
-  const mails = (inv.gmail || []).length
-    ? inv.gmail.map(m => '<div class="cf-inv-mail"><b>' + cfEsc(m.assunto || '(sem assunto)') + '</b> <span style="color:var(--muted)">· ' + cfEsc(m.de) + ' · ' + cfEsc(m.data) + ' · achado pelo ' + cfEsc(m.por) + '</span>' + (m.trecho ? '<div style="color:#6b6480;font-size:11.5px">' + cfEsc(m.trecho) + '</div>' : '') + '</div>').join('')
-    : (inv.gmail ? '<div class="cf-inv-vazio">nenhum e-mail com esse nome ou valor na janela</div>' : '');
-  const agenda = (inv.agenda || []).length ? inv.agenda.map(a => '<div class="cf-inv-mail">' + cfEsc(a.hora) + ' · <b>' + cfEsc(a.titulo || '') + '</b>' + (a.local ? ' <span style="color:var(--muted)">· ' + cfEsc(a.local) + '</span>' : '') + '</div>').join('') : '';
+
+  // ---- card 2: histórico ----
+  const hist = nHist
+    ? '<table class="cf-inv-tb">' + inv.historico.map(h => '<tr><td class="d">' + cfEsc(dataBR(h.data)) + '</td><td>' + cfEsc(h.nome) + '<span class="c"> · ' + cfEsc(h.categoria || '') + '</span></td><td class="v">' + revFmt(Number(h.valor)) + '</td></tr>').join('') + '</table>'
+    : '<div class="cf-inv-vazio">primeira vez que essa contraparte aparece</div>';
+
+  // ---- card 3: gmail (sem repetidos) ----
+  const vistos = new Set();
+  const mails = (inv.gmail || []).filter(m => { const k = (m.assunto || '') + '|' + (m.de || ''); if (vistos.has(k)) return false; vistos.add(k); return true; }).slice(0, 5);
+  const gmail = mails.length
+    ? mails.map(m => '<div class="cf-inv-item" title="' + cfEsc(m.trecho || '').replace(/"/g, '&quot;') + '"><div class="t">' + cfEsc(m.assunto || '(sem assunto)') + '</div><div class="m">' + cfEsc(m.de) + ' · ' + cfEsc(String(m.data || '').replace(/^\w+,\s*/, '')) + ' ' + tag('pelo ' + (m.por || 'nome'), 'mini') + '</div></div>').join('')
+    : (inv.gmail ? '<div class="cf-inv-vazio">nada com esse nome nem com esse valor na janela</div>' : '<div class="cf-inv-vazio">Gmail não consultado</div>');
+
+  // ---- card 4: agenda ----
+  const agenda = nAg
+    ? inv.agenda.map(a => '<div class="cf-inv-item"><div class="t">' + cfEsc(a.hora) + ' · ' + cfEsc(a.titulo || '') + '</div>' + (a.local ? '<div class="m">' + cfEsc(a.local) + '</div>' : '') + '</div>').join('')
+    : '<div class="cf-inv-vazio">' + (inv.agenda ? 'nada marcado nesse dia' : 'agenda não consultada') + '</div>';
+
   const links = (inv.web_links || []).map(l => '<a class="cf-inv-link" href="' + cfEsc(l.url) + '" target="_blank" rel="noopener">' + cfEsc(l.rotulo) + ' ↗</a>').join('');
   const avisos = (inv.avisos || []).length ? '<div class="cf-inv-aviso">' + inv.avisos.map(cfEsc).join(' · ') + '</div>' : '';
-  return '<div class="cf-inv">'
-    + '<div class="cf-inv-resumo">🔎 ' + cfEsc(inv.resumo || '') + '</div>'
+  const card = (tit, corpo, cls) => '<div class="cf-inv-card' + (cls ? ' ' + cls : '') + '"><div class="cf-inv-tit">' + tit + '</div>' + corpo + '</div>';
+
+  // dropbox: abre sozinha logo depois de pesquisar; quando volta do cache, fica fechada
+  return '<details class="cf-inv"' + (r._invFresh ? ' open' : '') + '>'
+    + '<summary><span class="cf-inv-lupa">🔎</span><span class="cf-inv-resumo">' + cfEsc(resumoCurto) + '</span><span class="cf-inv-cont">' + cfEsc(contagem) + '</span></summary>'
     + '<div class="cf-inv-grid">'
-    + sec(emp ? '🏢 Quem recebeu (Receita Federal)' : '🏦 Quem recebeu', empresa)
-    + sec('📜 No seu histórico', hist)
-    + sec('✉️ No Gmail (' + '±3 dias)', mails)
-    + sec('📅 Na sua agenda no dia', agenda)
+    + card(emp ? '🏢 Quem recebeu · Receita Federal' : '🏦 Quem recebeu', quem, 'quem')
+    + card('📜 No seu histórico', hist)
+    + card('✉️ Gmail · ±3 dias', gmail)
+    + card('📅 Agenda do dia', agenda)
     + '</div>'
-    + '<div class="cf-inv-rodape">' + links + '<span style="color:var(--muted);font-size:10.5px;margin-left:auto">fontes: ' + cfEsc((inv.fontes || []).join(' · ') || '—') + (inv.cache ? ' · guardado' : '') + '</span></div>'
-    + avisos
-    + '</div>';
+    + '<div class="cf-inv-rodape">' + links + '<span class="cf-inv-fontes">' + cfEsc((inv.fontes || []).join(' · ') || '—') + (inv.cache ? ' · guardado' : '') + '</span></div>'
+    + avisos + '</details>';
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('.cf-invest');
@@ -16123,7 +16175,7 @@ document.addEventListener('click', async e => {
     const { data, error } = await window.sbClient.functions.invoke('investigar', { body: { tipo: r.k === 'conta' ? 'inbox' : 'review', id, force: !!r._inv } });
     if (error) throw error;
     if (data && data.error) throw new Error(data.error);
-    r._inv = data;
+    r._inv = data; r._invFresh = true;
   } catch (err) {
     r._invErro = (err && err.message) || String(err);
   }
