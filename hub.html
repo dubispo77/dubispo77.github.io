@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:46:57-03:00">
+<meta name="hub-build" content="2026-09-20T20:48:55-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1327,6 +1327,11 @@ table.data-table tr:hover td { background: var(--bg); }
   overscroll-behavior: contain; scroll-snap-type: y proximity; scroll-padding-top: 2px; -webkit-overflow-scrolling: touch; }
 .calMM-day-section { scroll-snap-align: start; }
 .calMM-day-header.is-today { color: #7c3aed !important; }
+.calMM-day-header:not(.calMM-hoje) { cursor: default; }
+.calMM-day-header .car, .calMM-day-header .dots { display: none; }
+/* Dia que já passou: opaco como no Mac. Atrasado continua vivo pra chamar atenção. */
+.calMM-day-section.passado .calMM-day-header:not(.is-overdue-day) { color: var(--text-faint); }
+.calMM-day-section.passado .calMM-card:not(.is-overdue) { opacity: .42; }
 .calMM-day-header.is-today .cnt { color: #7c3aed; background: #ede9fe; }
 .calMM-scroll::-webkit-scrollbar { width: 0; }
 /* cabeçalho de dia (dobrável) */
@@ -10561,9 +10566,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (isToday) {
         // Hoje é um dia como os outros na lista — só com destaque. Os números ficam
         // no quadradinho fixo acima da faixa (pedido 20/09).
-        const aberto = (key in _mmToggled) ? _mmToggled[key] : true;
-        html += `<section class="calMM-day-section hoje${aberto ? '' : ' closed'}" data-day="${key}">
-          <div class="calMM-day-header is-today" data-day="${key}" data-year="${y}" data-month="${m}">Hoje <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span><span class="cnt">${items.length}</span><span class="dots">${mmDots(items, 3)}</span><span class="car">⌃</span></div>
+        html += `<section class="calMM-day-section hoje" data-day="${key}">
+          <div class="calMM-day-header is-today" data-day="${key}" data-year="${y}" data-month="${m}">Hoje <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span><span class="cnt">${items.length}</span></div>
           <div class="calMM-body"><div class="calMM-body-in">${rows || '<div class="calMM-day-empty">Nada agendado</div>'}</div></div>
         </section>`;
       } else if (items.length === 0) {
@@ -10571,14 +10575,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           <div class="calMM-day-header vazio" data-day="${key}" data-year="${y}" data-month="${m}">${MM_DIA[cur.getDay()].charAt(0).toUpperCase()}${MM_DIA[cur.getDay()].slice(1)} ${d}${diff === 1 ? ' · amanhã' : ''} <span class="w">— nada</span></div>
         </section>`;
       } else {
-        const aberto = mmAberto(key, cur, today);
+        // Todos os dias mostram todas as tarefas (pedido 20/09): sem dropdown.
+        // Dia passado fica opaco, como no Mac — menos o que está atrasado, que continua vivo.
         const label = diff === 1
           ? `Amanhã <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span>`
           : `${MM_DIA[cur.getDay()].charAt(0).toUpperCase()}${MM_DIA[cur.getDay()].slice(1)} ${d} <span class="w">${MM_MES[m]}</span>`;
         const hc = (isPast && overdueCount > 0) ? ' is-overdue-day' : '';
         const cnt = (isPast && overdueCount > 0) ? `${overdueCount} atrasado${overdueCount > 1 ? 's' : ''}` : String(items.length);
-        html += `<section class="calMM-day-section${aberto ? '' : ' closed'}" data-day="${key}">
-          <div class="calMM-day-header${hc}" data-day="${key}" data-year="${y}" data-month="${m}">${label}<span class="cnt">${cnt}</span><span class="dots">${mmDots(items, 3)}</span><span class="car">⌃</span></div>
+        html += `<section class="calMM-day-section${isPast ? ' passado' : ''}" data-day="${key}">
+          <div class="calMM-day-header${hc}" data-day="${key}" data-year="${y}" data-month="${m}">${label}<span class="cnt">${cnt}</span></div>
           <div class="calMM-body"><div class="calMM-body-in">${rows}</div></div>
         </section>`;
       }
@@ -10684,13 +10689,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (hj) { e.stopPropagation(); e.preventDefault(); mmScrollToDay(hj.dataset.day, true); return; }
       const sd = e.target.closest('.calMM-strip .d');
       if (sd) { e.stopPropagation(); e.preventDefault(); mmScrollToDay(sd.dataset.day, true); return; }
-      const hd = e.target.closest('.calMM-day-header');
-      if (hd && !hd.classList.contains('vazio')) {
-        e.stopPropagation(); e.preventDefault();
-        const sec = hd.closest('.calMM-day-section');
-        const closed = sec.classList.toggle('closed');
-        _mmToggled[sec.dataset.day] = !closed;
-      }
+      // (cabeçalho de dia não abre/fecha mais — todos os dias ficam abertos)
     });
     container._mmClicks = true;
   }
