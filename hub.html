@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:37:56-03:00">
+<meta name="hub-build" content="2026-09-20T20:38:11-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1934,7 +1934,7 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .cf-inv-lupa { font-size: 13px; }
 #finapp .cf-inv-resumo { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #finapp .cf-inv-cont { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
-#finapp .cf-inv-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 0.8fr; gap: 10px; padding: 0 12px 10px; }
+#finapp .cf-inv-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.8fr 1fr; gap: 10px; padding: 0 12px 10px; }
 #finapp .cf-inv-card { background: #faf9fc; border: 1px solid #efedf5; border-radius: 9px; padding: 9px 11px; min-width: 0; font-size: 12px; }
 #finapp .cf-inv-tit { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: #a89eb8; font-weight: 800; margin-bottom: 6px; }
 #finapp .cf-inv-nome { font-weight: 800; font-size: 13.5px; }
@@ -1951,6 +1951,7 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .cf-inv-item { padding: 4px 0; border-top: 1px dashed #ece9f3; }
 #finapp .cf-inv-item .t { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #finapp .cf-inv-item .m { color: var(--muted); font-size: 11px; }
+#finapp .cf-inv-item .t a { color: #4c3f9e; text-decoration: none; } #finapp .cf-inv-item .t a:hover { text-decoration: underline; }
 #finapp .cf-inv-item .onde { font-size: 11px; color: #4c3f9e; background: #f3f0fb; border-radius: 6px; padding: 3px 7px; margin-top: 3px; font-style: italic; }
 #finapp .cf-inv-vazio { font-size: 11.5px; color: var(--muted); font-style: italic; }
 #finapp .cf-inv-rodape { display: flex; gap: 8px; align-items: center; padding: 0 12px 10px; flex-wrap: wrap; }
@@ -1958,7 +1959,8 @@ table.data-table tr:hover td { background: var(--bg); }
 #finapp .cf-inv-link { font-size: 11.5px; font-weight: 700; color: #7c3aed; text-decoration: none; border: 1px solid #ddd6fe; border-radius: 999px; padding: 3px 10px; }
 #finapp .cf-inv-aviso { padding: 0 12px 10px; font-size: 11px; color: #92400e; }
 #finapp .cf-inv-erro { padding: 10px 12px; font-size: 12px; color: #b3372e; }
-@media (max-width: 1100px) { #finapp .cf-inv-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 1300px) { #finapp .cf-inv-grid { grid-template-columns: 1.4fr 1fr 1fr; } }
+@media (max-width: 1000px) { #finapp .cf-inv-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 700px) { #finapp .cf-inv-grid { grid-template-columns: 1fr; } }
 #finapp .cf-cands { width: auto; min-width: 340px; font-size: 11.5px; }
 #finapp .cf-cands th { font-size: 10px; }
@@ -16109,7 +16111,8 @@ function cfInvestBox(r) {
   const nHist = (inv.historico || []).length, nMail = (inv.gmail || []).length, nAg = (inv.agenda || []).length;
   const resumoCurto = [nome, ativ ? ativ.charAt(0).toUpperCase() + ativ.slice(1).toLowerCase() : '', emp && emp.cidade ? emp.cidade.split('/')[0].replace(/\b\w+/g, w => w.charAt(0) + w.slice(1).toLowerCase()) : '']
     .filter(Boolean).join(' · ');
-  const contagem = [nHist ? nHist + '× no histórico' : '1ª vez no histórico', nMail ? nMail + ' e-mail' + (nMail > 1 ? 's' : '') : '', nAg ? nAg + ' evento' + (nAg > 1 ? 's' : '') + ' na agenda' : ''].filter(Boolean).join(' · ');
+  const nWebC = (inv.web || []).length;
+  const contagem = [nHist ? nHist + '× no histórico' : '1ª vez no histórico', nMail ? nMail + ' e-mail' + (nMail > 1 ? 's' : '') : '', nAg ? nAg + ' evento' + (nAg > 1 ? 's' : '') + ' na agenda' : '', nWebC ? nWebC + ' na web' : ''].filter(Boolean).join(' · ');
 
   // ---- card 1: quem recebeu ----
   let quem = '';
@@ -16153,6 +16156,14 @@ function cfInvestBox(r) {
     : '<div class="cf-inv-vazio">' + (inv.agenda ? 'nada marcado nesse dia' : 'agenda não consultada') + '</div>';
 
   const links = (inv.web_links || []).map(l => '<a class="cf-inv-link" href="' + cfEsc(l.url) + '" target="_blank" rel="noopener">' + cfEsc(l.rotulo) + ' ↗</a>').join('');
+  // ---- card 5: na web (Google via Serper; sem chave mostra o que falta, nunca inventa) ----
+  const nWeb = (inv.web || []).length;
+  const web = nWeb
+    ? inv.web.slice(0, 6).map(w => '<div class="cf-inv-item" title="' + cfEsc(w.trecho || '').replace(/"/g, '&quot;') + '"><div class="t"><a href="' + cfEsc(w.url) + '" target="_blank" rel="noopener">' + cfEsc(w.titulo || w.url) + '</a></div>' + (w.trecho ? '<div class="m">' + cfEsc(w.trecho).slice(0, 140) + '</div>' : '') + '<div class="m">' + cfEsc(String(w.url || '').replace(/^https?:\/\//, '').split('/')[0]) + ' ' + tag('pelo ' + (w.por || 'nome'), 'mini') + '</div></div>').join('')
+    : (inv.web_status === 'sem_chave'
+      ? '<div class="cf-inv-vazio">busca automática desligada — precisa de uma chave do Serper (Google) em app_config.serper_key</div>'
+      : (inv.web_status === 'erro' ? '<div class="cf-inv-vazio">a busca falhou desta vez</div>'
+        : (inv.web_status === 'ok' ? '<div class="cf-inv-vazio">o Google não achou nada com esse nome</div>' : '<div class="cf-inv-vazio">pesquise de novo pra buscar na web</div>')));
   const avisos = (inv.avisos || []).length ? '<div class="cf-inv-aviso">' + inv.avisos.map(cfEsc).join(' · ') + '</div>' : '';
   const card = (tit, corpo, cls) => '<div class="cf-inv-card' + (cls ? ' ' + cls : '') + '"><div class="cf-inv-tit">' + tit + '</div>' + corpo + '</div>';
 
@@ -16164,6 +16175,7 @@ function cfInvestBox(r) {
     + card('📜 No seu histórico', hist)
     + card('✉️ Gmail · ±3 dias', gmail)
     + card('📅 Agenda do dia', agenda)
+    + card('🌐 Na web', web)
     + '</div>'
     + '<div class="cf-inv-rodape">' + links + '<span class="cf-inv-fontes">' + cfEsc((inv.fontes || []).join(' · ') || '—') + (inv.cache ? ' · guardado' : '') + '</span></div>'
     + avisos + '</details>';
