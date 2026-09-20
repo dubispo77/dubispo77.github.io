@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:09:57-03:00">
+<meta name="hub-build" content="2026-09-20T20:11:23-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1284,9 +1284,19 @@ table.data-table tr:hover td { background: var(--bg); }
 .cal-day-popover .pop-act:hover { background: rgba(255,255,255,.36); }
 /* Mobile */
 @media (max-width: 600px) {
-  .cal-header { gap: 8px; }
-  .cal-header-left { gap: 8px; flex: 1; }
-  .cal-label { min-width: auto; font-size: 16px; }
+  /* Cabeçalho da agenda em UMA linha de 40px (opção 2, 20/09): título, mês, Hoje, + */
+  .cal-header { gap: 6px; flex-wrap: nowrap; padding: 0 2px; min-height: 40px; }
+  .cal-header-left { gap: 6px; flex: 1; min-width: 0; }
+  .cal-header .section-title { font-size: 16px; white-space: nowrap; }
+  .cal-header .hub-sync-status { display: none; }
+  .cal-header .cal-view-toggle { display: none; }
+  .cal-nav { gap: 4px; flex-shrink: 0; }
+  .cal-nav #calPrev, .cal-nav #calNext { display: none; }
+  .cal-nav-btn { padding: 4px 9px; font-size: 11.5px; min-width: 0; }
+  .cal-label { min-width: auto; font-size: 11.5px; margin-left: 2px; color: var(--text-dim); font-weight: 600; }
+  .cal-add-btn { width: 26px; height: 26px; font-size: 15px; margin-left: 2px; }
+  .section-header { padding-bottom: 4px; }
+  .agenda-add-wrap { display: none; }
   .calM-cell { min-height: 78px; padding: 4px 5px; }
   .calM-num { font-size: 10px; }
   .calM-ev .ti { font-size: 9px; }
@@ -10464,13 +10474,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         </section>`;
       } else if (items.length === 0) {
         html += `<section class="calMM-day-section closed vazio" data-day="${key}">
-          <div class="calMM-day-header vazio" data-day="${key}" data-year="${y}" data-month="${m}">${MM_DIA[cur.getDay()]} ${d}${diff === 1 ? ' · amanhã' : ''} <span class="w">— nada</span></div>
+          <div class="calMM-day-header vazio" data-day="${key}" data-year="${y}" data-month="${m}">${MM_DIA[cur.getDay()].charAt(0).toUpperCase()}${MM_DIA[cur.getDay()].slice(1)} ${d}${diff === 1 ? ' · amanhã' : ''} <span class="w">— nada</span></div>
         </section>`;
       } else {
         const aberto = mmAberto(key, cur, today);
         const label = diff === 1
           ? `Amanhã <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span>`
-          : `${MM_DIA[cur.getDay()]} ${d} <span class="w">${MM_MES[m]}</span>`;
+          : `${MM_DIA[cur.getDay()].charAt(0).toUpperCase()}${MM_DIA[cur.getDay()].slice(1)} ${d} <span class="w">${MM_MES[m]}</span>`;
         const hc = (isPast && overdueCount > 0) ? ' is-overdue-day' : '';
         const cnt = (isPast && overdueCount > 0) ? `${overdueCount} atrasado${overdueCount > 1 ? 's' : ''}` : String(items.length);
         html += `<section class="calMM-day-section${aberto ? '' : ' closed'}" data-day="${key}">
