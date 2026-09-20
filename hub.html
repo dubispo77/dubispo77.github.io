@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:07:29-03:00">
+<meta name="hub-build" content="2026-09-20T20:09:18-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1295,22 +1295,56 @@ table.data-table tr:hover td { background: var(--bg); }
   .calW-card .ti { font-size: 11px; }
 }
 
-/* Agenda mobile A2 v4 — lista vertical com dias agrupados (opção B) */
-.calMM-scroll { max-height: calc(100vh - 200px); overflow-y: auto; overflow-x: hidden; padding: 8px 4px 24px; background: var(--bg); border-radius: 12px; }
-.calMM-scroll::-webkit-scrollbar { width: 5px; }
-.calMM-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
-.calMM-day-header { position: sticky; top: 0; background: var(--bg); padding: 12px 8px 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; z-index: 5; }
-.calMM-day-header.is-today { color: #7c3aed; }
-.calMM-day-header.is-overdue-day { color: #dc2626; }
-.calMM-day-section { margin-bottom: 4px; }
-.calMM-day-empty { padding: 4px 12px 8px; font-size: 12px; color: #9ca3af; font-style: italic; }
-.calMM-card { display: block; padding: 12px 14px; border-radius: 10px; border-left: 4px solid; margin: 4px 8px; position: relative; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
-.calMM-card .hr { font-size: 11px; opacity: .85; font-weight: 500; line-height: 1.2; }
-.calMM-card .ti { font-size: 14px; font-weight: 600; line-height: 1.3; margin-top: 2px; word-break: break-word; }
-.calMM-card.is-done { opacity: .5; }
+/* ── Agenda mobile — opção 2 (20/09/2026) ──
+   Faixa da semana no topo, "quadradinho" roxo como cabeçalho de HOJE (com os números),
+   demais dias como cabeçalhos que abrem/fecham, e cada item numa linha só de 30px.
+   Substitui a A2 v4 (cards grandes), que ele achou pesada demais na tela do celular. */
+.calMM-wrap { display: flex; flex-direction: column; }
+.calMM-strip { display: flex; gap: 3px; padding: 4px 6px 6px; background: var(--card); border-bottom: 1px solid var(--border-soft); flex: none; }
+.calMM-strip .d { flex: 1; text-align: center; padding: 3px 0; border-radius: 8px; font-size: 9px; color: var(--text-faint); line-height: 1.1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.calMM-strip .d b { display: block; font-size: 13px; color: var(--text); font-weight: 700; margin-top: 1px; }
+.calMM-strip .d .dots { display: flex; justify-content: center; gap: 2px; margin-top: 2px; height: 3px; }
+.calMM-strip .d .dots i { width: 3px; height: 3px; border-radius: 50%; display: block; }
+.calMM-strip .d.tdy b { color: #7c3aed; }
+.calMM-strip .d.on { background: #7c3aed; color: #fff; }
+.calMM-strip .d.on b { color: #fff; }
+.calMM-strip .d.on .dots i { background: #fff !important; }
+.calMM-scroll { overflow-y: auto; overflow-x: hidden; padding: 0 0 24px; background: var(--card); max-height: calc(100dvh - 190px); position: relative; }
+.calMM-scroll::-webkit-scrollbar { width: 0; }
+/* cabeçalho de dia (dobrável) */
+.calMM-day-header:not(.calMM-hoje) { display: flex; align-items: center; gap: 6px; padding: 8px 12px 4px; font-size: 12.5px; font-weight: 700; color: var(--text); background: var(--card); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; border-top: 1px solid var(--border-soft); }
+.calMM-day-header .w { font-size: 10px; color: var(--text-dim); font-weight: 600; }
+.calMM-day-header .cnt { font-size: 9.5px; color: var(--text-dim); background: var(--bg); padding: 0 6px; border-radius: 99px; font-weight: 700; }
+.calMM-day-header .dots { display: flex; gap: 2px; margin-left: 2px; }
+.calMM-day-header .dots i { width: 5px; height: 5px; border-radius: 50%; display: block; }
+.calMM-day-header .car { margin-left: auto; color: var(--text-faint); font-size: 12px; width: 16px; text-align: center; transition: transform .15s; }
+.calMM-day-section.closed .calMM-day-header .car { transform: rotate(180deg); }
+.calMM-day-section.closed .calMM-day-header:not(.calMM-hoje) { color: var(--text-dim); font-weight: 600; }
+.calMM-day-section.closed .calMM-body { display: none; }
+.calMM-day-header.is-overdue-day { color: #dc2626 !important; }
+.calMM-day-header.is-overdue-day .cnt { color: #dc2626; background: #fee2e2; }
+.calMM-day-header.vazio { padding: 5px 12px 3px !important; font-size: 10.5px !important; color: var(--text-faint) !important; font-weight: 600 !important; cursor: default !important; }
+.calMM-day-header.vazio .w { color: var(--text-faint); }
+.calMM-day-empty { padding: 2px 12px 6px; font-size: 11px; color: #9ca3af; font-style: italic; }
+/* quadradinho de hoje */
+.calMM-hoje { margin: 8px 12px 4px; background: linear-gradient(135deg, #5b4fcf, #7c3aed); color: #fff; border-radius: 12px; padding: 8px 10px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.calMM-hoje .l1 { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; }
+.calMM-hoje .l1 .w { font-size: 9.5px; opacity: .85; font-weight: 600; color: #fff; }
+.calMM-hoje .l1 .car { margin-left: auto; opacity: .8; font-size: 12px; transition: transform .15s; color: #fff; width: auto; }
+.calMM-hoje .st { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+.calMM-hoje .st span { font-size: 9.5px; background: rgba(255,255,255,.16); padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+.calMM-hoje .st span b { font-size: 11px; margin-right: 3px; }
+/* item = uma linha */
+.calMM-body { padding: 2px 0; }
+.calMM-card { display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 8px 0 7px; margin: 0 12px 4px; border-radius: 6px; border-left: 3px solid; position: relative; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; white-space: nowrap; overflow: hidden; }
+.calMM-card .hr { font-size: 10.5px; font-weight: 700; opacity: .9; flex: none; min-width: 34px; line-height: 1; }
+.calMM-card .ti { font-size: 12px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.calMM-card.is-done { opacity: .45; }
 .calMM-card.is-done .ti { text-decoration: line-through; }
-.calMM-card.is-overdue { border-left-color: #dc2626 !important; border-left-width: 5px !important; }
-.calMM-card .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 700; line-height: 1.2; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.calMM-card.is-past { opacity: .45; }
+.calMM-card.is-overdue { border-left-color: #dc2626 !important; }
+.calMM-card .badge-overdue { margin-left: auto; flex: none; background: #dc2626; color: #fff; padding: 1px 6px; border-radius: 999px; font-size: 9px; font-weight: 700; line-height: 1.3; }
+.calMM-card .badge-gcal { display: none; }
 .calMM-card.proj-pessoal       { background: #fca5a5; border-color: #dc2626; color: #7f1d1d; }
 .calMM-card.proj-agenda_awvz   { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
 .calMM-card.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
@@ -1321,13 +1355,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calMM-card.proj-brasileirao_play { background: #86efac; border-color: #16a34a; color: #14532d; }
 .calMM-card.proj-aw_vz         { background: #fbcfe8; border-color: #ff1493; color: #831843; }
 .calMM-card.proj-aniversarios  { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
-.calMM-card.proj-santos {
-  background: #fafafa;
-  border: 0.5px solid #d4d4d8;
-  border-left: 6px solid #52525b;
-  border-radius: 0 8px 8px 0;
-  color: #000000;
-}
+.calMM-card.proj-santos        { background: #fafafa; border-color: #52525b; color: #000; box-shadow: inset 0 0 0 .5px #d4d4d8; }
 .calMM-card.proj-financas      { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
 .calMM-card.proj-rotina        { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
 
@@ -10358,52 +10386,161 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   function isMobile() { return window.innerWidth <= 600; }
 
-  // ── Mobile A2 v4: lista vertical de dias (cards grandes coloridos) ──
+  // ── Mobile — opção 2 (20/09/2026): faixa da semana + quadradinho de hoje + dias dobráveis ──
   let _mobileLoadedRange = null; // {start: Date, end: Date}
+  const _mmToggled = {};          // ymd -> true (aberto) / false (fechado), só quando ele mexeu
+  const MM_DOT = { pessoal:'#dc2626', administracao:'#7c3aed', financas:'#7c3aed', casa:'#eab308', eventos:'#ea580c',
+    brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#f9a8d4', agenda_awvz:'#2563eb', santos:'#52525b',
+    saude:'#0ea5e9', trabalho:'#2563eb', rotina:'#dc2626' };
+  const MM_MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const MM_DIA = ['dom','seg','ter','qua','qui','sex','sáb'];
+
+  // Hoje, amanhã e depois de amanhã nascem abertos; o resto fechado. Toque dele manda.
+  function mmAberto(key, cur, today) {
+    if (key in _mmToggled) return _mmToggled[key];
+    const diff = Math.round((cur - today) / 86400000);
+    return diff >= 0 && diff <= 2;
+  }
+  function mmDots(items, max) {
+    const cores = [];
+    for (const it of items) {
+      const c = MM_DOT[it.project] || '#9ca3af';
+      if (!cores.includes(c)) cores.push(c);
+      if (cores.length >= max) break;
+    }
+    return cores.map(c => `<i style="background:${c}"></i>`).join('');
+  }
+  function mmRowHtml(it) {
+    const klass = `calMM-card event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_past ? ' is-past' : ''}${it.is_overdue ? ' is-overdue' : ''}`;
+    let badge = '';
+    if (it.is_overdue && it.raw && it.raw.date_start) {
+      const _dStart = new Date(it.raw.date_start); _dStart.setHours(0,0,0,0);
+      const _today = new Date(); _today.setHours(0,0,0,0);
+      const _days = Math.max(1, Math.round((_today - _dStart) / 86400000));
+      badge = `<span class="badge-overdue">${_days}d</span>`;
+    }
+    return `<div class="${klass}" data-item-id="${it.id}">${it.hr ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}<span class="ti">${escHtml(it.title)}</span>${badge}</div>`;
+  }
+  // Os números do quadradinho: itens de hoje, atrasados (no trecho carregado), contas de hoje, próximo horário.
+  function mmStats(today) {
+    const now = new Date();
+    const hoje = itemsForDate(today);
+    let atrasados = 0;
+    if (_mobileLoadedRange) {
+      const d = new Date(_mobileLoadedRange.start);
+      while (d < today) { atrasados += itemsForDate(d).filter(i => i.is_overdue).length; d.setDate(d.getDate() + 1); }
+    }
+    const contas = hoje.filter(i => i.raw && (i.raw.type === 'bill' || i.raw.area === 'administracao') && !i.is_done).length;
+    const prox = hoje.find(i => i.has_time && !i.is_done && i.raw && i.raw.date_start && new Date(i.raw.date_start) > now);
+    const chips = [`<span><b>${hoje.length}</b>${hoje.length === 1 ? 'item' : 'itens'}</span>`];
+    if (atrasados) chips.push(`<span><b>${atrasados}</b>atrasado${atrasados > 1 ? 's' : ''}</span>`);
+    if (contas) chips.push(`<span><b>${contas}</b>${contas > 1 ? 'contas' : 'conta'}</span>`);
+    if (prox) chips.push(`<span>próx <b>${escHtml(String(prox.hr).split('–')[0])}</b></span>`);
+    return chips.join('');
+  }
 
   function buildMobileDaysHtml(start, end) {
     const today = new Date(); today.setHours(0,0,0,0);
-    const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    const DIA = ['dom','seg','ter','qua','qui','sex','sáb'];
     let html = '';
     const cur = new Date(start);
     while (cur <= end) {
       const y = cur.getFullYear(), m = cur.getMonth(), d = cur.getDate();
+      const key = ymd(cur);
       const isToday = isSameDay(cur, today);
       const isPast = cur < today;
+      const diff = Math.round((cur - today) / 86400000);
       const items = itemsForDate(cur);
       const overdueCount = items.filter(it => it.is_overdue).length;
-      const headerClasses = [
-        isToday ? 'is-today' : '',
-        (isPast && overdueCount > 0) ? 'is-overdue-day' : '',
-      ].filter(Boolean).join(' ');
-      const headerLabel = `${DIA[cur.getDay()]}, ${d} ${MES[m]}${isToday ? ' · hoje' : ''}${(isPast && overdueCount > 0) ? ` · ${overdueCount} atrasado${overdueCount > 1 ? 's' : ''}` : ''}`;
-      html += `<section class="calMM-day-section" data-day="${ymd(cur)}">
-        <div class="calMM-day-header ${headerClasses}" data-year="${y}" data-month="${m}">${headerLabel}</div>`;
-      if (items.length === 0) {
-        html += '<div class="calMM-day-empty">Nada agendado</div>';
+      const rows = items.map(mmRowHtml).join('');
+      if (isToday) {
+        const aberto = (key in _mmToggled) ? _mmToggled[key] : true;
+        html += `<section class="calMM-day-section hoje${aberto ? '' : ' closed'}" data-day="${key}">
+          <div class="calMM-day-header calMM-hoje is-today" data-day="${key}" data-year="${y}" data-month="${m}">
+            <div class="l1">Hoje <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span><span class="car">⌃</span></div>
+            <div class="st">${mmStats(today)}</div>
+          </div>
+          <div class="calMM-body">${rows || '<div class="calMM-day-empty">Nada agendado</div>'}</div>
+        </section>`;
+      } else if (items.length === 0) {
+        html += `<section class="calMM-day-section closed vazio" data-day="${key}">
+          <div class="calMM-day-header vazio" data-day="${key}" data-year="${y}" data-month="${m}">${MM_DIA[cur.getDay()]} ${d}${diff === 1 ? ' · amanhã' : ''} <span class="w">— nada</span></div>
+        </section>`;
       } else {
-        html += items.map(it => {
-          const klass = `calMM-card event-block proj-${it.project}${it.is_done ? ' is-done' : ''}${it.is_overdue ? ' is-overdue' : ''}`;
-          let overdueBadge = '';
-          if (it.is_overdue && it.raw && it.raw.date_start) {
-            const _dStart = new Date(it.raw.date_start); _dStart.setHours(0,0,0,0);
-            const _today = new Date(); _today.setHours(0,0,0,0);
-            const _days = Math.max(1, Math.round((_today - _dStart) / 86400000));
-            overdueBadge = `<span class="badge-overdue">${_days}d</span>`;
-          }
-          return `<div class="${klass}" data-item-id="${it.id}">
-            ${overdueBadge}
-            ${it.from_gcal ? '<span class="badge-gcal" title="Sincronizado do Google Calendar">📆</span>' : ''}
-            ${it.hr ? `<div class="hr">${escHtml(it.hr)}</div>` : '<div class="hr">dia inteiro</div>'}
-            <div class="ti">${escHtml(it.title)}</div>
-          </div>`;
-        }).join('');
+        const aberto = mmAberto(key, cur, today);
+        const label = diff === 1
+          ? `Amanhã <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span>`
+          : `${MM_DIA[cur.getDay()]} ${d} <span class="w">${MM_MES[m]}</span>`;
+        const hc = (isPast && overdueCount > 0) ? ' is-overdue-day' : '';
+        const cnt = (isPast && overdueCount > 0) ? `${overdueCount} atrasado${overdueCount > 1 ? 's' : ''}` : String(items.length);
+        html += `<section class="calMM-day-section${aberto ? '' : ' closed'}" data-day="${key}">
+          <div class="calMM-day-header${hc}" data-day="${key}" data-year="${y}" data-month="${m}">${label}<span class="cnt">${cnt}</span><span class="dots">${mmDots(items, 3)}</span><span class="car">⌃</span></div>
+          <div class="calMM-body">${rows}</div>
+        </section>`;
       }
-      html += '</section>';
       cur.setDate(cur.getDate() + 1);
     }
     return html;
+  }
+
+  // Faixa da semana: sempre a semana do dia que está no topo da lista, com ele marcado.
+  function mmStripHtml(anchor, selKey) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dow = anchor.getDay(); const off = dow === 0 ? 6 : dow - 1;
+    const mon = new Date(anchor); mon.setHours(0,0,0,0); mon.setDate(anchor.getDate() - off);
+    const L = ['S','T','Q','Q','S','S','D'];
+    let h = '';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(mon); d.setDate(mon.getDate() + i);
+      const k = ymd(d);
+      const cls = ['d', k === selKey ? 'on' : '', isSameDay(d, today) ? 'tdy' : ''].filter(Boolean).join(' ');
+      h += `<div class="${cls}" data-day="${k}">${L[i]}<b>${d.getDate()}</b><div class="dots">${mmDots(itemsForDate(d), 3)}</div></div>`;
+    }
+    return h;
+  }
+  function mmUpdateStrip(dayKey) {
+    const strip = container.querySelector('.calMM-strip');
+    if (!strip || !dayKey || strip.dataset.sel === dayKey) return;
+    const [y, m, d] = dayKey.split('-').map(Number);
+    strip.innerHTML = mmStripHtml(new Date(y, m - 1, d), dayKey);
+    strip.dataset.sel = dayKey;
+  }
+  // A lista ocupa tudo entre a faixa e a barra de baixo (a sidebar, no celular).
+  function mmFit() {
+    const sc = container.querySelector('.calMM-scroll');
+    if (!sc) return;
+    const bar = document.querySelector('.sidebar');
+    const barH = (isMobile() && bar) ? bar.offsetHeight : 0;
+    const top = sc.getBoundingClientRect().top;
+    sc.style.height = Math.max(200, window.innerHeight - top - barH) + 'px';
+    sc.style.maxHeight = 'none';
+  }
+  window.addEventListener('resize', () => { if (isMobile()) mmFit(); });
+  function mmScrollToDay(key, opts) {
+    const sc = container.querySelector('.calMM-scroll');
+    const sec = container.querySelector(`.calMM-day-section[data-day="${key}"]`);
+    if (!sc || !sec) return false;
+    _suppressLabelUpdate = true;
+    sc.scrollTop = sec.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;
+    mmUpdateStrip(key);
+    const [y, m] = key.split('-').map(Number);
+    updateLabelFromMonth(y, m - 1);
+    requestAnimationFrame(() => { _suppressLabelUpdate = false; });
+    return true;
+  }
+  function mmBindClicks() {
+    if (container._mmClicks) return;
+    container.addEventListener('click', (e) => {
+      const sd = e.target.closest('.calMM-strip .d');
+      if (sd) { e.stopPropagation(); e.preventDefault(); mmScrollToDay(sd.dataset.day); return; }
+      const hd = e.target.closest('.calMM-day-header');
+      if (hd && !hd.classList.contains('vazio')) {
+        e.stopPropagation(); e.preventDefault();
+        const sec = hd.closest('.calMM-day-section');
+        const closed = sec.classList.toggle('closed');
+        _mmToggled[sec.dataset.day] = !closed;
+      }
+    });
+    container._mmClicks = true;
   }
 
   let _mobileEdgeObserver = null;
@@ -10438,6 +10575,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const m = parseInt(topVisible.dataset.month, 10);
         updateLabelFromMonth(y, m);
         cursor = new Date(y, m, 1);
+        if (topVisible.dataset.day) mmUpdateStrip(topVisible.dataset.day);
       }
     }, { root: scroller, rootMargin: '-10px 0px -70% 0px', threshold: 0 });
     container.querySelectorAll('.calMM-day-header').forEach(el => _mobileHeaderObserver.observe(el));
@@ -10499,19 +10637,26 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const oldTop = oldScroller.scrollTop;
       const rs = _mobileLoadedRange.start, re2 = _mobileLoadedRange.end;
       await ensureRangeForCursor();
+      const oldSel = (container.querySelector('.calMM-strip') || {}).dataset?.sel || ymd(today);
       container.innerHTML = `
-      <div class="calMM-scroll">
-        <div class="calMM-edge-top" data-edge="top" style="height:1px"></div>
-        ${buildMobileDaysHtml(rs, re2)}
-        <div class="calMM-edge-bottom" data-edge="bottom" style="height:1px"></div>
+      <div class="calMM-wrap">
+        <div class="calMM-strip"></div>
+        <div class="calMM-scroll">
+          <div class="calMM-edge-top" data-edge="top" style="height:1px"></div>
+          ${buildMobileDaysHtml(rs, re2)}
+          <div class="calMM-edge-bottom" data-edge="bottom" style="height:1px"></div>
+        </div>
       </div>
     `;
+      mmUpdateStrip(oldSel);
+      mmFit();
       const sc2 = container.querySelector('.calMM-scroll');
       if (sc2) {
         _suppressLabelUpdate = true;
         sc2.scrollTop = oldTop;
         requestAnimationFrame(() => { _suppressLabelUpdate = false; });
       }
+      mmBindClicks();
       setupMobileObservers();
       return;
     }
@@ -10523,21 +10668,19 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     await ensureRangeForCursor();
     const daysHtml = buildMobileDaysHtml(start, end);
     container.innerHTML = `
-      <div class="calMM-scroll">
-        <div class="calMM-edge-top" data-edge="top" style="height:1px"></div>
-        ${daysHtml}
-        <div class="calMM-edge-bottom" data-edge="bottom" style="height:1px"></div>
+      <div class="calMM-wrap">
+        <div class="calMM-strip"></div>
+        <div class="calMM-scroll">
+          <div class="calMM-edge-top" data-edge="top" style="height:1px"></div>
+          ${daysHtml}
+          <div class="calMM-edge-bottom" data-edge="bottom" style="height:1px"></div>
+        </div>
       </div>
     `;
-    // Scroll inicial: começa em HOJE
-    const scroller = container.querySelector('.calMM-scroll');
-    const todayHeader = container.querySelector(`.calMM-day-section[data-day="${ymd(today)}"] .calMM-day-header`);
-    if (todayHeader && scroller) {
-      _suppressLabelUpdate = true;
-      scroller.scrollTop = todayHeader.parentElement.offsetTop;
-      updateLabelFromMonth(today.getFullYear(), today.getMonth());
-      requestAnimationFrame(() => { _suppressLabelUpdate = false; });
-    }
+    mmFit();
+    mmBindClicks();
+    // Scroll inicial: começa em HOJE (e a faixa mostra a semana de hoje)
+    mmScrollToDay(ymd(today));
     setupMobileObservers();
   }
 
@@ -10896,6 +11039,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   });
   document.getElementById('calToday').addEventListener('click', async () => {
     const today = new Date();
+    // Celular: a lista é outra estrutura — rola até a seção de hoje.
+    if (isMobile() && view === 'month' && !chronoMode) {
+      if (mmScrollToDay(ymd(today))) return;
+      _mobileLoadedRange = null; // hoje saiu do trecho carregado: recomeça em hoje
+      await renderMobileAgenda();
+      return;
+    }
     if (view === 'month' && !chronoMode) {
       await scrollToMonth(today.getFullYear(), today.getMonth());
       return;
