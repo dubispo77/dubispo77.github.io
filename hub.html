@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T21:28:07-03:00">
+<meta name="hub-build" content="2026-09-20T21:30:10-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3301,6 +3301,8 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp #tab-transacoes.filter-despesas tbody tr:not(.t-despesa){ display: none; }
 #finapp #tab-transacoes.filter-receitas tbody tr:not(.t-receita){ display: none; }
 #finapp #tab-transacoes.filter-transferencias tbody tr:not(.t-transfer){ display: none; }
+#finapp #tab-transacoes tbody tr.t-empty-filtro{ display: table-row !important; }
+#finapp #tab-transacoes .trans-table tbody{ min-height: 160px; }
 #finapp .empty-state{ text-align: center; padding: 48px 20px; color: var(--muted); font-size: 13px; }
 #finapp .empty-state .es-icon{ font-size: 30px; margin-bottom: 10px; opacity: .5; }
 #finapp .fat-pill{ display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; }
@@ -14919,6 +14921,24 @@ function renderTrans() {
           ? '<button class="tx-del" data-del="' + t.id + '" title="Excluir esta previsão">×</button>' : '') + '</td>'
       + '</tr>';
   }).join('');
+  filtroVazio();
+}
+// 20/09: o filtro (Receitas/Despesas/Transferências) esconde linhas por CSS; quando não sobra nenhuma,
+// a tabela colapsava e a página "pulava". Agora entra uma linha de vazio com a mesma altura de sempre.
+function filtroVazio() {
+  const tab = document.getElementById('tab-transacoes');
+  const tbody = tab && tab.querySelector('tbody');
+  if (!tbody) return;
+  tbody.querySelectorAll('tr.t-empty-filtro').forEach(tr => tr.remove());
+  const f = (tab.className.match(/filter-(\w+)/) || [])[1] || 'todas';
+  if (f === 'todas') return;
+  const cls = { despesas: 't-despesa', receitas: 't-receita', transferencias: 't-transfer' }[f];
+  if (!cls || tbody.querySelector('tr.' + cls)) return;
+  const nome = { despesas: 'despesa', receitas: 'receita', transferencias: 'transferência' }[f];
+  const tr = document.createElement('tr');
+  tr.className = 't-empty-filtro';
+  tr.innerHTML = '<td colspan="' + (SEL_UNI.size === 1 ? 8 : 9) + '"><div class="empty-state"><div class="es-icon">📭</div>Nenhuma ' + nome + ' em ' + monthLabel(currentMonth) + '.</div></td>';
+  tbody.appendChild(tr);
 }
 
 // excluir previsão pendente (efetivada o banco recusa) — supressão persiste e tudo recalcula
@@ -15874,8 +15894,11 @@ function activateFilter(filterName) {
     tab.classList.remove('filter-todas', 'filter-despesas', 'filter-receitas', 'filter-transferencias');
     tab.classList.add('filter-' + filterName);
   }
+  const y = window.scrollY; // não deixa a página pular quando o filtro muda a altura da tabela
   if (window.refreshTable) refreshTable();
+  filtroVazio();
   recalcTotal();
+  window.scrollTo(0, y);
 }
 
 // === EDIÇÃO INLINE DE CÉLULAS ===
