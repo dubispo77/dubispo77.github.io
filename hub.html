@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T14:11:24-03:00">
+<meta name="hub-build" content="2026-09-21T15:22:18-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -17249,7 +17249,7 @@ function finAviso(msg) {
         if ((r.description_clean || r.description || '').startsWith('Pagamento fatura')) { DATA.hiddenPays.push({ acc, d: r.date, val: parseFloat(r.amount) }); return; }
         mesesSet.add(r.date.slice(0, 7));
         DATA.transactions.push({
-          id: r.id, sf: r.source_file, pd: r.purchase_date || undefined,
+          id: r.id, sf: r.source_file, pd: r.purchase_date || undefined, bill: r.bill || undefined,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
           acc, val: parseFloat(r.amount), st: (function () {
             if (r.source_file === 'projecao' || r.source_file === 'recorrencia') return 'pending';
@@ -17293,6 +17293,18 @@ function finAviso(msg) {
           DATA.invoices[k].hist.push({ m: (v.due_date || '').slice(0, 7), st: v.status === 'paid' ? 'paga' : (v.status || 'aberta'), total: parseFloat(v.amount) || 0, due: v.due_date ? dayLabel(v.due_date) : '', dueISO: v.due_date || '', pago: parseFloat(v.paid_amount) || 0, pagoEm: v.pago_em || null });
         });
       } catch (e) { console.warn('[finapp] invoices:', e.message || e); }
+      // 21/09 (bronca "não foram pagos, por que estão verdes?"): item de cartão vira verde cheio SÓ quando a
+      // fatura dele consta como paga (credit_card_invoices, alimentada pelo Pluggy /bills). Antes o hub
+      // assumia "venceu = pagou" pela data — e a fatura MP de 15/09 está em aberto.
+      try {
+        const cartoes = Object.keys(DATA.accounts).filter(k => DATA.accounts[k].type === 'credit');
+        DATA.transactions.forEach(t => {
+          if (!cartoes.includes(t.acc) || t.sf === 'projecao' || t.sf === 'recorrencia' || t.tr) return;
+          const bill = t.bill || t.d.slice(0, 7);
+          const inv = (DATA.invoices[t.acc] && DATA.invoices[t.acc].hist || []).find(h => h.m === bill);
+          t.st = inv && inv.st === 'paga' ? 'paid' : 'half';
+        });
+      } catch (e) { console.warn('[finapp] status por fatura:', e.message || e); }
       // saldos de fim de mês (account_balances: extratos reais + cadeias Pluggy)
       try {
         const { data: bals } = await sb.from('account_balances').select('account_id,month,balance');
