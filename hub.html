@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T16:52:41-03:00">
+<meta name="hub-build" content="2026-09-21T16:53:51-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1615,6 +1615,8 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-local-section-label { font-size: 10px; color: #9ca3af; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
 .tdm-local-name { font-size: 16px; color: #fb7185; margin-top: 4px; font-weight: 600; outline: none; }
 .tdm-local-addr { font-size: 13px; color: #6b7280; outline: none; margin-top: 2px; }
+.tdm-local-name.tdm-local-add { color: #9ca3af; font-size: 14px; font-weight: 600; cursor: pointer; }
+.tdm-local-name.tdm-local-add:hover { color: #fb7185; text-decoration: underline; }
 .tdm-local-actions { display: flex; gap: 7px; flex-shrink: 0; }
 .tdm-local-btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -12074,8 +12076,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       </div>`;
     }
 
-    // Local — só renderiza no body em MODO EDIÇÃO (visualização vai na .tdm-local-row externa)
-    if ((i.address || activeFields.has('address')) && editMode) {
+    // Local — só renderiza no body em MODO EDIÇÃO (visualização vai na .tdm-local-row externa).
+    // Sempre presente no modo edição, com ou sem endereço.
+    if (editMode) {
       // Botões Waze + Maps com logos reais (universal URLs — funcionam mobile + desktop)
       const addrEnc = encodeURIComponent(i.address || '');
       const wazeUrl = (i.address_lat && i.address_lng)
@@ -12666,14 +12669,22 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // Renderiza a Local row externa (fora do body)
   function renderLocalRow(item) {
     const row = document.getElementById('tdmLocalRow');
-    if (!item.address) {
-      row.style.display = 'none';
-      return;
-    }
-    row.style.display = 'flex';
     const nameEl = document.getElementById('tdmLocalName');
     const addrEl = document.getElementById('tdmLocalAddr');
     const actEl  = document.getElementById('tdmLocalActions');
+    // Regra Eduardo (21/09): o campo Local existe em TODO card, mesmo sem endereço —
+    // pra ele adicionar depois (o robô do WhatsApp nem sempre tem o endereço na hora).
+    if (!item.address) {
+      row.style.display = 'flex';
+      const travado = !!(window.hubTravado && window.hubTravado(item));
+      nameEl.textContent = travado ? 'Sem local' : '+ Adicionar local';
+      nameEl.classList.toggle('tdm-local-add', !travado);
+      addrEl.textContent = '';
+      actEl.innerHTML = '';
+      return;
+    }
+    row.style.display = 'flex';
+    nameEl.classList.remove('tdm-local-add');
     const { name, addr } = parseLocal(item.address);
     nameEl.textContent = name || 'Local';
     addrEl.textContent = addr || item.address;
@@ -13540,6 +13551,19 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const htp = document.getElementById('hubTimePickerPop');
     if (htp && htp.classList.contains('open')) return;
     close();
+  });
+
+  // "+ Adicionar local" na linha de Local → entra em edição já no campo de endereço
+  document.getElementById('tdmLocalName').addEventListener('click', () => {
+    if (!currentItem || editMode) return;
+    if (!document.getElementById('tdmLocalName').classList.contains('tdm-local-add')) return;
+    if (window.hubTravado && window.hubTravado(currentItem)) { window.hubAvisoGoogle(); return; }
+    editMode = true;
+    activeFields.add('address');
+    btnEdit.style.display = 'none';
+    btnSave.style.display = 'inline-block';
+    renderBody();
+    setTimeout(() => { const inp = document.getElementById('tdmAddrInput'); if (inp) inp.focus(); }, 50);
   });
 
   btnEdit.addEventListener('click', () => {
