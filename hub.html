@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T21:11:45-03:00">
+<meta name="hub-build" content="2026-09-20T21:17:28-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1554,7 +1554,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-when-time-label:hover { opacity: 0.85; }
 /* Coluna hora + toggle "dia inteiro" */
 .tdm-when-time-col { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; min-width: 0; }
-.tdm-when-time-col .tdm-when-time-label.is-allday { font-size: 26px; opacity: .95; }
+.tdm-when-time-col .tdm-when-time-label.is-allday { font-size: 20px; font-weight: 500; opacity: .9; letter-spacing: .01em; }
 .tdm-allday {
   display: inline-flex; align-items: center; gap: 8px;
   background: rgba(255,255,255,0.18);
@@ -1872,7 +1872,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
   .tdm-when-time-btn { font-size: 24px; gap: 5px; padding: 0 4px 0 0; }
   .tdm-when-time-btn::after { font-size: 14px; }
   .tdm-when-time-label { font-size: 24px; }
-  .tdm-when-time-col .tdm-when-time-label.is-allday { font-size: 18px; }
+  .tdm-when-time-col .tdm-when-time-label.is-allday { font-size: 15px; font-weight: 500; }
   .tdm-allday { font-size: 10.5px; padding: 3px 9px 3px 4px; gap: 6px; }
   .tdm-allday .sw { width: 26px; height: 15px; }
   .tdm-allday .sw::after { width: 11px; height: 11px; }
@@ -4907,7 +4907,7 @@ window.hubPerguntaSerie = function(item, verbo) {
       document.body.appendChild(ov);
     }
     const titulo = (window.hubTiraEmoji ? window.hubTiraEmoji(item.title, item.area) : item.title) || '';
-    const acao = verbo === 'renomear' ? 'Renomear' : (verbo === 'editar' ? 'Aplicar a mudança' : 'Mover');
+    const acao = verbo === 'renomear' ? 'Renomear' : (verbo === 'editar' ? 'Aplicar a mudança' : (verbo === 'apagar' ? 'Apagar' : 'Mover'));
     document.getElementById('hubSerieB').textContent = '\u00ab' + titulo + '\u00bb é uma tarefa recorrente. ' + acao + ' só nesta ou nesta e nas próximas?';
     const fim = (esc) => {
       ov.classList.remove('aberto');
@@ -4976,6 +4976,20 @@ window.hubAplicarNaSerie = async function(item, fromIso, mud) {
     ? ('⚠ ' + ok + ' próximos atualizados, ' + falhas + ' falharam')
     : (ok + (ok === 1 ? ' próximo atualizado' : ' próximos atualizados') + ' ✓'));
 };
+// Apaga as instâncias seguintes da série (só no hub; o gatilho anota em gcal_ignorados).
+window.hubApagarSerie = async function(item, fromIso) {
+  const sb = window.sbClient;
+  const key = window.hubSerieKey(item);
+  if (!sb || !key || !fromIso) return;
+  const { data, error } = await sb.from('items').select('id,google_event_id')
+    .like('google_event_id', key + '_%').gt('date_start', fromIso).neq('id', item.id);
+  if (error) { window.hubToast && window.hubToast('⚠ Não achei as próximas: ' + error.message, true); return; }
+  const ids = (data || []).filter(x => window.hubSerieKey(x) === key).map(x => x.id);
+  if (!ids.length) return;
+  const { error: e2 } = await sb.from('items').delete().in('id', ids);
+  if (e2) { window.hubToast && window.hubToast('⚠ Não apagou as próximas: ' + e2.message, true); return; }
+  window.hubToast && window.hubToast(ids.length + (ids.length === 1 ? ' próxima apagada' : ' próximas apagadas') + ' ✓');
+};
 // Calendário do Google de cada área. Explícito: 'pessoal' tem 2 calendários no banco
 // e um deles é o do Santos (só leitura) — o chute automático pode cair no errado.
 window.HUB_AREA_CAL = {
@@ -4992,8 +5006,15 @@ window.hubEhJogoSoDoGoogle = function(it) {
   return !!cal && (window.HUB_READONLY_CALS || []).includes(cal);
 };
 
+// 21/09/2026 — Regra do Eduardo: o hub NUNCA escreve no Google. Só o que nasce no
+// Google entra no hub (gcal-sync). 'insert'/'update' viram no-op aqui; 'delete' ainda
+// chama o gcal-write, que (com app_config.gcal_escrever_no_google=off) apaga só a
+// linha do hub — e um gatilho no banco anota o evento em gcal_ignorados pra a
+// sincronização de 5 min não ressuscitar ele.
+window.HUB_ESCREVE_NO_GOOGLE = false;
 window.syncToGcal = async function(action, itemId) {
   if (!action || !itemId) return;
+  if (!window.HUB_ESCREVE_NO_GOOGLE && action !== 'delete') return;
   const sb = window.sbClient;
   if (!sb) return;
   try {
@@ -11175,10 +11196,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           return;
         }
         if (act === 'del') {
-          if (!confirm('Apagar este item?')) return;
           const target = itemsCache.find(i => i.id === id);
+          let escopoSerie = 'uma';
+          if (target && target.raw && window.hubSerieKey && window.hubSerieKey(target.raw) && window.hubPerguntaSerie) {
+            escopoSerie = await window.hubPerguntaSerie(target.raw, 'apagar');
+            if (!escopoSerie) return;
+          } else if (!confirm('Apagar este item?')) return;
+          if (escopoSerie === 'todas' && window.hubApagarSerie) await window.hubApagarSerie(target.raw, target.raw.date_start);
           if (target && target.raw && target.raw.google_event_id && window.syncToGcal) {
-            // gcal-write apaga no Google E no banco
+            // gcal-write apaga só a linha do hub (o Google não é tocado)
             window.syncToGcal('delete', id);
           } else {
             const { error: delErr } = await sb.from('items').delete().eq('id', id);
@@ -11265,10 +11291,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       return;
     }
     if (act === 'del') {
-      if (!confirm('Apagar este item?')) return;
       const target = itemsCache.find(i => i.id === id);
+      let escopoSerie = 'uma';
+      if (target && target.raw && window.hubSerieKey && window.hubSerieKey(target.raw) && window.hubPerguntaSerie) {
+        escopoSerie = await window.hubPerguntaSerie(target.raw, 'apagar');
+        if (!escopoSerie) return;
+      } else if (!confirm('Apagar este item?')) return;
+      if (escopoSerie === 'todas' && window.hubApagarSerie) await window.hubApagarSerie(target.raw, target.raw.date_start);
       if (target && target.raw && target.raw.google_event_id && window.syncToGcal) {
-        // gcal-write apaga no Google E no banco
+        // gcal-write apaga só a linha do hub (o Google não é tocado)
         window.syncToGcal('delete', id);
       } else {
         const { error: delErr } = await sb.from('items').delete().eq('id', id);
@@ -11798,7 +11829,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   <div class="tdm" id="tdm" role="document">
     <button class="tdm-close" id="tdmClose" type="button" aria-label="Fechar">✕</button>
     <div class="tdm-head" id="tdmHead">
-      <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button><span class="tdm-serie" id="tdmSerie"><svg class="bd rc" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 20v-4h4"/></svg><span>tarefa recorrente</span></span>
+      <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button><span class="tdm-serie" id="tdmSerie"><svg class="bd rc" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 20v-4h4"/></svg><span>recorrente</span></span>
       <div class="tdm-area-dropdown" id="tdmAreaDropdown" style="display:none"></div>
       <div class="tdm-when-row">
         <button class="tdm-when-date-card" id="tdmWhenDateBtn" type="button">
@@ -12694,7 +12725,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     } else {
       if (E.timeBtn) E.timeBtn.style.display = 'none';
       E.timeLabel.style.display = '';
-      E.timeLabel.textContent = '+ hora';
+      E.timeLabel.textContent = 'adicionar hora';
       E.timeLabel.classList.add('is-allday');
     }
     // Duração (só faz sentido com hora)
@@ -13477,8 +13508,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   btnDel.addEventListener('click', async () => {
     if (!currentItem) return;
-    if (!confirm('Apagar este item? (também remove do Google Calendar se tiver evento lá)')) return;
-    // Pra items com google_event_id, gcal-write faz delete no Google + no banco
+    let escopoSerie = 'uma';
+    if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
+      escopoSerie = await window.hubPerguntaSerie(currentItem, 'apagar');
+      if (!escopoSerie) return;
+    } else if (!confirm('Apagar este item?')) return;
+    if (escopoSerie === 'todas' && window.hubApagarSerie) await window.hubApagarSerie(currentItem, currentItem.date_start);
+    // Item vindo do Google: o gcal-write apaga a linha do hub (o Google não é tocado)
     if (currentItem.google_event_id && window.syncToGcal) {
       window.syncToGcal('delete', currentItem.id);
     } else {
