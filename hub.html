@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T20:59:46-03:00">
+<meta name="hub-build" content="2026-09-20T21:06:05-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3403,6 +3403,10 @@ table.data-table tr:hover td { background: var(--bg); }
 @media (max-width: 1200px) {#finapp .accounts-strip{ grid-template-columns: repeat(5, 1fr); }}
 #finapp .acc-chip-card{ min-height: 96px; }
 #finapp .acc-chip-card .cc-bank-name{ font-size: 11.5px; font-weight: 700; letter-spacing: .03em; opacity: 1; }
+#finapp .acc-chip-card .cc-st { float: right; font-size: 10px; font-weight: 800; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; text-transform: none; }
+#finapp .acc-chip-card .cc-st.paga { background: rgba(255,255,255,.22); color: #fff; }
+#finapp .acc-chip-card .cc-st.aberta { background: rgba(255,255,255,.18); color: #fff; }
+#finapp .acc-chip-card .cc-st.vencida { background: #fde68a; color: #7c2d12; }
 #finapp .acc-chip-card.cred{ padding: 10px 12px; }
 #finapp .acc-cred-top{ display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 #finapp .cred-limit-bar{ height: 5px; background: rgba(255,255,255,.25); border-radius: 3px; overflow: hidden; margin: 6px 0 4px; }
@@ -15092,16 +15096,33 @@ function renderAccounts() {
     const a = DATA.accounts[key];
     const [c1, c2] = ACC_GRAD[key] || ['#7c3aed', '#4c1d95'];
     if (a.type === 'credit') {
+      // v37 (pedido 20/09): o card diz se a fatura está PAGA ou NÃO, pelo que o Pluggy viu de pagamento.
       const inv = DATA.invoices[key];
-      const f = proxFatura(key);
-      const valor = f ? f.total : 0;
+      const hist = (inv && inv.hist) || [];
+      const hj = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const dmy = iso => iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) : '';
+      const aberta = hist.filter(h => h.st !== 'paga' && h.st !== 'prevista').sort((x, y) => x.m.localeCompare(y.m))[0] || null;
+      let valor = 0, sub = '', badge = '';
+      if (aberta) {
+        valor = Math.max(aberta.total - (aberta.pago || 0), 0);
+        const vencida = aberta.dueISO && aberta.dueISO < hj;
+        badge = vencida ? '<span class="cc-st vencida">⚠ vencida ' + dmy(aberta.dueISO) + ' · não paga</span>'
+              : '<span class="cc-st aberta">em aberto · vence ' + dmy(aberta.dueISO) + '</span>';
+        sub = (aberta.st === 'partial' && aberta.pago ? 'pagou ' + fmt(aberta.pago) + ' de ' + fmt(aberta.total) + ' · ' : 'fatura de ' + MONTH_NAMES[aberta.m.slice(5)] + ' · ');
+      } else {
+        const ultima = hist.filter(h => h.st === 'paga').sort((x, y) => y.m.localeCompare(x.m))[0] || null;
+        const prox = ultima ? (function () { let [y, mm] = ultima.m.split('-').map(Number); mm++; if (mm > 12) { mm = 1; y++; } return y + '-' + String(mm).padStart(2, '0'); })() : hj.slice(0, 7);
+        valor = DATA.transactions.filter(t => t.acc === key && !t.tr && t.val < 0 && t.d.startsWith(prox)).reduce((s2, t) => s2 - t.val, 0);
+        badge = ultima ? '<span class="cc-st paga">✓ ' + MONTH_NAMES[ultima.m.slice(5)] + ' paga' + (ultima.pagoEm ? ' em ' + dmy(ultima.pagoEm) : '') + '</span>' : '';
+        sub = 'próxima fatura (' + MONTH_NAMES[prox.slice(5)] + ') acumulando · ';
+      }
       const pct = inv && inv.limit ? Math.min(valor / inv.limit * 100, 100) : 0;
       const livre = inv ? Math.max(inv.limit - valor, 0) : 0;
       return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
-        + '<div class="cc-bank-name">' + a.name + '</div>'
-        + '<div class="dcb-val">' + (f ? fmt(valor) : '—') + '</div>'
+        + '<div class="cc-bank-name">' + a.name + badge + '</div>'
+        + '<div class="dcb-val">' + fmt(valor) + '</div>'
         + '<div class="cred-limit-bar"><i style="width:' + pct.toFixed(0) + '%"></i></div>'
-        + '<div class="dcb-tipo">próxima fatura' + (f && f.due ? ' · vence ' + f.due : '') + ' · ' + fmt(livre) + ' livre</div>'
+        + '<div class="dcb-tipo">' + sub + fmt(livre) + ' livre</div>'
         + '</div>';
     }
     const tipo = key === 'nub-caixinha' ? 'Caixinha' : (key === 'nub-pj' ? 'Conta PJ' : (key === 'brad-poup' ? 'Invest Fácil' : ACC_TYPE_LABEL[a.type] || ''));
@@ -16970,11 +16991,12 @@ function finAviso(msg) {
       DATA.installments.length = 0;
       // faturas reais da tabela credit_card_invoices
       try {
-        const { data: invs } = await sb.from('credit_card_invoices').select('account_id,due_date,amount,status');
+        const { data: invs } = await sb.from('credit_card_invoices').select('account_id,due_date,amount,status,paid_amount,pago_em:raw->>pago_em');
         (invs || []).forEach(v => {
           const k = idToKey[v.account_id];
           if (!k || !DATA.invoices[k]) return;
-          DATA.invoices[k].hist.push({ m: (v.due_date || '').slice(0, 7), st: v.status === 'paid' ? 'paga' : (v.status || 'aberta'), total: parseFloat(v.amount) || 0, due: v.due_date ? dayLabel(v.due_date) : '' });
+          // st: 'paga' | 'partial' | 'open' (v37: vem do Pluggy /bills) — pago/pagoEm alimentam o card AO VIVO
+          DATA.invoices[k].hist.push({ m: (v.due_date || '').slice(0, 7), st: v.status === 'paid' ? 'paga' : (v.status || 'aberta'), total: parseFloat(v.amount) || 0, due: v.due_date ? dayLabel(v.due_date) : '', dueISO: v.due_date || '', pago: parseFloat(v.paid_amount) || 0, pagoEm: v.pago_em || null });
         });
       } catch (e) { console.warn('[finapp] invoices:', e.message || e); }
       // saldos de fim de mês (account_balances: extratos reais + cadeias Pluggy)
