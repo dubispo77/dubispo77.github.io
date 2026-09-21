@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T21:17:28-03:00">
+<meta name="hub-build" content="2026-09-20T21:18:24-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3113,6 +3113,9 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp #tab-transacoes.filter-transferencias .trans-kpis-transferencias{ display: grid; }
 #finapp .plan-summary.all-red .icon-circle{ background: var(--red); }
 #finapp .plan-summary.all-green .icon-circle{ background: var(--green); }
+/* 20/09: pendente = relógio amarelo, checado = ✓ verde-água — as mesmas cores dos ícones de situação das linhas */
+#finapp .plan-summary.st-pend .icon-circle{ background: #f59e0b; }
+#finapp .plan-summary.st-ok .icon-circle{ background: #14b8a6; }
 #finapp .plan-summary.all-blue .icon-circle{ background: var(--blue); }
 #finapp .restam-cell{ min-width: 220px; }
 #finapp .restam-text{
@@ -3571,15 +3574,15 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
     </div>
 
     <div class="plan-summary-row trans-kpis-despesas" style="grid-template-columns:repeat(3,1fr)">
-      <div class="plan-summary all-red"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-up"/></svg></div><div class="plan-summary-content"><div class="label">Despesas pendentes</div><div class="val" id="kpiDespPend"></div></div></div>
-      <div class="plan-summary all-red"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-down"/></svg></div><div class="plan-summary-content"><div class="label">Despesas pagas</div><div class="val" id="kpiDespPagas"></div></div></div>
-      <div class="plan-summary all-red"><div class="icon-circle"><svg class="iconic"><use href="#i-balance"/></svg></div><div class="plan-summary-content"><div class="label">Total</div><div class="val" id="kpiDespTotal"></div></div></div>
+      <div class="plan-summary st-pend"><div class="icon-circle"><svg class="iconic"><use href="#i-clock"/></svg></div><div class="plan-summary-content"><div class="label">Despesas pendentes</div><div class="val" id="kpiDespPend"></div></div></div>
+      <div class="plan-summary st-ok"><div class="icon-circle"><svg class="iconic"><use href="#i-check"/></svg></div><div class="plan-summary-content"><div class="label">Despesas checadas</div><div class="val" id="kpiDespPagas"></div></div></div>
+      <div class="plan-summary all-red"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-down"/></svg></div><div class="plan-summary-content"><div class="label">Despesas do mês (total)</div><div class="val" id="kpiDespTotal"></div></div></div>
     </div>
 
     <div class="plan-summary-row trans-kpis-receitas" style="grid-template-columns:repeat(3,1fr)">
-      <div class="plan-summary all-green"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-up"/></svg></div><div class="plan-summary-content"><div class="label">Receitas pendentes</div><div class="val" id="kpiRecPend"></div></div></div>
-      <div class="plan-summary all-green"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-down"/></svg></div><div class="plan-summary-content"><div class="label">Receitas recebidas</div><div class="val" id="kpiRecReceb"></div></div></div>
-      <div class="plan-summary all-green"><div class="icon-circle"><svg class="iconic"><use href="#i-balance"/></svg></div><div class="plan-summary-content"><div class="label">Total</div><div class="val" id="kpiRecTotal"></div></div></div>
+      <div class="plan-summary st-pend"><div class="icon-circle"><svg class="iconic"><use href="#i-clock"/></svg></div><div class="plan-summary-content"><div class="label">Receitas pendentes</div><div class="val" id="kpiRecPend"></div></div></div>
+      <div class="plan-summary st-ok"><div class="icon-circle"><svg class="iconic"><use href="#i-check"/></svg></div><div class="plan-summary-content"><div class="label">Receitas recebidas</div><div class="val" id="kpiRecReceb"></div></div></div>
+      <div class="plan-summary all-green"><div class="icon-circle"><svg class="iconic"><use href="#i-arrow-up"/></svg></div><div class="plan-summary-content"><div class="label">Receitas do mês (total)</div><div class="val" id="kpiRecTotal"></div></div></div>
     </div>
 
     <div class="plan-summary-row trans-kpis-transferencias" style="grid-template-columns:repeat(3,1fr)">
@@ -15025,10 +15028,10 @@ function renderKPIs() {
   setText('kpiRec', fmt(sum(rec)));
   setText('kpiDesp', fmt(sum(desp)));
   setText('kpiBal', fmtS(sum(rec) + sum(desp)));
-  setText('kpiDespPend', fmt(sum(desp.filter(t => t.st !== 'paid'))));
+  setText('kpiDespPend', fmt(sum(desp.filter(t => t.st !== 'paid' && t.st !== 'half')))); // half = já checado, não é pendente
   setText('kpiDespPagas', fmt(sum(desp.filter(t => t.st === 'paid' || t.st === 'half'))));
   setText('kpiDespTotal', fmt(sum(desp)));
-  setText('kpiRecPend', fmt(sum(rec.filter(t => t.st !== 'paid'))));
+  setText('kpiRecPend', fmt(sum(rec.filter(t => t.st !== 'paid' && t.st !== 'half'))));
   setText('kpiRecReceb', fmt(sum(rec.filter(t => t.st === 'paid' || t.st === 'half'))));
   setText('kpiRecTotal', fmt(sum(rec)));
   setText('kpiTransfCount', String(trf.length));
