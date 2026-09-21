@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T21:08:35-03:00">
+<meta name="hub-build" content="2026-09-20T21:08:51-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1200,7 +1200,8 @@ table.data-table tr:hover td { background: var(--bg); }
    e a gaveta "+N mais" não abre. */
 body.hub-arrastando .calM-ev { pointer-events: none !important; }
 body.hub-arrastando .calM-ev, body.hub-arrastando .calM-ev.show-actions { width: 100% !important; padding-right: 0 !important; margin-left: 0 !important; padding-left: 0 !important; }
-body.hub-arrastando .calM-ev .calM-ev-in { position: static !important; }
+body.hub-arrastando .calM-ev .calM-ev-in { max-height: 32px !important; padding-right: 9px !important; box-shadow: none !important; transition: none !important; }
+body.hub-arrastando .calM-ev.has-hr .calM-ev-in { max-height: 44px !important; }
 body.hub-arrastando .calM-ev .eb-actions { opacity: 0 !important; pointer-events: none !important; }
 body.hub-arrastando .calM-cell.has-more .calM-overflow { opacity: 0 !important; visibility: hidden !important; transition: none !important; }
 body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
