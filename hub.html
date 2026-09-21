@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T22:15:13-03:00">
+<meta name="hub-build" content="2026-09-21T10:46:56-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2702,6 +2702,16 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
     display: flex;
     gap: 6px;
     margin: 4px 0 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+/* 21/09: busca de lançamento (pedido do Eduardo) — filtra a tabela do mês enquanto digita */
+#finapp .tx-busca{ margin-left: auto; display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #ddd9d2; border-radius: 999px; padding: 4px 12px; min-width: 260px; }
+#finapp .tx-busca:focus-within{ border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
+#finapp .tx-busca input{ border: 0; outline: 0; background: transparent; font: inherit; font-size: 13px; flex: 1; min-width: 0; }
+#finapp .tx-busca-ic{ font-size: 13px; opacity: .6; }
+#finapp .tx-busca-n{ font-size: 11px; color: var(--muted); white-space: nowrap; }
+#finapp .tx-busca-x{ /* reservado */
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -3574,6 +3584,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
       <button data-filter="despesas"><span class="filter-dot fd-out"></span>Despesas</button>
       <button data-filter="receitas"><span class="filter-dot fd-in"></span>Receitas</button>
       <button data-filter="transferencias"><span class="filter-dot fd-trans"></span>Transferências</button>
+      <div class="tx-busca"><span class="tx-busca-ic">🔍</span><input type="search" id="txBusca" placeholder="buscar lançamento…" autocomplete="off"><span class="tx-busca-n" id="txBuscaN"></span></div>
     </div>
 
     <div class="plan-summary-row trans-kpis-todas" style="grid-template-columns:repeat(4,1fr)">
@@ -15990,6 +16001,24 @@ document.querySelectorAll('.tabs-nav button').forEach(btn => {
 // Ao carregar: restaura a aba ativa do localStorage
 const savedTab = store.get('hub_financas_active_tab');
 if (savedTab && document.getElementById('tab-' + savedTab)) activateTab(savedTab);
+// busca de lançamento (21/09): mesma variável que o filtro da coluna Descrição (VIEW.q) — os dois ficam em sincronia
+(function ligaBusca() {
+  const inp = document.getElementById('txBusca');
+  if (!inp) return;
+  let t = null;
+  inp.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => { VIEW.q = inp.value.trim(); if (window.refreshTable) refreshTable(); filtroVazio(); recalcTotal(); contaBusca(); }, 150);
+  });
+  inp.addEventListener('keydown', e => { if (e.key === 'Escape') { inp.value = ''; inp.dispatchEvent(new Event('input')); } });
+})();
+function contaBusca() {
+  const n = document.getElementById('txBuscaN'); const inp = document.getElementById('txBusca');
+  if (!n || !inp) return;
+  if (!VIEW.q) { n.textContent = ''; return; }
+  const vis = [...document.querySelectorAll('#tab-transacoes tbody tr')].filter(tr => !tr.classList.contains('t-empty') && !tr.classList.contains('t-empty-filtro') && getComputedStyle(tr).display !== 'none').length;
+  n.textContent = vis + (vis === 1 ? ' achado' : ' achados');
+}
 function activateFilter(filterName) {
   document.querySelectorAll('.filter-tabs button').forEach(b => b.classList.remove('active'));
   const btn = document.querySelector('.filter-tabs button[data-filter="' + filterName + '"]');
