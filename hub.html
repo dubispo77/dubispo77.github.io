@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T22:10:57-03:00">
+<meta name="hub-build" content="2026-09-20T22:14:36-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -11459,14 +11459,22 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if ((ev.dataset.itemId || '').includes('#')) { e.preventDefault(); return; }
     e.dataTransfer.setData('text/plain', ev.dataset.itemId);
     e.dataTransfer.effectAllowed = 'move';
+    soltarTrava();
     ev.classList.add('is-dragging');
     // Só DEPOIS do dragstart terminar: mexer em pointer-events do card de origem dentro
     // do dragstart faz o Chrome cancelar o arrasto na hora (dragend imediato).
     setTimeout(() => { if (document.querySelector('.calM-ev.is-dragging')) document.body.classList.add('hub-arrastando'); }, 0);
     startDragAutoScroll();
   });
+  // O drop re-renderiza o calendário e o card de origem some do DOM — aí o Chrome
+  // NÃO dispara dragend nele. Por isso a trava é solta em vários pontos (drop, mouseup,
+  // e no próximo dragstart), não só no dragend.
+  const soltarTrava = () => document.body.classList.remove('hub-arrastando');
+  document.addEventListener('drop', soltarTrava, true);
+  document.addEventListener('dragend', soltarTrava, true);
+  document.addEventListener('mouseup', soltarTrava, true);
   container.addEventListener('dragend', e => {
-    document.body.classList.remove('hub-arrastando');
+    soltarTrava();
     const ev = e.target.closest('.calM-ev.is-dragging');
     if (ev) ev.classList.remove('is-dragging');
     document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
@@ -11506,6 +11514,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   });
   // Função compartilhada — desktop drop + mobile touchend usam a mesma.
   async function aplicarDropEmCelula(id, cell) {
+    document.body.classList.remove('hub-arrastando');
     document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
     const newDate = cell?.dataset?.date;
     if (!id || !newDate) return;
