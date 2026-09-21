@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T10:58:02-03:00">
+<meta name="hub-build" content="2026-09-21T11:01:25-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -4889,9 +4889,14 @@ window.HUB_AREAS_SO_LEITURA = ['agenda_awvz'];
 // hora, duração, categoria, campos e apagar ficam travados; edita-se no Google e a
 // sync de 5 min traz pro hub. O que continua no hub: concluir/reabrir e reordenar
 // o card pra cima/baixo dentro do mesmo dia.
+// "Do Google" = NASCEU no Google (metadata.origem = 'google', carimbado pela sync ao
+// importar). Item criado no hub que um dia foi empurrado pro Google NÃO conta —
+// foi desvinculado em 21/09 e continua editável.
 window.hubDoGoogle = function(it) {
   if (!it) return false;
-  return !!(it.google_event_id || (it.raw && it.raw.google_event_id));
+  const raw = it.raw || it;
+  const md = raw.metadata || {};
+  return !!raw.google_event_id && md.origem === 'google';
 };
 window.hubTravado = function(it) {
   return !!((window.hubSoLeitura && window.hubSoLeitura(it)) || window.hubDoGoogle(it));
