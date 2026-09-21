@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T10:47:14-03:00">
+<meta name="hub-build" content="2026-09-21T10:52:23-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2712,6 +2712,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .tx-busca input{ border: 0; outline: 0; background: transparent; font: inherit; font-size: 13px; flex: 1; min-width: 0; }
 #finapp .tx-busca-ic{ font-size: 13px; opacity: .6; }
 #finapp .tx-busca-n{ font-size: 11px; color: var(--muted); white-space: nowrap; }
+#finapp .tx-busca select{ border: 0; background: #f3f0fb; color: #4c3f9e; font: inherit; font-size: 11.5px; font-weight: 700; border-radius: 999px; padding: 3px 8px; cursor: pointer; }
 #finapp .filter-tabs button{
     background: var(--card);
     border: 1px solid var(--border);
@@ -3581,7 +3582,8 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
       <button data-filter="despesas"><span class="filter-dot fd-out"></span>Despesas</button>
       <button data-filter="receitas"><span class="filter-dot fd-in"></span>Receitas</button>
       <button data-filter="transferencias"><span class="filter-dot fd-trans"></span>Transferências</button>
-      <div class="tx-busca"><span class="tx-busca-ic">🔍</span><input type="search" id="txBusca" placeholder="buscar lançamento…" autocomplete="off"><span class="tx-busca-n" id="txBuscaN"></span></div>
+      <div class="tx-busca"><span class="tx-busca-ic">🔍</span><input type="search" id="txBusca" placeholder="buscar lançamento…" autocomplete="off"><span class="tx-busca-n" id="txBuscaN"></span>
+        <select id="txBuscaEscopo" title="onde procurar"><option value="mes">este mês</option><option value="ano">este ano</option><option value="sempre">sempre</option></select></div>
     </div>
 
     <div class="plan-summary-row trans-kpis-todas" style="grid-template-columns:repeat(4,1fr)">
@@ -14987,7 +14989,13 @@ function renderTrans() {
   const tbody = document.getElementById('transBody');
   if (!tbody) return;
   if (transferMode()) { renderTransfersPaired(tbody); return; }
-  let tx = txOf(currentMonth).filter(t => {
+  // 21/09: busca com escopo — "este mês" (padrão) usa o mês selecionado; "este ano"/"sempre" varrem tudo e mostram a data completa
+  const escopo = (VIEW.q && VIEW.escopo) || 'mes';
+  const base = escopo === 'mes' ? txOf(currentMonth)
+    : escopo === 'ano' ? DATA.transactions.filter(t => t.d.startsWith(currentMonth.slice(0, 4)))
+    : DATA.transactions.slice();
+  window.__buscaAmpla = escopo !== 'mes';
+  let tx = base.filter(t => {
     if (SEL_UNI.size && !SEL_UNI.has(t.acc)) return false;
     if (VIEW.st.size && !VIEW.st.has(t.st === 'half' ? 'paid' : t.st)) return false;
     if (VIEW.cat.size && !VIEW.cat.has(t.cat)) return false;
@@ -15008,6 +15016,7 @@ function renderTrans() {
     val:  t => t.val,
   }[VIEW.sort] || (t => t.d);
   tx.sort((a,b) => { const ka = key(a), kb = key(b); return ka < kb ? -dir : ka > kb ? dir : 0; });
+  if (window.__buscaAmpla && VIEW.sort === 'date' && VIEW.dir === 'asc') tx.reverse(); // mais recente primeiro
   if (!tx.length) {
     tbody.innerHTML = '<tr class="t-empty"><td colspan="' + (SEL_UNI.size === 1 ? 8 : 9) + '"><div class="empty-state"><div class="es-icon">📭</div>Nenhuma transação em ' + monthLabel(currentMonth) + '.<br>Os dados reais entram aqui via importador/Pluggy.</div></td></tr>';
     return;
@@ -15024,7 +15033,7 @@ function renderTrans() {
     return '<tr class="' + rowCls + '" data-txid="' + (t.id || '') + '">'
       + '<td><input type="checkbox"></td>'
       + '<td>' + statusIcon(t.st) + '</td>'
-      + '<td>' + dayLabel(effDate(t)) + '</td>'
+      + '<td>' + (window.__buscaAmpla ? '<span style="white-space:nowrap">' + effDate(t).slice(8, 10) + '/' + effDate(t).slice(5, 7) + '/' + effDate(t).slice(2, 4) + '</span>' : dayLabel(effDate(t))) + '</td>'
       + '<td>' + t.desc + '</td>'
       + '<td>' + parcCell(t.parc) + '</td>'
       + '<td>' + catCell(t.cat) + '</td>'
@@ -16008,13 +16017,17 @@ if (savedTab && document.getElementById('tab-' + savedTab)) activateTab(savedTab
     t = setTimeout(() => { VIEW.q = inp.value.trim(); if (window.refreshTable) refreshTable(); filtroVazio(); recalcTotal(); contaBusca(); }, 150);
   });
   inp.addEventListener('keydown', e => { if (e.key === 'Escape') { inp.value = ''; inp.dispatchEvent(new Event('input')); } });
+  const sel = document.getElementById('txBuscaEscopo');
+  VIEW.escopo = 'mes';
+  if (sel) sel.addEventListener('change', () => { VIEW.escopo = sel.value; if (VIEW.q) { if (window.refreshTable) refreshTable(); filtroVazio(); recalcTotal(); contaBusca(); } });
 })();
 function contaBusca() {
   const n = document.getElementById('txBuscaN'); const inp = document.getElementById('txBusca');
   if (!n || !inp) return;
   if (!VIEW.q) { n.textContent = ''; return; }
   const vis = [...document.querySelectorAll('#tab-transacoes tbody tr')].filter(tr => !tr.classList.contains('t-empty') && !tr.classList.contains('t-empty-filtro') && getComputedStyle(tr).display !== 'none').length;
-  n.textContent = vis + (vis === 1 ? ' achado' : ' achados');
+  const esc = { mes: 'no mês', ano: 'no ano', sempre: 'no histórico' }[VIEW.escopo || 'mes'];
+  n.textContent = vis + (vis === 1 ? ' achado ' : ' achados ') + esc;
 }
 function activateFilter(filterName) {
   document.querySelectorAll('.filter-tabs button').forEach(b => b.classList.remove('active'));
