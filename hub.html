@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T15:22:18-03:00">
+<meta name="hub-build" content="2026-09-21T16:52:41-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1180,6 +1180,8 @@ table.data-table tr:hover td { background: var(--bg); }
   .calM-grid:has(.calM-cell.has-more:hover) { overflow: visible; }
 }
 .calM-ev.is-done { opacity: .55; text-decoration: line-through; }
+/* Regra Eduardo (21/09): card concluído (ou já passado) volta a ficar 100% visível no hover. */
+.calM-ev.is-done:hover, .calM-ev.is-done.show-actions, .calM-ev.is-past:hover { opacity: 1; }
 /* Já aconteceu (agenda espelhada): apagado, mas sem risco — não foi "concluído". */
 /* Item de agenda espelhada não tem ✓/✕, então não faz sentido esticar pra direita:
    no hover ele só cresce pra baixo pra mostrar o nome inteiro. */
