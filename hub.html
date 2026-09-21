@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T21:06:05-03:00">
+<meta name="hub-build" content="2026-09-20T21:08:35-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1196,6 +1196,14 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.is-overdue { border-left-color: #dc2626 !important; border-left-width: 4px !important; }
 .calM-ev .badge-overdue { position: absolute; top: -3px; right: -3px; background: #dc2626; color: #fff; padding: 1px 5px; border-radius: 999px; font-size: 8px; font-weight: 700; line-height: 1.2; pointer-events: none; box-shadow: 0 1px 2px rgba(0,0,0,.2); z-index: 5; }
 .calM-ev.is-dragging { opacity: .35; transform: scale(.98); transition: opacity .12s, transform .12s; }
+/* Enquanto arrasta: nenhum card reage ao mouse (não estica pro lado nem pra baixo)
+   e a gaveta "+N mais" não abre. */
+body.hub-arrastando .calM-ev { pointer-events: none !important; }
+body.hub-arrastando .calM-ev, body.hub-arrastando .calM-ev.show-actions { width: 100% !important; padding-right: 0 !important; margin-left: 0 !important; padding-left: 0 !important; }
+body.hub-arrastando .calM-ev .calM-ev-in { position: static !important; }
+body.hub-arrastando .calM-ev .eb-actions { opacity: 0 !important; pointer-events: none !important; }
+body.hub-arrastando .calM-cell.has-more .calM-overflow { opacity: 0 !important; visibility: hidden !important; transition: none !important; }
+body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calM-ev { transition: transform .15s, width .26s cubic-bezier(.2,.8,.3,1), padding .26s cubic-bezier(.2,.8,.3,1), margin-left .26s cubic-bezier(.2,.8,.3,1); }
 .calM-ev .bd { display: inline-block; margin-right: 3px; font-size: 9px; line-height: 1; }
 .calM-ev .bd.ov { color: #fecaca; }
@@ -4890,15 +4898,15 @@ window.hubPerguntaSerie = function(item, verbo) {
       ov.innerHTML = '<div class="hub-serie-card" role="dialog">'
         + '<div class="hub-serie-t">' + window.HUB_ICO_SERIE + '<span>Esse compromisso se repete</span></div>'
         + '<div class="hub-serie-b" id="hubSerieB"></div>'
-        + '<button type="button" class="hub-serie-btn prim" data-esc="uma">Só este</button>'
-        + '<button type="button" class="hub-serie-btn" data-esc="todas">Este e os próximos</button>'
+        + '<button type="button" class="hub-serie-btn prim" data-esc="uma">Só esta</button>'
+        + '<button type="button" class="hub-serie-btn" data-esc="todas">Esta e as próximas</button>'
         + '<button type="button" class="hub-serie-btn cancel" data-esc="">Cancelar</button>'
         + '</div>';
       document.body.appendChild(ov);
     }
     const titulo = (window.hubTiraEmoji ? window.hubTiraEmoji(item.title, item.area) : item.title) || '';
-    const acao = verbo === 'renomear' ? 'Renomear' : 'Mover';
-    document.getElementById('hubSerieB').textContent = '\u00ab' + titulo + '\u00bb faz parte de uma série. ' + acao + ' só este ou este e os próximos?';
+    const acao = verbo === 'renomear' ? 'Renomear' : (verbo === 'editar' ? 'Aplicar a mudança' : 'Mover');
+    document.getElementById('hubSerieB').textContent = '\u00ab' + titulo + '\u00bb é uma tarefa recorrente. ' + acao + ' só nesta ou nesta e nas próximas?';
     const fim = (esc) => {
       ov.classList.remove('aberto');
       setTimeout(() => { ov.style.display = 'none'; }, 220);
@@ -4915,25 +4923,41 @@ window.hubPerguntaSerie = function(item, verbo) {
   });
 };
 // Aplica a mesma mudança nas instâncias seguintes da série (no hub) e empurra cada uma pro Google.
-// mud: { title } e/ou { delta (ms), has_time, dur (ms) }
+// mud: { title } | { campos: {...} } | { delta (ms), has_time, dur (ms) } | { duracao: { mins|null } }
 window.hubAplicarNaSerie = async function(item, fromIso, mud) {
   const sb = window.sbClient;
   const key = window.hubSerieKey(item);
   if (!sb || !key || !fromIso) return;
   const { data, error } = await sb.from('items')
-    .select('id,title,date_start,date_end,has_time,google_event_id,google_calendar_id')
+    .select('id,title,date_start,date_end,has_time,metadata,google_event_id,google_calendar_id')
     .like('google_event_id', key + '_%')
     .gt('date_start', fromIso)
     .neq('id', item.id)
     .order('date_start');
   if (error) { window.hubToast && window.hubToast('⚠ Não achei os próximos: ' + error.message, true); return; }
-  const irmas = (data || []).filter(x => window.hubSerieKey(x) === key
-    && (x.google_calendar_id || '') === (item.google_calendar_id || ''));
+  const irmas = (data || []).filter(x => window.hubSerieKey(x) === key);
   if (!irmas.length) { window.hubToast && window.hubToast('Não há próximos dessa série no hub'); return; }
   let ok = 0, falhas = 0;
   for (const x of irmas) {
     const up = {};
     if (mud.title != null) up.title = mud.title;
+    if (mud.campos) {
+      for (const k of Object.keys(mud.campos)) {
+        if (k === 'date_start' || k === 'date_end' || k === 'has_time' || k === 'order_manual') continue;
+        up[k] = mud.campos[k];
+      }
+    }
+    if (mud.duracao) {
+      const meta = Object.assign({}, x.metadata || {});
+      if (mud.duracao.mins > 0) {
+        up.date_end = new Date(new Date(x.date_start).getTime() + mud.duracao.mins * 60000).toISOString();
+        meta.mostrar_duracao = true;
+      } else {
+        up.date_end = null;
+        delete meta.mostrar_duracao;
+      }
+      up.metadata = meta;
+    }
     if (typeof mud.delta === 'number') {
       const ns = new Date(new Date(x.date_start).getTime() + mud.delta);
       up.date_start = ns.toISOString();
@@ -11364,9 +11388,11 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     e.dataTransfer.setData('text/plain', ev.dataset.itemId);
     e.dataTransfer.effectAllowed = 'move';
     ev.classList.add('is-dragging');
+    document.body.classList.add('hub-arrastando');
     startDragAutoScroll();
   });
   container.addEventListener('dragend', e => {
+    document.body.classList.remove('hub-arrastando');
     const ev = e.target.closest('.calM-ev.is-dragging');
     if (ev) ev.classList.remove('is-dragging');
     document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
@@ -11381,9 +11407,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     cell.style.outline = '2px solid #7c3aed';
     cell.style.outlineOffset = '-2px';
 
-    // Reordena DOM em tempo real pra mostrar onde o card vai cair
+    // Reordena DOM em tempo real pra mostrar onde o card vai cair — SÓ dentro da célula
+    // de origem. Em outro dia o card fica parado (antes ele pulava de posição a cada pixel).
     const dragged = document.querySelector('.calM-ev.is-dragging');
-    if (!dragged) return;
+    if (!dragged || !cell.contains(dragged)) return;
     const siblings = Array.from(cell.querySelectorAll('.calM-ev:not(.is-dragging)'));
     let inserted = false;
     for (const sib of siblings) {
@@ -11490,6 +11517,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (_touchDrag.longPressTimer) clearTimeout(_touchDrag.longPressTimer);
     if (_touchDrag.ghost && _touchDrag.ghost.parentNode) _touchDrag.ghost.parentNode.removeChild(_touchDrag.ghost);
     if (_touchDrag.srcEv) _touchDrag.srcEv.classList.remove('is-dragging');
+    document.body.classList.remove('hub-arrastando');
     document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
     document.body.style.userSelect = '';
     document.body.style.touchAction = '';
@@ -11517,6 +11545,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         _touchDrag.active = true;
         window.__hubMobileDragActive = true;
         ev.classList.add('is-dragging');
+        document.body.classList.add('hub-arrastando');
         // Vibração curta como feedback (se suportado)
         if (navigator.vibrate) navigator.vibrate(15);
         // Cria fantasma
@@ -11572,8 +11601,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (cell) {
       cell.style.outline = '2px solid #7c3aed';
       cell.style.outlineOffset = '-2px';
-      // Reordena DOM em tempo real
+      // Reordena DOM em tempo real (só na célula de origem)
       const dragged = _touchDrag.srcEv;
+      if (!cell.contains(dragged)) return;
       const siblings = Array.from(cell.querySelectorAll('.calM-ev:not(.is-dragging)'));
       let inserted = false;
       for (const sib of siblings) {
@@ -11766,7 +11796,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   <div class="tdm" id="tdm" role="document">
     <button class="tdm-close" id="tdmClose" type="button" aria-label="Fechar">✕</button>
     <div class="tdm-head" id="tdmHead">
-      <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button><span class="tdm-serie" id="tdmSerie"><svg class="bd rc" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 20v-4h4"/></svg><span>repete</span></span>
+      <button class="tdm-area-pill" id="tdmAreaPill" type="button">—</button><span class="tdm-serie" id="tdmSerie"><svg class="bd rc" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 20v-4h4"/></svg><span>tarefa recorrente</span></span>
       <div class="tdm-area-dropdown" id="tdmAreaDropdown" style="display:none"></div>
       <div class="tdm-when-row">
         <button class="tdm-when-date-card" id="tdmWhenDateBtn" type="button">
@@ -12866,6 +12896,11 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const wrap = document.getElementById('tdmDurationWrap');
     const ligado = wrap.classList.contains('on');
     const ds = new Date(currentItem.date_start);
+    let escopoSerie = 'uma';
+    if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
+      escopoSerie = await window.hubPerguntaSerie(currentItem, 'editar');
+      if (!escopoSerie) return;
+    }
     let patch;
     if (ligado) {
       // Desliga: some a hora de fim. Guarda a última duração pra religar no mesmo valor.
@@ -12886,6 +12921,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (error) { if (window.hubToast) window.hubToast('⚠ Não salvou a duração: ' + error.message, true); return; }
     if (window.hubToast) window.hubToast(ligado ? 'Duração desligada ✓' : 'Duração ligada ✓');
     tdmSyncGcal();
+    if (escopoSerie === 'todas' && window.hubAplicarNaSerie) {
+      const minsNovo = ligado ? null : (currentItem._ultimaDuracao || 60);
+      window.hubAplicarNaSerie(currentItem, currentItem.date_start, { duracao: { mins: minsNovo } });
+    }
     if (window.hubUpdateBadges) window.hubUpdateBadges();
   });
   document.getElementById('tdmDuration').addEventListener('click', async (e) => {
@@ -12921,6 +12960,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         ev.stopPropagation();
         const m = parseInt(el.dataset.mins, 10);
         const newEnd = new Date(ds.getTime() + m * 60000).toISOString();
+        let escopoSerie = 'uma';
+        if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
+          dd.style.display = 'none';
+          escopoSerie = await window.hubPerguntaSerie(currentItem, 'editar');
+          if (!escopoSerie) return;
+        }
         currentItem.date_end = newEnd;
         document.getElementById('tdmDuration').textContent = fmtMinutes(m) + ' ▾';
         dd.style.display = 'none';
@@ -12930,6 +12975,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         if (durErr) { if (window.hubToast) window.hubToast('⚠ Não salvou a duração: ' + durErr.message, true); return; }
         if (window.hubToast) window.hubToast('Duração salva ✓');
         tdmSyncGcal();
+        if (escopoSerie === 'todas' && window.hubAplicarNaSerie) window.hubAplicarNaSerie(currentItem, currentItem.date_start, { duracao: { mins: m } });
       });
     });
   });
@@ -13002,6 +13048,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         if (ev.target.matches('.add-child')) return;
         const slug = el.dataset.area;
         const parentId = el.dataset.parentId || null;
+        let escopoSerie = 'uma';
+        if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
+          ad.style.display = 'none';
+          escopoSerie = await window.hubPerguntaSerie(currentItem, 'editar');
+          if (!escopoSerie) return;
+        }
         currentItem.area = slug;
         currentItem.parent_id = parentId;
         // Área nova = calendário novo no Google (o gcal-write move o evento de lá).
@@ -13021,6 +13073,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         if (areaErr) { if (window.hubToast) window.hubToast('⚠ Não salvou a área: ' + areaErr.message, true); }
         else if (window.hubToast) window.hubToast('Área salva ✓');
         if (!areaErr) tdmSyncGcal();
+        if (!areaErr && escopoSerie === 'todas' && window.hubAplicarNaSerie) {
+          window.hubAplicarNaSerie(currentItem, currentItem.date_start, { campos: { area: slug, parent_id: parentId, google_calendar_id: novoCal } });
+        }
         renderBrasileiraoUI();
         renderBody(); // pra atualizar o Sub do Roadmap exibido no body
       });
@@ -13396,12 +13451,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     } else if (updates.link_url === null) {
       updates.link_preview = null;
     }
+    let escopoSerie = 'uma';
+    if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
+      escopoSerie = await window.hubPerguntaSerie(currentItem, 'editar');
+      if (!escopoSerie) return;
+    }
     btnSave.disabled = true;
     const { error } = await sb.from('items').update(updates).eq('id', currentItem.id);
     btnSave.disabled = false;
     if (error) { alert('Erro ao salvar: ' + error.message); return; }
     Object.assign(currentItem, updates);
     if (window.hubToast) window.hubToast('Salvo ✓');
+    if (escopoSerie === 'todas' && window.hubAplicarNaSerie) window.hubAplicarNaSerie(currentItem, currentItem.date_start, { campos: updates });
     // Sync hub → Google Calendar (fire-and-forget, só pra items 'event')
     if (currentItem.type === 'event') {
       window.syncToGcal && window.syncToGcal('update', currentItem.id);
