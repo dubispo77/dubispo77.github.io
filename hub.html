@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T21:30:10-03:00">
+<meta name="hub-build" content="2026-09-20T21:33:26-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1842,6 +1842,14 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
   padding: 4px 10px; border-radius: 999px; margin-right: auto;
 }
 .tdm.somente-leitura .tdm-selo-leitura { display: inline-flex; }
+.tdm.do-google #tdmAllDayToggle, .tdm.do-google #tdmDurationWrap, .tdm.do-google #tdmEdit,
+.tdm.do-google #tdmSave, .tdm.do-google #tdmDelete, .tdm.do-google #tdmWhenTimeLabel { display: none !important; }
+.tdm.do-google #tdmWhenDateBtn, .tdm.do-google #tdmWhenTimeBtn, .tdm.do-google #tdmAreaPill,
+.tdm.do-google .tdm-title { pointer-events: none; cursor: default; }
+.tdm.do-google #tdmWhenDateBtn:hover { transform: none; }
+.tdm.do-google #tdmWhenTimeBtn::after { content: none; }
+.tdm.do-google .tdm-selo-leitura { display: inline-flex; color: #6b7280; background: #f3f4f6; border-color: #e5e7eb; }
+.tdm.do-google .tdm-foot { justify-content: flex-start; background: #fafafb; }
 .tdm.somente-leitura .tdm-foot { justify-content: flex-start; background: #fafafb; }
 .tdm.somente-leitura .tdm-selo-leitura { color: #6b7280; background: #f3f4f6; border-color: #e5e7eb; }
 .tdm-foot { padding: 12px 22px; border-top: 0.5px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; background: #fafafb; }
@@ -4867,6 +4875,20 @@ window.HUB_READONLY_CALS = ['f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.co
 window.HUB_AREAS_FORA_DA_GERAL = ['agenda_awvz'];
 // Áreas espelhadas de outra conta Google: o hub NUNCA escreve nelas.
 window.HUB_AREAS_SO_LEITURA = ['agenda_awvz'];
+// Regra Eduardo (21/09): card que existe no Google é SÓ LEITURA no hub — nome, data,
+// hora, duração, categoria, campos e apagar ficam travados; edita-se no Google e a
+// sync de 5 min traz pro hub. O que continua no hub: concluir/reabrir e reordenar
+// o card pra cima/baixo dentro do mesmo dia.
+window.hubDoGoogle = function(it) {
+  if (!it) return false;
+  return !!(it.google_event_id || (it.raw && it.raw.google_event_id));
+};
+window.hubTravado = function(it) {
+  return !!((window.hubSoLeitura && window.hubSoLeitura(it)) || window.hubDoGoogle(it));
+};
+window.hubAvisoGoogle = function() {
+  if (window.hubToast) window.hubToast('Esse card veio do Google — mude lá que o hub atualiza em até 5 min');
+};
 window.hubSoLeitura = function(it) {
   const a = it && (it.area || (it.raw && it.raw.area));
   return !!a && (window.HUB_AREAS_SO_LEITURA || []).includes(a);
@@ -10450,9 +10472,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const ICO_X = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M3 3 L 13 13 M 13 3 L 3 13"/></svg>';
         const ICO_PEN = '<svg viewBox="0 0 16 16" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block"><path d="M11.5 2.5 L 13.5 4.5 L 5.5 12.5 L 3 13 L 3.5 10.5 Z"/></svg>';
         const soLeitura = !!(window.hubSoLeitura && window.hubSoLeitura(it.raw || it));
+        const doGoogle = !!(window.hubDoGoogle && window.hubDoGoogle(it.raw || it));
         const actions = soLeitura ? '' : `<div class="eb-actions">
           <button class="eb-btn calM-act" data-act="toggle" data-id="${it.id}" title="${it.is_done ? 'Desfazer' : 'Concluir'}">${it.is_done ? ICO_UNDO : ICO_CHECK}</button>
-          <button class="eb-btn calM-act" data-act="del" data-id="${it.id}" title="Apagar">${ICO_X}</button>
+          ${doGoogle ? '' : `<button class="eb-btn calM-act" data-act="del" data-id="${it.id}" title="Apagar">${ICO_X}</button>`}
         </div>`;
         return `<div class="${klass}" data-item-id="${it.id}" draggable="true">
           ${overdueBadge}
@@ -11202,6 +11225,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         }
         if (act === 'del') {
           const target = itemsCache.find(i => i.id === id);
+          if (target && target.raw && window.hubTravado && window.hubTravado(target.raw)) { window.hubAvisoGoogle(); return; }
           let escopoSerie = 'uma';
           if (target && target.raw && window.hubSerieKey && window.hubSerieKey(target.raw) && window.hubPerguntaSerie) {
             escopoSerie = await window.hubPerguntaSerie(target.raw, 'apagar');
@@ -11297,6 +11321,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     if (act === 'del') {
       const target = itemsCache.find(i => i.id === id);
+      if (target && target.raw && window.hubTravado && window.hubTravado(target.raw)) { window.hubAvisoGoogle(); return; }
       let escopoSerie = 'uma';
       if (target && target.raw && window.hubSerieKey && window.hubSerieKey(target.raw) && window.hubPerguntaSerie) {
         escopoSerie = await window.hubPerguntaSerie(target.raw, 'apagar');
@@ -11498,6 +11523,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
 
     // CASO 2: drop em DIA DIFERENTE → mover (preserva hora E duração)
+    // Card do Google: data é do Google. Só reordenar (caso 1) é permitido.
+    if (window.hubDoGoogle && window.hubDoGoogle(item.raw)) { render(); window.hubAvisoGoogle(); return; }
     const oldDate = parseDbDate(item.raw.date_start);
     const newD = new Date(newDate + 'T00:00:00');
     if (item.has_time) {
@@ -12629,7 +12656,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
     // Agenda espelhada: trava o card inteiro em modo consulta.
     const tdmEl = document.getElementById('tdm');
-    if (tdmEl) tdmEl.classList.toggle('somente-leitura', !!(window.hubSoLeitura && window.hubSoLeitura(item)));
+    if (tdmEl) {
+      const espelho = !!(window.hubSoLeitura && window.hubSoLeitura(item));
+      const doGoogle = !espelho && !!(window.hubDoGoogle && window.hubDoGoogle(item));
+      tdmEl.classList.toggle('somente-leitura', espelho);
+      tdmEl.classList.toggle('do-google', doGoogle);
+      const selo = tdmEl.querySelector('.tdm-selo-leitura');
+      if (selo) selo.textContent = doGoogle ? '🔒 Criado no Google — edite por lá' : '🔒 Só leitura — agenda de outra pessoa';
+    }
 
     // Data + hora + dia inteiro (render centralizado)
     tdmRenderWhen();
@@ -12778,6 +12812,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (window.hubToast) window.hubToast('Essa agenda é só leitura — nada foi alterado');
       return false;
     }
+    if (window.hubDoGoogle && window.hubDoGoogle(currentItem)) { window.hubAvisoGoogle(); tdmRenderWhen(); return false; }
     const prev = { ds: currentItem.date_start, de: currentItem.date_end, ht: currentItem.has_time };
     // Instância de série do Google: pergunta se muda só esta ou esta e as próximas.
     let escopoSerie = 'uma';
@@ -12930,7 +12965,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   document.getElementById('tdmDurSw').addEventListener('click', async (e) => {
     e.stopPropagation();
     if (!currentItem || !currentItem.date_start || !currentItem.has_time) return;
-    if (window.hubSoLeitura && window.hubSoLeitura(currentItem)) return;
+    if (window.hubTravado && window.hubTravado(currentItem)) { window.hubAvisoGoogle(); return; }
     const wrap = document.getElementById('tdmDurationWrap');
     const ligado = wrap.classList.contains('on');
     const ds = new Date(currentItem.date_start);
@@ -12998,6 +13033,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         ev.stopPropagation();
         const m = parseInt(el.dataset.mins, 10);
         const newEnd = new Date(ds.getTime() + m * 60000).toISOString();
+        if (window.hubTravado && window.hubTravado(currentItem)) { dd.style.display = 'none'; window.hubAvisoGoogle(); return; }
         let escopoSerie = 'uma';
         if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
           dd.style.display = 'none';
@@ -13086,6 +13122,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         if (ev.target.matches('.add-child')) return;
         const slug = el.dataset.area;
         const parentId = el.dataset.parentId || null;
+        if (window.hubTravado && window.hubTravado(currentItem)) { ad.style.display = 'none'; window.hubAvisoGoogle(); return; }
         let escopoSerie = 'uma';
         if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
           ad.style.display = 'none';
@@ -13395,6 +13432,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   elTitle.title = 'Clique pra renomear';
   elTitle.addEventListener('click', () => {
     if (!currentItem || !sb) return;
+    if (window.hubTravado && window.hubTravado(currentItem)) { window.hubAvisoGoogle(); return; }
     if (document.getElementById('tdmTitleInput')) return;
     const wrap = document.getElementById('tdmTitleWrap');
     const input = document.createElement('input');
@@ -13451,6 +13489,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   btnSave.addEventListener('click', async () => {
     if (!currentItem) return;
+    if (window.hubTravado && window.hubTravado(currentItem)) { window.hubAvisoGoogle(); return; }
     const updates = {};
     elBody.querySelectorAll('[data-edit]').forEach(el => {
       const key = el.dataset.edit;
@@ -13513,6 +13552,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   btnDel.addEventListener('click', async () => {
     if (!currentItem) return;
+    if (window.hubTravado && window.hubTravado(currentItem)) { window.hubAvisoGoogle(); return; }
     let escopoSerie = 'uma';
     if (window.hubSerieKey && window.hubSerieKey(currentItem) && window.hubPerguntaSerie) {
       escopoSerie = await window.hubPerguntaSerie(currentItem, 'apagar');
