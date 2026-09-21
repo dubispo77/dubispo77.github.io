@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T16:59:43-03:00">
+<meta name="hub-build" content="2026-09-21T19:40:17-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15243,7 +15243,7 @@ function renderPlan() {
   let rows = slugs.map(slug => {
     const meta = DATA.budgets[slug] || 0;
     const pagas = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && (t.st === 'paid' || t.st === 'half')).reduce((s,t) => s + t.val, 0);
-    const prev  = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && t.st !== 'paid').reduce((s,t) => s + t.val, 0);
+    const prev  = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && t.st !== 'paid' && t.st !== 'half').reduce((s,t) => s + t.val, 0); // half já entrou em `pagas` — contar nos dois dobrava o total
     const total = pagas + prev;
     return { slug, meta, pagas, prev, total, restam: meta - total };
   });
@@ -15741,7 +15741,7 @@ document.addEventListener('click', e => {
 const PVIEW = { sort:'total', dir:'desc', cat:new Set() };
 const PCOLS = [
   { id:'cat', label:'Categoria' }, { id:'meta', label:'Meta planejada' },
-  { id:'pagas', label:'Pagas' }, { id:'prev', label:'Previstas' },
+  { id:'pagas', label:'Checadas' }, { id:'prev', label:'Previstas' },
   { id:'total', label:'Total gasto' }, { id:'restam', label:'Restam' },
 ];
 function renderPlanHead() {
