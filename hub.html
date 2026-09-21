@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T21:08:51-03:00">
+<meta name="hub-build" content="2026-09-20T21:11:45-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3412,7 +3412,8 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 @media (max-width: 1200px) {#finapp .accounts-strip{ grid-template-columns: repeat(5, 1fr); }}
 #finapp .acc-chip-card{ min-height: 96px; }
 #finapp .acc-chip-card .cc-bank-name{ font-size: 11.5px; font-weight: 700; letter-spacing: .03em; opacity: 1; }
-#finapp .acc-chip-card .cc-st { float: right; font-size: 10px; font-weight: 800; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; text-transform: none; }
+#finapp .acc-chip-card.cred .cc-bank-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; white-space: nowrap; }
+#finapp .acc-chip-card .cc-st { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; font-size: 10px; font-weight: 800; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; text-transform: none; }
 #finapp .acc-chip-card .cc-st.paga { background: rgba(255,255,255,.22); color: #fff; }
 #finapp .acc-chip-card .cc-st.aberta { background: rgba(255,255,255,.18); color: #fff; }
 #finapp .acc-chip-card .cc-st.vencida { background: #fde68a; color: #7c2d12; }
@@ -16377,7 +16378,7 @@ function cfDossie(r) {
     + '<div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:9px">'
     + '<div class="cf-seg">' + abaBtn('prev', '✓ Aprovar previsão', !cand) + abaBtn('vinc', '🔗 Vincular a outro') + abaBtn('novo', '✚ Novo gasto') + '</div>'
     + cfChipOrigem(r)
-    + '<button class="cf-btn cf-invest" data-id="' + r.id + '" style="margin-left:auto"' + (r._invLoading ? ' disabled' : '') + '>' + (r._invLoading ? '⏳ pesquisando…' : (r._inv ? '🔎 Pesquisar de novo' : '🔎 Gerar informações extras')) + '</button>'
+    + (r._inv && !r._invLoading ? '' : '<button class="cf-btn cf-invest" data-id="' + r.id + '" style="margin-left:auto"' + (r._invLoading ? ' disabled' : '') + '>' + (r._invLoading ? '⏳ pesquisando…' : '🔎 Gerar informações extras') + '</button>')
     + '</div>'
     + corpo
     + cfInvestBox(r)
@@ -16473,7 +16474,7 @@ function cfInvestBox(r) {
     + card('📅 Agenda do dia', agenda)
     + card('🌐 Na web' + (inv.web_creditos ? ' <span class="cf-inv-cred' + (inv.web_creditos.restantes < 200 ? ' low' : '') + '" title="buscas do Google (Serper) que ainda restam no plano grátis">' + Number(inv.web_creditos.restantes).toLocaleString('pt-BR') + ' buscas restantes</span>' : ''), web)
     + '</div>'
-    + '<div class="cf-inv-rodape">' + links + '<span class="cf-inv-fontes">' + cfEsc((inv.fontes || []).join(' · ') || '—') + (inv.cache ? ' · guardado' : '') + '</span></div>'
+    + '<div class="cf-inv-rodape">' + links + '<button class="cf-btn cf-invest" data-id="' + r.id + '"' + (r._invLoading ? ' disabled' : '') + '>' + (r._invLoading ? '⏳ pesquisando…' : '🔎 Pesquisar de novo') + '</button><span class="cf-inv-fontes">' + cfEsc((inv.fontes || []).join(' · ') || '—') + (inv.cache ? ' · guardado' : '') + '</span></div>'
     + avisos + '</details>';
 }
 document.addEventListener('submit', async e => {
