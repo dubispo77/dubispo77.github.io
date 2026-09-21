@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T13:29:11-03:00">
+<meta name="hub-build" content="2026-09-21T13:29:25-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1427,7 +1427,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-head.area-brasileirao_play { background: linear-gradient(135deg, #16a34a, #15803d); }
 .tdm-head.area-aw_vz         { background: linear-gradient(135deg, #ff1493, #be185d); }
 .tdm-head.area-agenda_awvz   { background: linear-gradient(135deg, #3b82f6, #1e40af); }
-.tdm-head.area-aniversarios  { background: linear-gradient(135deg, #f9a8d4, #db2777); }
+.tdm-head.area-aniversarios  { background: linear-gradient(135deg, #2dd4bf, #0f766e); }
 .tdm-head.area-financas      { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
 .tdm-head.area-rotina        { background: linear-gradient(135deg, #dc2626, #991b1b); }
 .tdm-head.area-brasileirao   { background: linear-gradient(135deg, #059669, #064e3b); }
@@ -1525,7 +1525,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-head.area-brasileirao_play .tdm-wdc-month { color: #15803d; }
 .tdm-head.area-aw_vz .tdm-wdc-month         { color: #be185d; }
 .tdm-head.area-agenda_awvz .tdm-wdc-month   { color: #1e40af; }
-.tdm-head.area-aniversarios .tdm-wdc-month  { color: #9d174d; }
+.tdm-head.area-aniversarios .tdm-wdc-month  { color: #134e4a; }
 .tdm-head.area-brasileirao .tdm-wdc-month   { color: #064e3b; }
 /* Input de data: tem que estar renderizado pro showPicker() funcionar.
    Truque: posição absoluta + opacidade 0 + tamanho mínimo. */
@@ -2179,7 +2179,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
         <div class="nav-subitem" data-cat="casa"><span class="cat-dot" style="--c:#eab308"></span><span class="ni-text">Casa</span></div>
         <div class="nav-subitem" data-cat="aw_vz"><span class="cat-dot" style="--c:#ff1493"></span><span class="ni-text">AW+VZ</span></div>
         <div class="nav-subitem" data-cat="agenda_awvz"><span class="cat-dot" style="--c:#2563eb"></span><span class="ni-text">Agenda AW+VZ</span></div>
-        <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#f9a8d4"></span><span class="ni-text">Aniversários</span></div>
+        <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#0d9488"></span><span class="ni-text">Aniversários</span></div>
       </div>
       <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span><span class="ni-caret" style="visibility:hidden">▸</span></div>
     </div>
@@ -5415,7 +5415,7 @@ const CATLIST_META = {
   casa:             { name: 'Casa',             color: '#eab308' },
   aw_vz:            { name: 'AW+VZ',            color: '#ff1493' },
   agenda_awvz:      { name: 'Agenda AW+VZ',      color: '#2563eb' },
-  aniversarios:     { name: 'Aniversários',     color: '#f9a8d4' },
+  aniversarios:     { name: 'Aniversários',     color: '#0d9488' },
 };
 window.CATLIST_META = CATLIST_META;
 let _catlistSlug = null;
@@ -9565,7 +9565,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   function areaColor(area) {
-    return { saude:'#0ea5e9', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', pessoal:'#dc2626', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#f9a8d4', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' }[area] || '#6b637a';
+    return { saude:'#0ea5e9', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', pessoal:'#dc2626', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#0d9488', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' }[area] || '#6b637a';
   }
 
   // ── Carrega projetos (constrói mapa id → projeto) ──
@@ -10706,7 +10706,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   let _mobileLoadedRange = null; // {start: Date, end: Date}
   const _mmToggled = {};          // ymd -> true (aberto) / false (fechado), só quando ele mexeu
   const MM_DOT = { pessoal:'#dc2626', administracao:'#7c3aed', financas:'#7c3aed', casa:'#eab308', eventos:'#ea580c',
-    brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#f9a8d4', agenda_awvz:'#2563eb', santos:'#52525b',
+    brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#0d9488', agenda_awvz:'#2563eb', santos:'#52525b',
     saude:'#0ea5e9', trabalho:'#2563eb', rotina:'#dc2626' };
   const MM_MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const MM_DIA = ['dom','seg','ter','qua','qui','sex','sáb'];
@@ -11169,7 +11169,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const old = document.querySelector('.cal-day-popover');
     if (old) old.remove();
   }
-  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#0ea5e9', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#f9a8d4', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' };
+  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#0ea5e9', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#0d9488', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' };
 
   function openPopoverFor(cellEl, dateStr) {
     closePopover();
