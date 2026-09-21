@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-20T22:09:19-03:00">
+<meta name="hub-build" content="2026-09-20T22:10:57-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -11542,7 +11542,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       newD.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
     }
     let escopoSerie = 'uma';
-    if (item.raw.google_event_id && window.hubSerieKey && window.hubSerieKey(item.raw) && window.hubPerguntaSerie) {
+    if (window.hubSerieKey && window.hubSerieKey(item.raw) && window.hubPerguntaSerie) {
       escopoSerie = await window.hubPerguntaSerie(item.raw, 'mover');
       if (!escopoSerie) { render(); return; }
     }
