@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T19:40:17-03:00">
+<meta name="hub-build" content="2026-09-21T19:53:12-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1721,6 +1721,23 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-field-value:focus-within { border-color: #7c3aed; }
 .tdm-field-value textarea, .tdm-field-value input, .tdm-field-value select { width: 100%; border: none; background: transparent; outline: none; font: inherit; resize: vertical; }
 .tdm-field-empty { color: #9ca3af; font-style: italic; }
+/* ── Imagens do card (colar Ctrl+V, arrastar ou + ) — 21/09/2026 ── */
+.tdm-imgs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tdm-img { position: relative; width: 84px; height: 84px; border-radius: 9px; overflow: hidden; border: 0.5px solid #e5e7eb; background: #f3f4f6; cursor: zoom-in; flex: none; }
+.tdm-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tdm-img.carregando::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, #eee 30%, #f8f8f8 50%, #eee 70%); background-size: 220% 100%; animation: tdmImgSkel 1.1s linear infinite; }
+@keyframes tdmImgSkel { to { background-position: -220% 0; } }
+.tdm-img-del { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(17,17,17,.62); color: #fff; font-size: 12px; line-height: 20px; cursor: pointer; opacity: 0; transition: opacity .14s; padding: 0; }
+.tdm-img:hover .tdm-img-del { opacity: 1; }
+.tdm-img-add { width: 84px; height: 84px; border-radius: 9px; border: 1.5px dashed #d4d4d8; background: #fafafa; color: #9ca3af; font-size: 26px; font-weight: 300; line-height: 1; cursor: pointer; flex: none; display: flex; align-items: center; justify-content: center; transition: border-color .15s, color .15s; }
+.tdm-img-add:hover { border-color: #7c3aed; color: #7c3aed; }
+.tdm-imgs.soltando .tdm-img-add { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+.tdm-img-dica { font-size: 11px; color: #9ca3af; margin-top: 6px; }
+.tdm-lightbox { position: fixed; inset: 0; z-index: 100001; background: rgba(9,9,11,.9); display: none; align-items: center; justify-content: center; padding: 28px; opacity: 0; transition: opacity .2s ease; }
+.tdm-lightbox.aberto { opacity: 1; }
+.tdm-lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.tdm-lightbox-x { position: absolute; top: 18px; right: 22px; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,.14); color: #fff; font-size: 18px; cursor: pointer; }
+@media (max-width: 600px) { .tdm-img, .tdm-img-add { width: 72px; height: 72px; } }
 .tdm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .tdm-link-preview { background: #fff; border: 0.5px solid #e0e0e4; border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color .15s; display: block; text-decoration: none; color: inherit; }
 .tdm-link-preview:hover { border-color: #7c3aed; }
@@ -12244,6 +12261,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       html += cells.length === 1 ? cells[0] : `<div class="tdm-row">${cells.join('')}</div>`;
     }
 
+    // ── Imagens: sempre presente, em qualquer card (inclusive os do Google) ──
+    html += `<div class="tdm-field" data-field="imagens">
+      <div class="tdm-field-label">${ICONS.attachment || ''}Imagens</div>
+      <div class="tdm-imgs" id="tdmImgs"></div>
+      <div class="tdm-img-dica">Cola (⌘V), arrasta pra cá ou clica no +</div>
+      <input type="file" id="tdmImgFile" accept="image/*" multiple style="display:none">
+    </div>`;
+
     // Chips pra adicionar campos vazios (só no modo edição)
     if (editMode) {
       const optional = [
@@ -12267,6 +12292,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
 
     elBody.innerHTML = html;
+    montaImagens();
 
     // Hook dos dropdowns de vídeo (funciona em visualização e edição): salva no metadata.
     // Mudar o editor pra "Eduardo" faz o vídeo entrar na agenda geral; pra outro, sai (via realtime).
@@ -12667,6 +12693,142 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   // Renderiza a Local row externa (fora do body)
+  // ═══ Imagens do card ═══════════════════════════════════════════════════════
+  // Ficam no Storage (bucket privado "itens", pasta <user>/<item>/) e a lista vive
+  // em metadata.imagens = [{p: caminho, n: nome, t: tipo}]. O hub mostra por URL
+  // assinada (1h), guardada em cache pra não repetir chamada.
+  const _imgUrlCache = {};
+  async function imgUrl(path) {
+    if (_imgUrlCache[path] && _imgUrlCache[path].exp > Date.now()) return _imgUrlCache[path].url;
+    const { data, error } = await sb.storage.from('itens').createSignedUrl(path, 3600);
+    if (error || !data) { console.warn('[imgs] signed url', error && error.message); return null; }
+    _imgUrlCache[path] = { url: data.signedUrl, exp: Date.now() + 55 * 60000 };
+    return data.signedUrl;
+  }
+  function imgsDoItem() {
+    const md = (currentItem && currentItem.metadata) || {};
+    return Array.isArray(md.imagens) ? md.imagens : [];
+  }
+  async function montaImagens() {
+    const box = document.getElementById('tdmImgs');
+    if (!box || !currentItem) return;
+    const lista = imgsDoItem();
+    box.innerHTML = lista.map((im, idx) => `<div class="tdm-img carregando" data-img-idx="${idx}" title="${escHtml(im.n || '')}">
+        <button class="tdm-img-del" data-img-del="${idx}" type="button" title="Remover">✕</button>
+      </div>`).join('') + '<button class="tdm-img-add" id="tdmImgAdd" type="button" title="Adicionar imagem">+</button>';
+    for (let idx = 0; idx < lista.length; idx++) {
+      const el = box.querySelector(`[data-img-idx="${idx}"]`);
+      if (!el) continue;
+      const u = await imgUrl(lista[idx].p);
+      if (!u) { el.classList.remove('carregando'); el.innerHTML = '<span style="font-size:10px;color:#9ca3af;display:block;padding:6px">sem preview</span>'; continue; }
+      const img = new Image();
+      img.onload = () => { el.classList.remove('carregando'); el.insertBefore(img, el.firstChild); };
+      img.onerror = () => el.classList.remove('carregando');
+      img.src = u;
+      el.dataset.imgUrl = u;
+    }
+  }
+  async function salvarListaImagens(lista) {
+    const md = Object.assign({}, currentItem.metadata || {});
+    if (lista.length) md.imagens = lista; else delete md.imagens;
+    const { error } = await sb.from('items').update({ metadata: md }).eq('id', currentItem.id);
+    if (error) { window.hubToast && window.hubToast('⚠ Não salvou a imagem: ' + error.message, true); return false; }
+    currentItem.metadata = md;
+    return true;
+  }
+  async function subirImagens(arquivos) {
+    if (!currentItem || !sb) return;
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) { window.hubToast && window.hubToast('Sessão expirou — faça login de novo', true); return; }
+    const novos = [];
+    for (const f of arquivos) {
+      if (!f || !f.type || !f.type.startsWith('image/')) continue;
+      if (f.size > 10 * 1024 * 1024) { window.hubToast && window.hubToast('⚠ Imagem maior que 10 MB: ' + (f.name || ''), true); continue; }
+      const ext = (f.type.split('/')[1] || 'png').replace('jpeg', 'jpg').split('+')[0];
+      const path = `${user.id}/${currentItem.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await sb.storage.from('itens').upload(path, f, { contentType: f.type, upsert: false });
+      if (error) { window.hubToast && window.hubToast('⚠ Upload falhou: ' + error.message, true); continue; }
+      novos.push({ p: path, n: f.name || 'imagem', t: f.type });
+    }
+    if (!novos.length) return;
+    const lista = imgsDoItem().concat(novos);
+    if (await salvarListaImagens(lista)) {
+      await montaImagens();
+      window.hubToast && window.hubToast(novos.length === 1 ? 'Imagem anexada ✓' : novos.length + ' imagens anexadas ✓');
+    }
+  }
+  async function apagarImagem(idx) {
+    const lista = imgsDoItem().slice();
+    const alvo = lista[idx];
+    if (!alvo) return;
+    if (!confirm('Remover essa imagem?')) return;
+    lista.splice(idx, 1);
+    if (await salvarListaImagens(lista)) {
+      sb.storage.from('itens').remove([alvo.p]).then(() => {}, () => {});
+      delete _imgUrlCache[alvo.p];
+      await montaImagens();
+    }
+  }
+  function abrirLightbox(url) {
+    let lb = document.getElementById('tdmLightbox');
+    if (!lb) {
+      lb = document.createElement('div');
+      lb.id = 'tdmLightbox'; lb.className = 'tdm-lightbox';
+      lb.innerHTML = '<button class="tdm-lightbox-x" type="button">✕</button><img alt="">';
+      document.body.appendChild(lb);
+      const fechar = () => { lb.classList.remove('aberto'); setTimeout(() => { lb.style.display = 'none'; }, 200); };
+      lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('tdm-lightbox-x')) fechar(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && lb.style.display === 'flex') { e.stopPropagation(); fechar(); } }, true);
+    }
+    lb.querySelector('img').src = url;
+    lb.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => lb.classList.add('aberto')));
+  }
+  // Cliques na área de imagens (delegado — o corpo é re-renderizado o tempo todo)
+  elBody.addEventListener('click', (e) => {
+    const del = e.target.closest('[data-img-del]');
+    if (del) { e.stopPropagation(); apagarImagem(parseInt(del.dataset.imgDel, 10)); return; }
+    if (e.target.closest('#tdmImgAdd')) { e.stopPropagation(); document.getElementById('tdmImgFile')?.click(); return; }
+    const thumb = e.target.closest('.tdm-img[data-img-url]');
+    if (thumb) { e.stopPropagation(); abrirLightbox(thumb.dataset.imgUrl); }
+  });
+  elBody.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'tdmImgFile' && e.target.files && e.target.files.length) {
+      subirImagens(Array.from(e.target.files));
+      e.target.value = '';
+    }
+  });
+  // Arrastar e soltar imagem em cima da área
+  elBody.addEventListener('dragover', (e) => {
+    const box = e.target.closest('#tdmImgs');
+    if (!box) return;
+    e.preventDefault(); box.classList.add('soltando');
+  });
+  elBody.addEventListener('dragleave', (e) => {
+    const box = e.target.closest('#tdmImgs');
+    if (box && !box.contains(e.relatedTarget)) box.classList.remove('soltando');
+  });
+  elBody.addEventListener('drop', (e) => {
+    const box = e.target.closest('#tdmImgs');
+    if (!box) return;
+    e.preventDefault(); e.stopPropagation(); box.classList.remove('soltando');
+    const fs = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
+    if (fs.length) subirImagens(fs);
+  });
+  // Colar (⌘V / Ctrl+V) com o card aberto — em qualquer lugar do card
+  document.addEventListener('paste', (e) => {
+    const ov = document.getElementById('tdmOverlay');
+    if (!ov || !(ov.classList.contains('open') || ov.classList.contains('mostrando'))) return;
+    if (!currentItem) return;
+    const alvo = e.target;
+    if (alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.isContentEditable)) return;
+    const itens = Array.from((e.clipboardData && e.clipboardData.items) || []);
+    const arquivos = itens.filter(it => it.kind === 'file' && it.type.startsWith('image/')).map(it => it.getAsFile()).filter(Boolean);
+    if (!arquivos.length) return;
+    e.preventDefault();
+    subirImagens(arquivos);
+  });
+
   function renderLocalRow(item) {
     const row = document.getElementById('tdmLocalRow');
     const nameEl = document.getElementById('tdmLocalName');
