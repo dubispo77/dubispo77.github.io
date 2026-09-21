@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-21T13:56:30-03:00">
+<meta name="hub-build" content="2026-09-21T14:11:10-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -8781,6 +8781,24 @@ const CHAT_ENDPOINT = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/cha
   // Redes de segurança: ao voltar pra aba e de tempos em tempos.
   document.addEventListener('visibilitychange', () => { if (!document.hidden) window.hubUpdateBadges(); });
   window.addEventListener('focus', () => window.hubUpdateBadges());
+
+  // Regra do Eduardo (21/09): ao voltar pro hub (aba do navegador, janela minimizada,
+  // app em segundo plano) com a Agenda aberta, o calendário volta pra HOJE.
+  // Não mexe se um card estiver aberto pra edição.
+  let _voltaHojeTs = 0;
+  function voltaPraHoje() {
+    const agora = Date.now();
+    if (agora - _voltaHojeTs < 800) return;
+    _voltaHojeTs = agora;
+    const agendaAtiva = document.getElementById('agenda')?.classList.contains('active');
+    if (!agendaAtiva) return;
+    const tdm = document.getElementById('tdm');
+    if (tdm && (tdm.classList.contains('open') || tdm.classList.contains('mostrando'))) return;
+    document.getElementById('calToday')?.click();
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) voltaPraHoje(); });
+  window.addEventListener('focus', voltaPraHoje);
+  window.addEventListener('pageshow', voltaPraHoje);
   setInterval(() => { if (!document.hidden) window.hubUpdateBadges(); }, 45000);
 })();
 
