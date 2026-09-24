@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-23T17:21:05-03:00">
+<meta name="hub-build" content="2026-09-24T20:57:30-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15037,7 +15037,8 @@ const DATA = {
     resgate:     { name:'Resgate',          ci:'ci-resgate',     icon:'i-swap',    color:'#059669' },
     extras:      { name:'Extras',           ci:'ci-extras',      icon:'i-box',     color:'#8b5cf6' }
   },
-  budgets: { moradia:6427.82, saude:2362.78, pessoais:1200, mercado:900, transporte:800, lazer:600, coisas:600, seguros:380, assinaturas:211.58, imposto:1900 },
+  // metas do plano de cortes (24/09): comprometido (parcelas+recorrências) + limite de gasto novo
+  budgets: { moradia:5500, saude:4400, transporte:1300, seguros:520, pessoais:350, profissionais:530, coisas:300, imposto:1900, green:265, assinaturas:225, presentes:200, alimentacao:600, doacoes:50, lazer:200, mercado:1400, conveniencia:100, extras:300 },
   invoices: {
     'brad-card': { title:'Bradesco VISA Infinite · ****7385', cls:'brad', limit:27000,
       hist:[ {m:'2026-06',st:'aberta',total:20587.55,due:'10-julho'}, {m:'2026-05',st:'paga',total:18234.10,due:'10-junho'}, {m:'2026-04',st:'paga',total:16890.45,due:'10-maio'}, {m:'2026-03',st:'paga',total:15210.33,due:'10-abril'} ] },
@@ -15414,7 +15415,7 @@ function renderPlan() {
   if (!tbody) return;
   const m = currentMonth;
   const gastoSlugs = new Set(txOf(m, t => !t.tr && t.val < 0).map(t => t.cat));
-  const slugs = [...new Set([...Object.keys(DATA.budgets), ...gastoSlugs])];
+  const slugs = [...new Set([...Object.keys(DATA.budgets), ...gastoSlugs])].filter(sl => DATA.cats[sl]); // meta de categoria ainda não carregada não quebra a tabela
   let rows = slugs.map(slug => {
     const meta = DATA.budgets[slug] || 0;
     const pagas = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && (t.st === 'paid' || t.st === 'half')).reduce((s,t) => s + t.val, 0);
@@ -15817,7 +15818,7 @@ document.addEventListener('focusout', e => {
   const v = parseFloat(cell.textContent.replace(/[^\d,]/g, '').replace(',', '.'));
   if (!isNaN(v) && v > 0) {
     DATA.budgets[slug] = v;
-    try { const sv = JSON.parse(store.get('hub_planej_metas') || '{}'); sv[slug] = v; store.set('hub_planej_metas', JSON.stringify(sv)); } catch(e2) {}
+    try { const sv = JSON.parse(store.get('hub_planej_metas_v2') || '{}'); sv[slug] = v; store.set('hub_planej_metas_v2', JSON.stringify(sv)); } catch(e2) {}
     renderPlan();
   }
   renderCatMgr();
@@ -15948,7 +15949,7 @@ document.addEventListener('click', e => {
     e.stopImmediatePropagation();
     document.querySelectorAll('.col-pop.show').forEach(x => x.classList.remove('show'));
     const pop = document.querySelector('.col-pop[data-pop="plancat"]');
-    const slugs = [...new Set([...Object.keys(DATA.budgets), ...DATA.transactions.filter(t => !t.tr && t.val < 0).map(t => t.cat)])]
+    const slugs = [...new Set([...Object.keys(DATA.budgets), ...DATA.transactions.filter(t => !t.tr && t.val < 0).map(t => t.cat)])].filter(sl => DATA.cats[sl])
       .sort((a,b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
     pop.innerHTML = '<div class="cp-title">Filtrar categoria</div><div style="max-height:250px;overflow:auto">'
       + slugs.map(slug => '<label><input type="checkbox" data-v="' + slug + '" ' + (PVIEW.cat.has(slug)?'checked':'') + '>' + miniCi(slug) + ' ' + DATA.cats[slug].name + '</label>').join('') + '</div>'
@@ -15976,7 +15977,7 @@ document.addEventListener('click', e => {
 });
 // metas persistidas (mock: localStorage; no hub real vira tabela budgets no Supabase)
 try {
-  const saved = JSON.parse(store.get('hub_planej_metas') || '{}');
+  const saved = JSON.parse(store.get('hub_planej_metas_v2') || '{}');
   Object.entries(saved).forEach(([k, v]) => { if (DATA.budgets[k] !== undefined) DATA.budgets[k] = v; });
 } catch(e) {}
 document.addEventListener('focusout', e => {
@@ -15987,9 +15988,9 @@ document.addEventListener('focusout', e => {
   if (!isNaN(v) && v >= 0 && DATA.budgets[slug] !== undefined) {
     DATA.budgets[slug] = v;
     try {
-      const saved = JSON.parse(store.get('hub_planej_metas') || '{}');
+      const saved = JSON.parse(store.get('hub_planej_metas_v2') || '{}');
       saved[slug] = v;
-      store.set('hub_planej_metas', JSON.stringify(saved));
+      store.set('hub_planej_metas_v2', JSON.stringify(saved));
     } catch(err) {}
   }
   renderPlan();
