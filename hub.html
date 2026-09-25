@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T13:18:31-03:00">
+<meta name="hub-build" content="2026-09-25T13:20:33-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3415,9 +3415,8 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .plan-detail .pd-chip.prev{ background:#fdf1dc; color:#b45309; }
 #finapp .plan-detail .pd-total{ font-weight:800; font-size:13.5px; color:var(--red); }
 /* planejamento: adicionar linha manual (pedido 25/09) */
-#finapp .plan-add-bar{ display:flex; justify-content:flex-end; margin:0 0 10px; }
-#finapp .plan-add-btn{ border:1.5px dashed #c4b5fd; background:#faf8ff; color:#6d28d9; font-weight:700; font-size:13px; padding:8px 14px; border-radius:10px; cursor:pointer; }
-#finapp .plan-add-btn:hover{ background:#f3efff; }
+#finapp .plan-add-btn{ position:absolute; top:8px; right:10px; z-index:12; width:26px; height:26px; border-radius:50%; border:1.5px solid #c4b5fd; background:#faf8ff; color:#6d28d9; font-weight:800; font-size:17px; line-height:1; padding:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+#finapp .plan-add-btn:hover{ background:#6d28d9; color:#fff; border-color:#6d28d9; }
 #finapp .plan-add-form{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; margin:0 0 12px; }
 #finapp .plan-add-form input, #finapp .plan-add-form select{ border:1px solid #ddd6ee; border-radius:8px; padding:8px 10px; font-size:13px; background:#fff; }
 #finapp .plan-add-form #pafDesc{ flex:1 1 220px; }
@@ -3612,7 +3611,6 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
     </div>
 
     <div class="plan-layout">
-        <div class="plan-add-bar"><button type="button" class="plan-add-btn" id="planAddBtn">＋ Adicionar linha</button></div>
         <form class="plan-add-form" id="planAddForm" autocomplete="off" style="display:none">
           <div class="paf-tipo">
             <label><input type="radio" name="pafTipo" value="d" checked> Despesa</label>
@@ -3626,6 +3624,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
           <div class="paf-acts"><button type="button" id="pafCancel" class="paf-cancel">Cancelar</button><button type="submit" class="paf-ok">Salvar</button></div>
         </form>
         <div class="panel peek-wrap" style="padding:0">
+          <button type="button" class="plan-add-btn" id="planAddBtn" title="Adicionar linha ao planejamento">+</button>
           <table class="trans-table peek-mobile">
             <thead id="planHead"><!-- renderizado via JS --></thead>
             <tbody id="planBody"><!-- renderizado via JS (DATA.budgets) --></tbody>
