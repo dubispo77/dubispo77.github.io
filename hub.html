@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T13:27:36-03:00">
+<meta name="hub-build" content="2026-09-25T13:36:09-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -17684,6 +17684,40 @@ function finAviso(msg) {
   };
   window.finRecarregar = async () => { try { await tryInit(); if (typeof finToast === 'function') finToast('✓ Dados atualizados'); } catch(e) { if (typeof finToast === 'function') finToast('✗ ' + (e.message || e), true); } };
   tryInit();
+
+  // ===== AO VIVO (pedido 25/09: "por que não atualiza em tempo real?") =====
+  // Qualquer mudança no banco (sync, conferência, eu mexendo por fora) recarrega Finanças sozinho, sem F5.
+  // Realtime do Supabase em transactions/faturas/contas/inbox + agrupamento (o sync mexe em centenas de
+  // linhas de uma vez → uma recarga só). Não recarrega enquanto ele está digitando; ao voltar pra aba,
+  // confere se ficou algo pendente.
+  let vivoTimer = null, vivoPendente = false, vivoUltimo = Date.now();
+  const editando = () => {
+    const a = document.activeElement;
+    return !!(a && document.getElementById('finapp') && document.getElementById('finapp').contains(a)
+      && (a.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)));
+  };
+  const recarregaVivo = () => {
+    clearTimeout(vivoTimer);
+    vivoTimer = setTimeout(async () => {
+      if (document.hidden || editando()) { vivoPendente = true; return; }
+      vivoPendente = false; vivoUltimo = Date.now();
+      const y = window.scrollY, main = document.querySelector('.main'), ym = main ? main.scrollTop : 0;
+      try { await tryInit(); } catch (_e) { /* próximo evento tenta de novo */ }
+      window.scrollTo(0, y); if (main) main.scrollTop = ym;
+    }, 2500);
+  };
+  const ligaVivo = () => {
+    if (!window.sbClient) return setTimeout(ligaVivo, 1000);
+    const ch = window.sbClient.channel('financas-ao-vivo');
+    ['transactions', 'credit_card_invoices', 'accounts', 'inbox_transactions'].forEach(tb =>
+      ch.on('postgres_changes', { event: '*', schema: 'public', table: tb }, recarregaVivo));
+    ch.subscribe();
+  };
+  ligaVivo();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && (vivoPendente || Date.now() - vivoUltimo > 10 * 60000)) recarregaVivo();
+  });
+  document.addEventListener('focusout', () => { if (vivoPendente) setTimeout(() => { if (!editando()) recarregaVivo(); }, 300); });
 })();
 
 if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: 'svg', ext: '.svg' });
