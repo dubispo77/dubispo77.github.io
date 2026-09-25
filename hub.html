@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T13:20:33-03:00">
+<meta name="hub-build" content="2026-09-25T13:24:56-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3415,6 +3415,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .plan-detail .pd-chip.prev{ background:#fdf1dc; color:#b45309; }
 #finapp .plan-detail .pd-total{ font-weight:800; font-size:13.5px; color:var(--red); }
 /* planejamento: adicionar linha manual (pedido 25/09) */
+#finapp #tab-planejamento .peek-wrap{ position:relative; } /* o '.peek-wrap{position:relative}' original só vale no celular (@media 600px) — sem isto o + ia parar no topo da página */
 #finapp .plan-add-btn{ position:absolute; top:8px; right:10px; z-index:12; width:26px; height:26px; border-radius:50%; border:1.5px solid #c4b5fd; background:#faf8ff; color:#6d28d9; font-weight:800; font-size:17px; line-height:1; padding:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 #finapp .plan-add-btn:hover{ background:#6d28d9; color:#fff; border-color:#6d28d9; }
 #finapp .plan-add-form{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; margin:0 0 12px; }
