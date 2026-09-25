@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T13:36:09-03:00">
+<meta name="hub-build" content="2026-09-25T13:41:54-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15494,9 +15494,11 @@ function renderPlan() {
   setText('kpiRestamLabel', 'Restam (' + pct.toFixed(2).replace('.', ',') + '%)');
   setText('kpiRestamVal', fmtS(restam));
   setText('kpiPlanRec', fmt(rec));
-  setText('kpiPlanGastos', fmt(gasto));
-  setText('kpiPlanBal', fmtS(rec - gasto));
-  setText('kpiPlanEco', rec ? ((rec - gasto) / rec * 100).toFixed(2).replace('.', ',') + '%' : '—');
+  // 25/09 ("mudo os valores no planejamento e nada acontece"): os 3 cards "planejados" seguem as METAS
+  // (o que ele planejou), não o gasto lançado — o gasto real/previsto continua no card Restam.
+  setText('kpiPlanGastos', fmt(metas));
+  setText('kpiPlanBal', fmtS(rec - metas));
+  setText('kpiPlanEco', rec ? ((rec - metas) / rec * 100).toFixed(2).replace('.', ',') + '%' : '—');
   const kpiRestamCard = document.getElementById('kpiRestamVal');
   if (kpiRestamCard) {
     const card = kpiRestamCard.closest('.plan-summary');
