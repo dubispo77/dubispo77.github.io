@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T12:55:31-03:00">
+<meta name="hub-build" content="2026-09-25T13:15:46-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3414,6 +3414,21 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .plan-detail .pd-chip.ok{ background:#e0f5f2; color:#0f766e; }
 #finapp .plan-detail .pd-chip.prev{ background:#fdf1dc; color:#b45309; }
 #finapp .plan-detail .pd-total{ font-weight:800; font-size:13.5px; color:var(--red); }
+/* planejamento: adicionar linha manual (pedido 25/09) */
+#finapp .plan-add-bar{ display:flex; justify-content:flex-end; margin:0 0 10px; }
+#finapp .plan-add-btn{ border:1.5px dashed #c4b5fd; background:#faf8ff; color:#6d28d9; font-weight:700; font-size:13px; padding:8px 14px; border-radius:10px; cursor:pointer; }
+#finapp .plan-add-btn:hover{ background:#f3efff; }
+#finapp .plan-add-form{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; margin:0 0 12px; }
+#finapp .plan-add-form input, #finapp .plan-add-form select{ border:1px solid #ddd6ee; border-radius:8px; padding:8px 10px; font-size:13px; background:#fff; }
+#finapp .plan-add-form #pafDesc{ flex:1 1 220px; }
+#finapp .plan-add-form #pafVal{ width:120px; }
+#finapp .paf-tipo{ display:flex; gap:10px; font-size:13px; font-weight:600; }
+#finapp .paf-tipo label{ display:flex; gap:4px; align-items:center; cursor:pointer; }
+#finapp .paf-acts{ display:flex; gap:6px; margin-left:auto; }
+#finapp .paf-ok{ background:#6d28d9; color:#fff; border:0; border-radius:8px; padding:8px 16px; font-weight:700; cursor:pointer; }
+#finapp .paf-cancel{ background:transparent; border:1px solid #ddd6ee; border-radius:8px; padding:8px 12px; cursor:pointer; }
+#finapp .pd-del{ border:0; background:transparent; color:#b4a9c8; cursor:pointer; font-size:14px; padding:0 4px; }
+#finapp .pd-del:hover{ color:var(--red); }
 /* planejamento: cabeçalho fixo ao rolar + ícones de situação */
 #finapp #planHead th, #finapp #transHead th{ position: sticky; top: 0; z-index: 8; background: var(--card); box-shadow: 0 1px 0 var(--border); }
 #finapp #planHead th:first-child, #finapp #transHead th:first-child{ border-top-left-radius: 14px; }
@@ -3596,6 +3611,19 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
     </div>
 
     <div class="plan-layout">
+        <div class="plan-add-bar"><button type="button" class="plan-add-btn" id="planAddBtn">＋ Adicionar linha</button></div>
+        <form class="plan-add-form" id="planAddForm" autocomplete="off" style="display:none">
+          <div class="paf-tipo">
+            <label><input type="radio" name="pafTipo" value="d" checked> Despesa</label>
+            <label><input type="radio" name="pafTipo" value="r"> Receita</label>
+          </div>
+          <input id="pafDesc" type="text" placeholder="Descrição (ex.: Presente Bia)" required>
+          <input id="pafVal" type="text" inputmode="decimal" placeholder="Valor (R$)" required>
+          <input id="pafData" type="date" required>
+          <select id="pafCat"></select>
+          <select id="pafConta"></select>
+          <div class="paf-acts"><button type="button" id="pafCancel" class="paf-cancel">Cancelar</button><button type="submit" class="paf-ok">Salvar</button></div>
+        </form>
         <div class="panel peek-wrap" style="padding:0">
           <table class="trans-table peek-mobile">
             <thead id="planHead"><!-- renderizado via JS --></thead>
@@ -15500,7 +15528,7 @@ function planDetailRow(slug, m) {
         + '<td><span class="cat-cell pd-cat" title="Trocar categoria">' + miniCi(t.cat) + '<span class="cat-name">' + DATA.cats[t.cat].name + '</span></span></td>'
         + '<td>' + parcCell(t.parc) + '</td>'
         + '<td>' + accBadge(t.acc) + '</td>'
-        + '<td style="text-align:right;white-space:nowrap;color:var(--red)">' + fmt(t.val) + '</td>'
+        + '<td style="text-align:right;white-space:nowrap;color:var(--red)">' + fmt(t.val) + (t.manual && t.id ? '<button type="button" class="pd-del" data-del="' + t.id + '" title="Apagar esta linha manual">✕</button>' : '') + '</td>'
         + '</tr>').join('')
       + '<tr class="pd-tot"><td></td><td colspan="5"><div class="pd-chips">'
         + '<span class="pd-chip n">' + tx.length + ' lançamento' + (tx.length > 1 ? 's' : '') + '</span>'
@@ -15514,6 +15542,20 @@ function planDetailRow(slug, m) {
 }
 document.addEventListener('click', e => {
   if (!e.target.closest) return;
+  const del = e.target.closest('.plan-detail .pd-del');
+  if (del) { // apagar linha manual (criada pelo "Adicionar linha" ou por mim)
+    e.stopPropagation();
+    const id = del.dataset.del;
+    const t = DATA.transactions.find(x => x.id === id);
+    if (!t || !window.sbClient) return;
+    window.sbClient.from('transactions').delete().eq('id', id).eq('source', 'forecast').then(({ error }) => {
+      if (error) { finToast('✗ NÃO apagou: ' + error.message, true); return; }
+      DATA.transactions.splice(DATA.transactions.indexOf(t), 1);
+      finToast('✓ Linha apagada: ' + t.desc);
+      renderAll();
+    });
+    return;
+  }
   const pdc = e.target.closest('.plan-detail .pd-cat');
   if (pdc) { // trocar categoria direto do planejamento (pedido 23/09): move pra categoria certa e salva no banco
     e.stopPropagation();
@@ -15528,6 +15570,69 @@ document.addEventListener('click', e => {
   if (PLAN_OPEN.has(slug)) PLAN_OPEN.delete(slug); else PLAN_OPEN.add(slug);
   renderPlan();
 });
+
+// ===== PLANEJAMENTO: adicionar linha manual (pedido 25/09) =====
+// Grava em transactions como previsão manual (source=forecast, import_lote=manual) — sobrevive ao
+// regenerar_projecoes e entra no planejamento/saldos como qualquer previsão.
+(function planAdd() {
+  const btn = document.getElementById('planAddBtn'), form = document.getElementById('planAddForm');
+  if (!btn || !form) return;
+  const $ = id => document.getElementById(id);
+  const preenche = () => {
+    const tipo = form.querySelector('input[name=pafTipo]:checked').value;
+    const tipoDe = slug => (typeof CAT_META !== 'undefined' && CAT_META[DATA.cats[slug].name]) ? CAT_META[DATA.cats[slug].name][1] : 'd';
+    const slugs = Object.keys(DATA.cats).filter(sl => tipo === 'r' ? tipoDe(sl) === 'r' : tipoDe(sl) !== 'r')
+      .sort((a, b) => DATA.cats[a].name.localeCompare(DATA.cats[b].name));
+    const atual = $('pafCat').value;
+    $('pafCat').innerHTML = slugs.map(sl => '<option value="' + sl + '">' + DATA.cats[sl].name + '</option>').join('');
+    if (slugs.includes(atual)) $('pafCat').value = atual;
+    const idToKey = window.__accIdToKey || {};
+    const keys = [...new Set(Object.values(idToKey))];
+    const contaAtual = $('pafConta').value || 'brad-cc';
+    $('pafConta').innerHTML = keys.map(k => '<option value="' + k + '">' + ((DATA.accounts[k] || {}).name || k) + '</option>').join('');
+    if (keys.includes(contaAtual)) $('pafConta').value = contaAtual;
+  };
+  btn.addEventListener('click', () => {
+    const aberto = form.style.display !== 'none';
+    form.style.display = aberto ? 'none' : 'flex';
+    if (!aberto) {
+      preenche();
+      const m = (typeof currentMonth !== 'undefined' && currentMonth) || new Date().toISOString().slice(0, 7);
+      if (!$('pafData').value || $('pafData').value.slice(0, 7) !== m) $('pafData').value = m + '-10';
+      $('pafDesc').focus();
+    }
+  });
+  form.addEventListener('change', e => { if (e.target.name === 'pafTipo') preenche(); });
+  $('pafCancel').addEventListener('click', () => { form.style.display = 'none'; form.reset(); });
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const desc = $('pafDesc').value.trim();
+    const v = parseFloat(String($('pafVal').value).replace(/\./g, '').replace(',', '.'));
+    const data = $('pafData').value, slug = $('pafCat').value, accKey = $('pafConta').value;
+    const tipo = form.querySelector('input[name=pafTipo]:checked').value;
+    if (!desc || !(v > 0) || !data || !slug || !accKey) { finToast('Preencha descrição, valor, data, categoria e conta', true); return; }
+    const accId = Object.keys(window.__accIdToKey || {}).find(id => window.__accIdToKey[id] === accKey);
+    const val = tipo === 'r' ? v : -v;
+    const catNome = DATA.cats[slug].name;
+    if (!window.sbClient || !accId) { finToast('✗ Sem conexão com o banco — não salvou', true); return; }
+    try {
+      const uid = (await window.sbClient.auth.getUser()).data.user.id;
+      const { data: ins, error } = await window.sbClient.from('transactions').insert({
+        user_id: uid, account_id: accId, date: data,
+        description: desc, description_clean: desc, amount: val, type: val >= 0 ? 'CREDIT' : 'DEBIT',
+        category: catNome, category_auto: false, is_transfer: false,
+        source: 'forecast', source_file: 'recorrencia',
+        raw: { bill: data.slice(0, 7), import_lote: 'manual', origem: 'hub: adicionar linha (planejamento)', criada_em: new Date().toISOString() },
+      }).select('id').single();
+      if (error) throw error;
+      DATA.transactions.push({ id: ins.id, sf: 'recorrencia', manual: true, d: data, desc, cat: slug, acc: accKey, val, st: 'pending', tr: false, bill: data.slice(0, 7) });
+      if (!MONTHS.includes(data.slice(0, 7))) { MONTHS.push(data.slice(0, 7)); MONTHS.sort(); }
+      form.reset(); form.style.display = 'none';
+      finToast('✓ Linha adicionada: ' + desc + ' · ' + fmt(val));
+      renderAll();
+    } catch (err) { finToast('✗ NÃO salvou: ' + (err.message || err), true); }
+  });
+})();
 
 // ===== STRIP DE CONTAS (aba unificada): Todas + débito + crédito =====
 const SEL_UNI = new Set(); // vazio = todas
@@ -17428,7 +17533,7 @@ function finAviso(msg) {
       let rows = [], from = 0;
       while (true) {
         const { data: chunk, error: e2 } = await sb.from('transactions')
-          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,transfer_pair_id,installment_current,installment_total,source_file,purchase_date:raw->>purchase_date,bill:raw->>bill')
+          .select('id,date,description_clean,description,amount,category,account_id,is_transfer,transfer_pair_id,installment_current,installment_total,source_file,purchase_date:raw->>purchase_date,bill:raw->>bill,lote:raw->>import_lote')
           .order('date', { ascending: true }).range(from, from + 999);
         if (e2) throw e2;
         rows = rows.concat(chunk || []);
@@ -17464,7 +17569,7 @@ function finAviso(msg) {
         if ((r.description_clean || r.description || '').startsWith('Pagamento fatura')) { DATA.hiddenPays.push({ acc, d: r.date, val: parseFloat(r.amount) }); return; }
         mesesSet.add(r.date.slice(0, 7));
         DATA.transactions.push({
-          id: r.id, sf: r.source_file, pd: r.purchase_date || undefined, bill: r.bill || undefined,
+          id: r.id, sf: r.source_file, pd: r.purchase_date || undefined, bill: r.bill || undefined, manual: r.lote === 'manual' || undefined,
           d: r.date, desc: r.description_clean || r.description, cat: slugFor(r.category),
           acc, val: parseFloat(r.amount), st: (function () {
             if (r.source_file === 'projecao' || r.source_file === 'recorrencia') return 'pending';
