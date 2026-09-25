@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T14:47:43-03:00">
+<meta name="hub-build" content="2026-09-25T14:50:50-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -16242,7 +16242,6 @@ document.addEventListener('focusout', e => {
   if (!isNaN(v) && v >= 0 && Math.abs(v - metaDe(slug, m)) >= 0.005) {
     (DATA.metasMes[m] = DATA.metasMes[m] || {})[slug] = v;   // só este mês
     salvaMeta(m, slug, v);
-    finToast('✓ Meta de ' + DATA.cats[slug].name + ' em ' + monthLabel(m) + ': ' + fmt(v) + ' (só este mês)');
   }
   renderPlan();
 });
