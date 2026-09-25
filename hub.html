@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T13:15:46-03:00">
+<meta name="hub-build" content="2026-09-25T13:18:31-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3425,6 +3425,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .paf-tipo{ display:flex; gap:10px; font-size:13px; font-weight:600; }
 #finapp .paf-tipo label{ display:flex; gap:4px; align-items:center; cursor:pointer; }
 #finapp .paf-acts{ display:flex; gap:6px; margin-left:auto; }
+#finapp .paf-dica{ font-size:12px; font-weight:700; color:#6d28d9; }
 #finapp .paf-ok{ background:#6d28d9; color:#fff; border:0; border-radius:8px; padding:8px 16px; font-weight:700; cursor:pointer; }
 #finapp .paf-cancel{ background:transparent; border:1px solid #ddd6ee; border-radius:8px; padding:8px 12px; cursor:pointer; }
 #finapp .pd-del{ border:0; background:transparent; color:#b4a9c8; cursor:pointer; font-size:14px; padding:0 4px; }
@@ -15578,6 +15579,22 @@ document.addEventListener('click', e => {
   const btn = document.getElementById('planAddBtn'), form = document.getElementById('planAddForm');
   if (!btn || !form) return;
   const $ = id => document.getElementById(id);
+  // cartão: a data digitada é a da COMPRA; a linha vai pra fatura certa (fechou → mês seguinte). Mesma regra do sync-diario.
+  const FAT = { 'brad-card': { fech: 28, off: 1, venc: 10 }, 'nub-card': { fech: 12, off: 0, venc: 18 }, 'mp-card': { fech: 9, off: 0, venc: 15 } };
+  const faturaDe = (accKey, dataCompra) => {
+    const f = FAT[accKey]; if (!f || !dataCompra) return null;
+    const [y, m, d] = dataCompra.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1 + f.off + (d >= f.fech ? 1 : 0), 1));
+    const bill = dt.getUTCFullYear() + '-' + String(dt.getUTCMonth() + 1).padStart(2, '0');
+    return { bill, venc: bill + '-' + String(f.venc).padStart(2, '0') };
+  };
+  const dica = () => {
+    let el = document.getElementById('pafDica');
+    if (!el) { el = document.createElement('span'); el.id = 'pafDica'; el.className = 'paf-dica'; $('pafConta').after(el); }
+    const fz = faturaDe($('pafConta').value, $('pafData').value);
+    $('pafData').title = fz ? 'Data da compra' : 'Data';
+    el.textContent = fz ? '→ cai na fatura de ' + fz.venc.slice(8, 10) + '/' + fz.venc.slice(5, 7) + '/' + fz.venc.slice(2, 4) : '';
+  };
   const preenche = () => {
     const tipo = form.querySelector('input[name=pafTipo]:checked').value;
     const tipoDe = slug => (typeof CAT_META !== 'undefined' && CAT_META[DATA.cats[slug].name]) ? CAT_META[DATA.cats[slug].name][1] : 'd';
@@ -15600,9 +15617,11 @@ document.addEventListener('click', e => {
       const m = (typeof currentMonth !== 'undefined' && currentMonth) || new Date().toISOString().slice(0, 7);
       if (!$('pafData').value || $('pafData').value.slice(0, 7) !== m) $('pafData').value = m + '-10';
       $('pafDesc').focus();
+      dica();
     }
   });
-  form.addEventListener('change', e => { if (e.target.name === 'pafTipo') preenche(); });
+  form.addEventListener('change', e => { if (e.target.name === 'pafTipo') preenche(); dica(); });
+  form.addEventListener('input', e => { if (e.target.id === 'pafData') dica(); });
   $('pafCancel').addEventListener('click', () => { form.style.display = 'none'; form.reset(); });
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -15614,21 +15633,23 @@ document.addEventListener('click', e => {
     const accId = Object.keys(window.__accIdToKey || {}).find(id => window.__accIdToKey[id] === accKey);
     const val = tipo === 'r' ? v : -v;
     const catNome = DATA.cats[slug].name;
+    const fz = faturaDe(accKey, data);            // cartão → data vira o vencimento da fatura certa
+    const dataLanc = fz ? fz.venc : data, billLanc = fz ? fz.bill : data.slice(0, 7);
     if (!window.sbClient || !accId) { finToast('✗ Sem conexão com o banco — não salvou', true); return; }
     try {
       const uid = (await window.sbClient.auth.getUser()).data.user.id;
       const { data: ins, error } = await window.sbClient.from('transactions').insert({
-        user_id: uid, account_id: accId, date: data,
+        user_id: uid, account_id: accId, date: dataLanc,
         description: desc, description_clean: desc, amount: val, type: val >= 0 ? 'CREDIT' : 'DEBIT',
         category: catNome, category_auto: false, is_transfer: false,
         source: 'forecast', source_file: 'recorrencia',
-        raw: { bill: data.slice(0, 7), import_lote: 'manual', origem: 'hub: adicionar linha (planejamento)', criada_em: new Date().toISOString() },
+        raw: { bill: billLanc, purchase_date: fz ? data : undefined, import_lote: 'manual', origem: 'hub: adicionar linha (planejamento)', criada_em: new Date().toISOString() },
       }).select('id').single();
       if (error) throw error;
-      DATA.transactions.push({ id: ins.id, sf: 'recorrencia', manual: true, d: data, desc, cat: slug, acc: accKey, val, st: 'pending', tr: false, bill: data.slice(0, 7) });
-      if (!MONTHS.includes(data.slice(0, 7))) { MONTHS.push(data.slice(0, 7)); MONTHS.sort(); }
-      form.reset(); form.style.display = 'none';
-      finToast('✓ Linha adicionada: ' + desc + ' · ' + fmt(val));
+      DATA.transactions.push({ id: ins.id, sf: 'recorrencia', manual: true, d: dataLanc, pd: fz ? data : undefined, desc, cat: slug, acc: accKey, val, st: 'pending', tr: false, bill: billLanc });
+      if (!MONTHS.includes(dataLanc.slice(0, 7))) { MONTHS.push(dataLanc.slice(0, 7)); MONTHS.sort(); }
+      form.reset(); form.style.display = 'none'; dica();
+      finToast('✓ Linha adicionada: ' + desc + ' · ' + fmt(val) + (fz ? ' · fatura de ' + fz.venc.slice(8, 10) + '/' + fz.venc.slice(5, 7) : ''));
       renderAll();
     } catch (err) { finToast('✗ NÃO salvou: ' + (err.message || err), true); }
   });
