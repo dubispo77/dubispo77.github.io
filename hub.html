@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T13:41:54-03:00">
+<meta name="hub-build" content="2026-09-25T13:50:55-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3426,6 +3426,13 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .paf-tipo label{ display:flex; gap:4px; align-items:center; cursor:pointer; }
 #finapp .paf-acts{ display:flex; gap:6px; margin-left:auto; }
 #finapp .paf-dica{ font-size:12px; font-weight:700; color:#6d28d9; }
+#finapp .plan-modo{ display:inline-flex; gap:2px; background:#efeaf8; border-radius:10px; padding:3px; margin:0 0 10px; }
+#finapp .plan-modo button{ border:0; background:transparent; padding:6px 16px; border-radius:8px; font-weight:700; font-size:13px; color:#6b5f86; cursor:pointer; }
+#finapp .plan-modo button.on{ background:#fff; color:#4c1d95; box-shadow:0 1px 3px rgba(60,30,120,.15); }
+#finapp .ph-ic.rec{ background:#16a34a; }
+#finapp .pd-val-ed{ cursor:text; border-radius:6px; }
+#finapp .pd-val-ed:hover{ box-shadow: inset 0 0 0 1px #ddd6fe; background:rgba(124,58,237,.05); }
+#finapp .pd-val-ed:focus{ outline:2px solid #7c3aed; background:#fff; }
 #finapp .paf-ok{ background:#6d28d9; color:#fff; border:0; border-radius:8px; padding:8px 16px; font-weight:700; cursor:pointer; }
 #finapp .paf-cancel{ background:transparent; border:1px solid #ddd6ee; border-radius:8px; padding:8px 12px; cursor:pointer; }
 #finapp .pd-del{ border:0; background:transparent; color:#b4a9c8; cursor:pointer; font-size:14px; padding:0 4px; }
@@ -3625,6 +3632,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
           <select id="pafConta"></select>
           <div class="paf-acts"><button type="button" id="pafCancel" class="paf-cancel">Cancelar</button><button type="submit" class="paf-ok">Salvar</button></div>
         </form>
+        <div class="plan-modo"><button type="button" data-pmodo="d">Despesas</button><button type="button" data-pmodo="r">Receitas</button></div>
         <div class="panel peek-wrap" style="padding:0">
           <button type="button" class="plan-add-btn" id="planAddBtn" title="Adicionar linha ao planejamento">+</button>
           <table class="trans-table peek-mobile">
@@ -15444,12 +15452,16 @@ function renderPlan() {
   const tbody = document.getElementById('planBody');
   if (!tbody) return;
   const m = currentMonth;
-  const gastoSlugs = new Set(txOf(m, t => !t.tr && t.val < 0).map(t => t.cat));
-  const slugs = [...new Set([...Object.keys(DATA.budgets), ...gastoSlugs])].filter(sl => DATA.cats[sl]); // meta de categoria ainda não carregada não quebra a tabela
+  const REC = PVIEW.modo === 'r';
+  PCOLS = REC ? PCOLS_R : PCOLS_D;
+  document.querySelectorAll('.plan-modo button').forEach(b => b.classList.toggle('on', b.dataset.pmodo === PVIEW.modo));
+  const lado = t => !t.tr && (REC ? t.val > 0 : t.val < 0);
+  const gastoSlugs = new Set(txOf(m, lado).map(t => t.cat));
+  const slugs = [...new Set([...(REC ? [] : Object.keys(DATA.budgets)), ...gastoSlugs])].filter(sl => DATA.cats[sl]); // meta de categoria ainda não carregada não quebra a tabela
   let rows = slugs.map(slug => {
-    const meta = DATA.budgets[slug] || 0;
-    const pagas = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && (t.st === 'paid' || t.st === 'half')).reduce((s,t) => s + t.val, 0);
-    const prev  = -txOf(m, t => !t.tr && t.val < 0 && t.cat === slug && t.st !== 'paid' && t.st !== 'half').reduce((s,t) => s + t.val, 0); // half já entrou em `pagas` — contar nos dois dobrava o total
+    const meta = REC ? 0 : (DATA.budgets[slug] || 0);
+    const pagas = Math.abs(txOf(m, t => lado(t) && t.cat === slug && (t.st === 'paid' || t.st === 'half')).reduce((s,t) => s + t.val, 0));
+    const prev  = Math.abs(txOf(m, t => lado(t) && t.cat === slug && t.st !== 'paid' && t.st !== 'half').reduce((s,t) => s + t.val, 0)); // half já entrou em `pagas` — contar nos dois dobrava o total
     const total = pagas + prev;
     return { slug, meta, pagas, prev, total, restam: meta - total };
   });
@@ -15469,6 +15481,10 @@ function renderPlan() {
     const pctPrev = r.meta ? (r.prev / r.meta * 100) : 0;
     const pctTotal = pctPaid + pctPrev;
     const over = r.restam < 0;
+    if (REC) return '<tr class="plan-row' + (aberto ? ' open' : '') + '" data-plan="' + r.slug + '">'
+      + '<td><span class="plan-chev">▶</span>' + catCell(r.slug).replace('<div class="cat-cell">', '<div class="cat-cell" style="display:inline-flex">') + '</td>'
+      + '<td>' + fmt(r.pagas) + '</td><td>' + fmt(r.prev) + '</td><td style="font-weight:700;color:#16a34a">' + fmt(r.total) + '</td>'
+      + '</tr>' + (aberto ? planDetailRow(r.slug, m) : '');
     return '<tr class="plan-row' + (aberto ? ' open' : '') + '" data-plan="' + r.slug + '">'
       + '<td><span class="plan-chev">▶</span>' + catCell(r.slug).replace('<div class="cat-cell">', '<div class="cat-cell" style="display:inline-flex">') + '</td>'
       + '<td class="meta-cell" data-slug="' + r.slug + '" contenteditable spellcheck="false" title="Clique pra editar a meta">' + fmt(r.meta) + '</td>'
@@ -15515,9 +15531,10 @@ function renderPlan() {
 // com data, parcela, conta e valor — a mesma lista que compõe "Total gasto" daquela linha.
 const PLAN_OPEN = new Set();
 function planDetailRow(slug, m) {
-  const tx = txOf(m, t => !t.tr && t.val < 0 && t.cat === slug)
+  const REC = PVIEW.modo === 'r', cor = REC ? '#16a34a' : 'var(--red)';
+  const tx = txOf(m, t => !t.tr && (REC ? t.val > 0 : t.val < 0) && t.cat === slug)
     .slice().sort((a, b) => effDate(a).localeCompare(effDate(b)) || a.desc.localeCompare(b.desc));
-  let html = '<tr class="plan-detail" data-plan-detail="' + slug + '"><td colspan="6"><div class="pd-wrap">';
+  let html = '<tr class="plan-detail" data-plan-detail="' + slug + '"><td colspan="' + PCOLS.length + '"><div class="pd-wrap">';
   if (!tx.length) {
     html += '<div class="pd-empty">Nada lançado em ' + monthLabel(m) + ' nesta categoria.</div>';
   } else {
@@ -15532,7 +15549,9 @@ function planDetailRow(slug, m) {
         + '<td><span class="cat-cell pd-cat" title="Trocar categoria">' + miniCi(t.cat) + '<span class="cat-name">' + DATA.cats[t.cat].name + '</span></span></td>'
         + '<td>' + parcCell(t.parc) + '</td>'
         + '<td>' + accBadge(t.acc) + '</td>'
-        + '<td style="text-align:right;white-space:nowrap;color:var(--red)">' + fmt(t.val) + '</td>'
+        + (t.id && t.st === 'pending' && t.sf === 'recorrencia'
+            ? '<td class="pd-val-ed" contenteditable spellcheck="false" data-edit="' + t.id + '" title="Clique pra ajustar o valor previsto" style="text-align:right;white-space:nowrap;color:' + cor + '">' + fmt(t.val) + '</td>'
+            : '<td style="text-align:right;white-space:nowrap;color:' + cor + '">' + fmt(t.val) + '</td>')
         + '<td class="pd-del-cell">' + (t.manual && t.id ? '<button type="button" class="pd-del" data-del="' + t.id + '" title="Apagar esta linha manual">✕</button>' : '') + '</td>'
         + '</tr>').join('')
       + '<tr class="pd-tot"><td></td><td colspan="5"><div class="pd-chips">'
@@ -15540,7 +15559,7 @@ function planDetailRow(slug, m) {
         + '<span class="pd-chip ok">' + statusIcon('half').replace(' title="conferido — fatura ainda não paga"', '') + 'checados <b>' + fmt(soma(pagas)) + '</b> <small>(' + pagas.length + ')</small></span>'
         + '<span class="pd-chip prev">' + statusIcon('pending') + 'previstos <b>' + fmt(soma(prevs)) + '</b> <small>(' + prevs.length + ')</small></span>'
         + '</div></td>'
-        + '<td style="text-align:right;white-space:nowrap"><span class="pd-total">' + fmt(soma(tx)) + '</span></td><td></td></tr>'
+        + '<td style="text-align:right;white-space:nowrap"><span class="pd-total"' + (REC ? ' style="color:#16a34a"' : '') + '>' + fmt(soma(tx)) + '</span></td><td></td></tr>'
       + '</table>';
   }
   return html + '</div></td></tr>';
@@ -15574,6 +15593,61 @@ document.addEventListener('click', e => {
   const slug = row.dataset.plan;
   if (PLAN_OPEN.has(slug)) PLAN_OPEN.delete(slug); else PLAN_OPEN.add(slug);
   renderPlan();
+});
+
+// ===== PLANEJAMENTO: Despesas | Receitas + ajuste do valor previsto (pedido 25/09) =====
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.plan-modo button');
+  if (!b) return;
+  PVIEW.modo = b.dataset.pmodo === 'r' ? 'r' : 'd';
+  store.set('hub_planej_modo', PVIEW.modo);
+  PVIEW.sort = 'total'; PVIEW.dir = 'desc'; PVIEW.cat.clear(); PLAN_OPEN.clear();
+  const rd = document.querySelector('input[name=pafTipo][value=' + (PVIEW.modo === 'r' ? 'r' : 'd') + ']');
+  if (rd) rd.checked = true;
+  renderPlan();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.closest && e.target.closest('.pd-val-ed')) { e.preventDefault(); e.target.blur(); }
+});
+// valor previsto: linha manual → muda o valor; linha de recorrência → vale SÓ pra este mês
+// (suprime a previsão do mês e cria uma linha manual com o valor novo — a recorrência segue igual nos outros meses)
+document.addEventListener('focusout', async e => {
+  const cell = e.target.closest && e.target.closest('.pd-val-ed');
+  if (!cell) return;
+  const t = DATA.transactions.find(x => x.id === cell.dataset.edit);
+  if (!t) return;
+  const v = parseFloat(cell.textContent.replace(/[^\d,]/g, '').replace(',', '.'));
+  if (isNaN(v) || Math.abs(Math.abs(t.val) - v) < 0.005) { cell.textContent = fmt(t.val); return; }
+  const novo = t.val < 0 ? -v : v;
+  const sb = window.sbClient;
+  if (!sb) { finToast('✗ Sem conexão — não salvou', true); cell.textContent = fmt(t.val); return; }
+  try {
+    if (t.manual) {
+      const { error } = await sb.from('transactions').update({ amount: novo, updated_at: new Date().toISOString() }).eq('id', t.id);
+      if (error) throw error;
+      t.val = novo;
+    } else {
+      const accId = Object.keys(window.__accIdToKey || {}).find(id => window.__accIdToKey[id] === t.acc);
+      const bill = t.bill || t.d.slice(0, 7);
+      const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+      const rot = MESES[Number(bill.slice(5, 7)) - 1] + '/' + bill.slice(2, 4);
+      const { error: e1 } = await sb.from('previsoes_suprimidas').insert({ account_id: accId, description: t.desc, bill, amount: t.val });
+      if (e1) throw e1;
+      await sb.from('transactions').delete().eq('id', t.id).eq('source', 'forecast');
+      const uid = (await sb.auth.getUser()).data.user.id;
+      const desc2 = t.desc + ' (' + rot + ')';
+      const { data: ins, error: e2 } = await sb.from('transactions').insert({
+        user_id: uid, account_id: accId, date: t.d, description: desc2, description_clean: desc2,
+        amount: novo, type: novo >= 0 ? 'CREDIT' : 'DEBIT', category: DATA.cats[t.cat].name, category_auto: false, is_transfer: false,
+        source: 'forecast', source_file: 'recorrencia',
+        raw: { bill, import_lote: 'manual', origem: 'hub: valor ajustado no planejamento', ajuste_de: t.desc, valor_antes: t.val },
+      }).select('id').single();
+      if (e2) throw e2;
+      Object.assign(t, { id: ins.id, desc: desc2, val: novo, manual: true });
+    }
+    finToast('✓ ' + t.desc + ': ' + fmt(novo) + ' (só neste mês)');
+    renderAll();
+  } catch (err) { finToast('✗ NÃO salvou: ' + (err.message || err), true); cell.textContent = fmt(t.val); }
 });
 
 // ===== PLANEJAMENTO: adicionar linha manual (pedido 25/09) =====
@@ -16052,12 +16126,18 @@ document.addEventListener('click', e => {
 });
 
 // ===== PLANEJAMENTO: ordenação + metas editáveis =====
-const PVIEW = { sort:'total', dir:'desc', cat:new Set() };
-const PCOLS = [
+const PVIEW = { sort:'total', dir:'desc', cat:new Set(), modo: (store.get('hub_planej_modo') === 'r' ? 'r' : 'd') };
+const PCOLS_D = [
   { id:'cat', label:'Categoria' }, { id:'meta', label:'Meta planejada' },
   { id:'pagas', label:'Checadas' }, { id:'prev', label:'Previstas' },
   { id:'total', label:'Total gasto' }, { id:'restam', label:'Restam' },
 ];
+// aba Receitas (pedido 25/09): sem meta — ajusta direto o valor previsto de cada entrada
+const PCOLS_R = [
+  { id:'cat', label:'Categoria' }, { id:'pagas', label:'Recebidas' },
+  { id:'prev', label:'Previstas' }, { id:'total', label:'Total do mês' },
+];
+let PCOLS = PCOLS_D; // renderPlan troca conforme PVIEW.modo
 function renderPlanHead() {
   const head = document.getElementById('planHead');
   if (!head) return;
@@ -16068,7 +16148,7 @@ function renderPlanHead() {
       : '';
     const ic = c.id === 'pagas' ? '<span class="ph-ic ok" title="checadas">✓</span>'
              : c.id === 'prev' ? '<span class="ph-ic prev" title="previstas"><svg><use href="#i-clock"/></svg></span>'
-             : c.id === 'total' ? '<span class="ph-ic tot" title="total gasto"><svg><use href="#i-arrow-down"/></svg></span>'
+             : c.id === 'total' ? (PVIEW.modo === 'r' ? '<span class="ph-ic rec" title="total recebido"><svg><use href="#i-arrow-up"/></svg></span>' : '<span class="ph-ic tot" title="total gasto"><svg><use href="#i-arrow-down"/></svg></span>')
              : '';
     return '<th data-pcol="' + c.id + '" style="cursor:pointer;user-select:none;position:sticky"><div class="header-content">' + ic + c.label + ' <span class="sort-ind">' + ind + '</span>' + flt + '</div></th>';
   }).join('') + '</tr>';
