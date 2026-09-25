@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T13:50:55-03:00">
+<meta name="hub-build" content="2026-09-25T14:47:43-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15448,6 +15448,49 @@ function renderKPIs() {
 }
 
 // ===== PLANEJAMENTO =====
+// 25/09 ("alterei o planejamento de novembro e mudou em outubro"): meta agora é POR MÊS.
+// DATA.budgets = base (vale pra todo mês sem ajuste); DATA.metasMes[YYYY-MM][slug] = ajuste só daquele mês.
+// Tudo salvo no Supabase (tabela planejamento_metas; mes='*' = base) — igual no celular e no computador.
+DATA.metasMes = DATA.metasMes || {};
+function metaDe(slug, m) {
+  const mm = DATA.metasMes[m];
+  if (mm && mm[slug] !== undefined) return mm[slug];
+  return DATA.budgets[slug] || 0;
+}
+function slugsComMeta(m) {
+  return [...new Set([...Object.keys(DATA.budgets), ...Object.keys(DATA.metasMes[m] || {})])];
+}
+async function salvaMeta(mes, slug, v) {
+  if (!window.sbClient) return;
+  try {
+    const { error } = await window.sbClient.from('planejamento_metas')
+      .upsert({ mes, categoria: slug, valor: v, updated_at: new Date().toISOString() }, { onConflict: 'user_id,mes,categoria' });
+    if (error) throw error;
+  } catch (err) { if (typeof finToast === 'function') finToast('✗ Meta NÃO salvou no banco: ' + (err.message || err), true); }
+}
+async function carregaMetas() {
+  if (!window.sbClient) return;
+  try {
+    const { data, error } = await window.sbClient.from('planejamento_metas').select('mes,categoria,valor');
+    if (error) throw error;
+    const rows = data || [];
+    // 1ª vez: sobe as metas que estavam só neste navegador (localStorage) como BASE
+    if (!rows.some(r => r.mes === '*')) {
+      let saved = {};
+      try { saved = JSON.parse(store.get('hub_planej_metas_v2') || '{}'); } catch (e) {}
+      const ups = Object.entries(saved).map(([k, v]) => ({ mes: '*', categoria: k, valor: v }));
+      if (ups.length) { await window.sbClient.from('planejamento_metas').upsert(ups, { onConflict: 'user_id,mes,categoria' }); rows.push(...ups); }
+    }
+    DATA.metasMes = {};
+    rows.forEach(r => {
+      if (r.mes === '*') DATA.budgets[r.categoria] = Number(r.valor);
+      else (DATA.metasMes[r.mes] = DATA.metasMes[r.mes] || {})[r.categoria] = Number(r.valor);
+    });
+    renderPlan();
+  } catch (err) { console.warn('[finapp] metas:', err.message || err); }
+}
+window.carregaMetas = carregaMetas;
+
 function renderPlan() {
   const tbody = document.getElementById('planBody');
   if (!tbody) return;
@@ -15457,9 +15500,9 @@ function renderPlan() {
   document.querySelectorAll('.plan-modo button').forEach(b => b.classList.toggle('on', b.dataset.pmodo === PVIEW.modo));
   const lado = t => !t.tr && (REC ? t.val > 0 : t.val < 0);
   const gastoSlugs = new Set(txOf(m, lado).map(t => t.cat));
-  const slugs = [...new Set([...(REC ? [] : Object.keys(DATA.budgets)), ...gastoSlugs])].filter(sl => DATA.cats[sl]); // meta de categoria ainda não carregada não quebra a tabela
+  const slugs = [...new Set([...(REC ? [] : slugsComMeta(m)), ...gastoSlugs])].filter(sl => DATA.cats[sl]); // meta de categoria ainda não carregada não quebra a tabela
   let rows = slugs.map(slug => {
-    const meta = REC ? 0 : (DATA.budgets[slug] || 0);
+    const meta = REC ? 0 : metaDe(slug, m);
     const pagas = Math.abs(txOf(m, t => lado(t) && t.cat === slug && (t.st === 'paid' || t.st === 'half')).reduce((s,t) => s + t.val, 0));
     const prev  = Math.abs(txOf(m, t => lado(t) && t.cat === slug && t.st !== 'paid' && t.st !== 'half').reduce((s,t) => s + t.val, 0)); // half já entrou em `pagas` — contar nos dois dobrava o total
     const total = pagas + prev;
@@ -15502,7 +15545,7 @@ function renderPlan() {
   }).join('');
 
   // KPIs do planejamento
-  const metas = Object.values(DATA.budgets).reduce((s,v) => s + v, 0);
+  const metas = slugsComMeta(m).reduce((s, sl) => s + metaDe(sl, m), 0);
   const gasto = rows.reduce((s,r) => s + r.total, 0);
   const rec = txOf(m, t => !t.tr && t.val > 0).reduce((s,t) => s + t.val, 0);
   const restam = metas - gasto;
@@ -16022,7 +16065,7 @@ document.addEventListener('focusout', e => {
   const v = parseFloat(cell.textContent.replace(/[^\d,]/g, '').replace(',', '.'));
   if (!isNaN(v) && v > 0) {
     DATA.budgets[slug] = v;
-    try { const sv = JSON.parse(store.get('hub_planej_metas_v2') || '{}'); sv[slug] = v; store.set('hub_planej_metas_v2', JSON.stringify(sv)); } catch(e2) {}
+    salvaMeta('*', slug, v); // aba Categorias = meta BASE (todos os meses sem ajuste próprio)
     renderPlan();
   }
   renderCatMgr();
@@ -16195,13 +16238,11 @@ document.addEventListener('focusout', e => {
   if (!cell) return;
   const v = parseFloat(cell.textContent.replace(/[^\d,]/g, '').replace(',', '.'));
   const slug = cell.dataset.slug;
-  if (!isNaN(v) && v >= 0 && DATA.budgets[slug] !== undefined) {
-    DATA.budgets[slug] = v;
-    try {
-      const saved = JSON.parse(store.get('hub_planej_metas_v2') || '{}');
-      saved[slug] = v;
-      store.set('hub_planej_metas_v2', JSON.stringify(saved));
-    } catch(err) {}
+  const m = currentMonth;
+  if (!isNaN(v) && v >= 0 && Math.abs(v - metaDe(slug, m)) >= 0.005) {
+    (DATA.metasMes[m] = DATA.metasMes[m] || {})[slug] = v;   // só este mês
+    salvaMeta(m, slug, v);
+    finToast('✓ Meta de ' + DATA.cats[slug].name + ' em ' + monthLabel(m) + ': ' + fmt(v) + ' (só este mês)');
   }
   renderPlan();
 });
@@ -17758,6 +17799,7 @@ function finAviso(msg) {
         : (MONTHS.indexOf('2025-12') >= 0 ? '2025-12' : MONTHS[MONTHS.length - 1]);
       renderAll();
       loadReview(); // painel único de conferência (cartão + conta)
+      carregaMetas(); // metas do planejamento por mês (Supabase)
       console.log('[finapp] dados reais: ' + DATA.transactions.length + ' transações, ' + MONTHS.length + ' meses');
     } catch (err) {
       console.warn('[finapp] adapter falhou, mantendo dados de exemplo:', err && err.message || err);
@@ -17791,7 +17833,7 @@ function finAviso(msg) {
   const ligaVivo = () => {
     if (!window.sbClient) return setTimeout(ligaVivo, 1000);
     const ch = window.sbClient.channel('financas-ao-vivo');
-    ['transactions', 'credit_card_invoices', 'accounts', 'inbox_transactions'].forEach(tb =>
+    ['transactions', 'credit_card_invoices', 'accounts', 'inbox_transactions', 'planejamento_metas'].forEach(tb =>
       ch.on('postgres_changes', { event: '*', schema: 'public', table: tb }, recarregaVivo));
     ch.subscribe();
   };
