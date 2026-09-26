@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-25T14:50:50-03:00">
+<meta name="hub-build" content="2026-09-26T13:53:42-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -11559,6 +11559,44 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   function stopDragAutoScroll() {
     if (_dragScrollInterval) { clearInterval(_dragScrollInterval); _dragScrollInterval = null; }
   }
+  // ── Carência do hover (26/09): mirar no ✓/✕ fazia o card colapsar ao menor
+  //    desvio do mouse. Agora, ao sair de um card JÁ aberto, ele fica preso
+  //    aberto por 700ms (ou até o mouse se afastar 26px do card), dando tempo
+  //    de chegar no botão. Voltar pro card cancela; clicar também.
+  let _hovCard = null, _hovT0 = 0, _presoCard = null, _presoTimer = null;
+  function liberaPreso() {
+    if (_presoTimer) { clearTimeout(_presoTimer); _presoTimer = null; }
+    if (_presoCard) { _presoCard.classList.remove('show-actions'); _presoCard = null; }
+  }
+  container.addEventListener('mouseover', e => {
+    const ev = e.target.closest('.calM-ev');
+    if (!ev || ev === _hovCard) return;
+    if (ev === _presoCard) liberaPreso();   // voltou pro mesmo card: o :hover assume
+    _hovCard = ev; _hovT0 = Date.now();
+  });
+  container.addEventListener('mouseout', e => {
+    const ev = e.target.closest('.calM-ev');
+    if (!ev || ev !== _hovCard) return;
+    if (e.relatedTarget && ev.contains(e.relatedTarget)) return;  // só trocou de filho
+    _hovCard = null;
+    // Só segura o que já tinha aberto (o delay de abertura é 300ms)
+    if (Date.now() - _hovT0 < 320) return;
+    if (document.body.classList.contains('hub-arrastando')) return;
+    if (window.hubSoLeitura && window.hubSoLeitura(ev.dataset.itemId ? (itemsCache.find(i => i.id === ev.dataset.itemId) || {}) : {})) return;
+    if (_presoCard && _presoCard !== ev) liberaPreso();
+    _presoCard = ev;
+    ev.classList.add('show-actions');
+    _presoTimer = setTimeout(liberaPreso, 700);
+  });
+  document.addEventListener('mousemove', e => {
+    if (!_presoCard) return;
+    const r = _presoCard.getBoundingClientRect();
+    const m = 26; // folga em volta do card
+    if (e.clientX < r.left - m || e.clientX > r.right + m || e.clientY < r.top - m || e.clientY > r.bottom + m) liberaPreso();
+  }, { passive: true });
+  container.addEventListener('click', () => liberaPreso(), true);
+  container.addEventListener('scroll', () => liberaPreso(), true);
+
   container.addEventListener('dragstart', e => {
     const ev = e.target.closest('.calM-ev');
     if (!ev) return;
