@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-26T13:55:29-03:00">
+<meta name="hub-build" content="2026-09-26T14:01:39-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3494,6 +3494,12 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .acc-chip-card{ min-height: 96px; }
 #finapp .acc-chip-card .cc-bank-name{ font-size: 11.5px; font-weight: 700; letter-spacing: .03em; opacity: 1; }
 #finapp .acc-chip-card.cred .cc-bank-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; white-space: nowrap; }
+#finapp .acc-chip-card .cc-tl{ position:relative; height:7px; border-radius:6px; background:rgba(255,255,255,.25); margin:10px 8px 8px 0; }
+#finapp .acc-chip-card .cc-tl i{ position:absolute; left:0; top:0; bottom:0; border-radius:6px; background:#fff; }
+#finapp .acc-chip-card .cc-tl .mk{ position:absolute; top:-4px; width:15px; height:15px; border-radius:50%; border:3px solid #fff; background:transparent; transform:translateX(-50%); box-sizing:border-box; }
+#finapp .acc-chip-card .cc-tl .mk.v{ background:#fff; }
+#finapp .acc-chip-card .cc-tl-leg{ display:flex; justify-content:space-between; gap:8px; font-size:10.5px; opacity:.9; white-space:nowrap; }
+#finapp .acc-chip-card .cc-tl-leg span{ overflow:hidden; text-overflow:ellipsis; }
 #finapp .acc-chip-card .cc-st { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; font-size: 10px; font-weight: 800; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; text-transform: none; }
 #finapp .acc-chip-card .cc-st.paga { background: rgba(255,255,255,.22); color: #fff; }
 #finapp .acc-chip-card .cc-st.aberta { background: rgba(255,255,255,.18); color: #fff; }
@@ -15860,42 +15866,54 @@ function renderAccounts() {
     const a = DATA.accounts[key];
     const [c1, c2] = ACC_GRAD[key] || ['#7c3aed', '#4c1d95'];
     if (a.type === 'credit') {
-      // v37 (pedido 20/09): o card diz se a fatura está PAGA ou NÃO, pelo que o Pluggy viu de pagamento.
+      // 26/09 (opção 2 escolhida): linha do tempo da fatura — barra enche do início do ciclo até hoje,
+      // bolinha vazia = fechamento, bolinha cheia = vencimento. Status pago/não pago segue vindo do Pluggy (v37).
       const inv = DATA.invoices[key];
       const hist = (inv && inv.hist) || [];
       const hj = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       const dmy = iso => iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) : '';
+      const CFG = { 'brad-card': { fech: 28, off: 1, venc: 10 }, 'nub-card': { fech: 12, off: 0, venc: 18 }, 'mp-card': { fech: 9, off: 0, venc: 15 } }[key];
+      const somaMes = (ym, fn) => { let [y, mm] = ym.split('-').map(Number); mm += fn; while (mm > 12) { mm -= 12; y++; } while (mm < 1) { mm += 12; y--; } return y + '-' + String(mm).padStart(2, '0'); };
       const aberta = hist.filter(h => h.st !== 'paga' && h.st !== 'prevista').sort((x, y) => x.m.localeCompare(y.m))[0] || null;
-      let valor = 0, sub = '', badge = '';
-      if (aberta) {
-        valor = Math.max(aberta.total - (aberta.pago || 0), 0);
-        const vencida = aberta.dueISO && aberta.dueISO < hj;
-        badge = vencida ? '<span class="cc-st vencida">⚠ vencida ' + dmy(aberta.dueISO) + ' · não paga</span>'
-              : '<span class="cc-st aberta">em aberto · vence ' + dmy(aberta.dueISO) + '</span>';
-        sub = (aberta.st === 'partial' && aberta.pago ? 'fatura de ' + MONTH_NAMES[aberta.m.slice(5)] + ' · pagou ' + fmt(aberta.pago) + ' de ' + fmt(aberta.total) + ' · ' : 'fatura de ' + MONTH_NAMES[aberta.m.slice(5)] + ' · vence ' + dmy(aberta.dueISO) + ' · ');
-      } else {
-        const ultima = hist.filter(h => h.st === 'paga').sort((x, y) => y.m.localeCompare(x.m))[0] || null;
-        const prox = ultima ? (function () { let [y, mm] = ultima.m.split('-').map(Number); mm++; if (mm > 12) { mm = 1; y++; } return y + '-' + String(mm).padStart(2, '0'); })() : hj.slice(0, 7);
-        valor = DATA.transactions.filter(t => t.acc === key && !t.tr && t.val < 0 && t.d.startsWith(prox)).reduce((s2, t) => s2 - t.val, 0);
-        badge = ultima ? '<span class="cc-st paga">✓ ' + MONTH_NAMES[ultima.m.slice(5)] + ' paga' + (ultima.pagoEm ? ' em ' + dmy(ultima.pagoEm) : '') + '</span>' : '';
-        // 26/09 ("precisa indicar melhor de que mês é a fatura aberta"): mês da fatura + fechamento + vencimento
-        const CFG = { 'brad-card': { fech: 28, off: 1, venc: 10 }, 'nub-card': { fech: 12, off: 0, venc: 18 }, 'mp-card': { fech: 9, off: 0, venc: 15 } }[key];
-        let quando = '';
-        if (CFG) {
-          const [py, pm] = prox.split('-').map(Number);
-          const fz = new Date(Date.UTC(py, pm - 1 - CFG.off, CFG.fech)).toISOString().slice(0, 10);
-          const vc = prox + '-' + String(CFG.venc).padStart(2, '0');
-          quando = (hj < fz ? 'fecha ' + dmy(fz) : 'fechou ' + dmy(fz)) + ' · vence ' + dmy(vc) + ' · ';
-        }
-        sub = '<b>fatura de ' + MONTH_NAMES[prox.slice(5)] + '</b> · ' + quando;
+      const ultima = hist.filter(h => h.st === 'paga').sort((x, y) => y.m.localeCompare(x.m))[0] || null;
+      const mesFat = aberta ? aberta.m : (ultima ? somaMes(ultima.m, 1) : hj.slice(0, 7));
+      let valor;
+      if (aberta) valor = Math.max(aberta.total - (aberta.pago || 0), 0);
+      else valor = DATA.transactions.filter(t => t.acc === key && !t.tr && t.val < 0 && t.d.startsWith(mesFat)).reduce((s2, t) => s2 - t.val, 0);
+      // datas do ciclo: início (dia seguinte ao fechamento anterior) → fecha → vence
+      let ini = null, fz = null, vc = (aberta && aberta.dueISO) || null;
+      if (CFG) {
+        const [py, pm] = mesFat.split('-').map(Number);
+        fz = new Date(Date.UTC(py, pm - 1 - CFG.off, CFG.fech)).toISOString().slice(0, 10);
+        const fzAnt = new Date(Date.UTC(py, pm - 2 - CFG.off, CFG.fech));
+        ini = new Date(fzAnt.getTime() + 86400000).toISOString().slice(0, 10);
+        if (!vc) vc = mesFat + '-' + String(CFG.venc).padStart(2, '0');
       }
-      const pct = inv && inv.limit ? Math.min(valor / inv.limit * 100, 100) : 0;
-      const livre = inv ? Math.max(inv.limit - valor, 0) : 0;
-      return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
+      const dias = (a1, b1) => Math.round((Date.parse(b1) - Date.parse(a1)) / 86400000);
+      const vencida = vc && hj > vc && (!aberta || aberta.st !== 'paga');
+      let badge = '';
+      if (vencida && aberta) badge = '<span class="cc-st vencida">⚠ vencida ' + dmy(vc) + ' · não paga</span>';
+      else if (ultima) badge = '<span class="cc-st paga">✓ ' + MONTH_NAMES[ultima.m.slice(5)] + ' paga</span>';
+      let estado = '';
+      if (fz && hj < fz) { const n = dias(hj, fz); estado = n === 0 ? 'fecha hoje' : n === 1 ? 'fecha amanhã' : 'fecha em ' + n + ' dias'; }
+      else if (vc && hj <= vc) { const n = dias(hj, vc); estado = n === 0 ? 'vence hoje' : 'fechada · vence em ' + n + (n === 1 ? ' dia' : ' dias'); }
+      else if (vc) estado = 'venceu há ' + dias(vc, hj) + ' dias';
+      if (aberta && aberta.st === 'partial' && aberta.pago) estado += ' · pagou ' + fmt(aberta.pago);
+      let tl = '';
+      if (ini && fz && vc) {
+        const tot = Math.max(dias(ini, vc), 1);
+        const pos = d1 => Math.min(Math.max(dias(ini, d1) / tot * 100, 0), 100);
+        tl = '<div class="cc-tl"><i style="width:' + pos(hj).toFixed(1) + '%"></i>'
+           + '<span class="mk" style="left:' + pos(fz).toFixed(1) + '%" title="fecha ' + dmy(fz) + '"></span>'
+           + '<span class="mk v" style="left:100%" title="vence ' + dmy(vc) + '"></span></div>';
+      }
+      const livre = inv && inv.limit ? Math.max(inv.limit - valor, 0) : 0;
+      return '<div class="acc-chip-card cred' + sel(key) + '" data-selacc="' + key + '" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ')" title="' + (inv && inv.limit ? fmt(livre) + ' livre no limite' : '') + '">'
         + '<div class="cc-bank-name">' + a.name + badge + '</div>'
         + '<div class="dcb-val">' + fmt(valor) + '</div>'
-        + '<div class="cred-limit-bar"><i style="width:' + pct.toFixed(0) + '%"></i></div>'
-        + '<div class="dcb-tipo">' + sub + fmt(livre) + ' livre</div>'
+        + tl
+        + '<div class="cc-tl-leg"><span>fatura de ' + MONTH_NAMES[mesFat.slice(5)] + (estado ? ' · ' + estado : '') + '</span>'
+        + (fz && vc ? '<span>fecha ' + dmy(fz) + ' · vence ' + dmy(vc) + '</span>' : '') + '</div>'
         + '</div>';
     }
     const tipo = key === 'nub-caixinha' ? 'Caixinha' : (key === 'nub-pj' ? 'Conta PJ' : (key === 'brad-poup' ? 'Invest Fácil' : ACC_TYPE_LABEL[a.type] || ''));
