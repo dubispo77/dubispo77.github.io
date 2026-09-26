@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-26T13:53:42-03:00">
+<meta name="hub-build" content="2026-09-26T13:55:29-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -15872,13 +15872,22 @@ function renderAccounts() {
         const vencida = aberta.dueISO && aberta.dueISO < hj;
         badge = vencida ? '<span class="cc-st vencida">⚠ vencida ' + dmy(aberta.dueISO) + ' · não paga</span>'
               : '<span class="cc-st aberta">em aberto · vence ' + dmy(aberta.dueISO) + '</span>';
-        sub = (aberta.st === 'partial' && aberta.pago ? 'pagou ' + fmt(aberta.pago) + ' de ' + fmt(aberta.total) + ' · ' : 'fatura de ' + MONTH_NAMES[aberta.m.slice(5)] + ' · ');
+        sub = (aberta.st === 'partial' && aberta.pago ? 'fatura de ' + MONTH_NAMES[aberta.m.slice(5)] + ' · pagou ' + fmt(aberta.pago) + ' de ' + fmt(aberta.total) + ' · ' : 'fatura de ' + MONTH_NAMES[aberta.m.slice(5)] + ' · vence ' + dmy(aberta.dueISO) + ' · ');
       } else {
         const ultima = hist.filter(h => h.st === 'paga').sort((x, y) => y.m.localeCompare(x.m))[0] || null;
         const prox = ultima ? (function () { let [y, mm] = ultima.m.split('-').map(Number); mm++; if (mm > 12) { mm = 1; y++; } return y + '-' + String(mm).padStart(2, '0'); })() : hj.slice(0, 7);
         valor = DATA.transactions.filter(t => t.acc === key && !t.tr && t.val < 0 && t.d.startsWith(prox)).reduce((s2, t) => s2 - t.val, 0);
         badge = ultima ? '<span class="cc-st paga">✓ ' + MONTH_NAMES[ultima.m.slice(5)] + ' paga' + (ultima.pagoEm ? ' em ' + dmy(ultima.pagoEm) : '') + '</span>' : '';
-        sub = 'próxima fatura (' + MONTH_NAMES[prox.slice(5)] + ') acumulando · ';
+        // 26/09 ("precisa indicar melhor de que mês é a fatura aberta"): mês da fatura + fechamento + vencimento
+        const CFG = { 'brad-card': { fech: 28, off: 1, venc: 10 }, 'nub-card': { fech: 12, off: 0, venc: 18 }, 'mp-card': { fech: 9, off: 0, venc: 15 } }[key];
+        let quando = '';
+        if (CFG) {
+          const [py, pm] = prox.split('-').map(Number);
+          const fz = new Date(Date.UTC(py, pm - 1 - CFG.off, CFG.fech)).toISOString().slice(0, 10);
+          const vc = prox + '-' + String(CFG.venc).padStart(2, '0');
+          quando = (hj < fz ? 'fecha ' + dmy(fz) : 'fechou ' + dmy(fz)) + ' · vence ' + dmy(vc) + ' · ';
+        }
+        sub = '<b>fatura de ' + MONTH_NAMES[prox.slice(5)] + '</b> · ' + quando;
       }
       const pct = inv && inv.limit ? Math.min(valor / inv.limit * 100, 100) : 0;
       const livre = inv ? Math.max(inv.limit - valor, 0) : 0;
@@ -17820,7 +17829,7 @@ function finAviso(msg) {
       // meses com fatura explodida no débito (ex.: DEZ/25) sem linha na tabela
       const porFat = {};
       DATA.transactions.forEach(t => {
-        if (t.sf && t.sf.indexOf('fatura_') === 0 && t.val < 0) {
+        if (t.sf && t.sf.indexOf('fatura_') === 0 && t.sf !== 'fatura_aberta' && t.val < 0) { // só PDF de fatura FECHADA (fatura_aberta = ainda não paga)
           const m2 = t.d.slice(0, 7);
           porFat[m2] = (porFat[m2] || 0) - t.val;
         }
