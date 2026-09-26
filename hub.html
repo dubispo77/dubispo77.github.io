@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-26T14:01:39-03:00">
+<meta name="hub-build" content="2026-09-26T14:22:20-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -13593,7 +13593,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           // SÓ o endereço (nunca inventar nome de lugar — regra Eduardo)
           const updates = {
             address: 'R. Conselheiro Ramalho, 789, Bela Vista, São Paulo',
-            metadata: currentItem.metadata,
+            metadata: currentItem.metadata || {},
           };
           if (currentItem.date_start && currentItem.has_time) {
             const ds = new Date(currentItem.date_start);
@@ -13722,7 +13722,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         renderBrasileiraoUI();
         await sb.from('items').update({
           title: currentItem.title,
-          metadata: currentItem.metadata,
+          metadata: currentItem.metadata || {},
         }).eq('id', currentItem.id);
         tdmSyncGcal();
       });
@@ -14457,7 +14457,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       // pode cair no calendario do Santos (so leitura -> 403).
       google_calendar_id: QA_AREA_CAL[qaArea] || null,
       // So mostra o intervalo no card quando ELE ligou a duracao.
-      metadata: durMin > 0 ? { mostrar_duracao: true } : null,
+      metadata: durMin > 0 ? { mostrar_duracao: true } : {},
       recurrence: ($('hqaRep') && $('hqaRep').value) || null,
     };
     if (address && qaPendingGeo && qaPendingGeo.address === address && qaPendingGeo.lat != null) {
