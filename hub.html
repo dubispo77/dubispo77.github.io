@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-27T13:03:27-03:00">
+<meta name="hub-build" content="2026-09-27T13:14:46-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2212,6 +2212,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
         <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#65a30d"></span><span class="ni-text">Aniversários</span></div>
       </div>
       <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span><span class="ni-caret" style="visibility:hidden">▸</span></div>
+      <div class="nav-item" data-sec="compras"><span class="ni-icon">🛒</span><span class="ni-text">Compras</span><span id="badgeCompras" class="ni-badge badge-red" style="display:none">0</span></div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">
@@ -4001,6 +4002,721 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
     </section>
 
     <!-- FLUXOGRAMAS -->
+    <section id="compras" class="section">
+      <div class="section-header"><div class="section-title">🛒 Compras</div><div class="section-subtitle" id="shpSubtitle">Compras do mês organizadas + caça-promoções dos seus interesses</div></div>
+      <div class="section-body" id="shopapp">
+        <style>
+          #shopapp { --shp-acc:#5b4fcf; --shp-hot:#ea580c; --shp-ok:#16a34a; --shp-warn:#d97706; --shp-bad:#dc2626; }
+          #shopapp .shp-tabs { display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+          #shopapp .shp-tab { border:1px solid var(--border); background:#fff; color:var(--text-dim); font-weight:600; font-size:13px; font-family:inherit; padding:8px 14px; border-radius:999px; cursor:pointer; display:inline-flex; gap:6px; align-items:center; }
+          #shopapp .shp-tab.active { background:var(--shp-acc); border-color:var(--shp-acc); color:#fff; }
+          #shopapp .shp-tab .shp-pill { background:var(--shp-hot); color:#fff; font-size:10px; font-weight:800; min-width:18px; height:18px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 5px; }
+          #shopapp .shp-pane { display:none; }
+          #shopapp .shp-pane.active { display:block; }
+          #shopapp .kpi-value.hot { color:var(--shp-hot); }
+          #shopapp .kpi-value.ok { color:var(--shp-ok); }
+          #shopapp .shp-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+          #shopapp .shp-bar .grow { flex:1; }
+          #shopapp input, #shopapp select, #shopapp textarea { padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; color:inherit; font-family:inherit; min-width:0; }
+          #shopapp input:focus, #shopapp select:focus { outline:2px solid #c7c2f0; border-color:var(--shp-acc); }
+          #shopapp .shp-btn { border:1px solid var(--border); background:#fff; color:var(--text); font-weight:600; font-size:13px; font-family:inherit; padding:8px 12px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+          #shopapp .shp-btn:hover { background:var(--bg); }
+          #shopapp .shp-btn.primary { background:var(--shp-acc); border-color:var(--shp-acc); color:#fff; }
+          #shopapp .shp-btn.primary:hover { filter:brightness(1.08); }
+          #shopapp .shp-btn.sm { padding:5px 9px; font-size:12px; }
+          #shopapp .shp-btn:disabled { opacity:.5; cursor:default; }
+          #shopapp .shp-chip { border:1px solid var(--border); background:#fff; color:var(--text-dim); font-weight:600; font-size:12px; font-family:inherit; padding:5px 11px; border-radius:999px; cursor:pointer; }
+          #shopapp .shp-chip.active { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+          #shopapp .shp-form { display:grid; grid-template-columns: 2fr 1.2fr 1.2fr .8fr .9fr 1fr auto; gap:8px; background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:16px; align-items:center; }
+          #shopapp .shp-form.int { grid-template-columns: 1.4fr 2fr 1.3fr .9fr auto; }
+          #shopapp .shp-form .shp-hint { grid-column:1/-1; font-size:11px; color:var(--text-dim); margin-top:-2px; }
+          #shopapp .shp-group { margin-bottom:18px; }
+          #shopapp .shp-ghead { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:750; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em; margin:0 0 6px 2px; }
+          #shopapp .shp-ghead .sum { margin-left:auto; text-transform:none; letter-spacing:0; font-weight:650; }
+          #shopapp .shp-row { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:6px; }
+          #shopapp .shp-row.done { background:#f6fbf7; border-color:#cfe9d6; }
+          #shopapp .shp-row.done .shp-name { color:var(--text-dim); text-decoration:line-through; text-decoration-color:#9ccfab; }
+          #shopapp .shp-row.late { border-left:3px solid var(--shp-bad); }
+          #shopapp .shp-row.soon { border-left:3px solid var(--shp-warn); }
+          #shopapp .shp-check { width:24px; height:24px; border-radius:7px; border:2px solid #c8c2dc; background:#fff; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:0; }
+          #shopapp .shp-check svg { width:14px; height:14px; stroke:#fff; stroke-width:2.6; fill:none; opacity:0; }
+          #shopapp .shp-row.done .shp-check { background:var(--shp-ok); border-color:var(--shp-ok); }
+          #shopapp .shp-row.done .shp-check svg { opacity:1; }
+          #shopapp .shp-main { flex:1; min-width:0; }
+          #shopapp .shp-name { font-size:14px; font-weight:650; }
+          #shopapp .shp-sub { font-size:11.5px; color:var(--text-dim); margin-top:2px; display:flex; gap:8px; flex-wrap:wrap; }
+          #shopapp .shp-sub .late { color:var(--shp-bad); font-weight:700; }
+          #shopapp .shp-sub .soon { color:var(--shp-warn); font-weight:700; }
+          #shopapp .shp-sub .okc { color:var(--shp-ok); font-weight:650; }
+          #shopapp .shp-price { font-size:14px; font-weight:750; white-space:nowrap; }
+          #shopapp .shp-ico { border:none; background:transparent; cursor:pointer; color:var(--text-faint); font-size:15px; padding:4px 6px; border-radius:6px; }
+          #shopapp .shp-ico:hover { background:var(--bg); color:var(--text); }
+          #shopapp .shp-freq { font-size:10.5px; font-weight:700; background:#f1eefb; color:#5b4fcf; padding:1px 7px; border-radius:999px; }
+          #shopapp .shp-empty { text-align:center; color:var(--text-dim); font-size:13px; padding:28px 12px; border:1px dashed var(--border); border-radius:12px; background:#fcfbfe; }
+          #shopapp .shp-cards { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:10px; }
+          #shopapp .shp-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:6px; }
+          #shopapp .shp-card.off { opacity:.55; }
+          #shopapp .shp-card .t { font-weight:700; font-size:14px; display:flex; gap:6px; align-items:center; }
+          #shopapp .shp-card .t .x { margin-left:auto; display:flex; gap:2px; }
+          #shopapp .shp-kw { display:flex; gap:4px; flex-wrap:wrap; }
+          #shopapp .shp-kw span { font-size:11px; background:#f1eefb; color:#4c1d95; padding:2px 8px; border-radius:999px; }
+          #shopapp .shp-kw span.ex { background:#fdecec; color:#991b1b; }
+          #shopapp .shp-meta { font-size:11.5px; color:var(--text-dim); }
+          #shopapp .shp-offer { background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:8px; display:flex; gap:12px; align-items:flex-start; }
+          #shopapp .shp-offer.hot { border-color:#fdba74; background:#fffaf5; }
+          #shopapp .shp-offer.unseen { box-shadow: inset 3px 0 0 var(--shp-acc); }
+          #shopapp .shp-offer .body { flex:1; min-width:0; }
+          #shopapp .shp-offer .ttl { font-weight:650; font-size:14px; line-height:1.35; }
+          #shopapp .shp-offer .full { font-size:12px; color:var(--text-dim); white-space:pre-wrap; margin-top:6px; display:none; max-height:220px; overflow:auto; }
+          #shopapp .shp-offer.open .full { display:block; }
+          #shopapp .shp-offer .pr { font-size:18px; font-weight:800; white-space:nowrap; text-align:right; }
+          #shopapp .shp-offer .pr small { display:block; font-size:10.5px; font-weight:650; color:var(--text-dim); }
+          #shopapp .shp-offer .pr.good { color:var(--shp-hot); }
+          #shopapp .shp-offer .acts { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+          #shopapp .shp-tag { font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:#ede9fe; color:#5b21b6; }
+          #shopapp .shp-tag.src { background:#eef2f7; color:#334155; }
+          #shopapp .shp-tag.hot { background:#ffedd5; color:#c2410c; }
+          #shopapp .shp-box { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+          #shopapp .shp-box h4 { margin:0 0 4px; font-size:15px; display:flex; align-items:center; gap:8px; }
+          #shopapp .shp-box p { font-size:12.5px; color:var(--text-dim); margin:4px 0 10px; line-height:1.45; }
+          #shopapp .shp-box ol { font-size:12.5px; color:var(--text); margin:6px 0 10px 18px; padding:0; line-height:1.6; }
+          #shopapp .shp-status { font-size:11px; font-weight:750; padding:2px 9px; border-radius:999px; }
+          #shopapp .shp-status.on { background:#dcfce7; color:#166534; }
+          #shopapp .shp-status.off { background:#fee2e2; color:#991b1b; }
+          #shopapp .shp-status.wait { background:#fef3c7; color:#92400e; }
+          #shopapp .shp-src { display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--border-soft); font-size:13px; }
+          #shopapp .shp-src:first-of-type { border-top:none; }
+          #shopapp .shp-src .n { flex:1; min-width:0; }
+          #shopapp .shp-src .n small { display:block; color:var(--text-dim); font-size:11px; }
+          #shopapp .shp-src .n small.err { color:var(--shp-bad); }
+          #shopapp .shp-sw { position:relative; width:36px; height:20px; flex-shrink:0; }
+          #shopapp .shp-sw input { opacity:0; width:0; height:0; position:absolute; }
+          #shopapp .shp-sw span { position:absolute; inset:0; background:#d6d1e6; border-radius:999px; cursor:pointer; transition:.15s; }
+          #shopapp .shp-sw span::after { content:''; position:absolute; width:16px; height:16px; left:2px; top:2px; background:#fff; border-radius:50%; transition:.15s; box-shadow:0 1px 2px rgba(0,0,0,.2); }
+          #shopapp .shp-sw input:checked + span { background:var(--shp-ok); }
+          #shopapp .shp-sw input:checked + span::after { transform:translateX(16px); }
+          #shopapp code.shp-key { font-size:12px; background:var(--bg); border:1px solid var(--border); padding:4px 8px; border-radius:6px; user-select:all; word-break:break-all; }
+          #shopapp details.shp-hist summary { cursor:pointer; font-size:12.5px; font-weight:650; color:var(--text-dim); margin:4px 0 8px; }
+          #shopapp .shp-modal-bg { position:fixed; inset:0; background:rgba(20,15,40,.35); z-index:9000; display:flex; align-items:center; justify-content:center; padding:16px; }
+          #shopapp .shp-modal { background:#fff; border-radius:14px; padding:18px; width:100%; max-width:440px; box-shadow:0 20px 50px rgba(0,0,0,.25); display:flex; flex-direction:column; gap:10px; }
+          #shopapp .shp-modal h3 { margin:0 0 4px; font-size:16px; }
+          #shopapp .shp-modal label { font-size:11.5px; font-weight:650; color:var(--text-dim); display:flex; flex-direction:column; gap:4px; }
+          #shopapp .shp-modal .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+          #shopapp .shp-modal .foot { display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+          @media (max-width: 900px) {
+            #shopapp .shp-form, #shopapp .shp-form.int { grid-template-columns: 1fr 1fr; }
+            #shopapp .shp-form > :first-child { grid-column:1/-1; }
+            #shopapp .shp-form .shp-btn { grid-column:1/-1; }
+          }
+          @media (max-width: 768px) {
+            #shopapp .shp-row { padding:9px 10px; gap:8px; }
+            #shopapp .shp-offer { flex-direction:column; gap:4px; }
+            #shopapp .shp-offer .pr { text-align:left; }
+          }
+        </style>
+
+        <div class="shp-tabs" id="shpTabs">
+          <button class="shp-tab" data-shptab="mensais">🗓️ Mensais <span class="shp-pill" id="shpPillMensais" style="display:none;background:#dc2626"></span></button>
+          <button class="shp-tab" data-shptab="interesses">🎯 Interesses</button>
+          <button class="shp-tab" data-shptab="ofertas">🔥 Ofertas <span class="shp-pill" id="shpPillOfertas" style="display:none"></span></button>
+          <button class="shp-tab" data-shptab="fontes">⚙️ Fontes e alertas</button>
+        </div>
+
+        <!-- ═════════ MENSAIS ═════════ -->
+        <div class="shp-pane" data-shppane="mensais">
+          <div class="kpi-row" id="shpKpis"></div>
+          <form class="shp-form" id="shpAddMonthly" autocomplete="off">
+            <input name="name" placeholder="Item (ex: Café 500g)" required>
+            <input name="category" placeholder="Categoria" list="shpCatList">
+            <input name="store" placeholder="Onde comprar" list="shpStoreList">
+            <input name="qty" placeholder="Qtd">
+            <input name="est_price" placeholder="R$ estimado" inputmode="decimal">
+            <select name="freq_days">
+              <option value="7">Toda semana</option>
+              <option value="15">A cada 15 dias</option>
+              <option value="30" selected>Todo mês</option>
+              <option value="60">A cada 2 meses</option>
+              <option value="90">A cada 3 meses</option>
+              <option value="180">A cada 6 meses</option>
+              <option value="365">1x por ano</option>
+            </select>
+            <button class="shp-btn primary" type="submit">+ Adicionar</button>
+          </form>
+          <datalist id="shpCatList"></datalist><datalist id="shpStoreList"></datalist>
+          <div class="shp-bar">
+            <span style="font-size:12px;color:var(--text-dim);font-weight:650">Agrupar por</span>
+            <button class="shp-chip" data-shpgroup="category">Categoria</button>
+            <button class="shp-chip" data-shpgroup="store">Onde comprar</button>
+            <span style="width:10px"></span>
+            <button class="shp-chip" data-shpshow="pend">Só o que falta</button>
+            <button class="shp-chip" data-shpshow="all">Tudo</button>
+            <span class="grow"></span>
+            <button class="shp-btn sm" id="shpCopyList" type="button" title="Copia a lista do que falta, separada por lugar — pra mandar no WhatsApp ou levar no mercado">📋 Copiar lista do que falta</button>
+          </div>
+          <div id="shpMonthlyList"></div>
+          <details class="shp-hist" id="shpHist"><summary>Comprado neste mês</summary><div id="shpHistBody"></div></details>
+        </div>
+
+        <!-- ═════════ INTERESSES ═════════ -->
+        <div class="shp-pane" data-shppane="interesses">
+          <form class="shp-form int" id="shpAddInterest" autocomplete="off">
+            <input name="name" placeholder="O que você quer (ex: Air fryer)" required>
+            <input name="keywords" placeholder="Palavras-chave, separadas por vírgula (ex: air fryer, fritadeira elétrica)">
+            <input name="exclude" placeholder="Ignorar se tiver (ex: capa, peça)">
+            <input name="target_price" placeholder="Preço-alvo R$" inputmode="decimal">
+            <button class="shp-btn primary" type="submit">+ Monitorar</button>
+            <div class="shp-hint">Cada palavra-chave pode ter várias palavras: a oferta precisa ter todas elas (em qualquer ordem, sem ligar pra acento). Com preço-alvo, só te aviso quando o preço ficar abaixo dele. Sem preço-alvo, aviso toda oferta que aparecer.</div>
+          </form>
+          <div class="shp-cards" id="shpInterestList"></div>
+        </div>
+
+        <!-- ═════════ OFERTAS ═════════ -->
+        <div class="shp-pane" data-shppane="ofertas">
+          <div class="shp-bar">
+            <button class="shp-chip" data-shpof="all">Todas</button>
+            <button class="shp-chip" data-shpof="hot">🔥 Abaixo do alvo</button>
+            <button class="shp-chip" data-shpof="saved">⭐ Salvas</button>
+            <button class="shp-chip" data-shpof="manual">📨 Encaminhadas</button>
+            <select id="shpOfInterest"><option value="">Todos os interesses</option></select>
+            <span class="grow"></span>
+            <span id="shpLastScan" style="font-size:11.5px;color:var(--text-dim)"></span>
+            <button class="shp-btn sm" id="shpScanNow" type="button">🔄 Buscar agora</button>
+          </div>
+          <div id="shpOfferList"></div>
+        </div>
+
+        <!-- ═════════ FONTES ═════════ -->
+        <div class="shp-pane" data-shppane="fontes">
+          <div class="shp-box" id="shpTgBox"></div>
+          <div class="shp-box">
+            <h4>📢 Canais públicos do Telegram <span class="shp-status on" style="font-weight:650">busca automática a cada 30 min</span></h4>
+            <p>Esses canais são lidos sozinhos, sem precisar de nada no seu celular. Cole o @ de qualquer canal público de promoção pra incluir.</p>
+            <form class="shp-bar" id="shpAddChannel" autocomplete="off" style="margin-bottom:6px">
+              <input name="handle" placeholder="@canal ou link t.me/…" class="grow">
+              <button class="shp-btn primary" type="submit">+ Adicionar canal</button>
+            </form>
+            <div id="shpChannels"></div>
+          </div>
+          <div class="shp-box" id="shpBotBox"></div>
+        </div>
+      </div>
+
+      <script>
+      (function () {
+        'use strict';
+        const $ = (s, r = document) => r.querySelector(s);
+        const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+        const root = document.getElementById('shopapp');
+        const section = document.getElementById('compras');
+        const LS_TAB = 'SHP_TAB', LS_GROUP = 'SHP_GROUP', LS_SHOW = 'SHP_SHOW', LS_OF = 'SHP_OFFILTER';
+        const FREQ_LBL = { 7: 'semanal', 15: 'quinzenal', 30: 'mensal', 60: 'bimestral', 90: 'trimestral', 180: 'semestral', 365: 'anual' };
+        const CHK = '<svg viewBox="0 0 16 16"><path d="M3 8 L 7 12 L 13 4"/></svg>';
+        const S = {
+          loaded: false, monthly: [], purchases: [], interests: [], offers: [], sources: [], cfg: null,
+          tab: ls(LS_TAB) || 'mensais', group: ls(LS_GROUP) || 'category', show: ls(LS_SHOW) || 'all',
+          of: ls(LS_OF) || 'all', ofInterest: '', rt: null,
+        };
+
+        function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (_) { return null; } }
+        const sb = () => window.sbClient;
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const brl = n => (n == null || n === '' || isNaN(n)) ? '—' : 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const num = v => { if (v == null) return null; const s = String(v).replace(/[^\d,.-]/g, ''); if (!s) return null; const n = parseFloat(s.includes(',') ? s.replace(/\./g, '').replace(',', '.') : s); return isFinite(n) ? n : null; };
+        const toast = (m, e) => (typeof finToast === 'function' ? finToast(m, e) : console.log(m));
+        function todayStr() { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }); }
+        function monthStart() { return todayStr().slice(0, 7) + '-01'; }
+        function addDays(ds, n) { const [y, m, d] = ds.split('-').map(Number); const dt = new Date(y, m - 1, d + n); return dt.toLocaleDateString('en-CA'); }
+        function diffDays(a, b) { const p = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); }; return Math.round((p(a) - p(b)) / 86400000); }
+        function fmtD(ds) { if (!ds) return ''; const [y, m, d] = ds.split('-'); return d + '/' + m; }
+        function ago(ts) {
+          if (!ts) return '';
+          const m = Math.round((Date.now() - new Date(ts)) / 60000);
+          if (m < 1) return 'agora'; if (m < 60) return 'há ' + m + ' min';
+          const h = Math.round(m / 60); if (h < 24) return 'há ' + h + 'h';
+          const d = Math.round(h / 24); return d === 1 ? 'ontem' : 'há ' + d + ' dias';
+        }
+        const splitList = s => String(s || '').split(/[,;\n]/).map(x => x.trim()).filter(Boolean);
+
+        // ─── status de um item mensal ───
+        // Mensal (30 dias) = checklist que zera todo dia 1. Outras frequências = janela móvel a partir da última compra.
+        function itemStatus(it) {
+          const t = todayStr();
+          if (it.freq_days === 30) {
+            const done = !!it.last_bought && it.last_bought >= monthStart();
+            return done ? { done: true, label: 'comprado ' + fmtD(it.last_bought), cls: 'okc' } : { done: false, label: 'falta este mês', cls: '' };
+          }
+          if (!it.last_bought) return { done: false, label: 'ainda não comprado', cls: '' };
+          const next = addDays(it.last_bought, it.freq_days);
+          const d = diffDays(next, t);
+          if (d > 3) return { done: true, label: 'comprado ' + fmtD(it.last_bought) + ' · próxima ' + fmtD(next), cls: 'okc', next };
+          if (d >= 0) return { done: false, label: d === 0 ? 'vence hoje' : 'vence em ' + d + (d === 1 ? ' dia' : ' dias'), cls: 'soon', next };
+          return { done: false, label: 'atrasado ' + (-d) + (d === -1 ? ' dia' : ' dias'), cls: 'late', next };
+        }
+        // valor equivalente por mês (semanal ≈ 4,3×; bimestral = ½ etc.)
+        const monthlyEq = it => (Number(it.est_price) || 0) * (it.freq_days === 30 ? 1 : 30.4 / it.freq_days);
+
+        // ─── carga ───
+        async function loadAll() {
+          const c = sb(); if (!c) return;
+          const since = new Date(Date.now() - 45 * 86400000).toISOString();
+          const [m, p, i, o, s, cfg] = await Promise.all([
+            c.from('shop_monthly').select('*').eq('active', true).order('sort').order('name'),
+            c.from('shop_purchases').select('*').gte('bought_at', addDays(monthStart(), -400)).order('bought_at', { ascending: false }),
+            c.from('shop_interests').select('*').order('created_at', { ascending: false }),
+            c.from('shop_offers').select('*').eq('dismissed', false).or('saved.eq.true,created_at.gte.' + since).order('created_at', { ascending: false }).limit(400),
+            c.from('shop_sources').select('*').order('kind').order('name'),
+            c.from('shop_config').select('*').maybeSingle(),
+          ]);
+          const err = [m, p, i, o, s].find(r => r.error);
+          if (err) { toast('Compras: erro ao carregar — ' + err.error.message, true); return; }
+          S.monthly = m.data || []; S.purchases = p.data || []; S.interests = i.data || [];
+          S.offers = o.data || []; S.sources = s.data || []; S.cfg = cfg.data || null;
+          S.loaded = true;
+          renderAll();
+          ensureRealtime();
+        }
+
+        function ensureRealtime() {
+          const c = sb(); if (!c || S.rt) return;
+          S.rt = c.channel('shop-offers-rt')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shop_offers' }, payload => {
+              const o = payload.new; if (!o || S.offers.some(x => x.id === o.id)) return;
+              S.offers.unshift(o);
+              renderOffers(); renderBadges(); renderInterests();
+              if (o.hot) toast('🔥 Nova oferta: ' + (o.title || '').slice(0, 60));
+            })
+            .subscribe();
+        }
+
+        function renderAll() { renderTabs(); renderMonthly(); renderInterests(); renderOffers(); renderSources(); renderBadges(); }
+
+        function renderTabs() {
+          $$('.shp-tab', root).forEach(b => b.classList.toggle('active', b.dataset.shptab === S.tab));
+          $$('.shp-pane', root).forEach(p => p.classList.toggle('active', p.dataset.shppane === S.tab));
+          if (S.tab === 'ofertas') markSeenSoon();
+        }
+
+        function renderBadges() {
+          const unseenHot = S.offers.filter(o => !o.seen && o.hot).length;
+          const unseen = S.offers.filter(o => !o.seen).length;
+          const pill = $('#shpPillOfertas');
+          pill.style.display = unseen ? '' : 'none'; pill.textContent = unseen;
+          const pend = S.monthly.filter(it => { const st = itemStatus(it); return !st.done && (st.cls === 'late' || st.cls === 'soon'); }).length;
+          const pm = $('#shpPillMensais'); pm.style.display = pend ? '' : 'none'; pm.textContent = pend;
+          const nb = document.getElementById('badgeCompras');
+          if (nb) { const n = unseenHot; nb.style.display = n ? '' : 'none'; nb.textContent = n; }
+        }
+
+        // ═════════ MENSAIS ═════════
+        function renderMonthly() {
+          const items = S.monthly;
+          const ms = monthStart();
+          const monthPurch = S.purchases.filter(p => p.bought_at >= ms);
+          const spent = monthPurch.reduce((a, p) => a + (Number(p.price) || 0), 0);
+          const planned = items.reduce((a, it) => a + monthlyEq(it), 0);
+          const pendItems = items.filter(it => !itemStatus(it).done);
+          const pendVal = pendItems.reduce((a, it) => a + (Number(it.est_price) || 0), 0);
+          const late = pendItems.filter(it => itemStatus(it).cls === 'late').length;
+          $('#shpKpis').innerHTML =
+            kpi(brl(planned), 'Previsto por mês', '') +
+            kpi(brl(spent), 'Já comprado em ' + new Date().toLocaleDateString('pt-BR', { month: 'long' }), 'ok') +
+            kpi(brl(pendVal), 'Falta comprar (' + pendItems.length + (pendItems.length === 1 ? ' item' : ' itens') + ')', pendItems.length ? 'hot' : '') +
+            kpi(late ? String(late) : '0', late === 1 ? 'Item atrasado' : 'Itens atrasados', late ? 'hot' : '');
+
+          $('#shpCatList').innerHTML = [...new Set(['Mercado', 'Limpeza', 'Higiene', 'Farmácia', 'Pet', 'Hortifruti', 'Açougue', 'Bebidas', 'Casa', ...items.map(i => i.category).filter(Boolean)])].map(c => '<option value="' + esc(c) + '">').join('');
+          $('#shpStoreList').innerHTML = [...new Set(items.map(i => i.store).filter(Boolean))].map(c => '<option value="' + esc(c) + '">').join('');
+          $$('[data-shpgroup]', root).forEach(b => b.classList.toggle('active', b.dataset.shpgroup === S.group));
+          $$('[data-shpshow]', root).forEach(b => b.classList.toggle('active', b.dataset.shpshow === S.show));
+
+          const box = $('#shpMonthlyList');
+          if (!items.length) {
+            box.innerHTML = '<div class="shp-empty">Nenhum item ainda. Adicione acima tudo o que você compra com frequência — café, ração, produtos de limpeza, remédio de uso contínuo…<br>Os itens mensais voltam pra "falta" todo dia 1º; os de outra frequência avisam quando está chegando a hora.</div>';
+          } else {
+            let list = items.slice();
+            if (S.show === 'pend') list = list.filter(it => !itemStatus(it).done);
+            const key = S.group === 'store' ? (it => it.store || 'Sem lugar definido') : (it => it.category || 'Sem categoria');
+            const groups = {};
+            list.forEach(it => (groups[key(it)] ||= []).push(it));
+            const order = it => { const st = itemStatus(it); return st.done ? 3 : st.cls === 'late' ? 0 : st.cls === 'soon' ? 1 : 2; };
+            const names = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            box.innerHTML = names.length ? names.map(g => {
+              const arr = groups[g].sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name, 'pt-BR'));
+              const falta = arr.filter(it => !itemStatus(it).done).reduce((a, it) => a + (Number(it.est_price) || 0), 0);
+              return '<div class="shp-group"><div class="shp-ghead">' + esc(g) + '<span class="sum">' + (falta ? 'falta ' + brl(falta) : 'tudo comprado ✓') + '</span></div>' + arr.map(rowHtml).join('') + '</div>';
+            }).join('') : '<div class="shp-empty">Tudo comprado por enquanto 🎉</div>';
+          }
+          // histórico do mês
+          const hb = $('#shpHistBody');
+          $('#shpHist summary').textContent = 'Comprado neste mês (' + monthPurch.length + ') · ' + brl(spent);
+          hb.innerHTML = monthPurch.length ? monthPurch.map(p => '<div class="shp-row" data-pid="' + p.id + '"><div class="shp-main"><div class="shp-name" style="font-weight:600">' + esc(p.name) + '</div><div class="shp-sub">' + fmtD(p.bought_at) + '</div></div>'
+            + '<div class="shp-price" data-shpact="editprice" title="Clique pra corrigir o valor pago" style="cursor:pointer">' + brl(p.price) + '</div></div>').join('') : '<div class="shp-meta" style="padding:4px 2px 10px">Nada marcado como comprado ainda.</div>';
+        }
+        function kpi(v, l, cls) { return '<div class="kpi"><div class="kpi-value ' + cls + '">' + v + '</div><div class="kpi-label">' + esc(l) + '</div></div>'; }
+        function rowHtml(it) {
+          const st = itemStatus(it);
+          const cls = st.done ? 'done' : (st.cls === 'late' ? 'late' : st.cls === 'soon' ? 'soon' : '');
+          const bits = [];
+          if (it.qty) bits.push(esc(it.qty));
+          if (S.group === 'category' && it.store) bits.push('📍 ' + esc(it.store));
+          if (S.group === 'store' && it.category) bits.push(esc(it.category));
+          bits.push('<span class="' + st.cls + '">' + esc(st.label) + '</span>');
+          return '<div class="shp-row ' + cls + '" data-id="' + it.id + '">'
+            + '<button class="shp-check" type="button" data-shpact="toggle" title="' + (st.done ? 'Desmarcar' : 'Marcar como comprado') + '">' + CHK + '</button>'
+            + '<div class="shp-main"><div class="shp-name">' + esc(it.name) + ' <span class="shp-freq">' + (FREQ_LBL[it.freq_days] || ('a cada ' + it.freq_days + 'd')) + '</span></div><div class="shp-sub">' + bits.join('<span>·</span>') + '</div></div>'
+            + '<div class="shp-price">' + brl(it.est_price) + '</div>'
+            + '<button class="shp-ico" type="button" data-shpact="edit" title="Editar">✎</button>'
+            + '</div>';
+        }
+
+        async function toggleBought(id) {
+          const it = S.monthly.find(x => x.id === id); if (!it) return;
+          const st = itemStatus(it);
+          const c = sb();
+          if (!st.done) {
+            const t = todayStr();
+            const { data: p, error } = await c.from('shop_purchases').insert({ item_id: it.id, name: it.name, price: it.est_price, bought_at: t }).select().single();
+            if (error) return toast('Erro ao salvar: ' + error.message, true);
+            const { error: e2 } = await c.from('shop_monthly').update({ last_bought: t }).eq('id', it.id);
+            if (e2) return toast('Erro ao salvar: ' + e2.message, true);
+            S.purchases.unshift(p); it.last_bought = t;
+            toast('✓ ' + it.name + ' comprado — salvo');
+          } else {
+            // desfaz: apaga a compra mais recente desse item e volta a data anterior
+            const mine = S.purchases.filter(p => p.item_id === it.id).sort((a, b) => b.bought_at.localeCompare(a.bought_at));
+            const last = mine[0];
+            if (last) {
+              const { error } = await c.from('shop_purchases').delete().eq('id', last.id);
+              if (error) return toast('Erro: ' + error.message, true);
+              S.purchases = S.purchases.filter(p => p.id !== last.id);
+            }
+            const prev = mine[1]?.bought_at || null;
+            const { error: e2 } = await c.from('shop_monthly').update({ last_bought: prev }).eq('id', it.id);
+            if (e2) return toast('Erro: ' + e2.message, true);
+            it.last_bought = prev;
+            toast('↺ ' + it.name + ' voltou pra lista');
+          }
+          renderMonthly(); renderBadges();
+        }
+
+        function copyPending() {
+          const pend = S.monthly.filter(it => !itemStatus(it).done);
+          if (!pend.length) return toast('Nada faltando 🎉');
+          const g = {};
+          pend.forEach(it => (g[it.store || it.category || 'Outros'] ||= []).push(it));
+          const total = pend.reduce((a, it) => a + (Number(it.est_price) || 0), 0);
+          const txt = '🛒 *Compras — ' + new Date().toLocaleDateString('pt-BR') + '*\n\n' + Object.keys(g).sort().map(k => '*' + k + '*\n' + g[k].map(it => '▢ ' + it.name + (it.qty ? ' (' + it.qty + ')' : '')).join('\n')).join('\n\n') + '\n\nEstimado: ' + brl(total);
+          navigator.clipboard.writeText(txt).then(() => toast('📋 Lista copiada (' + pend.length + ' itens)'), () => toast('Não consegui copiar', true));
+        }
+
+        // ═════════ INTERESSES ═════════
+        function renderInterests() {
+          const box = $('#shpInterestList');
+          if (!S.interests.length) { box.innerHTML = '<div class="shp-empty" style="grid-column:1/-1">Nenhum interesse ainda. Adicione algo que você quer comprar e eu fico de olho nos canais e grupos de promoção 24h por dia.</div>'; fillInterestSelect(); return; }
+          const wk = Date.now() - 7 * 86400000;
+          box.innerHTML = S.interests.map(it => {
+            const offs = S.offers.filter(o => o.interest_id === it.id);
+            const recent = offs.filter(o => new Date(o.created_at) > wk);
+            const prices = offs.map(o => Number(o.price)).filter(n => n > 0);
+            const best = prices.length ? Math.min(...prices) : null;
+            const kws = (it.keywords?.length ? it.keywords : [it.name]).map(k => '<span>' + esc(k) + '</span>').join('') + (it.exclude || []).map(k => '<span class="ex">sem "' + esc(k) + '"</span>').join('');
+            return '<div class="shp-card' + (it.active ? '' : ' off') + '" data-iid="' + it.id + '">'
+              + '<div class="t">' + esc(it.name) + '<span class="x">'
+              + '<label class="shp-sw" title="' + (it.active ? 'Monitorando' : 'Pausado') + '"><input type="checkbox" data-shpact="iactive"' + (it.active ? ' checked' : '') + '><span></span></label>'
+              + '<button class="shp-ico" type="button" data-shpact="iedit" title="Editar">✎</button></span></div>'
+              + '<div class="shp-kw">' + kws + '</div>'
+              + '<div class="shp-meta">🎯 Alvo: <b>' + (it.target_price != null ? brl(it.target_price) : 'qualquer preço') + '</b>' + (best != null ? ' · menor visto: <b>' + brl(best) + '</b>' : '') + '</div>'
+              + '<div class="shp-meta">' + (offs.length ? '<a href="#" data-shpact="iview" style="color:var(--shp-acc);font-weight:650">' + recent.length + ' oferta' + (recent.length === 1 ? '' : 's') + ' nos últimos 7 dias →</a> · última ' + ago(it.last_offer_at) : 'Nenhuma oferta ainda — estou de olho') + '</div>'
+              + '</div>';
+          }).join('');
+          fillInterestSelect();
+        }
+        function fillInterestSelect() {
+          const sel = $('#shpOfInterest'); const cur = S.ofInterest;
+          sel.innerHTML = '<option value="">Todos os interesses</option>' + S.interests.map(i => '<option value="' + i.id + '"' + (i.id === cur ? ' selected' : '') + '>' + esc(i.name) + '</option>').join('');
+        }
+
+        // ═════════ OFERTAS ═════════
+        function renderOffers() {
+          $$('[data-shpof]', root).forEach(b => b.classList.toggle('active', b.dataset.shpof === S.of));
+          let list = S.offers.slice();
+          if (S.of === 'hot') list = list.filter(o => o.hot);
+          if (S.of === 'saved') list = list.filter(o => o.saved);
+          if (S.of === 'manual') list = list.filter(o => o.source === 'manual');
+          if (S.ofInterest) list = list.filter(o => o.interest_id === S.ofInterest);
+          const pub = S.sources.filter(s => s.kind === 'telegram_public' && s.last_scan_at).map(s => s.last_scan_at).sort().pop();
+          $('#shpLastScan').textContent = pub ? 'última busca ' + ago(pub) : '';
+          const box = $('#shpOfferList');
+          if (!list.length) {
+            box.innerHTML = '<div class="shp-empty">' + (S.interests.length ? 'Nenhuma oferta por aqui ainda. A busca roda a cada 30 minutos nos canais — e na hora, pelos grupos do chip.' : 'Cadastre primeiro o que você quer na aba <b>Interesses</b>.') + '</div>';
+            return;
+          }
+          const byId = Object.fromEntries(S.interests.map(i => [i.id, i]));
+          box.innerHTML = list.slice(0, 150).map(o => {
+            const it = byId[o.interest_id];
+            const good = it && it.target_price != null && o.price != null && Number(o.price) <= Number(it.target_price);
+            const srcIco = o.source === 'whatsapp' ? '🟢' : o.source === 'manual' ? '📨' : o.source === 'email' ? '✉️' : '✈️';
+            return '<div class="shp-offer' + (o.hot ? ' hot' : '') + (o.seen ? '' : ' unseen') + '" data-oid="' + o.id + '">'
+              + '<div class="body"><div class="ttl">' + esc(o.title) + '</div>'
+              + '<div class="shp-sub" style="margin-top:5px">'
+              + (it ? '<span class="shp-tag">' + esc(it.name) + '</span>' : '') + (o.hot ? '<span class="shp-tag hot">🔥 ' + (good ? 'abaixo do alvo' : 'novidade') + '</span>' : '')
+              + '<span class="shp-tag src">' + srcIco + ' ' + esc(o.source_name || o.source) + '</span><span>' + ago(o.posted_at || o.created_at) + '</span></div>'
+              + '<div class="full">' + esc(o.body) + '</div>'
+              + '<div class="acts">' + (o.url ? '<a class="shp-btn sm primary" href="' + esc(o.url) + '" target="_blank" rel="noopener">Abrir oferta ↗</a>' : '')
+              + '<button class="shp-btn sm" type="button" data-shpact="omore">Ver mensagem</button>'
+              + '<button class="shp-btn sm" type="button" data-shpact="osave">' + (o.saved ? '⭐ Salva' : '☆ Salvar') + '</button>'
+              + '<button class="shp-btn sm" type="button" data-shpact="odismiss" title="Some da lista">✕ Descartar</button></div></div>'
+              + '<div class="pr' + (good ? ' good' : '') + '">' + (o.price != null ? brl(o.price) : '<span style="font-size:13px;color:var(--text-dim)">sem preço</span>') + (it && it.target_price != null ? '<small>alvo ' + brl(it.target_price) + '</small>' : '') + '</div>'
+              + '</div>';
+          }).join('');
+          if (S.tab === 'ofertas') markSeenSoon();
+        }
+        let seenTimer = null;
+        function markSeenSoon() {
+          clearTimeout(seenTimer);
+          seenTimer = setTimeout(async () => {
+            if (!section.classList.contains('active') || S.tab !== 'ofertas') return;
+            const ids = S.offers.filter(o => !o.seen).map(o => o.id);
+            if (!ids.length) return;
+            const { error } = await sb().from('shop_offers').update({ seen: true }).in('id', ids);
+            if (!error) { S.offers.forEach(o => { if (ids.includes(o.id)) o.seen = true; }); renderBadges(); }
+          }, 4000);
+        }
+
+        // ═════════ FONTES ═════════
+        function renderSources() {
+          const cfg = S.cfg || {};
+          // Bot de alertas do Telegram
+          const tgOk = cfg.tg_bot_token && cfg.tg_chat_id;
+          const tgHalf = cfg.tg_bot_token && !cfg.tg_chat_id;
+          $('#shpTgBox').innerHTML = '<h4>🔔 Alertas no Telegram <span class="shp-status ' + (tgOk ? 'on">conectado' : tgHalf ? 'wait">falta tocar em Iniciar' : 'off">não configurado') + '</span></h4>'
+            + '<p>Quando aparecer oferta de algo que você quer (abaixo do preço-alvo), chega mensagem na hora no seu Telegram. Você também pode <b>encaminhar pro bot</b> qualquer promoção que achar, e ela fica salva aqui.</p>'
+            + (tgOk ? '<div class="shp-bar"><button class="shp-btn" type="button" id="shpTgTest">Mandar alerta de teste</button><button class="shp-btn" type="button" id="shpTgRedo">Trocar bot</button></div>'
+              : '<ol><li>No Telegram, abra o <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>, mande <code>/newbot</code> e escolha um nome (ex: <i>Promo do Eduardo</i>).</li><li>Ele te manda um <b>token</b> (tipo <code>123456:ABC…</code>). Cole aqui:</li></ol>'
+                + '<form class="shp-bar" id="shpTgForm" autocomplete="off"><input name="token" class="grow" placeholder="Token do BotFather"><button class="shp-btn primary" type="submit">Conectar</button></form>'
+                + (tgHalf ? '<p id="shpTgStep3">3. Agora abra o seu bot no Telegram e toque em <b>Iniciar</b>. Depois recarregue esta aba.</p>' : ''));
+
+          // canais públicos
+          const pub = S.sources.filter(s => s.kind === 'telegram_public');
+          $('#shpChannels').innerHTML = pub.length ? pub.map(srcRow).join('') : '<div class="shp-meta">Nenhum canal.</div>';
+
+          // robô do chip
+          const lastSeen = cfg.bot_last_seen ? new Date(cfg.bot_last_seen) : null;
+          const online = lastSeen && (Date.now() - lastSeen) < 10 * 60000;
+          const wa = S.sources.filter(s => s.kind === 'whatsapp_group');
+          const tgg = S.sources.filter(s => s.kind === 'telegram_group');
+          const st = cfg.bot_status || {};
+          $('#shpBotBox').innerHTML = '<h4>📱 Robô do chip secundário <span class="shp-status ' + (online ? 'on">online' : lastSeen ? 'off">offline desde ' + lastSeen.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'wait">ainda não instalado') + '</span></h4>'
+            + '<p>Lê os <b>grupos de WhatsApp</b> do chip secundário e os <b>grupos fechados do Telegram</b> em que você está, em tempo real. Tudo que o chip recebe no privado (ex: você encaminhando uma promo) também é salvo aqui.'
+            + (st.whatsapp ? ' WhatsApp: <b>' + esc(st.whatsapp) + '</b>.' : '') + (st.telegram ? ' Telegram: <b>' + esc(st.telegram) + '</b>.' : '') + '</p>'
+            + '<p style="margin-bottom:6px">Chave do robô (vai no arquivo <code>.env</code> dele): <code class="shp-key" id="shpKey">' + (cfg.ingest_key ? esc(cfg.ingest_key) : '—') + '</code> <button class="shp-btn sm" type="button" id="shpCopyKey">Copiar</button></p>'
+            + '<p style="margin-top:0">O passo a passo de instalação está no arquivo <b>promo-bot/LEIA-ME.md</b>, na pasta Assistente pessoal.</p>'
+            + '<div class="shp-ghead" style="margin-top:14px">Grupos do WhatsApp (' + wa.filter(s => s.active).length + ' de ' + wa.length + ' ligados)</div>'
+            + (wa.length ? wa.map(srcRow).join('') : '<div class="shp-meta">Aparecem aqui sozinhos quando o robô estiver rodando: é só ligar os de promoção.</div>')
+            + '<div class="shp-ghead" style="margin-top:14px">Grupos do Telegram (' + tgg.filter(s => s.active).length + ' de ' + tgg.length + ' ligados)</div>'
+            + (tgg.length ? tgg.map(srcRow).join('') : '<div class="shp-meta">Aparecem aqui se você ligar a parte do Telegram no robô (opcional).</div>');
+        }
+        function srcRow(s) {
+          const sub = s.last_error ? '<small class="err">⚠ ' + esc(s.last_error) + '</small>'
+            : '<small>' + (s.kind === 'telegram_public' ? '@' + esc(s.handle) + ' · ' : '') + (s.msgs_seen ? s.msgs_seen + ' mensagens lidas' : 'nenhuma mensagem lida ainda') + (s.last_scan_at ? ' · ' + ago(s.last_scan_at) : '') + '</small>';
+          return '<div class="shp-src" data-sid="' + s.id + '"><label class="shp-sw"><input type="checkbox" data-shpact="sactive"' + (s.active ? ' checked' : '') + '><span></span></label>'
+            + '<div class="n">' + esc(s.name || s.handle) + sub + '</div>'
+            + (s.kind === 'telegram_public' ? '<a class="shp-ico" href="https://t.me/s/' + esc(s.handle) + '" target="_blank" rel="noopener" title="Abrir canal">↗</a><button class="shp-ico" type="button" data-shpact="sdel" title="Remover">🗑</button>' : '')
+            + '</div>';
+        }
+
+        // ═════════ MODAL de edição ═════════
+        function modal(html, onSave, onDelete) {
+          const bg = document.createElement('div');
+          bg.className = 'shp-modal-bg';
+          bg.innerHTML = '<form class="shp-modal" autocomplete="off">' + html + '<div class="foot">' + (onDelete ? '<button type="button" class="shp-btn" data-m="del" style="margin-right:auto;color:#dc2626">Excluir</button>' : '') + '<button type="button" class="shp-btn" data-m="x">Cancelar</button><button type="submit" class="shp-btn primary">Salvar</button></div></form>';
+          root.appendChild(bg);
+          const f = bg.querySelector('form');
+          const close = () => bg.remove();
+          bg.addEventListener('click', e => { if (e.target === bg || e.target.dataset.m === 'x') close(); });
+          bg.querySelector('[data-m="del"]')?.addEventListener('click', async () => { if (confirm('Excluir mesmo?')) { if (await onDelete()) close(); } });
+          f.addEventListener('submit', async e => { e.preventDefault(); if (await onSave(Object.fromEntries(new FormData(f)))) close(); });
+          f.addEventListener('keydown', e => { if (e.key === 'Escape') close(); e.stopPropagation(); });
+          setTimeout(() => f.querySelector('input')?.focus(), 30);
+        }
+        function editMonthly(it) {
+          const fo = [7, 15, 30, 60, 90, 180, 365];
+          if (!fo.includes(it.freq_days)) fo.push(it.freq_days);
+          modal('<h3>Editar item</h3>'
+            + '<label>Item<input name="name" value="' + esc(it.name) + '" required></label>'
+            + '<div class="row2"><label>Categoria<input name="category" list="shpCatList" value="' + esc(it.category || '') + '"></label><label>Onde comprar<input name="store" list="shpStoreList" value="' + esc(it.store || '') + '"></label></div>'
+            + '<div class="row2"><label>Quantidade<input name="qty" value="' + esc(it.qty || '') + '"></label><label>Preço estimado<input name="est_price" inputmode="decimal" value="' + (it.est_price ?? '') + '"></label></div>'
+            + '<div class="row2"><label>Frequência<select name="freq_days">' + fo.map(d => '<option value="' + d + '"' + (d === it.freq_days ? ' selected' : '') + '>' + (FREQ_LBL[d] || 'a cada ' + d + ' dias') + '</option>').join('') + '</select></label>'
+            + '<label>Última compra<input type="date" name="last_bought" value="' + (it.last_bought || '') + '"></label></div>'
+            + '<label>Observação<input name="notes" value="' + esc(it.notes || '') + '" placeholder="marca preferida, tamanho…"></label>',
+            async v => {
+              const patch = { name: v.name.trim(), category: v.category.trim() || null, store: v.store.trim() || null, qty: v.qty.trim() || null, est_price: num(v.est_price), freq_days: parseInt(v.freq_days, 10), last_bought: v.last_bought || null, notes: v.notes.trim() || null };
+              const { error } = await sb().from('shop_monthly').update(patch).eq('id', it.id);
+              if (error) { toast('Erro: ' + error.message, true); return false; }
+              Object.assign(it, patch); renderMonthly(); renderBadges(); toast('✓ Item salvo'); return true;
+            },
+            async () => {
+              const { error } = await sb().from('shop_monthly').update({ active: false }).eq('id', it.id);
+              if (error) { toast('Erro: ' + error.message, true); return false; }
+              S.monthly = S.monthly.filter(x => x.id !== it.id); renderMonthly(); renderBadges(); toast('Item removido'); return true;
+            });
+        }
+        function editInterest(it) {
+          modal('<h3>Editar interesse</h3>'
+            + '<label>Nome<input name="name" value="' + esc(it.name) + '" required></label>'
+            + '<label>Palavras-chave (vírgula)<input name="keywords" value="' + esc((it.keywords || []).join(', ')) + '"></label>'
+            + '<label>Ignorar se tiver<input name="exclude" value="' + esc((it.exclude || []).join(', ')) + '"></label>'
+            + '<div class="row2"><label>Preço-alvo<input name="target_price" inputmode="decimal" value="' + (it.target_price ?? '') + '" placeholder="vazio = qualquer"></label><label>Observação<input name="notes" value="' + esc(it.notes || '') + '"></label></div>',
+            async v => {
+              const patch = { name: v.name.trim(), keywords: splitList(v.keywords), exclude: splitList(v.exclude), target_price: num(v.target_price), notes: v.notes.trim() || null };
+              const { error } = await sb().from('shop_interests').update(patch).eq('id', it.id);
+              if (error) { toast('Erro: ' + error.message, true); return false; }
+              Object.assign(it, patch); renderInterests(); renderOffers(); toast('✓ Interesse salvo'); return true;
+            },
+            async () => {
+              const { error } = await sb().from('shop_interests').delete().eq('id', it.id);
+              if (error) { toast('Erro: ' + error.message, true); return false; }
+              S.interests = S.interests.filter(x => x.id !== it.id); renderInterests(); renderOffers(); toast('Interesse removido'); return true;
+            });
+        }
+
+        // ═════════ eventos ═════════
+        root.addEventListener('click', async e => {
+          const t = e.target.closest('[data-shptab],[data-shpgroup],[data-shpshow],[data-shpof],[data-shpact],#shpCopyList,#shpScanNow,#shpTgTest,#shpTgRedo,#shpCopyKey');
+          if (!t) return;
+          if (t.dataset.shptab) { S.tab = t.dataset.shptab; ls(LS_TAB, S.tab); renderTabs(); return; }
+          if (t.dataset.shpgroup) { S.group = t.dataset.shpgroup; ls(LS_GROUP, S.group); renderMonthly(); return; }
+          if (t.dataset.shpshow) { S.show = t.dataset.shpshow; ls(LS_SHOW, S.show); renderMonthly(); return; }
+          if (t.dataset.shpof) { S.of = t.dataset.shpof; ls(LS_OF, S.of); renderOffers(); return; }
+          if (t.id === 'shpCopyList') return copyPending();
+          if (t.id === 'shpCopyKey') { navigator.clipboard.writeText(S.cfg?.ingest_key || '').then(() => toast('📋 Chave copiada')); return; }
+          if (t.id === 'shpScanNow') {
+            t.disabled = true; t.textContent = 'Buscando…';
+            const { data, error } = await sb().functions.invoke('promo', { body: { action: 'scan_now' } });
+            t.disabled = false; t.textContent = '🔄 Buscar agora';
+            if (error || !data?.ok) return toast('Erro na busca: ' + (error?.message || data?.error || ''), true);
+            const tot = Object.values(data.stats || {}).reduce((a, s) => a + (s?.novos || 0), 0);
+            toast(tot ? '✓ ' + tot + ' oferta(s) nova(s)' : '✓ Busca feita — nada novo agora');
+            return loadAll();
+          }
+          if (t.id === 'shpTgTest') {
+            const { data, error } = await sb().functions.invoke('promo', { body: { action: 'test_tg' } });
+            return toast(data?.ok ? '✓ Alerta enviado — confira o Telegram' : 'Falhou: ' + (error?.message || data?.error || ''), !data?.ok);
+          }
+          if (t.id === 'shpTgRedo') { S.cfg = Object.assign(S.cfg || {}, { tg_chat_id: null, tg_bot_token: null }); return renderSources(); }
+
+          const act = t.dataset.shpact;
+          const row = t.closest('[data-id]'), card = t.closest('[data-iid]'), off = t.closest('[data-oid]'), src = t.closest('[data-sid]'), pr = t.closest('[data-pid]');
+          if (act === 'toggle' && row) return toggleBought(row.dataset.id);
+          if (act === 'edit' && row) return editMonthly(S.monthly.find(x => x.id === row.dataset.id));
+          if (act === 'editprice' && pr) {
+            const p = S.purchases.find(x => x.id === pr.dataset.pid); if (!p) return;
+            const v = prompt('Quanto você pagou em "' + p.name + '"?', p.price ?? '');
+            if (v === null) return;
+            const price = num(v);
+            const { error } = await sb().from('shop_purchases').update({ price }).eq('id', p.id);
+            if (error) return toast('Erro: ' + error.message, true);
+            p.price = price; renderMonthly(); return toast('✓ Valor salvo');
+          }
+          if (act === 'iedit' && card) return editInterest(S.interests.find(x => x.id === card.dataset.iid));
+          if (act === 'iview' && card) { e.preventDefault(); S.ofInterest = card.dataset.iid; S.of = 'all'; S.tab = 'ofertas'; ls(LS_TAB, S.tab); renderOffers(); fillInterestSelect(); renderTabs(); return; }
+          if (act === 'omore' && off) { off.classList.toggle('open'); return; }
+          if ((act === 'osave' || act === 'odismiss') && off) {
+            const o = S.offers.find(x => x.id === off.dataset.oid); if (!o) return;
+            const patch = act === 'osave' ? { saved: !o.saved } : { dismissed: true };
+            const { error } = await sb().from('shop_offers').update(patch).eq('id', o.id);
+            if (error) return toast('Erro: ' + error.message, true);
+            Object.assign(o, patch);
+            if (patch.dismissed) S.offers = S.offers.filter(x => x.id !== o.id);
+            renderOffers(); renderBadges(); renderInterests();
+            return toast(act === 'osave' ? (o.saved ? '⭐ Oferta salva' : 'Removida das salvas') : 'Oferta descartada');
+          }
+          if (act === 'sdel' && src) {
+            const s = S.sources.find(x => x.id === src.dataset.sid); if (!s || !confirm('Remover o canal ' + (s.name || s.handle) + '?')) return;
+            const { error } = await sb().from('shop_sources').delete().eq('id', s.id);
+            if (error) return toast('Erro: ' + error.message, true);
+            S.sources = S.sources.filter(x => x.id !== s.id); renderSources(); return toast('Canal removido');
+          }
+        });
+        root.addEventListener('change', async e => {
+          const t = e.target;
+          if (t.id === 'shpOfInterest') { S.ofInterest = t.value; renderOffers(); return; }
+          const act = t.dataset?.shpact;
+          if (act === 'iactive') {
+            const it = S.interests.find(x => x.id === t.closest('[data-iid]').dataset.iid);
+            const { error } = await sb().from('shop_interests').update({ active: t.checked }).eq('id', it.id);
+            if (error) { t.checked = !t.checked; return toast('Erro: ' + error.message, true); }
+            it.active = t.checked; renderInterests(); return toast(t.checked ? '✓ Monitorando ' + it.name : '⏸ ' + it.name + ' pausado');
+          }
+          if (act === 'sactive') {
+            const s = S.sources.find(x => x.id === t.closest('[data-sid]').dataset.sid);
+            const { error } = await sb().from('shop_sources').update({ active: t.checked }).eq('id', s.id);
+            if (error) { t.checked = !t.checked; return toast('Erro: ' + error.message, true); }
+            s.active = t.checked; renderSources(); return toast(t.checked ? '✓ Lendo ' + (s.name || s.handle) : 'Desligado: ' + (s.name || s.handle));
+          }
+        });
+        root.addEventListener('submit', async e => {
+          const f = e.target; e.preventDefault();
+          const v = Object.fromEntries(new FormData(f));
+          const c = sb(); if (!c) return toast('Entre na sua conta primeiro', true);
+          if (f.id === 'shpAddMonthly') {
+            const row = { name: v.name.trim(), category: v.category.trim() || null, store: v.store.trim() || null, qty: v.qty.trim() || null, est_price: num(v.est_price), freq_days: parseInt(v.freq_days, 10) || 30 };
+            if (!row.name) return;
+            const { data, error } = await c.from('shop_monthly').insert(row).select().single();
+            if (error) return toast('Erro: ' + error.message, true);
+            S.monthly.push(data); f.name.value = ''; f.qty.value = ''; f.est_price.value = ''; f.name.focus();
+            renderMonthly(); renderBadges(); return toast('✓ ' + data.name + ' adicionado');
+          }
+          if (f.id === 'shpAddInterest') {
+            const row = { name: v.name.trim(), keywords: splitList(v.keywords), exclude: splitList(v.exclude), target_price: num(v.target_price) };
+            if (!row.keywords.length) row.keywords = [row.name];
+            const { data, error } = await c.from('shop_interests').insert(row).select().single();
+            if (error) return toast('Erro: ' + error.message, true);
+            S.interests.unshift(data); f.reset(); renderInterests();
+            return toast('✓ De olho em "' + data.name + '" — aviso quando aparecer');
+          }
+          if (f.id === 'shpAddChannel') {
+            const btn = f.querySelector('button'); btn.disabled = true;
+            const { data, error } = await c.functions.invoke('promo', { body: { action: 'check_source', handle: v.handle } });
+            btn.disabled = false;
+            if (error || !data?.ok) return toast(data?.error || error?.message || 'Canal inválido', true);
+            const { data: row, error: e2 } = await c.from('shop_sources').insert({ kind: 'telegram_public', handle: data.handle, name: data.title }).select().single();
+            if (e2) return toast(e2.code === '23505' ? 'Esse canal já está na lista' : 'Erro: ' + e2.message, true);
+            S.sources.push(row); f.reset(); renderSources(); return toast('✓ Canal ' + data.title + ' adicionado');
+          }
+          if (f.id === 'shpTgForm') {
+            const btn = f.querySelector('button'); btn.disabled = true; btn.textContent = 'Conectando…';
+            const { data, error } = await c.functions.invoke('promo', { body: { action: 'setup_tg', token: v.token } });
+            btn.disabled = false; btn.textContent = 'Conectar';
+            if (error || !data?.ok) return toast(data?.error || error?.message || 'Falhou', true);
+            S.cfg = Object.assign(S.cfg || {}, { tg_bot_token: 'ok', tg_chat_id: null });
+            renderSources();
+            const step = document.getElementById('shpTgStep3');
+            if (step) step.innerHTML = '3. Agora abra <a href="' + esc(data.link) + '" target="_blank" rel="noopener"><b>@' + esc(data.bot) + '</b></a> e toque em <b>Iniciar</b>. Depois recarregue esta aba.';
+            window.open(data.link, '_blank');
+            return toast('✓ Bot @' + data.bot + ' conectado — toque em Iniciar nele');
+          }
+        });
+
+        // carrega quando a aba abre (e recarrega ao voltar pra ela depois de 2 min)
+        let lastLoad = 0;
+        function onShow() { if (!sb()) return; if (!S.loaded || Date.now() - lastLoad > 120000) { lastLoad = Date.now(); loadAll(); } else renderTabs(); }
+        new MutationObserver(() => { if (section.classList.contains('active')) onShow(); }).observe(section, { attributes: true, attributeFilter: ['class'] });
+        // badge no menu mesmo sem abrir a aba
+        function bootBadge() {
+          const c = sb(); if (!c) return setTimeout(bootBadge, 1500);
+          c.auth.getSession().then(({ data }) => {
+            if (!data?.session) return setTimeout(bootBadge, 3000);
+            if (section.classList.contains('active')) return onShow();
+            c.from('shop_offers').select('id', { count: 'exact', head: true }).eq('seen', false).eq('hot', true).eq('dismissed', false).then(({ count }) => {
+              const nb = document.getElementById('badgeCompras'); if (nb && count) { nb.style.display = ''; nb.textContent = count; }
+            });
+          });
+        }
+        window.addEventListener('load', () => setTimeout(bootBadge, 1200));
+        window.shopReload = loadAll;
+      })();
+      </script>
+    </section>
     <section id="fluxogramas" class="section">
       <div class="section-header"><div class="section-title">🔀 Fluxogramas</div><div class="section-subtitle">Processos de decisão</div></div>
       <div class="section-body">
