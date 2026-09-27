@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-27T10:18:58-03:00">
+<meta name="hub-build" content="2026-09-27T12:57:47-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3775,157 +3775,19 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
     <div class="panel">
       <div class="panel-title">Receitas e Despesas por ano</div>
       <div class="chart-anual" id="chartAnnualLine">
-        <svg viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet">
-          <!-- Grid -->
-          <g font-size="9" fill="#9ca3af">
-            <line x1="50" y1="40" x2="690" y2="40" stroke="#f3f4f6"/><text x="0" y="44">R$ 18mil</text>
-            <line x1="50" y1="100" x2="690" y2="100" stroke="#f3f4f6"/><text x="0" y="104">R$ 14mil</text>
-            <line x1="50" y1="160" x2="690" y2="160" stroke="#f3f4f6"/><text x="0" y="164">R$ 10mil</text>
-            <line x1="50" y1="220" x2="690" y2="220" stroke="#f3f4f6"/><text x="0" y="224">R$ 6mil</text>
-            <line x1="50" y1="280" x2="690" y2="280" stroke="#e5e7eb"/><text x="0" y="284">R$ 2mil</text>
-            <line x1="50" y1="320" x2="690" y2="320" stroke="#e5e7eb"/><text x="0" y="324">R$ 0</text>
-          </g>
-          <!-- 2025 RECEITAS — verde-claro -->
-          <polyline points="80,80 130,90 180,90 230,80 280,40 330,90 380,80 430,80 480,90 530,80 580,80 630,40" fill="none" stroke="#86efac" stroke-width="2.5" stroke-dasharray="0"/>
-          <!-- 2025 DESPESAS — vermelho-claro -->
-          <polyline points="80,200 130,220 180,200 230,160 280,160 330,140 380,180 430,200 480,200 530,200 580,180 630,160" fill="none" stroke="#fca5a5" stroke-width="2.5"/>
-          <!-- 2026 RECEITAS — verde forte -->
-          <polyline points="80,100 130,100 180,100 230,100 280,100 330,100" fill="none" stroke="#16a34a" stroke-width="3"/>
-          <!-- 2026 DESPESAS — vermelho forte -->
-          <polyline points="80,180 130,160 180,200 230,200 280,200 330,200" fill="none" stroke="#dc2626" stroke-width="3"/>
-          <!-- Pontos 2025 -->
-          <g class="data-points">
-            <circle cx="80" cy="80" r="4" fill="#86efac" data-month="jan/25" data-type="Receita 2025" data-value="14180"/>
-            <circle cx="80" cy="200" r="4" fill="#fca5a5" data-month="jan/25" data-type="Despesa 2025" data-value="9157"/>
-            <circle cx="130" cy="90" r="4" fill="#86efac" data-month="fev/25" data-type="Receita 2025" data-value="13760"/>
-            <circle cx="130" cy="220" r="4" fill="#fca5a5" data-month="fev/25" data-type="Despesa 2025" data-value="9000"/>
-            <circle cx="180" cy="90" r="4" fill="#86efac" data-month="mar/25" data-type="Receita 2025" data-value="13760"/>
-            <circle cx="180" cy="200" r="4" fill="#fca5a5" data-month="mar/25" data-type="Despesa 2025" data-value="9700"/>
-            <circle cx="230" cy="80" r="4" fill="#86efac" data-month="abr/25" data-type="Receita 2025" data-value="14250"/>
-            <circle cx="230" cy="160" r="4" fill="#fca5a5" data-month="abr/25" data-type="Despesa 2025" data-value="11800"/>
-            <circle cx="280" cy="40" r="4" fill="#86efac" data-month="mai/25" data-type="Receita 2025" data-value="17068"/>
-            <circle cx="280" cy="160" r="4" fill="#fca5a5" data-month="mai/25" data-type="Despesa 2025" data-value="11800"/>
-            <circle cx="330" cy="90" r="4" fill="#86efac" data-month="jun/25" data-type="Receita 2025" data-value="14000"/>
-            <circle cx="330" cy="140" r="4" fill="#fca5a5" data-month="jun/25" data-type="Despesa 2025" data-value="12500"/>
-            <circle cx="380" cy="80" r="4" fill="#86efac" data-month="jul/25" data-type="Receita 2025" data-value="14600"/>
-            <circle cx="380" cy="180" r="4" fill="#fca5a5" data-month="jul/25" data-type="Despesa 2025" data-value="10500"/>
-            <circle cx="430" cy="80" r="4" fill="#86efac" data-month="ago/25" data-type="Receita 2025" data-value="14600"/>
-            <circle cx="430" cy="200" r="4" fill="#fca5a5" data-month="ago/25" data-type="Despesa 2025" data-value="9700"/>
-            <circle cx="480" cy="90" r="4" fill="#86efac" data-month="set/25" data-type="Receita 2025" data-value="13900"/>
-            <circle cx="480" cy="200" r="4" fill="#fca5a5" data-month="set/25" data-type="Despesa 2025" data-value="9700"/>
-            <circle cx="530" cy="80" r="4" fill="#86efac" data-month="out/25" data-type="Receita 2025" data-value="14600"/>
-            <circle cx="530" cy="200" r="4" fill="#fca5a5" data-month="out/25" data-type="Despesa 2025" data-value="9700"/>
-            <circle cx="580" cy="80" r="4" fill="#86efac" data-month="nov/25" data-type="Receita 2025" data-value="14600"/>
-            <circle cx="580" cy="180" r="4" fill="#fca5a5" data-month="nov/25" data-type="Despesa 2025" data-value="10500"/>
-            <circle cx="630" cy="40" r="4" fill="#86efac" data-month="dez/25" data-type="Receita 2025" data-value="17215"/>
-            <circle cx="630" cy="160" r="4" fill="#fca5a5" data-month="dez/25" data-type="Despesa 2025" data-value="11500"/>
-          </g>
-          <!-- Pontos 2026 (jan-jun) -->
-          <g class="data-points">
-            <circle cx="80" cy="100" r="5" fill="#16a34a" data-month="jan/26" data-type="Receita 2026" data-value="14616"/>
-            <circle cx="80" cy="180" r="5" fill="#dc2626" data-month="jan/26" data-type="Despesa 2026" data-value="10500"/>
-            <circle cx="130" cy="100" r="5" fill="#16a34a" data-month="fev/26" data-type="Receita 2026" data-value="14616"/>
-            <circle cx="130" cy="160" r="5" fill="#dc2626" data-month="fev/26" data-type="Despesa 2026" data-value="11700"/>
-            <circle cx="180" cy="100" r="5" fill="#16a34a" data-month="mar/26" data-type="Receita 2026" data-value="14616"/>
-            <circle cx="180" cy="200" r="5" fill="#dc2626" data-month="mar/26" data-type="Despesa 2026" data-value="9717"/>
-            <circle cx="230" cy="100" r="5" fill="#16a34a" data-month="abr/26" data-type="Receita 2026" data-value="14616"/>
-            <circle cx="230" cy="200" r="5" fill="#dc2626" data-month="abr/26" data-type="Despesa 2026" data-value="9717"/>
-            <circle cx="280" cy="100" r="5" fill="#16a34a" data-month="mai/26" data-type="Receita 2026" data-value="14616"/>
-            <circle cx="280" cy="200" r="5" fill="#dc2626" data-month="mai/26" data-type="Despesa 2026" data-value="9717"/>
-            <circle cx="330" cy="100" r="5" fill="#16a34a" data-month="jun/26" data-type="Receita 2026" data-value="14616"/>
-            <circle cx="330" cy="200" r="5" fill="#dc2626" data-month="jun/26" data-type="Despesa 2026" data-value="9717"/>
-          </g>
-          <!-- Eixo X -->
-          <g font-size="10" fill="#6b7280">
-            <text x="80" y="345" text-anchor="middle">jan</text>
-            <text x="130" y="345" text-anchor="middle">fev</text>
-            <text x="180" y="345" text-anchor="middle">mar</text>
-            <text x="230" y="345" text-anchor="middle">abr</text>
-            <text x="280" y="345" text-anchor="middle">mai</text>
-            <text x="330" y="345" text-anchor="middle">jun</text>
-            <text x="380" y="345" text-anchor="middle">jul</text>
-            <text x="430" y="345" text-anchor="middle">ago</text>
-            <text x="480" y="345" text-anchor="middle">set</text>
-            <text x="530" y="345" text-anchor="middle">out</text>
-            <text x="580" y="345" text-anchor="middle">nov</text>
-            <text x="630" y="345" text-anchor="middle">dez</text>
-          </g>
-        </svg>
+        <svg id="anualSvg" viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet"><!-- renderAnual() --></svg>
         <div class="chart-tooltip" id="tooltipLine"></div>
       </div>
-      <div style="display:flex;gap:18px;justify-content:center;margin-top:8px;font-size:12px;color:var(--ink);flex-wrap:wrap">
-        <span><span style="color:#86efac">●</span> Receita 2025</span>
-        <span><span style="color:#16a34a">●</span> Receita 2026</span>
-        <span><span style="color:#fca5a5">●</span> Despesa 2025</span>
-        <span><span style="color:#dc2626">●</span> Despesa 2026</span>
-        <span style="color:#9ca3af;font-style:italic">+ próximos anos em novas cores</span>
-      </div>
+      <div id="anualLegend" style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:12px;color:var(--ink);flex-wrap:wrap"></div>
     </div>
 
     <div class="panel">
       <div class="panel-title">Comparativo ano-a-ano</div>
       <div class="chart-anual" style="height:360px" id="chartCompare">
-        <svg viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet">
-          <g font-size="9" fill="#9ca3af">
-            <line x1="50" y1="40" x2="690" y2="40" stroke="#f3f4f6"/><text x="0" y="44">R$ 18mil</text>
-            <line x1="50" y1="100" x2="690" y2="100" stroke="#f3f4f6"/><text x="0" y="104">R$ 14mil</text>
-            <line x1="50" y1="160" x2="690" y2="160" stroke="#f3f4f6"/><text x="0" y="164">R$ 10mil</text>
-            <line x1="50" y1="220" x2="690" y2="220" stroke="#f3f4f6"/><text x="0" y="224">R$ 6mil</text>
-            <line x1="50" y1="280" x2="690" y2="280" stroke="#e5e7eb"/><text x="0" y="284">R$ 2mil</text>
-            <line x1="50" y1="320" x2="690" y2="320" stroke="#e5e7eb"/><text x="0" y="324">R$ 0</text>
-          </g>
-          <!-- Grupos por mês: 4 barras (Receita 25, Receita 26, Despesa 25, Despesa 26) -->
-          <g class="bar-group" data-month="Janeiro">
-            <rect x="60" y="40" width="14" height="280" fill="#86efac" data-month="Janeiro" data-type="Receita 2025" data-value="13550"/>
-            <rect x="76" y="100" width="14" height="220" fill="#16a34a" data-month="Janeiro" data-type="Receita 2026" data-value="14616"/>
-            <rect x="92" y="160" width="14" height="160" fill="#fca5a5" data-month="Janeiro" data-type="Despesa 2025" data-value="9157"/>
-            <rect x="108" y="180" width="14" height="140" fill="#dc2626" data-month="Janeiro" data-type="Despesa 2026" data-value="11843"/>
-            <text x="83" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Jan</text>
-          </g>
-          <g class="bar-group" data-month="Fevereiro">
-            <rect x="160" y="50" width="14" height="270" fill="#86efac" data-month="Fevereiro" data-type="Receita 2025" data-value="13551"/>
-            <rect x="176" y="100" width="14" height="220" fill="#16a34a" data-month="Fevereiro" data-type="Receita 2026" data-value="14616"/>
-            <rect x="192" y="200" width="14" height="120" fill="#fca5a5" data-month="Fevereiro" data-type="Despesa 2025" data-value="9000"/>
-            <rect x="208" y="190" width="14" height="130" fill="#dc2626" data-month="Fevereiro" data-type="Despesa 2026" data-value="10916"/>
-            <text x="183" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Fev</text>
-          </g>
-          <g class="bar-group" data-month="Março">
-            <rect x="260" y="50" width="14" height="270" fill="#86efac" data-month="Março" data-type="Receita 2025" data-value="14288"/>
-            <rect x="276" y="100" width="14" height="220" fill="#16a34a" data-month="Março" data-type="Receita 2026" data-value="14616"/>
-            <rect x="292" y="100" width="14" height="220" fill="#fca5a5" data-month="Março" data-type="Despesa 2025" data-value="19798"/>
-            <rect x="308" y="200" width="14" height="120" fill="#dc2626" data-month="Março" data-type="Despesa 2026" data-value="10717"/>
-            <text x="283" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Mar</text>
-          </g>
-          <g class="bar-group" data-month="Abril">
-            <rect x="360" y="40" width="14" height="280" fill="#86efac" data-month="Abril" data-type="Receita 2025" data-value="17068"/>
-            <rect x="376" y="100" width="14" height="220" fill="#16a34a" data-month="Abril" data-type="Receita 2026" data-value="14616"/>
-            <rect x="392" y="160" width="14" height="160" fill="#fca5a5" data-month="Abril" data-type="Despesa 2025" data-value="13810"/>
-            <rect x="408" y="200" width="14" height="120" fill="#dc2626" data-month="Abril" data-type="Despesa 2026" data-value="10717"/>
-            <text x="383" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Abr</text>
-          </g>
-          <g class="bar-group" data-month="Maio">
-            <rect x="460" y="50" width="14" height="270" fill="#86efac" data-month="Maio" data-type="Receita 2025" data-value="14169"/>
-            <rect x="476" y="100" width="14" height="220" fill="#16a34a" data-month="Maio" data-type="Receita 2026" data-value="14616"/>
-            <rect x="492" y="140" width="14" height="180" fill="#fca5a5" data-month="Maio" data-type="Despesa 2025" data-value="16519"/>
-            <rect x="508" y="225" width="14" height="95" fill="#dc2626" data-month="Maio" data-type="Despesa 2026" data-value="9717"/>
-            <text x="483" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Mai</text>
-          </g>
-          <g class="bar-group" data-month="Dezembro">
-            <rect x="560" y="50" width="14" height="270" fill="#86efac" data-month="Dezembro" data-type="Receita 2024" data-value="13800"/>
-            <rect x="576" y="40" width="14" height="280" fill="#16a34a" data-month="Dezembro" data-type="Receita 2025" data-value="17215"/>
-            <rect x="592" y="180" width="14" height="140" fill="#fca5a5" data-month="Dezembro" data-type="Despesa 2024" data-value="11000"/>
-            <rect x="608" y="160" width="14" height="160" fill="#dc2626" data-month="Dezembro" data-type="Despesa 2025" data-value="12692"/>
-            <text x="583" y="345" text-anchor="middle" font-size="10" fill="#6b7280">Dez</text>
-          </g>
-        </svg>
+        <svg id="compSvg" viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet"><!-- renderAnual() --></svg>
         <div class="chart-tooltip" id="tooltipBars"></div>
       </div>
-      <div style="display:flex;gap:18px;justify-content:center;margin-top:8px;font-size:12px;color:#374151;flex-wrap:wrap">
-        <span><svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="#86efac"/></svg> Receita ano anterior</span>
-        <span><svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="#16a34a"/></svg> Receita ano atual</span>
-        <span><svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="#fca5a5"/></svg> Despesa ano anterior</span>
-        <span><svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="#dc2626"/></svg> Despesa ano atual</span>
-      </div>
+      <div id="compLegend" style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:12px;color:var(--ink);flex-wrap:wrap"></div>
     </div>
 
   </div>
@@ -16538,6 +16400,7 @@ function renderAll() {
   renderCredExtras();
   renderCatMgr();
   try { applyDonutMonth(); } catch(e) { console.warn('[finapp]', e); }
+  try { renderAnual(); } catch(e) { console.warn('[finapp] anual', e); }
   try { setupEditableTable(); recalcTotal(); } catch(e) { console.warn('[finapp]', e); }
   if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: 'svg', ext: '.svg' });
 }
@@ -16742,6 +16605,88 @@ document.addEventListener('click', e => {
   if (!actionMenu.contains(e.target)) actionMenu.classList.remove('show');
 });
 
+// === GRÁFICOS ANUAIS — agora com os dados reais do banco (27/09: antes eram números fixos de protótipo) ===
+// Receita = entradas, Despesa = saídas; transferências e pagamentos de fatura ficam de fora (mesma regra dos donuts).
+// Meses futuros do ano corrente = previsão (linha tracejada / barra clara).
+function serieAnual() {
+  const S = {};
+  DATA.transactions.forEach(t => {
+    if (t.tr) return;
+    const cn = DATA.cats[t.cat] && DATA.cats[t.cat].name;
+    if (cn && /^transfer/i.test(cn)) return;
+    const y = t.d.slice(0, 4), m = +t.d.slice(5, 7) - 1;
+    if (!S[y]) S[y] = Array.from({ length: 12 }, () => ({ r: 0, d: 0, n: 0 }));
+    if (t.val > 0) S[y][m].r += t.val; else S[y][m].d -= t.val;
+    S[y][m].n++;
+  });
+  return S;
+}
+function renderAnual() {
+  const svgL = document.getElementById('anualSvg'), svgC = document.getElementById('compSvg');
+  if (!svgL || !svgC) return;
+  const S = serieAnual();
+  const hoje = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 7);
+  const anoAtual = hoje.slice(0, 4), mesAtual = +hoje.slice(5, 7) - 1;
+  const anos = Object.keys(S).filter(y => y <= anoAtual).sort().slice(-3);
+  const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const REC = ['#bbf7d0', '#86efac', '#16a34a'], DES = ['#fecaca', '#fca5a5', '#dc2626'];
+  const corDe = (pal, i) => pal[pal.length - anos.length + i];
+  const fut = (y, m) => y === anoAtual && m > mesAtual;
+  const vazio = (y, m) => !S[y][m].n;
+  let max = 0;
+  anos.forEach(y => S[y].forEach(v => { max = Math.max(max, v.r, v.d); }));
+  const passo = max > 40000 ? 10000 : 5000;
+  max = Math.max(passo, Math.ceil(max / passo) * passo);
+  const Y = v => 320 - v / max * 280;
+  const k = v => 'R$ ' + (v >= 1000 ? Math.round(v / 1000) + 'mil' : Math.round(v));
+  let grid = '<g font-size="9" fill="#9ca3af">';
+  for (let v = 0; v <= max; v += passo) grid += `<line x1="50" y1="${Y(v)}" x2="690" y2="${Y(v)}" stroke="${v ? '#f3f4f6' : '#e5e7eb'}"/><text x="0" y="${Y(v) + 4}">${k(v)}</text>`;
+  grid += '</g>';
+  const eixoX = x => '<g font-size="10" fill="#6b7280">' + MES.map((m, i) => `<text x="${x(i)}" y="345" text-anchor="middle">${m}</text>`).join('') + '</g>';
+  // --- linhas ---
+  const X = i => 80 + i * 50;
+  let lin = '', pts = '';
+  anos.forEach((y, ai) => {
+    [['r', REC, 'Receita'], ['d', DES, 'Despesa']].forEach(([campo, pal, nome]) => {
+      const cor = corDe(pal, ai), forte = ai === anos.length - 1;
+      const idx = S[y].map((v, m) => m).filter(m => !vazio(y, m));
+      const real = idx.filter(m => !fut(y, m)), prev = idx.filter(m => fut(y, m));
+      const pl = ms => ms.map(m => X(m) + ',' + Y(S[y][m][campo]).toFixed(1)).join(' ');
+      if (real.length) lin += `<polyline points="${pl(real)}" fill="none" stroke="${cor}" stroke-width="${forte ? 3 : 2.5}"/>`;
+      if (prev.length) lin += `<polyline points="${pl(real.slice(-1).concat(prev))}" fill="none" stroke="${cor}" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+      idx.forEach(m => {
+        const f = fut(y, m);
+        pts += `<circle cx="${X(m)}" cy="${Y(S[y][m][campo]).toFixed(1)}" r="${forte ? 5 : 4}" fill="${f ? '#fff' : cor}" stroke="${cor}" stroke-width="${f ? 2 : 0}" data-month="${MES[m]}/${y.slice(2)}${f ? ' (previsto)' : ''}" data-type="${nome} ${y}" data-value="${Math.round(S[y][m][campo])}"/>`;
+      });
+    });
+  });
+  svgL.innerHTML = grid + lin + '<g class="data-points">' + pts + '</g>' + eixoX(X);
+  const legL = document.getElementById('anualLegend');
+  if (legL) legL.innerHTML = anos.map((y, ai) => `<span><span style="color:${corDe(REC, ai)}">●</span> Receita ${y}</span>`).join('')
+    + anos.map((y, ai) => `<span><span style="color:${corDe(DES, ai)}">●</span> Despesa ${y}</span>`).join('')
+    + (anos.includes(anoAtual) && mesAtual < 11 ? '<span style="color:#9ca3af;font-style:italic">tracejado = previsto</span>' : '');
+  // --- barras: ano anterior x ano atual ---
+  const a1 = anos[anos.length - 1], a0 = anos[anos.length - 2];
+  const G = i => 58 + i * 53;
+  let bars = '';
+  MES.forEach((mn, i) => {
+    const serie = [[a0, 'r', REC[1], 'Receita'], [a1, 'r', REC[2], 'Receita'], [a0, 'd', DES[1], 'Despesa'], [a1, 'd', DES[2], 'Despesa']];
+    serie.forEach(([y, campo, cor, nome], j) => {
+      if (!y || !S[y] || vazio(y, i)) return;
+      const v = S[y][i][campo], f = fut(y, i), yy = Y(v);
+      bars += `<rect x="${G(i) + j * 11}" y="${yy.toFixed(1)}" width="10" height="${(320 - yy).toFixed(1)}" fill="${cor}" fill-opacity="${f ? 0.45 : 1}" data-month="${mn}/${y.slice(2)}${f ? ' (previsto)' : ''}" data-type="${nome} ${y}" data-value="${Math.round(v)}"/>`;
+    });
+  });
+  svgC.innerHTML = grid + bars + eixoX(i => G(i) + 21);
+  const legC = document.getElementById('compLegend');
+  const sq = c => `<svg width="12" height="12" style="vertical-align:middle"><rect width="12" height="12" fill="${c}"/></svg>`;
+  if (legC) legC.innerHTML = (a0 ? `<span>${sq(REC[1])} Receita ${a0}</span>` : '') + `<span>${sq(REC[2])} Receita ${a1}</span>`
+    + (a0 ? `<span>${sq(DES[1])} Despesa ${a0}</span>` : '') + `<span>${sq(DES[2])} Despesa ${a1}</span>`
+    + '<span style="color:#9ca3af;font-style:italic">barra clara = previsto</span>';
+  setupChartTooltip('chartAnnualLine', 'tooltipLine');
+  setupChartTooltip('chartCompare', 'tooltipBars');
+}
+
 // === TOOLTIPS GRÁFICOS ===
 function setupChartTooltip(chartId, tooltipId) {
   const chart = document.getElementById(chartId);
@@ -16777,8 +16722,7 @@ function setupChartTooltip(chartId, tooltipId) {
     });
   });
 }
-setupChartTooltip('chartAnnualLine', 'tooltipLine');
-setupChartTooltip('chartCompare', 'tooltipBars');
+try { renderAnual(); } catch(e) { console.warn('[finapp] anual', e); }
 
 // === FILTER POPOVERS ===
 document.querySelectorAll('.filter-icon').forEach(icon => {
@@ -17794,7 +17738,7 @@ function finAviso(msg) {
             const due = bill + '-' + String(dd).padStart(2, '0');
             const hj = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
             return due > hj ? 'half' : 'paid';
-          })(), tr: !!r.is_transfer, pair: r.transfer_pair_id || undefined,
+          })(), tr: !!r.is_transfer || r.category === 'Transferência', pair: r.transfer_pair_id || undefined,
           parc: r.installment_current && r.installment_total ? [r.installment_current, r.installment_total] : undefined,
         });
       });
