@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-26T14:22:20-03:00">
+<meta name="hub-build" content="2026-09-27T10:18:45-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1993,6 +1993,9 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .cf-prev { max-width: 220px; }
 #finapp .cf-org { display: inline-block; border: 1px solid #e4e0ee; border-radius: 999px; padding: 1px 8px; font-size: 10.5px; font-weight: 700; color: #6b637a; background: #faf9fc; white-space: nowrap; }
 #finapp .cf-org.conta { border-color: #f2b8b8; color: #b91c1c; }
+#finapp .cf-org.conta.nub { border-color: #e3c4fb; color: #8a05be; background: #faf5ff; }
+#finapp .cf-org.conta.itau { border-color: #fbd3a8; color: #c2410c; background: #fff7ed; }
+#finapp .cf-org.conta.mp { border-color: #b3e0f7; color: #00679e; background: #f0f9ff; }
 #finapp .cf-btn { border: 1px solid #ddd9d2; background: #fff; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 650; cursor: pointer; font-family: inherit; color: var(--ink, #1a1828); }
 #finapp .cf-btn.go { background: #16a34a; border-color: #16a34a; color: #fff; font-weight: 800; }
 #finapp .cf-btn:disabled { opacity: .5; cursor: default; }
@@ -17088,8 +17091,10 @@ function renderReview() {
   bindReview();
 }
 function cfChipOrigem(r) {
+  // 27/09 ("Nubank vermelho?"): cor do chip segue o banco (antes todo débito saía vermelho do Bradesco)
+  const banco = /nubank/i.test(r.bloco || '') ? 'nub' : /ita[uú]/i.test(r.bloco || '') ? 'itau' : /mercado|\bmp\b/i.test(r.bloco || '') ? 'mp' : 'brad';
   return r.k === 'conta'
-    ? '<span class="cf-org conta">🏦 ' + cfEsc(r.bloco) + '</span>'
+    ? '<span class="cf-org conta ' + banco + '">🏦 ' + cfEsc(r.bloco) + '</span>'
     : '<span class="cf-org">' + (REV_BLOCOS[r.bloco] || cfEsc(r.bloco)) + '</span>';
 }
 function cfDossie(r) {
