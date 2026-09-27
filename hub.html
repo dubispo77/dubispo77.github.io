@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-27T10:18:45-03:00">
+<meta name="hub-build" content="2026-09-27T10:18:58-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -17064,9 +17064,7 @@ function renderReview() {
         ? '<span style="font-size:11px;color:#a89eb8;font-weight:700">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + ' ?</span>'
         : '<span class="rev-tag ' + (r.flag === 'planejado' ? 'planejado' : 'provavel') + '">' + (ev.diferenca <= 0.005 ? 'exato' : 'R$ ' + ev.diferenca.toFixed(2).replace('.', ',')) + '</span>')
       : ((r.flag === 'duvida' && !ehNovo) ? '<span class="rev-tag duvida">?</span>' : '<span style="color:#c9c2d6">—</span>');
-    const chip = r.k === 'conta'
-      ? '<span class="cf-org conta">🏦 ' + cfEsc(r.bloco) + '</span>'
-      : '<span class="cf-org">' + (REV_BLOCOS[r.bloco] || cfEsc(r.bloco)) + '</span>';
+    const chip = cfChipOrigem(r); // mesma cor por banco do chip do dossiê
     // pedido do Eduardo 11/09: linhas SEM cor por flag (nada de verde/amarelo)
     let linha = '<tr class="cf-row" data-id="' + r.id + '">'
       + '<td style="white-space:nowrap;font-size:11.5px;color:var(--muted);font-weight:700">' + cfEsc(r.dia) + '</td>'
