@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-27T12:57:47-03:00">
+<meta name="hub-build" content="2026-09-27T13:03:27-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1350,8 +1350,14 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calMM-strip .d.on b { color: #fff; }
 .calMM-strip .d.on .dots i { background: #fff !important; }
 .calMM-scroll { overflow-y: auto; overflow-x: hidden; padding: 0 0 24px; background: var(--card); max-height: calc(100dvh - 190px); position: relative;
-  overscroll-behavior: contain; scroll-snap-type: y proximity; scroll-padding-top: 2px; -webkit-overflow-scrolling: touch; }
-.calMM-day-section { scroll-snap-align: start; }
+  overscroll-behavior-y: contain; scroll-padding-top: 2px; -webkit-overflow-scrolling: touch;
+  /* 27/09: o scroll-snap (y proximity) brigava com o dedo — a cada flick a lista era
+     puxada de volta pro cabecalho mais proximo e o embalo morria. Sem snap o dedo manda.
+     overflow-anchor:none: a gente ja corrige o scrollTop na mao quando carrega dias
+     acima; deixar o ancoramento automatico do Chrome junto dava pulo duplo.
+     touch-action:pan-y: o navegador nao espera pra ver se o gesto e outra coisa. */
+  overflow-anchor: none; touch-action: pan-y; }
+.calMM-day-section { contain: layout paint style; }
 .calMM-day-header.is-today { color: #7c3aed !important; }
 .calMM-day-header:not(.calMM-hoje) { cursor: default; }
 .calMM-day-header .car, .calMM-day-header .dots { display: none; }
@@ -10864,6 +10870,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   let _mobileEdgeObserver = null;
   let _mobileHeaderObserver = null;
+  // 27/09: durante o fling o observer disparava dezenas de vezes por segundo e cada
+  // callback mexia no rotulo do mes -> layout no meio do embalo. Agora junta tudo
+  // num frame so.
+  let _mmRaf = 0, _mmPend = null;
   function setupMobileObservers() {
     if (_mobileEdgeObserver) _mobileEdgeObserver.disconnect();
     if (_mobileHeaderObserver) _mobileHeaderObserver.disconnect();
@@ -10889,13 +10899,19 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const r = en.boundingClientRect.top;
         if (r < topY) { topY = r; topVisible = en.target; }
       });
-      if (topVisible) {
-        const y = parseInt(topVisible.dataset.year, 10);
-        const m = parseInt(topVisible.dataset.month, 10);
+      if (!topVisible) return;
+      _mmPend = topVisible;
+      if (_mmRaf) return;
+      _mmRaf = requestAnimationFrame(() => {
+        _mmRaf = 0;
+        const alvo = _mmPend; _mmPend = null;
+        if (!alvo || !alvo.isConnected) return;
+        const y = parseInt(alvo.dataset.year, 10);
+        const m = parseInt(alvo.dataset.month, 10);
         updateLabelFromMonth(y, m);
         cursor = new Date(y, m, 1);
-        if (topVisible.dataset.day) mmUpdateStripSuave(topVisible.dataset.day);
-      }
+        if (alvo.dataset.day) mmUpdateStripSuave(alvo.dataset.day);
+      });
     }, { root: scroller, rootMargin: '-10px 0px -70% 0px', threshold: 0 });
     container.querySelectorAll('.calMM-day-header').forEach(el => _mobileHeaderObserver.observe(el));
 
@@ -10907,7 +10923,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         if (which === 'top') await extendMobileUp();
         if (which === 'bottom') await extendMobileDown();
       }
-    }, { root: scroller, rootMargin: '300px' });
+      // 27/09: 900px em vez de 300 — os dias novos entram enquanto ainda esta
+      // longe da ponta, entao o ajuste de scrollTop nao corta o embalo do dedo.
+    }, { root: scroller, rootMargin: '900px' });
     const top = scroller.querySelector('.calMM-edge-top');
     const bot = scroller.querySelector('.calMM-edge-bottom');
     if (top) _mobileEdgeObserver.observe(top);
@@ -10928,6 +10946,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     wrap.insertAdjacentHTML('afterend', newDaysHtml);
     _mobileLoadedRange.start = newStart;
     const delta = scroller.scrollHeight - prevHeight;
+    // Sem 'smooth' e sem esperar frame: qualquer atraso aqui aparece como tranco.
     scroller.scrollTop = prevTop + delta;
     setupMobileObservers();
   }
