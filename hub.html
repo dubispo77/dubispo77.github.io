@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-27T13:14:46-03:00">
+<meta name="hub-build" content="2026-09-27T13:15:52-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -4454,7 +4454,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
           box.innerHTML = list.slice(0, 150).map(o => {
             const it = byId[o.interest_id];
             const good = it && it.target_price != null && o.price != null && Number(o.price) <= Number(it.target_price);
-            const srcIco = o.source === 'whatsapp' ? '🟢' : o.source === 'manual' ? '📨' : o.source === 'email' ? '✉️' : '✈️';
+            const srcIco = o.source === 'whatsapp' ? '🟢' : o.source === 'manual' ? '📨' : o.source === 'email' ? '✉️' : o.source === 'web' ? '🌐' : '✈️';
             return '<div class="shp-offer' + (o.hot ? ' hot' : '') + (o.seen ? '' : ' unseen') + '" data-oid="' + o.id + '">'
               + '<div class="body"><div class="ttl">' + esc(o.title) + '</div>'
               + '<div class="shp-sub" style="margin-top:5px">'
