@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-28T12:03:40-03:00">
+<meta name="hub-build" content="2026-09-28T12:09:51-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1402,6 +1402,34 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calMM-card.is-overdue { border-left-color: #dc2626 !important; }
 .calMM-card .badge-overdue { margin-left: auto; flex: none; background: #dc2626; color: #fff; padding: 1px 6px; border-radius: 999px; font-size: 9px; font-weight: 700; line-height: 1.3; }
 .calMM-card .badge-gcal { display: none; }
+
+/* ── Gestos no card (28/09) — esquerda conclui, direita apaga ──────────
+   O card vira o "papel" que desliza; o fundo colorido fica embaixo. A linha
+   toda ganha a margem que era do card, senão o fundo nasce fora do lugar. */
+.swipe-row { position: relative; margin: 0 12px 4px; border-radius: 6px; overflow: hidden; touch-action: pan-y; }
+.swipe-row .calMM-card { margin: 0; position: relative; z-index: 2; }
+.swipe-row .calMM-card.voltando { transition: transform .2s cubic-bezier(.2,.8,.3,1); }
+.swipe-fundo { position: absolute; inset: 0; z-index: 1; border-radius: 6px; background: #e7e5ee;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 11px; opacity: 0; transition: background .12s; }
+.swipe-row.p-esq .swipe-fundo, .swipe-row.p-dir .swipe-fundo { opacity: 1; }
+.swipe-row.p-esq .swipe-fundo { background: #16a34a; }
+.swipe-row.p-dir .swipe-fundo { background: #dc2626; }
+.swipe-fundo .lado { display: flex; align-items: center; gap: 5px; color: #fff; font-size: 11.5px; font-weight: 750;
+  opacity: 0; transform: scale(.82); transition: opacity .12s, transform .14s cubic-bezier(.2,.8,.3,1); }
+.swipe-fundo .lado svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.swipe-row.p-esq .lado.feito { opacity: 1; }
+.swipe-row.p-dir .lado.apagar { opacity: 1; }
+.swipe-row.armado .lado { transform: scale(1); }
+
+/* Toast com ação (Desfazer) — o hubToast normal não aceita clique */
+#hubToastAcao { position: fixed; left: 50%; bottom: 84px; transform: translate(-50%, 10px);
+  display: flex; align-items: center; gap: 12px; background: #231f33; color: #fff;
+  font-size: 12.5px; font-weight: 600; line-height: 1.35; padding: 9px 14px; border-radius: 12px;
+  max-width: min(340px, calc(100vw - 32px)); z-index: 99999; opacity: 0; pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease; box-shadow: 0 6px 22px rgba(0,0,0,.26); }
+#hubToastAcao.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+#hubToastAcao button { border: none; background: transparent; color: #c4b5fd; font: inherit; font-size: 11.5px;
+  font-weight: 800; text-transform: uppercase; letter-spacing: .05em; cursor: pointer; padding: 2px 0; flex: none; }
 .calMM-card.proj-pessoal       { background: #fca5a5; border-color: #dc2626; color: #7f1d1d; }
 .calMM-card.proj-agenda_awvz   { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
 .calMM-card.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
@@ -1469,7 +1497,12 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-brasi-dropdown-item:hover { background: #f3f4f6; }
 .tdm-brasi-dropdown-item img { width: 22px; height: 22px; object-fit: contain; }
 .tdm-brasi-dropdown-item.selected { background: #ecfdf5; font-weight: 700; }
-.tdm-head { padding: 12px 22px 14px !important; }
+.tdm-head { padding: 12px 46px 14px 22px !important; }
+/* 28/09: o ✕ é irmão ANTERIOR do .tdm-head, que é position:relative — sem z-index
+   ele ficava atrás do cabeçalho colorido e não dava pra fechar o card no celular. */
+.tdm-close { z-index: 40; top: 9px; right: 9px; width: 28px; height: 28px; font-size: 12px; line-height: 1;
+  background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.34); color: #fff; }
+.tdm-btn.tdm-btn-feito { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
 .tdm-area-pill {
   display: inline-flex; align-items: center; gap: 6px;
   background: rgba(255,255,255,0.18); color: #fff; border: none;
@@ -1855,6 +1888,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm.somente-leitura #tdmEdit,
 .tdm.somente-leitura #tdmSave,
 .tdm.somente-leitura #tdmDelete,
+.tdm.somente-leitura #tdmDone,
 .tdm.somente-leitura #tdmWhenTimeLabel { display: none !important; }
 .tdm.somente-leitura #tdmWhenDateBtn,
 .tdm.somente-leitura #tdmWhenTimeBtn,
@@ -1870,7 +1904,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 }
 .tdm.somente-leitura .tdm-selo-leitura { display: inline-flex; }
 .tdm.do-google #tdmAllDayToggle, .tdm.do-google #tdmDurationWrap, .tdm.do-google #tdmEdit,
-.tdm.do-google #tdmSave, .tdm.do-google #tdmDelete, .tdm.do-google #tdmWhenTimeLabel { display: none !important; }
+.tdm.do-google #tdmSave, .tdm.do-google #tdmDelete, .tdm.do-google #tdmDone, .tdm.do-google #tdmWhenTimeLabel { display: none !important; }
 .tdm.do-google #tdmWhenDateBtn, .tdm.do-google #tdmWhenTimeBtn, .tdm.do-google #tdmAreaPill,
 .tdm.do-google .tdm-title { pointer-events: none; cursor: default; }
 .tdm.do-google #tdmWhenDateBtn:hover { transform: none; }
@@ -1896,7 +1930,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
   /* ── Card de detalhe compacto no celular (20/09/2026) ──
      Mesmo desenho, metade da altura: cabeçalho numa faixa baixa, data/hora/duração
      numa linha só, Local e "Sair de casa" apertados, campos com menos ar. */
-  .tdm-head { padding: 10px 14px 10px !important; }
+  .tdm-head { padding: 10px 44px 10px 14px !important; }
   .tdm-area-pill { font-size: 11px; padding: 3px 9px; }
   .tdm-when-row { gap: 10px; margin-top: 8px; }
   .tdm-when-date-card { width: 60px; border-radius: 8px; }
@@ -5058,6 +5092,26 @@ window.hubToast = function(msg, isError) {
     t.style.transform = 'translateX(-50%) translateY(8px)';
   }, isError ? 3200 : 1600);
 };
+
+// Toast que aceita um clique — usado pelo "Desfazer" do gesto de concluir.
+window.hubToastDesfazer = function(msg, aoDesfazer, segundos) {
+  let t = document.getElementById('hubToastAcao');
+  if (!t) { t = document.createElement('div'); t.id = 'hubToastAcao'; document.body.appendChild(t); }
+  t.innerHTML = '';
+  t.appendChild(document.createTextNode(msg));
+  if (aoDesfazer) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = 'Desfazer';
+    b.addEventListener('click', () => { esconde(); aoDesfazer(); });
+    t.appendChild(b);
+  }
+  function esconde() { clearTimeout(window._hubToastAcaoT); t.classList.remove('on'); }
+  t.classList.add('on');
+  clearTimeout(window._hubToastAcaoT);
+  window._hubToastAcaoT = setTimeout(esconde, (segundos || 5) * 1000);
+};
+window.HUB_ICO_CHECK = '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+window.HUB_ICO_LIXO  = '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>';
 
 // ── Helpers WebAuthn (compartilhados entre login e cadastro) ──
 window.WebAuthnHelpers = (function() {
@@ -11449,7 +11503,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const _days = Math.max(1, Math.round((_today - _dStart) / 86400000));
       badge = `<span class="badge-overdue">${_days}d</span>`;
     }
-    return `<div class="${klass}" data-item-id="${it.id}">${it.hr ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}<span class="ti">${it.is_recurring ? window.HUB_ICO_SERIE : ''}${escHtml(it.title)}</span>${badge}</div>`;
+    const card = `<div class="${klass}" data-item-id="${it.id}">${it.hr ? `<span class="hr">${escHtml(it.hr)}</span>` : ''}<span class="ti">${it.is_recurring ? window.HUB_ICO_SERIE : ''}${escHtml(it.title)}</span>${badge}</div>`;
+    // Esquerda = concluir (verde, à direita do fundo, que é o lado que aparece).
+    // Direita = apagar (vermelho, à esquerda do fundo).
+    return `<div class="swipe-row" data-item-id="${it.id}">`
+      + `<div class="swipe-fundo">`
+      +   `<span class="lado apagar">${window.HUB_ICO_LIXO}Apagar</span>`
+      +   `<span class="lado feito">${it.is_done ? 'Reabrir' : 'Concluir'}${window.HUB_ICO_CHECK}</span>`
+      + `</div>${card}</div>`;
   }
   // Os números do quadradinho: itens de hoje, atrasados (no trecho carregado), contas de hoje, próximo horário.
   function mmStats(today) {
@@ -11601,7 +11662,85 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     return true;
   }
+  // ── Gesto no card (28/09): arrasta pra esquerda conclui, pra direita apaga ──
+  // Usa window.hubAcaoCard, o mesmo caminho dos botões do Mac: trava do Google,
+  // pergunta de série no apagar, toast e reload já vêm de graça.
+  const SWIPE_LIMITE = 92;
+  function mmBindGestos() {
+    if (container._mmGestos) return;
+    container._mmGestos = true;
+    container.addEventListener('pointerdown', (e) => {
+      const card = e.target.closest('.calMM-card');
+      if (!card) return;
+      const row = card.parentElement;
+      if (!row || !row.classList.contains('swipe-row')) return;
+
+      const id = row.dataset.itemId;
+      const item = itemsCache.find(i => i.id === id);
+      const travado = !!(item && item.raw && window.hubTravado && window.hubTravado(item.raw));
+
+      let x0 = e.clientX, y0 = e.clientY, dx = 0, eixo = null, moveu = false;
+      const pid = e.pointerId;
+      card.classList.remove('voltando');
+
+      const solta = () => {
+        card.classList.add('voltando');
+        card.style.transform = '';
+        row.classList.remove('p-esq', 'p-dir', 'armado');
+      };
+      const mv = (ev) => {
+        if (ev.pointerId !== pid) return;
+        const ax = ev.clientX - x0, ay = ev.clientY - y0;
+        if (eixo === null) {
+          if (Math.abs(ax) < 7 && Math.abs(ay) < 7) return;
+          // Só engata na horizontal com folga: senão rouba a rolagem do dedo.
+          eixo = Math.abs(ax) > Math.abs(ay) * 1.3 ? 'x' : 'y';
+          if (eixo === 'x') { try { card.setPointerCapture(pid); } catch (_) {} }
+        }
+        if (eixo !== 'x') return;
+        ev.preventDefault();
+        moveu = true;
+        dx = ax;
+        // Card do Google só treme: não arma nada.
+        const teto = travado ? 26 : SWIPE_LIMITE;
+        const v = Math.abs(dx) > teto ? (teto + (Math.abs(dx) - teto) * 0.3) * (dx < 0 ? -1 : 1) : dx;
+        card.style.transform = 'translateX(' + v + 'px)';
+        row.classList.toggle('p-esq', dx < 0);
+        row.classList.toggle('p-dir', dx > 0);
+        row.classList.toggle('armado', !travado && Math.abs(dx) >= SWIPE_LIMITE);
+      };
+      const up = async () => {
+        document.removeEventListener('pointermove', mv, true);
+        document.removeEventListener('pointerup', up, true);
+        document.removeEventListener('pointercancel', up, true);
+        if (eixo !== 'x') { solta(); return; }
+        solta();
+        if (travado) { if (window.hubAvisoGoogle) window.hubAvisoGoogle(); return; }
+        if (dx <= -SWIPE_LIMITE) {
+          const eraFeito = !!(item && item.is_done);
+          await window.hubAcaoCard(id, 'toggle');
+          if (window.hubToastDesfazer) {
+            window.hubToastDesfazer(eraFeito ? 'Reaberto' : 'Concluído',
+              () => window.hubAcaoCard(id, 'toggle'), 5);
+          }
+        } else if (dx >= SWIPE_LIMITE) {
+          await window.hubAcaoCard(id, 'del');
+        }
+      };
+      document.addEventListener('pointermove', mv, { passive: false, capture: true });
+      document.addEventListener('pointerup', up, true);
+      document.addEventListener('pointercancel', up, true);
+
+      // Arrastou? Então o toque não vira "abrir a ficha".
+      card.addEventListener('click', function bloqueia(ev) {
+        card.removeEventListener('click', bloqueia, true);
+        if (moveu) { ev.stopPropagation(); ev.preventDefault(); }
+      }, true);
+    });
+  }
+
   function mmBindClicks() {
+    mmBindGestos();
     if (container._mmClicks) return;
     container.addEventListener('click', (e) => {
       const hj = e.target.closest('.calMM-hoje');
@@ -12002,12 +12141,15 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   document.addEventListener('click', async e => {
     const btn = e.target.closest('.calM-act');
     if (!btn) return;
-    // Concluir/apagar muda a contagem de hoje: pede o recálculo sem esperar o realtime.
-    setTimeout(() => { if (window.hubUpdateBadges) window.hubUpdateBadges(); }, 400);
     e.stopPropagation();
     e.preventDefault();
-    const id = btn.dataset.id;
-    const act = btn.dataset.act;
+    await window.hubAcaoCard(btn.dataset.id, btn.dataset.act, btn);
+  });
+  // 28/09: o corpo virou função pra que o gesto de arrastar no celular passe pelo
+  // MESMO caminho — trava do Google, pergunta de série, toast, reload. Sem cópia.
+  window.hubAcaoCard = async function(id, act, btn) {
+    // Concluir/apagar muda a contagem de hoje: pede o recálculo sem esperar o realtime.
+    setTimeout(() => { if (window.hubUpdateBadges) window.hubUpdateBadges(); }, 400);
     if (!sb || !session) return;
     if (act === 'copy') {
       if (window.copyItemId) window.copyItemId(id, btn);
@@ -12090,7 +12232,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       await reloadItemsForCursor(); render();
       return;
     }
-  });
+  };
 
   document.addEventListener('click', e => {
     // Só abre popover do dia quando clica no "+ N mais" (acessar tarefas escondidas)
@@ -12701,6 +12843,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     <div class="tdm-foot">
       <span class="tdm-selo-leitura">🔒 Só leitura — agenda de outra pessoa</span>
       <button class="tdm-btn tdm-btn-danger" id="tdmDelete" type="button">Apagar</button>
+      <button class="tdm-btn tdm-btn-feito" id="tdmDone" type="button">Concluir</button>
       <button class="tdm-btn" id="tdmEdit" type="button">Editar</button>
       <button class="tdm-btn tdm-btn-primary" id="tdmSave" type="button" style="display:none">Salvar</button>
     </div>
@@ -12719,6 +12862,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   const btnEdit = document.getElementById('tdmEdit');
   const btnSave = document.getElementById('tdmSave');
   const btnDel  = document.getElementById('tdmDelete');
+  const btnDone = document.getElementById('tdmDone');
   const btnClose= document.getElementById('tdmClose');
 
   let currentItem = null;
@@ -13605,6 +13749,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const isBrasi = !!(item.metadata && item.metadata.brasileirao);
     head.className = 'tdm-head area-' + (isBrasi ? 'brasileirao' : (item.area || 'pessoal'));
     elArea.textContent = areaPillLabel(item);
+    // Rótulo do botão de concluir depende do estado atual do item.
+    if (btnDone) {
+      const feito = item.status === 'done';
+      btnDone.textContent = feito ? 'Reabrir' : 'Concluir';
+      btnDone.classList.toggle('desfeito', feito);
+    }
     const serieEl = document.getElementById('tdmSerie');
     if (serieEl) serieEl.style.display = (item.recurrence || (window.hubSerieKey && window.hubSerieKey(item))) ? 'inline-flex' : 'none';
 
@@ -14564,6 +14714,23 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     if (window.hubToast) window.hubToast('Apagado ✓');
     close();
+  });
+
+  // Concluir/reabrir direto da ficha (28/09). Passa pelo hubAcaoCard, o mesmo
+  // caminho do botão do card e do gesto de arrastar — inclusive o Desfazer.
+  btnDone.addEventListener('click', async () => {
+    if (!currentItem) return;
+    if (window.hubTravado && window.hubTravado(currentItem)) { window.hubAvisoGoogle(); return; }
+    const id = currentItem.id;
+    const eraFeito = currentItem.status === 'done';
+    close();
+    if (window.hubAcaoCard) {
+      await window.hubAcaoCard(id, 'toggle');
+      if (window.hubToastDesfazer) {
+        window.hubToastDesfazer(eraFeito ? 'Reaberto' : 'Concluído',
+          () => window.hubAcaoCard(id, 'toggle'), 5);
+      }
+    }
   });
 
   // ── Click/tap no card do calendário (desktop ou mobile) → abre popup ──
