@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-28T12:09:51-03:00">
+<meta name="hub-build" content="2026-09-28T12:10:31-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1913,12 +1913,15 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm.do-google .tdm-foot { justify-content: flex-start; background: #fafafb; }
 .tdm.somente-leitura .tdm-foot { justify-content: flex-start; background: #fafafb; }
 .tdm.somente-leitura .tdm-selo-leitura { color: #6b7280; background: #f3f4f6; border-color: #e5e7eb; }
-.tdm-foot { padding: 12px 22px; border-top: 0.5px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; background: #fafafb; }
+.tdm-foot { padding: 12px 22px; border-top: 0.5px solid #f3f4f6; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; flex-shrink: 0; background: #fafafb; }
 .tdm-btn { padding: 8px 16px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; border: 0.5px solid #c8c8cc; background: #fff; color: #374151; }
 .tdm-btn:hover { background: #f3f4f6; }
 .tdm-btn.tdm-btn-primary { background: #7c3aed; color: #fff; border-color: #7c3aed; }
 .tdm-btn.tdm-btn-primary:hover { background: #6d28d9; border-color: #6d28d9; }
 .tdm-btn.tdm-btn-danger { background: transparent; color: #dc2626; border-color: transparent; margin-right: auto; }
+.tdm-btn.tdm-btn-feito { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
+.tdm-btn.tdm-btn-feito:hover { background: #dcfce7; border-color: #86efac; }
+.tdm-btn.tdm-btn-feito.desfeito { color: #6b7280; border-color: #e5e7eb; background: #fff; }
 .tdm-btn.tdm-btn-danger:hover { background: #fee2e2; }
 
 @media (max-width: 600px) {
