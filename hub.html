@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-28T11:36:41-03:00">
+<meta name="hub-build" content="2026-09-28T11:52:40-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2157,6 +2157,31 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
   #finapp .coach-inbox-row.row-collapsed .inbox-panel > *:not(.inbox-head) { display: none !important; }
   #finapp .coach-inbox-row.row-collapsed .inbox-panel { display: block !important; }
   #finapp .coach-inbox-row.row-collapsed { align-items: start; }
+
+/* ===== gráficos ao vivo (#g30) ===== */
+#g30{--g-card:var(--card,#fff);--g-ink:var(--ink,#1a1a1a);--g-mut:#7a7486;--g-grid:rgba(127,127,127,.16);--g-axis:rgba(127,127,127,.38);--g-pos:#16a34a;--g-neg:#dc2626;margin-top:18px}
+#g30 .g-stamp{font-size:11.5px;color:var(--g-mut);margin:0 0 4px}
+#g30 .g-grp{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g-mut);margin:22px 0 10px}
+#g30 .g-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:900px){#g30 .g-grid{grid-template-columns:1fr}}
+#g30 .g-card{background:var(--g-card);border-radius:14px;padding:16px 18px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06);min-width:0}
+#g30 .g-card.wide{grid-column:1/-1}
+#g30 .g-card h3{margin:0;font-size:15px;color:var(--g-ink)}
+#g30 .why{color:var(--g-mut);font-size:12.5px;margin:4px 0 10px}
+#g30 .foot{color:var(--g-mut);font-size:11.5px;margin-top:6px}
+#g30 svg{display:block;width:100%;height:auto;overflow:visible}
+#g30 svg text{fill:var(--g-mut);font-size:10px}
+#g30 .g-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--g-ink);margin-top:6px}
+#g30 .g-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+#g30 .g-hero{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin:2px 0 6px}#g30 .g-hero b{font-size:24px;color:var(--g-ink)}#g30 .g-hero span{color:var(--g-mut);font-size:12.5px}
+#g30 .g-scroll{overflow-x:auto}
+#g30 .g-hm td{font-size:10.5px;text-align:center;height:24px;border:2px solid var(--g-card);border-radius:4px}#g30 .g-hm th{font-size:10px;color:var(--g-mut);font-weight:600;padding:2px 4px;white-space:nowrap}#g30 .g-hm th.c{text-align:right}
+#g30 .g-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}#g30 .g-cal .h{font-size:10px;color:var(--g-mut);text-align:center}
+#g30 .g-cal .d{min-height:60px;border-radius:8px;background:var(--g-grid);padding:4px 5px;font-size:10.5px;position:relative;min-width:0;overflow:hidden}#g30 .g-cal .d.x{background:transparent}#g30 .g-cal .d.passado{opacity:.35}
+#g30 .g-cal .dn{font-weight:700;color:var(--g-mut)}#g30 .g-cal .in{color:var(--g-pos);font-weight:700}#g30 .g-cal .out{color:var(--g-neg);font-weight:700}#g30 .g-cal .sd{position:absolute;bottom:3px;right:5px;font-size:10px;font-weight:800}#g30 .g-cal .d.neg{box-shadow:inset 0 0 0 2px var(--g-neg)}
+#g30 .g-gauge{margin:10px 0 14px}#g30 .g-gauge .t{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;color:var(--g-ink)}#g30 .g-gauge .b{height:14px;border-radius:7px;background:var(--g-grid);overflow:hidden;display:flex}#g30 .g-gauge .b span{height:100%}
+#g30 .g-sim{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:4px 0 8px;font-size:12.5px;color:var(--g-ink)}#g30 .g-sim input{width:230px}
+#g30tt{position:fixed;pointer-events:none;background:#1f1b2d;color:#fff;font-size:12px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .1s;z-index:9999;max-width:280px;box-shadow:0 4px 14px rgba(0,0,0,.25);left:0;top:0}
 </style>
 </head>
 <body>
@@ -3796,6 +3821,10 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
       </div>
       <div id="compLegend" style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:12px;color:var(--ink);flex-wrap:wrap"></div>
     </div>
+
+    <!-- gráficos ao vivo escolhidos em 28/09 (3, 4, 14, 18, 19) — recalculados a cada abertura -->
+    <div id="g30"></div>
+    <div id="g30tt"></div>
 
   </div>
 
@@ -17138,6 +17167,7 @@ function renderAll() {
   renderCatMgr();
   try { applyDonutMonth(); } catch(e) { console.warn('[finapp]', e); }
   try { renderAnual(); } catch(e) { console.warn('[finapp] anual', e); }
+  try { if (document.getElementById('tab-graficos')?.classList.contains('active')) G30.render(); } catch(e) { console.warn('[finapp] g30', e); }
   try { setupEditableTable(); recalcTotal(); } catch(e) { console.warn('[finapp]', e); }
   if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: 'svg', ext: '.svg' });
 }
@@ -17154,6 +17184,7 @@ function activateTab(tabName) {
     btn.classList.add('active');
     content.classList.add('active');
   }
+  if (tabName === 'graficos') { try { G30.render(); } catch (e) { console.warn('[finapp] g30', e); } }
 }
 document.querySelectorAll('.tabs-nav button').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -17423,6 +17454,366 @@ function renderAnual() {
   setupChartTooltip('chartAnnualLine', 'tooltipLine');
   setupChartTooltip('chartCompare', 'tooltipBars');
 }
+
+// ===== 30 GRÁFICOS AO VIVO (28/09) — calculados de DATA.transactions a cada abertura/atualização =====
+const G30 = (function(){
+  const MN = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const DUE = { 'brad-card': 10, 'nub-card': 18, 'mp-card': 15 };
+  const CARD_NOME = { 'brad-card': 'Bradesco', 'nub-card': 'Nubank', 'mp-card': 'Mercado Pago' };
+  const CARD_COR = { 'Bradesco': '#c2185b', 'Nubank': '#8a05be', 'Mercado Pago': '#0096d6' };
+  const RENDA = ['Salário','Aluguel','Reembolso','Resgate'];
+  const hojeISO = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const addM = (m, n) => { let [y, mm] = m.split('-').map(Number); mm += n; while (mm > 12) { mm -= 12; y++; } while (mm < 1) { mm += 12; y--; } return y + '-' + String(mm).padStart(2, '0'); };
+  const months = (a, b) => { const o = []; let m = a; while (m <= b) { o.push(m); m = addM(m, 1); } return o; };
+  const ml = m => MN[+m.slice(5, 7) - 1] + '/' + m.slice(2, 4);
+  const R = v => (v < 0 ? '−' : '') + 'R$ ' + Math.round(Math.abs(v)).toLocaleString('pt-BR');
+  const R2 = v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const k = v => (Math.abs(v) >= 1000 ? (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'k' : String(Math.round(v)));
+  const niceMax = v => { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p; return 10 * p; };
+  const yAxis = (W, H, L, T, B, min, max, ticks = 4, fmt = k) => { let s = ''; for (let i = 0; i <= ticks; i++) { const v = min + (max - min) * i / ticks, y = T + (H - T - B) * (1 - (v - min) / (max - min)); s += `<line x1="${L}" x2="${W - 8}" y1="${y}" y2="${y}" stroke="${Math.abs(v) < 1e-6 ? 'var(--g-axis)' : 'var(--g-grid)'}"/><text x="${L - 6}" y="${y + 3.5}" text-anchor="end">${fmt(v)}</text>`; } return s; };
+  const leg = items => '<div class="g-leg">' + items.map(([c, t, s]) => `<span><i style="background:${c};${s || ''}"></i>${t}</span>`).join('') + '</div>';
+  const esc = s => String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+  let EXTRA = null, carregando = false;
+  async function carregaExtra() { // recorrências + limites de cartão (tabelas que o hub não carrega)
+    if (EXTRA || carregando || !window.sbClient) return;
+    carregando = true;
+    try {
+      const [{ data: rec }, { data: acc }] = await Promise.all([
+        window.sbClient.from('recorrencias').select('description,category,amount,vezes_por_mes,intervalo_meses,dia').eq('ativo', true),
+        window.sbClient.from('accounts').select('id,bank,type,credit_limit,available_credit')]);
+      EXTRA = { rec: rec || [], acc: acc || [] };
+    } catch (e) { EXTRA = { rec: [], acc: [] }; }
+    carregando = false;
+    if (document.getElementById('tab-graficos')?.classList.contains('active')) render();
+  }
+
+  function base() {
+    const HOJE_D = hojeISO(), HOJE = HOJE_D.slice(0, 7);
+    const cats = DATA.cats || {};
+    const nome = t => (cats[t.cat] && cats[t.cat].name) || t.cat;
+    const CAT = {}; Object.values(cats).forEach(c => { CAT[c.name] = c.color; });
+    const txs = DATA.transactions.filter(t => !t.tr && !/^transfer/i.test(nome(t)));
+    const isCard = t => !!DUE[t.acc];
+    const pagoEm = t => isCard(t) ? ((t.bill || t.d.slice(0, 7)) + '-' + String(DUE[t.acc]).padStart(2, '0')) : t.d;
+    const real = t => t.st !== 'pending' || t.sf === 'fatura_aberta';
+    // Q1[mes][categoria] = soma (competência = t.d, igual ao resto do hub)
+    const Q1 = {};
+    txs.forEach(t => { const m = t.d.slice(0, 7); const c = nome(t); (Q1[m] = Q1[m] || {})[c] = ((Q1[m] || {})[c] || 0) + t.val; });
+    const q = m => Q1[m] || {};
+    const renda = m => RENDA.reduce((a, c) => a + Math.max(0, q(m)[c] || 0), 0);
+    const desp = m => Object.values(q(m)).filter(v => v < 0).reduce((a, v) => a - v, 0);
+    const ULT = addM(HOJE, -1); // último mês fechado
+    const REAL12 = months(addM(ULT, -11), ULT), PROX12 = months(addM(HOJE, 1), addM(HOJE, 12));
+    const TUDO = months(addM(HOJE, -12), addM(HOJE, 11));
+    // metas do planejamento (as mesmas da aba Planejamento)
+    const slugDe = {}; Object.entries(cats).forEach(([s, c]) => { slugDe[c.name] = s; });
+    const meta = (catNome, m) => { try { return metaDe(slugDe[catNome], m) || 0; } catch (e) { return 0; } };
+    const metaCats = m => { try { return slugsComMeta(m).map(s => cats[s] && cats[s].name).filter(Boolean); } catch (e) { return []; } };
+    // gasto previsto do mês = por categoria, o maior entre meta e o que já está lançado
+    const gastoPlan = m => { const nomes = new Set(metaCats(m).concat(Object.keys(q(m)).filter(c => (q(m)[c] || 0) < 0))); let s = 0; const det = {}; nomes.forEach(c => { if (RENDA.includes(c)) return; const v = Math.max(meta(c, m), -(q(m)[c] || 0)); if (v > 0) { det[c] = v; s += v; } }); return { s, det }; };
+    // linhas do plano de dívidas / compromissos (previsões manuais e recorrências)
+    const PLANO = DATA.transactions.filter(t => t.st === 'pending' && t.d >= HOJE_D && /Carnê-Leão|IRPF 20|MEI|Multas tr|Empréstimo Bradesco|IPVA/.test(t.desc)).map(t => ({ d: t.d, desc: t.desc, v: -t.val }));
+    return { HOJE_D, HOJE, ULT, REAL12, PROX12, TUDO, CAT, txs, isCard, pagoEm, real, Q1, q, renda, desp, meta, metaCats, gastoPlan, PLANO, nome };
+  }
+
+  let N = 0, host = null;
+  const grupo = t => { host.insertAdjacentHTML('beforeend', `<h2 class="g-grp">${t}</h2><div class="g-grid"></div>`); };
+  const SHOW = new Set([3, 4, 14, 18, 19]); // escolhidos por ele em 28/09 (12 e 21 aguardando versão nova)
+  const card = (tit, why, html, wide, foot) => { N++; if (!SHOW.has(N)) return; host.lastElementChild.insertAdjacentHTML('beforeend', `<div class="g-card${wide ? ' wide' : ''}"><h3>${tit}</h3><div class="why">${why}</div>${html}${foot ? `<div class="foot">${foot}</div>` : ''}</div>`); };
+  const hero = (b, s, cor) => `<div class="g-hero"><b${cor ? ` style="color:${cor}"` : ''}>${b}</b><span>${s}</span></div>`;
+  const svg = (W, H, s) => `<svg viewBox="0 0 ${W} ${H}">${s}</svg>`;
+  function barrasMes(B0, ms, W, H, L, T, B, min, max, fn, ticks = 4, fmt = k) {
+    const cw = (W - L - 8) / ms.length, Y = v => T + (H - T - B) * (1 - (v - min) / (max - min)); let s = yAxis(W, H, L, T, B, min, max, ticks, fmt);
+    ms.forEach((m, i) => { s += fn(m, i, L + cw * i + cw * .18, cw * .64, Y); s += `<text x="${L + cw * i + cw / 2}" y="${H - 10}" text-anchor="middle">${MN[+m.slice(5) - 1].slice(0, 1).toUpperCase()}</text>`; if (m.endsWith('-01') || i === 0) s += `<text x="${L + cw * i + 2}" y="${H + 2}" style="font-weight:700">${m.slice(0, 4)}</text>`; if (m === B0.HOJE) s += `<line x1="${L + cw * i}" x2="${L + cw * i}" y1="${T}" y2="${H - B}" stroke="var(--g-ink)" stroke-dasharray="4 4"/><text x="${L + cw * i + 4}" y="${T + 10}" style="fill:var(--g-ink)">hoje →</text>`; });
+    return s;
+  }
+
+  function render() {
+    host = document.getElementById('g30'); if (!host || !DATA || !DATA.transactions) return;
+    carregaExtra();
+    const B0 = base(); const { HOJE, HOJE_D, ULT, REAL12, PROX12, TUDO, CAT, q, renda, desp, PLANO } = B0;
+    const futTxt = m => m > HOJE ? ' (previsto)' : (m === HOJE ? ' (em andamento)' : '');
+    const cor = c => CAT[c] || '#94a3b8';
+    N = 0; host.innerHTML = `<div class="g-stamp">Recalculado agora (${HOJE_D.split('-').reverse().join('/')}) com o que está no banco · passe o mouse pra ver os valores</div>`;
+
+    // ============ DÍVIDAS ============
+    grupo('Dívidas');
+    const TIPOS = [['Impostos atrasados', '#f87171', t => /Carnê-Leão .*\/26|IRPF 2026|MEI atrasado/.test(t)], ['Multas', '#2563eb', t => /Multas/.test(t)], ['Empréstimo Bradesco', '#78716c', t => /Empréstimo/.test(t)], ['IRPF 2027 (estimado)', '#fca5a5', t => /IRPF 2027/.test(t)]];
+    (function () { // 1
+      const ult = PLANO.filter(p => TIPOS.some(t => t[2](p.desc))).reduce((a, p) => p.d > a ? p.d : a, HOJE_D).slice(0, 7); const ms = months(HOJE, ult);
+      const pag = {}; PLANO.forEach(p => { const ti = TIPOS.findIndex(t => t[2](p.desc)); if (ti < 0) return; const m = p.d.slice(0, 7); (pag[m] = pag[m] || [0, 0, 0, 0])[ti] += p.v; });
+      let rest = TIPOS.map(t => PLANO.filter(p => t[2](p.desc)).reduce((s, p) => s + p.v, 0)); const tot0 = rest.reduce((a, b) => a + b, 0);
+      if (!tot0) { card('Contagem regressiva da dívida', 'Nenhuma dívida em aberto no plano. 🎉', ''); return; }
+      const W = 560, H = 250, L = 44, T = 12, B = 26, max = niceMax(tot0); const X = i => L + (W - L - 10) * (i + .5) / ms.length, bw = (W - L - 10) / ms.length * .62, Y = v => T + (H - T - B) * (1 - v / max);
+      let s = yAxis(W, H, L, T, B, 0, max);
+      ms.forEach((m, i) => { let b = 0; rest.forEach((r, ti) => { if (r <= .01) return; const y1 = Y(b + r), y0 = Y(b); s += `<rect x="${X(i) - bw / 2}" y="${y1 + 1}" width="${bw}" height="${Math.max(0, y0 - y1 - 1)}" rx="2" fill="${TIPOS[ti][1]}" data-tip="<b>${ml(m)}</b><br>${TIPOS[ti][0]}: falta ${R(r)}"/>`; b += r; }); s += `<text x="${X(i)}" y="${H - 10}" text-anchor="middle">${MN[+m.slice(5) - 1]}</text>`; if (i === 0 || m.endsWith('-01')) s += `<text x="${X(i)}" y="${H + 2}" text-anchor="middle" style="font-weight:700">${m.slice(0, 4)}</text>`; const p = pag[m]; if (p) rest = rest.map((r, ti) => Math.max(0, r - p[ti])); });
+      card('Contagem regressiva da dívida', 'Quanto ainda falta pagar no começo de cada mês, pelo plano. Quando uma parcela é paga, sai daqui.', hero(R(tot0), 'em aberto hoje · zera em ' + ml(ult)) + svg(W, H + 6, s) + leg(TIPOS.map(t => [t[1], t[0]])));
+    })();
+    (function () { // 2
+      const ult = PLANO.reduce((a, p) => p.d > a ? p.d : a, HOJE_D).slice(0, 7); const ms = months(HOJE, ult);
+      const linhas = [['Carnê-Leão atrasado', /Carnê-Leão .*\/26/], ['Carnê-Leão do mês', /^Carnê-Leão$/], ['IRPF 2026', /IRPF 2026/], ['IRPF 2027 (est.)', /IRPF 2027/], ['MEI atrasado', /MEI atrasado/], ['MEI do mês', /^MEI$/], ['Multas', /Multas/], ['Empréstimo', /Empréstimo/], ['IPVA', /IPVA/]].filter(l => PLANO.some(p => l[1].test(p.desc)));
+      if (!linhas.length) return;
+      const W = 560, L = 118, rh = 24, T = 6, H = T + linhas.length * rh + 24, cw = (W - L - 8) / ms.length, X = i => L + cw * (i + .5);
+      let s = ''; ms.forEach((m, i) => { s += `<text x="${X(i)}" y="${H - 6}" text-anchor="middle">${MN[+m.slice(5) - 1].slice(0, 1).toUpperCase()}</text>`; if (m.endsWith('-01')) s += `<line x1="${X(i) - cw / 2}" x2="${X(i) - cw / 2}" y1="${T}" y2="${H - 18}" stroke="var(--g-axis)" stroke-dasharray="3 3"/><text x="${X(i) - cw / 2 + 3}" y="${H + 4}" style="font-weight:700">${m.slice(0, 4)}</text>`; });
+      linhas.forEach(([n, re], li) => { const y = T + li * rh + rh / 2; s += `<text x="${L - 8}" y="${y + 3.5}" text-anchor="end" style="fill:var(--g-ink);font-size:11px">${n}</text><line x1="${L}" x2="${W - 8}" y1="${y}" y2="${y}" stroke="var(--g-grid)"/>`;
+        const pm = {}; PLANO.forEach(p => { if (re.test(p.desc)) (pm[p.d.slice(0, 7)] = pm[p.d.slice(0, 7)] || []).push(p); });
+        Object.entries(pm).forEach(([m, ps]) => { const i = ms.indexOf(m); if (i < 0) return; const v = ps.reduce((a, p) => a + p.v, 0), r = Math.max(4, Math.min(10, Math.sqrt(v) / 4)), atr = ps.some(p => /atrasad/.test(p.desc)); s += `<circle cx="${X(i)}" cy="${y}" r="${r}" fill="${atr ? '#f87171' : '#16a34a'}" stroke="var(--g-card)" stroke-width="2" data-tip="<b>${ml(m)}</b><br>${esc(ps.map(p => p.desc + ': ' + R2(p.v)).join('<br>'))}"/>`; }); });
+      card('Linha do tempo dos vencimentos', 'Cada bolinha é um pagamento; o tamanho é o valor. Vermelho = paga com multa (atrasado), verde = em dia.', svg(W, H + 8, s) + leg([['#f87171', 'com multa/atraso'], ['#16a34a', 'no prazo']]));
+    })();
+    (function () { // 3
+      const PRINC_CL = { jan: 252.55, fev: 252.55, mar: 308.64, abr: 327.84, mai: 252.55, jun: 327.84, jul: 327.84, ago: 327.84, set: 400.09, out: 400.09, nov: 400.09 };
+      const grupos = [['Carnê-Leão 2026', /Carnê-Leão (\w+)\/26/, p => PRINC_CL[(p.desc.match(/Carnê-Leão (\w+)\/26/) || [])[1]] || p.v], ['IRPF 2026', /IRPF 2026/, () => 403.64], ['MEI 2026', /MEI atrasado/, () => 86.05], ['Multas trânsito', /Multas/, p => p.v]];
+      const d = grupos.map(([n, re, pr]) => { const ps = PLANO.filter(p => re.test(p.desc)); return [n, ps.reduce((a, p) => a + Math.min(pr(p), p.v), 0), ps.reduce((a, p) => a + p.v, 0)]; }).filter(x => x[2] > 0);
+      if (!d.length) return;
+      const W = 560, L = 110, rh = 38, T = 4, H = T + d.length * rh + 18, max = niceMax(Math.max(...d.map(x => x[2]))), X = v => L + (W - L - 60) * v / max;
+      let s = ''; d.forEach(([n, p, t], i) => { const y = T + i * rh + 8; s += `<text x="${L - 8}" y="${y + 13}" text-anchor="end" style="fill:var(--g-ink);font-size:11.5px">${n}</text><rect x="${L}" y="${y}" width="${X(p) - L}" height="18" rx="3" fill="#94a3b8" data-tip="<b>${n}</b><br>Valor original: ${R2(p)}"/>`; if (t - p > .5) s += `<rect x="${X(p) + 2}" y="${y}" width="${Math.max(0, X(t) - X(p) - 2)}" height="18" rx="3" fill="#dc2626" data-tip="<b>${n}</b><br>Multa + juros: ${R2(t - p)} (+${Math.round((t / p - 1) * 100)}%)"/>`; s += `<text x="${X(t) + 6}" y="${y + 13}" style="fill:var(--g-ink);font-weight:700">${t - p > .5 ? '+' + R(t - p) : 'sem juros'}</text>`; });
+      const enc = d.reduce((a, x) => a + x[2] - x[1], 0);
+      card('Quanto o atraso custa', 'Cinza = o valor original do que falta pagar. Vermelho = multa + juros embutidos no plano.', hero(R(enc), 'de multa e juros ainda por pagar · cada mês de espera nos atrasados soma ~1,1%') + svg(W, H, s) + leg([['#94a3b8', 'valor original'], ['#dc2626', 'multa + juros']]));
+    })();
+    (function () { // 4
+      const fim = {};
+      DATA.transactions.forEach(t => { if (t.val >= 0 || t.d.slice(0, 7) < HOJE) return; let key = null, v = -t.val;
+        if (t.parc && t.parc[1] > 1) key = t.desc.replace(/\s*\d+\/\d+$/, ''); else if (t.manual && /\(\d+\/\d+\)/.test(t.desc)) key = t.desc.replace(/\s*\(\d+\/\d+\)$/, '');
+        if (!key || /Retatrutida|Mounjaro|Carnê|IRPF|MEI|Multas/.test(key)) return; const m = (DUE[t.acc] ? (t.bill || t.d.slice(0, 7)) : t.d.slice(0, 7)); const f = fim[key] = fim[key] || { v: 0, fim: m }; f.v = Math.max(f.v, v); if (m > f.fim) f.fim = m; });
+      const itens = Object.entries(fim).filter(([, f]) => f.v >= 100).sort((a, b) => a[1].fim.localeCompare(b[1].fim)); if (!itens.length) return;
+      const ult = itens[itens.length - 1][1].fim, ms = months(HOJE, ult); const W = 560, L = 150, rh = 19, T = 4, H = T + itens.length * rh + 20, cw = (W - L - 40) / ms.length, X = i => L + i * cw;
+      let s = ''; ms.forEach((m, i) => { if (m.endsWith('-01')) s += `<line x1="${X(i)}" x2="${X(i)}" y1="${T}" y2="${H - 16}" stroke="var(--g-axis)" stroke-dasharray="3 3"/><text x="${X(i) + 2}" y="${H - 4}" style="font-weight:700">${m.slice(0, 4)}</text>`; });
+      itens.forEach(([d, f], i) => { const y = T + i * rh, e = ms.indexOf(f.fim); s += `<text x="${L - 6}" y="${y + 12}" text-anchor="end" style="fill:var(--g-ink);font-size:10.5px">${esc(d.replace(/^\[[^\]]+\]\s*/, '').slice(0, 24))}</text><rect x="${X(0)}" y="${y + 3}" width="${Math.max(3, (e + 1) * cw - 2)}" height="12" rx="3" fill="${f.v >= 400 ? '#dc2626' : f.v >= 150 ? '#f59e0b' : '#94a3b8'}" data-tip="<b>${esc(d)}</b><br>${R(f.v)}/mês até ${ml(f.fim)}"/><text x="${X(e) + cw + 3}" y="${y + 12}">${k(f.v)}</text>`; });
+      card('Parcelas que acabam', 'Cada barra termina no mês da última parcela. Quando várias acabam juntas, sobra espaço no mês seguinte.', svg(W, H, s) + leg([['#dc2626', '≥ R$ 400/mês'], ['#f59e0b', 'R$ 150–400'], ['#94a3b8', 'menos de R$ 150']]), false, 'Parcelas a partir de R$ 100/mês. Retatrutida fica de fora (tratamento contínuo).');
+    })();
+
+    // ============ CAIXA ============
+    grupo('Caixa');
+    const RES = PROX12.map(m => [m, renda(m) - B0.gastoPlan(m).s]); // resultado previsto de cada mês com as metas
+    (function () { // 5
+      let acc = 0; const pts = RES.map(([m, v]) => { acc += v; return [m, acc]; });
+      const lo = Math.min(0, ...pts.map(p => p[1])), hi = Math.max(0, ...pts.map(p => p[1])); const min = -niceMax(-lo || 1), max = niceMax(hi || 1);
+      const W = 1120, H = 240, L = 50, T = 14, B = 26, X = i => L + (W - L - 20) * (i + .5) / pts.length, Y = v => T + (H - T - B) * (1 - (v - min) / (max - min));
+      let s = yAxis(W, H, L, T, B, min, max, 4); if (min < 0) s += `<rect x="${L}" y="${Y(0)}" width="${W - L - 8}" height="${Y(min) - Y(0)}" fill="#dc2626" opacity=".06"/>`;
+      const line = pts.map((p, i) => X(i) + ',' + Y(p[1])).join(' ');
+      s += `<polyline points="${line}" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-dasharray="7 5"/>`;
+      pts.forEach((p, i) => { s += `<circle cx="${X(i)}" cy="${Y(p[1])}" r="5" fill="${p[1] < 0 ? 'var(--g-neg)' : 'var(--g-pos)'}" stroke="var(--g-card)" stroke-width="2" data-tip="<b>${ml(p[0])}</b><br>Resultado do mês: ${R(RES[i][1])}<br>Acumulado: ${R(p[1])}"/><text x="${X(i)}" y="${H - 8}" text-anchor="middle">${ml(p[0])}</text>`; });
+      const fim = pts[pts.length - 1][1];
+      card('Saldo acumulado projetado', 'Mês a mês: o que entra menos o que sai, usando as suas metas do Planejamento (ou o que já está lançado, se for maior). Muda sozinho quando você ajusta uma meta.', hero(R(fim), 'acumulado em ' + ml(pts[pts.length - 1][0]) + ' a partir de hoje', fim < 0 ? 'var(--g-neg)' : 'var(--g-pos)') + svg(W, H, s), true, 'Não inclui o saldo que já está na conta hoje.');
+    })();
+    (function () { // 6
+      const m = addM(HOJE, 1), gp = B0.gastoPlan(m), r = renda(m); const g = Object.entries(gp.det).sort((a, b) => b[1] - a[1]);
+      const W = 560, H = 280, L = 40, T = 10, B = 76, max = niceMax(Math.max(r, gp.s)); const n = g.length + 2, cw = (W - L - 8) / n, Y = v => T + (H - T - B) * (1 - v / max);
+      let s = yAxis(W, H, L, T, B, 0, max, 4) + `<rect x="${L + cw * .15}" y="${Y(r)}" width="${cw * .7}" height="${Y(0) - Y(r)}" rx="3" fill="var(--g-pos)" data-tip="<b>Renda de ${ml(m)}</b><br>${R(r)}"/><text x="${L + cw / 2}" y="${H - B + 12}" text-anchor="end" transform="rotate(-50 ${L + cw / 2} ${H - B + 12})">Renda</text>`;
+      let cur = r; g.forEach(([c, v], i) => { const x = L + cw * (i + 1), y1 = Y(Math.max(cur, cur - v)), y2 = Y(Math.min(cur, cur - v)); s += `<rect x="${x + cw * .15}" y="${y1}" width="${cw * .7}" height="${Math.max(1, y2 - y1)}" rx="2" fill="${cor(c)}" data-tip="<b>${c}</b><br>−${R(v)} · sobra ${R(cur - v)}"/><text x="${x + cw / 2}" y="${H - B + 12}" text-anchor="end" transform="rotate(-50 ${x + cw / 2} ${H - B + 12})">${c}</text>`; cur -= v; });
+      const x = L + cw * (g.length + 1); s += `<rect x="${x + cw * .15}" y="${Y(Math.max(0, cur)) - 2}" width="${cw * .7}" height="4" fill="${cur < 0 ? 'var(--g-neg)' : 'var(--g-ink)'}"/><text x="${x + cw / 2}" y="${Y(Math.max(0, cur)) - 8}" text-anchor="middle" style="fill:${cur < 0 ? 'var(--g-neg)' : 'var(--g-ink)'};font-weight:700">${R(cur)}</text><text x="${x + cw / 2}" y="${H - B + 12}" text-anchor="end" transform="rotate(-50 ${x + cw / 2} ${H - B + 12})">Sobra</text>`;
+      card('Cascata do mês (' + ml(m) + ')', 'A renda desce degrau por degrau até o que sobra, na ordem de tamanho.', svg(W, H, s), false, 'Usa a meta de cada categoria (ou o que já está lançado, se for maior).');
+    })();
+    (function () { // 7
+      const alvo = +HOJE_D.slice(8) > 25 ? addM(HOJE, 1) : HOJE; const [ay, am] = alvo.split('-').map(Number);
+      let saldo = Object.values(DATA.accounts).filter(a => a.type !== 'credit').reduce((s2, a) => s2 + (a.saldo || 0), 0);
+      const ev = {}; DATA.transactions.forEach(t => { if (t.tr) return; const pd = B0.pagoEm(t); if (pd <= HOJE_D || pd.slice(0, 7) > alvo) return; if (B0.isCard(t) ? t.st === 'paid' : t.st !== 'pending') return; const key = B0.isCard(t) ? 'Fatura ' + CARD_NOME[t.acc] : t.desc; const o = ev[pd] = ev[pd] || {}; o[key] = (o[key] || 0) + t.val; });
+      Object.keys(ev).filter(d => d.slice(0, 7) < alvo).forEach(d => Object.values(ev[d]).forEach(v => { saldo += v; })); // resto do mês atual
+      let html = '<div class="g-cal">' + ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'].map(d => `<div class="h">${d}</div>`).join('');
+      const off = (new Date(ay, am - 1, 1).getDay() + 6) % 7; for (let i = 0; i < off; i++) html += '<div class="d x"></div>';
+      const nd = new Date(ay, am, 0).getDate(); let minS = 1e12, minD = 0;
+      for (let d = 1; d <= nd; d++) { const iso = alvo + '-' + String(d).padStart(2, '0'); if (iso <= HOJE_D) { html += `<div class="d passado"><div class="dn">${d}</div></div>`; continue; }
+        const it = Object.entries(ev[iso] || {}); const inn = it.filter(o => o[1] > 0).reduce((a, o) => a + o[1], 0), out = it.filter(o => o[1] < 0).reduce((a, o) => a + o[1], 0); saldo += inn + out; if (saldo < minS) { minS = saldo; minD = d; }
+        const tip = `<b>${d}/${String(am).padStart(2, '0')}</b><br>` + it.map(o => esc(o[0].slice(0, 34)) + ': ' + (o[1] > 0 ? '+' : '') + R(o[1])).join('<br>') + `<br><b>saldo: ${R(saldo)}</b>`;
+        html += `<div class="d${saldo < 0 ? ' neg' : ''}" data-tip="${esc(tip)}"><div class="dn">${d}</div>${inn ? `<div class="in">+${k(inn)}</div>` : ''}${out ? `<div class="out">${k(out)}</div>` : ''}<div class="sd" style="color:${saldo < 0 ? 'var(--g-neg)' : 'var(--g-mut)'}">${k(saldo)}</div></div>`; }
+      html += '</div>';
+      card('Calendário de caixa — ' + MN[am - 1] + '/' + String(ay).slice(2), 'Entradas, saídas e o saldo previsto no fim de cada dia (canto), a partir do saldo de hoje nas contas. Borda vermelha = dia no negativo. Cartão entra no dia do vencimento da fatura.', html, true, minD ? `Só o que já está lançado. Pior dia: ${minD} com ${R(minS)}.` : '');
+    })();
+    (function () { // 8
+      const ms = PROX12, W = 560, H = 240, L = 40, T = 10, B = 26; const max = niceMax(Math.max(...ms.map(m => Math.max(renda(m), desp(m))))); const cw = (W - L - 8) / ms.length, Y = v => T + (H - T - B) * (1 - v / max);
+      let s = yAxis(W, H, L, T, B, 0, max, 4);
+      ms.forEach((m, i) => { const r = renda(m), c = desp(m), x = L + cw * i + cw * .18, w = cw * .64; s += `<rect x="${x}" y="${Y(c)}" width="${w}" height="${Y(0) - Y(c)}" rx="2" fill="#94a3b8" data-tip="<b>${ml(m)}</b><br>Comprometido: ${R(c)} (${r ? Math.round(c / r * 100) : 0}%)"/>`; if (r > c) s += `<rect x="${x}" y="${Y(r)}" width="${w}" height="${Math.max(0, Y(c) - Y(r) - 2)}" rx="2" fill="var(--g-pos)" opacity=".85" data-tip="<b>${ml(m)}</b><br>Livre pra decidir: ${R(r - c)}"/>`; if (r) s += `<text x="${x + w / 2}" y="${Y(Math.max(r, c)) - 5}" text-anchor="middle" style="fill:var(--g-ink);font-weight:700">${Math.round(c / r * 100)}%</text>`; s += `<text x="${x + w / 2}" y="${H - 10}" text-anchor="middle">${MN[+m.slice(5) - 1]}</text>`; });
+      card('Comprometido × livre', 'Cinza = já travado (contas fixas, parcelas, impostos do plano). Verde = o que sobra pra mercado, comida, lazer etc. O % é a parte travada da renda.', svg(W, H, s) + leg([['#94a3b8', 'comprometido'], ['var(--g-pos)', 'livre']]));
+    })();
+
+    // ============ GASTOS ============
+    grupo('Gastos');
+    (function () { // 9
+      const m = ULT; const cs = B0.metaCats(m).filter(c => !RENDA.includes(c) && !/Imposto|Empréstimo/.test(c));
+      const d = cs.map(c => [c, B0.meta(c, m), -(q(m)[c] || 0)]).filter(x => x[1] > 0 || x[2] > 0).sort((a, b) => (b[2] - b[1]) - (a[2] - a[1]));
+      const W = 560, L = 110, rh = 20, T = 4, H = T + d.length * rh + 14, max = niceMax(Math.max(...d.map(x => Math.max(x[1], x[2])))), X = v => L + (W - L - 50) * v / max;
+      let s = ''; d.forEach(([c, mt, r], i) => { const y = T + i * rh, over = r > mt; s += `<text x="${L - 6}" y="${y + 13}" text-anchor="end" style="fill:var(--g-ink);font-size:11px">${c}</text><rect x="${L}" y="${y + 4}" width="${Math.max(2, X(r) - L)}" height="11" rx="3" fill="${over ? 'var(--g-neg)' : '#94a3b8'}" data-tip="<b>${c} — ${ml(m)}</b><br>Gasto: ${R(r)}<br>Meta: ${R(mt)}<br>${over ? 'Estourou ' + R(r - mt) : 'Sobrou ' + R(mt - r)}"/><line x1="${X(mt)}" x2="${X(mt)}" y1="${y + 1}" y2="${y + 18}" stroke="var(--g-ink)" stroke-width="2.5"/><text x="${Math.max(X(r), X(mt)) + 6}" y="${y + 13}" style="fill:${over ? 'var(--g-neg)' : 'var(--g-mut)'};font-weight:${over ? 700 : 400}">${over ? '+' + k(r - mt) : 'ok'}</text>`; });
+      card('Meta × real (' + ml(m) + ')', 'Barra = quanto gastou no último mês fechado. Traço = a meta. De quem mais estourou pra quem sobrou.', svg(W, H, s) + leg([['var(--g-neg)', 'acima da meta'], ['#94a3b8', 'dentro'], ['var(--g-ink)', 'meta', 'width:3px']]));
+    })();
+    const CATS_V = () => { const t = {}; REAL12.forEach(m => Object.entries(q(m)).forEach(([c, v]) => { if (v < 0) t[c] = (t[c] || 0) - v; })); return Object.entries(t).sort((a, b) => b[1] - a[1]); };
+    (function () { // 10
+      const cats = CATS_V().map(x => x[0]).filter(c => !/Imposto|Empréstimo/.test(c)).slice(0, 14); const mx = {}; cats.forEach(c => { mx[c] = Math.max(...REAL12.map(m => -(q(m)[c] || 0))); });
+      let h = '<div class="g-scroll"><table class="g-hm"><tr><th></th>' + REAL12.map(m => `<th>${ml(m)}</th>`).join('') + '</tr>';
+      cats.forEach(c => { h += `<tr><th class="c">${c}</th>` + REAL12.map(m => { const v = -(q(m)[c] || 0), t = mx[c] ? Math.max(0, v) / mx[c] : 0; return `<td style="background:color-mix(in oklab, ${cor(c)} ${Math.round(8 + t * 80)}%, var(--g-card));color:${t > .6 ? '#fff' : 'var(--g-ink)'}" data-tip="<b>${c} · ${ml(m)}</b><br>${R(v)}">${v > 0 ? k(v) : ''}</td>`; }).join('') + '</tr>'; });
+      card('Mapa de calor: categoria × mês', 'Quanto mais forte a cor, maior o gasto da categoria naquele mês (comparada com ela mesma).', h + '</table></div>', true, 'Últimos 12 meses fechados.');
+    })();
+    (function () { // 11
+      const gs = [['Delivery (iFood/Keeta/99)', '#f59e0b', t => /ifood|keeta|99food|rappi/i.test(t.desc)], ['Hirota', '#d97706', t => /hirota/i.test(t.desc)], ['Conveniência', '#14b8a6', t => B0.nome(t) === 'Conveniência'], ['Uber/99', '#2563eb', t => /\buber\b|99 ?pop|99app/i.test(t.desc)]];
+      const tab = {}; B0.txs.forEach(t => { if (t.val >= 0) return; const m = t.d.slice(0, 7); if (!REAL12.includes(m)) return; const gi = gs.findIndex(g => g[2](t)); if (gi < 0) return; (tab[m] = tab[m] || [0, 0, 0, 0])[gi] -= t.val; });
+      const W = 560, H = 230, L = 40, T = 10, B = 26, max = niceMax(Math.max(1, ...REAL12.map(m => (tab[m] || []).reduce((a, b) => a + b, 0)))), cw = (W - L - 8) / REAL12.length, Y = v => T + (H - T - B) * (1 - v / max);
+      let s = yAxis(W, H, L, T, B, 0, max, 4), ano = 0;
+      REAL12.forEach((m, i) => { let b = 0; gs.forEach(([g, c], gi) => { const v = (tab[m] || [])[gi] || 0; if (!v) return; ano += v; s += `<rect x="${L + cw * i + cw * .2}" y="${Y(b + v) + 1}" width="${cw * .6}" height="${Math.max(0, Y(b) - Y(b + v) - 1)}" rx="2" fill="${c}" data-tip="<b>${ml(m)}</b><br>${g}: ${R(v)}"/>`; b += v; }); if (b) s += `<text x="${L + cw * i + cw / 2}" y="${Y(b) - 4}" text-anchor="middle" style="fill:var(--g-ink)">${k(b)}</text>`; s += `<text x="${L + cw * i + cw / 2}" y="${H - 10}" text-anchor="middle">${MN[+m.slice(5) - 1]}</text>`; });
+      card('Gastinhos que viram gastão', 'Delivery, Hirota, conveniência e Uber somados mês a mês.', hero(R(ano), 'nos últimos 12 meses · média ' + R(ano / 12) + '/mês') + svg(W, H, s) + leg(gs.map(([g, c]) => [c, g])));
+    })();
+    (function () { // 12
+      const rec = (EXTRA && EXTRA.rec || []).filter(r => r.amount < 0).map(r => ({ d: r.description, c: r.category, m: -r.amount * (r.vezes_por_mes || 1) / (r.intervalo_meses || 1) })).sort((a, b) => b.m - a.m);
+      if (!rec.length) { card('Tudo que cobra sozinho', 'Carregando recorrências…', ''); return; }
+      const tot = rec.reduce((a, r) => a + r.m, 0), W = 560, L = 160, rh = 17, T = 2, H = T + rec.length * rh + 6, max = niceMax(rec[0].m), X = v => L + (W - L - 70) * v / max;
+      let s = ''; rec.forEach((r, i) => { const y = T + i * rh; s += `<text x="${L - 6}" y="${y + 11}" text-anchor="end" style="fill:var(--g-ink);font-size:10.5px">${esc(r.d.replace(/^\[[^\]]+\]\s*/, '').slice(0, 26))}</text><rect x="${L}" y="${y + 3}" width="${Math.max(2, X(r.m) - L)}" height="10" rx="3" fill="${cor(r.c)}" data-tip="<b>${esc(r.d)}</b><br>${R2(r.m)}/mês · ${R(r.m * 12)}/ano<br>${r.c}"/><text x="${X(r.m) + 5}" y="${y + 11}">${R(r.m)} · ${k(r.m * 12)}/ano</text>`; });
+      card('Tudo que cobra sozinho', 'Recorrências ativas, da maior pra menor, com o custo no ano. Cor = categoria.', hero(R(tot) + '/mês', R(tot * 12) + ' por ano') + svg(W, H, s));
+    })();
+    (function () { // 13
+      const ms = TUDO, gs = [['Plano de saúde', '#dc2626', /cabesp|alice|sulam|odonto|plano de sa/i], ['Mounjaro/Retatrutida', '#f97316', /mounjaro|retatrut|tirzep/i], ['Farmácia/suplementos', '#f59e0b', /drogasil|farm|droga|raia|pacheco|rem[eé]d|vitamin|suplem/i], ['Terapia', '#a855f7', /terapia|psic/i], ['Dentista', '#06b6d4', /dent|coroa|odont|sousmile/i], ['Outros', '#94a3b8', /./]];
+      const tab = {}; B0.txs.forEach(t => { if (t.val >= 0 || B0.nome(t) !== 'Saúde') return; const m = t.d.slice(0, 7); if (!ms.includes(m)) return; const gi = gs.findIndex(g => g[2].test(t.desc)); (tab[m] = tab[m] || [0, 0, 0, 0, 0, 0])[gi] -= t.val; });
+      const W = 1120, H = 240, L = 44, T = 10, B = 28, max = niceMax(Math.max(1, ...ms.map(m => (tab[m] || []).reduce((a, b) => a + b, 0))));
+      const s = barrasMes(B0, ms, W, H, L, T, B, 0, max, (m, i, x, w, Y) => { let b = 0, o = ''; gs.forEach(([g, c], gi) => { const v = (tab[m] || [])[gi] || 0; if (!v) return; o += `<rect x="${x}" y="${Y(b + v) + 1}" width="${w}" height="${Math.max(0, Y(b) - Y(b + v) - 1)}" rx="2" fill="${c}" opacity="${m > HOJE ? .5 : 1}" data-tip="<b>${ml(m)}${futTxt(m)}</b><br>${g}: ${R(v)}"/>`; b += v; }); return o; }, 3);
+      card('Saúde em detalhe', 'Plano, remédios, terapia, dentista e Retatrutida, 12 meses pra trás e 12 pra frente. Barras claras = previsão.', svg(W, H + 6, s) + leg(gs.map(([g, c]) => [c, g])), true);
+    })();
+
+    // ============ CARTÕES ============
+    grupo('Cartões');
+    (function () { // 14
+      const ms = months(addM(HOJE, -8), addM(HOJE, 9)), tab = {};
+      DATA.transactions.forEach(t => { if (!DUE[t.acc] || t.tr || t.val >= 0) return; const b = t.bill || t.d.slice(0, 7); if (!ms.includes(b)) return; const n = CARD_NOME[t.acc]; ((tab[b] = tab[b] || {})[n] = (tab[b][n] || 0) - t.val); });
+      const W = 560, H = 240, L = 40, T = 10, B = 28, max = niceMax(Math.max(1, ...ms.map(m => Object.values(tab[m] || {}).reduce((a, b) => a + b, 0))));
+      const s = barrasMes(B0, ms, W, H, L, T, B, 0, max, (m, i, x, w, Y) => { let b = 0, o = ''; Object.keys(CARD_COR).forEach(c => { const v = (tab[m] || {})[c] || 0; if (!v) return; o += `<rect x="${x}" y="${Y(b + v) + 1}" width="${w}" height="${Math.max(0, Y(b) - Y(b + v) - 1)}" rx="2" fill="${CARD_COR[c]}" opacity="${m > HOJE ? .5 : 1}" data-tip="<b>Fatura ${c} · ${ml(m)}${futTxt(m)}</b><br>${R(v)}"/>`; b += v; }); return o; }, 3);
+      card('Faturas dos 3 cartões', 'Soma das faturas por mês de vencimento. Claras = previstas (só o que já está parcelado ou é recorrente).', svg(W, H + 6, s) + leg(Object.entries(CARD_COR).map(([c, v]) => [v, c])));
+    })();
+    (function () { // 15
+      const idOf = { 'brad-card': 'bccf960f-8766-4058-b4c9-1ca401a2df56', 'nub-card': 'df0396d3-7c58-4ded-948b-1bbe1dd50c8d', 'mp-card': '9fd2b8fd-c0e8-479b-9687-985323e812c7' };
+      let h = ''; Object.keys(DUE).forEach(key => { const inv = DATA.invoices[key] || {}; const ac = (EXTRA && EXTRA.acc || []).find(a => a.id === idOf[key]) || {}; const lim = +ac.credit_limit || inv.limit || 0; let uso = ac.available_credit != null && ac.credit_limit ? lim - ac.available_credit : null;
+        if (uso == null) uso = DATA.transactions.filter(t => t.acc === key && t.val < 0 && t.st !== 'paid' && (t.sf === 'fatura_aberta' || t.sf === 'projecao')).reduce((a, t) => a - t.val, 0);
+        const p = lim ? uso / lim : 0; h += `<div class="g-gauge"><div class="t"><b>${CARD_NOME[key]}</b><span>${R(uso)} de ${R(lim)} · <b style="color:${p > .7 ? 'var(--g-neg)' : 'var(--g-ink)'}">${Math.round(p * 100)}%</b></span></div><div class="b" data-tip="<b>${CARD_NOME[key]}</b><br>Usado: ${R(uso)}<br>Livre: ${R(lim - uso)}"><span style="width:${Math.min(100, p * 100)}%;background:${CARD_COR[CARD_NOME[key]]}"></span></div></div>`; });
+      card('Uso do limite', 'Quanto de cada cartão já está tomado (fatura aberta + parcelas futuras). Acima de 70% = pouco espaço pra imprevisto.', h);
+    })();
+
+    // ============ RENDA E SOBRA ============
+    grupo('Renda e sobra');
+    (function () { // 16
+      const W = 1120, H = 240, L = 44, T = 12, B = 28;
+      const s = barrasMes(B0, TUDO, W, H, L, T, B, -60, 40, (m, i, x, w, Y) => { const r = renda(m), d = desp(m); if (!r && !d) return ''; const p = r ? Math.max(-60, Math.min(40, (r - d) / r * 100)) : -60, pos = p >= 0; return `<rect x="${x}" y="${pos ? Y(p) : Y(0)}" width="${w}" height="${Math.abs(Y(p) - Y(0))}" rx="2" fill="${pos ? 'var(--g-pos)' : 'var(--g-neg)'}" opacity="${m > HOJE ? .5 : 1}" data-tip="<b>${ml(m)}${futTxt(m)}</b><br>Entrou ${R(r)} · saiu ${R(d)}<br>${pos ? 'Sobrou' : 'Faltou'} ${R(Math.abs(r - d))}${r ? ' (' + Math.round((r - d) / r * 100) + '%)' : ''}"/>`; }, 5, v => Math.round(v) + '%');
+      const sobra = REAL12.reduce((a, m) => a + renda(m) - desp(m), 0);
+      card('Quanto sobra de cada real que entra', 'Verde = guardou (% da renda). Vermelho = gastou mais do que entrou. Meses futuros só com o que já está lançado — por isso ficam otimistas.', hero(R(sobra), (sobra < 0 ? 'de falta' : 'de sobra') + ' somando os últimos 12 meses', sobra < 0 ? 'var(--g-neg)' : 'var(--g-pos)') + svg(W, H + 6, s), true);
+    })();
+    (function () { // 17
+      const fontes = [['Salário', '#15803d'], ['Aluguel', '#22c55e'], ['Reembolso', '#86efac'], ['Resgate', '#059669']];
+      const W = 560, H = 240, L = 40, T = 10, B = 28, max = niceMax(Math.max(1, ...TUDO.map(renda)));
+      const s = barrasMes(B0, TUDO, W, H, L, T, B, 0, max, (m, i, x, w, Y) => { let b = 0, o = ''; fontes.forEach(([f, c]) => { const v = Math.max(0, q(m)[f] || 0); if (!v) return; o += `<rect x="${x}" y="${Y(b + v) + 1}" width="${w}" height="${Math.max(0, Y(b) - Y(b + v) - 1)}" rx="1.5" fill="${c}" opacity="${m > HOJE ? .5 : 1}" data-tip="<b>${ml(m)}${futTxt(m)}</b><br>${f}: ${R(v)}"/>`; b += v; }); return o; });
+      card('De onde vem o dinheiro', 'Renda empilhada por fonte, 12 meses pra trás e 12 pra frente.', svg(W, H + 6, s) + leg(fontes.map(([f, c]) => [c, f])));
+    })();
+    (function () { // 18
+      const W = 560, H = 240, L = 40, T = 10, B = 28;
+      const s = barrasMes(B0, TUDO, W, H, L, T, B, 0, 30, (m, i, x, w, Y) => { const r = renda(m), v = -(q(m).Imposto || 0), p = r ? Math.min(30, v / r * 100) : 0; if (v <= 0) return ''; return `<rect x="${x}" y="${Y(p)}" width="${w}" height="${Y(0) - Y(p)}" rx="2" fill="#f87171" opacity="${m > HOJE ? .55 : 1}" data-tip="<b>${ml(m)}${futTxt(m)}</b><br>Impostos pagos: ${R(v)}<br>${(v / (r || 1) * 100).toFixed(1).replace('.', ',')}% da renda"/>` + (p >= 8 ? `<text x="${x + w / 2}" y="${Y(p) - 4}" text-anchor="middle" style="fill:var(--g-ink);font-weight:700">${Math.round(v / r * 100)}%</text>` : ''); }, 3, v => Math.round(v) + '%');
+      card('Quanto da renda vai pra imposto (pago por fora)', 'Carnê-Leão, IRPF, MEI e contadora que saem da sua conta. O IR do holerite não aparece aqui.', svg(W, H + 6, s));
+    })();
+    (function () { // 19
+      const ms = TUDO, W = 560, H = 240, L = 40, T = 10, B = 28, max = niceMax(Math.max(1, ...ms.map(m => Math.max(renda(m), desp(m))))), cw = (W - L - 8) / ms.length, X = i => L + cw * (i + .5), Y = v => T + (H - T - B) * (1 - v / max);
+      const mm = (f, i) => { const a = ms.slice(Math.max(0, i - 2), i + 1); return a.reduce((s2, m) => s2 + f(m), 0) / a.length; };
+      let s = yAxis(W, H, L, T, B, 0, max, 4);
+      [['Renda', renda, 'var(--g-pos)'], ['Gasto', desp, 'var(--g-neg)']].forEach(([n, f, c]) => { const pts = ms.map((m, i) => [X(i), Y(mm(f, i)), m, mm(f, i)]); const re = pts.filter(p => p[2] <= HOJE), pr = pts.filter(p => p[2] >= HOJE);
+        s += `<polyline points="${re.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5"/><polyline points="${pr.map(p => p[0] + ',' + p[1]).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+        pts.forEach(p => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${p[2] > HOJE ? 'var(--g-card)' : c}" stroke="${c}" stroke-width="2" data-tip="<b>${ml(p[2])}${futTxt(p[2])}</b><br>${n} (média de 3 meses): ${R(p[3])}"/>`; }); });
+      ms.forEach((m, i) => { s += `<text x="${X(i)}" y="${H - 10}" text-anchor="middle">${MN[+m.slice(5) - 1].slice(0, 1).toUpperCase()}</text>`; if (m.endsWith('-01') || i === 0) s += `<text x="${X(i) - cw / 2 + 2}" y="${H + 2}" style="font-weight:700">${m.slice(0, 4)}</text>`; });
+      card('Custo de vida × renda (média de 3 meses)', 'Tira o sobe-e-desce. Vermelha acima da verde = gastando mais do que ganha de forma consistente.', svg(W, H + 6, s) + leg([['var(--g-pos)', 'renda'], ['var(--g-neg)', 'gasto']]), false, 'Nos meses futuros a linha de gasto cai porque o gasto do dia a dia ainda não está lançado.');
+    })();
+
+    // ============ PADRÕES DE GASTO ============
+    grupo('Padrões de gasto');
+    const compras = B0.txs.filter(t => t.val < 0 && B0.real(t) && (!t.parc || t.parc[0] <= 1)).map(t => ({ t, pd: t.pd || t.d, v: -t.val * (t.parc ? t.parc[1] : 1) })).filter(c => c.pd.slice(0, 7) >= REAL12[0] && c.pd.slice(0, 7) <= HOJE);
+    (function () { // 20
+      const nomes = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'], VAR = ['Alimentação', 'Mercado', 'Lazer', 'Conveniência', 'Extras', 'Pessoais', 'Coisas para casa', 'Presentes'];
+      const d = nomes.map(() => ({ n: 0, v: 0 })); compras.forEach(c => { if (!VAR.includes(B0.nome(c.t))) return; const dw = (new Date(c.pd + 'T12:00:00').getDay() + 6) % 7; d[dw].n++; d[dw].v += -c.t.val; });
+      const tot = d.reduce((a, x) => a + x.v, 0), max = niceMax(Math.max(1, ...d.map(x => x.v))), W = 560, H = 220, L = 40, T = 12, B = 26, cw = (W - L - 8) / 7, Y = v => T + (H - T - B) * (1 - v / max), top2 = d.map(x => x.v).sort((a, b) => b - a).slice(0, 2);
+      let s = yAxis(W, H, L, T, B, 0, max, 4); d.forEach((x, i) => { const bx = L + cw * i + cw * .2, w = cw * .6; s += `<rect x="${bx}" y="${Y(x.v)}" width="${w}" height="${Y(0) - Y(x.v)}" rx="3" fill="${top2.includes(x.v) ? '#d97706' : '#94a3b8'}" data-tip="<b>${nomes[i]}</b><br>${R(x.v)} em ${x.n} compras${x.n ? '<br>média ' + R(x.v / x.n) : ''}"/><text x="${bx + w / 2}" y="${Y(x.v) - 5}" text-anchor="middle" style="fill:var(--g-ink);font-weight:700">${k(x.v)}</text><text x="${bx + w / 2}" y="${H - 10}" text-anchor="middle">${nomes[i]}</text>`; });
+      card('Em que dia da semana você gasta mais', 'Compras do dia a dia nos últimos 12 meses, pela data da compra.', svg(W, H, s), false, tot ? `Os dois dias mais caros somam ${Math.round((top2[0] + top2[1]) / tot * 100)}% do total.` : '');
+    })();
+    (function () { // 21
+      const agg = {}; compras.forEach(c => { const cn = B0.nome(c.t); if (/Moradia|Imposto|Seguros|Saúde/.test(cn)) return; let m = c.t.desc.replace(/^\[([^\]]+)\].*$/, '$1').replace(/\s*\(.*$/, '').replace(/\s+\d+\/\d+$/, '').trim(); if (/^ml$/i.test(m)) m = 'Mercado Livre'; if (/^ifood$/i.test(m)) m = 'iFood'; const o = agg[m] = agg[m] || { n: 0, v: 0 }; o.n++; o.v += c.v; });
+      const d = Object.entries(agg).sort((a, b) => b[1].v - a[1].v).slice(0, 12); if (!d.length) return;
+      const W = 560, L = 120, rh = 22, T = 4, H = T + d.length * rh + 6, max = niceMax(d[0][1].v), X = v => L + (W - L - 90) * v / max;
+      let s = ''; d.forEach(([m, o], i) => { const y = T + i * rh; s += `<text x="${L - 6}" y="${y + 14}" text-anchor="end" style="fill:var(--g-ink);font-size:11px">${esc(m.slice(0, 20))}</text><rect x="${L}" y="${y + 4}" width="${X(o.v) - L}" height="13" rx="3" fill="#6366f1" data-tip="<b>${esc(m)}</b><br>${R(o.v)} em ${o.n} compra${o.n > 1 ? 's' : ''}<br>média ${R(o.v / o.n)}"/><text x="${X(o.v) + 6}" y="${y + 14}">${R(o.v)} · ${o.n}×</text>`; });
+      card('Onde o dinheiro mais vai (lojas)', 'Os 12 lugares com mais gasto nos últimos 12 meses. Parcelado conta pelo valor cheio.', svg(W, H, s), false, 'Sem moradia, saúde, seguros e impostos.');
+    })();
+    (function () { // 22
+      const ms = months(REAL12[0], HOJE), d = ms.map(m => { const cs = compras.filter(c => B0.isCard(c.t) && c.pd.slice(0, 7) === m); return { m, n: cs.length, v: cs.reduce((a, c) => a + c.v, 0), np: cs.filter(c => c.t.parc).length }; });
+      const W = 560, H1 = 150, H2 = 120, L = 40, T = 10, B = 22, cw = (W - L - 8) / d.length, mx1 = niceMax(Math.max(1, ...d.map(x => x.n))), Y1 = v => T + (H1 - T - B) * (1 - v / mx1);
+      let s1 = yAxis(W, H1, L, T, B, 0, mx1, 4); d.forEach((x, i) => { const bx = L + cw * i + cw * .18, w = cw * .64; s1 += `<rect x="${bx}" y="${Y1(x.n)}" width="${w}" height="${Y1(0) - Y1(x.n)}" rx="2" fill="#6366f1" data-tip="<b>${ml(x.m)}${futTxt(x.m)}</b><br>${x.n} compras (${x.np} parceladas)<br>total ${R(x.v)}"/><text x="${bx + w / 2}" y="${H1 - 8}" text-anchor="middle">${MN[+x.m.slice(5) - 1].slice(0, 1).toUpperCase()}</text>`; });
+      const tk = d.map(x => x.n ? x.v / x.n : 0), mx2 = niceMax(Math.max(1, ...tk)), Y2 = v => T + (H2 - T - B) * (1 - v / mx2);
+      let s2 = yAxis(W, H2, L, T, B, 0, mx2, 2) + `<polyline points="${d.map((x, i) => (L + cw * (i + .5)) + ',' + Y2(tk[i])).join(' ')}" fill="none" stroke="#d97706" stroke-width="2.5"/>`; d.forEach((x, i) => { s2 += `<circle cx="${L + cw * (i + .5)}" cy="${Y2(tk[i])}" r="4" fill="#d97706" stroke="var(--g-card)" stroke-width="2" data-tip="<b>${ml(x.m)}</b><br>ticket médio ${R(tk[i])}"/><text x="${L + cw * (i + .5)}" y="${H2 - 8}" text-anchor="middle">${MN[+x.m.slice(5) - 1].slice(0, 1).toUpperCase()}</text>`; });
+      card('Compras no cartão: quantas e de quanto', 'Em cima, quantas compras por mês. Embaixo, o valor médio. Mostra se o problema é comprar muito ou comprar caro.', `<div class="why" style="margin:0"><b>Nº de compras</b></div>${svg(W, H1, s1)}<div class="why" style="margin:6px 0 0"><b>Ticket médio</b></div>${svg(W, H2, s2)}`, false, 'O mês atual ainda está em andamento.');
+    })();
+    (function () { // 23
+      const items = CATS_V(), soma = items.reduce((a, x) => a + x[1], 0); if (!soma) return; const W = 560, H = 300, rects = [];
+      (function sq(list, x, y, w, h) { if (!list.length) return; if (list.length === 1) { rects.push([list[0], x, y, w, h]); return; } const t = list.reduce((a, v) => a + v[1], 0); let acc = 0, i = 0; while (i < list.length - 1 && acc + list[i][1] < t / 2) { acc += list[i][1]; i++; } if (i === 0) { acc = list[0][1]; i = 1; } const f = acc / t; if (w >= h) { sq(list.slice(0, i), x, y, w * f, h); sq(list.slice(i), x + w * f, y, w * (1 - f), h); } else { sq(list.slice(0, i), x, y, w, h * f); sq(list.slice(i), x, y + h * f, w, h * (1 - f)); } })(items, 0, 0, W, H);
+      let s = ''; rects.forEach(([[c, v], x, y, w, h]) => { s += `<rect x="${x + 1}" y="${y + 1}" width="${Math.max(0, w - 2)}" height="${Math.max(0, h - 2)}" rx="4" fill="${cor(c)}" data-tip="<b>${c}</b><br>${R(v)} em 12 meses<br>${(v / soma * 100).toFixed(1).replace('.', ',')}% · ${R(v / 12)}/mês"/>`; if (w > 60 && h > 30) s += `<text x="${x + 7}" y="${y + 17}" style="fill:#fff;font-weight:700;font-size:11.5px">${c}</text><text x="${x + 7}" y="${y + 31}" style="fill:#fff;font-size:10.5px">${k(v)} · ${Math.round(v / soma * 100)}%</text>`; });
+      const top2 = items.slice(0, 2);
+      card('Pra onde foi cada real (12 meses)', `O tamanho de cada bloco é o peso da categoria. ${top2.map(x => x[0]).join(' + ')} = ${Math.round((top2[0][1] + (top2[1] ? top2[1][1] : 0)) / soma * 100)}% do total.`, hero(R(soma), 'de gasto nos últimos 12 meses · ' + R(soma / 12) + '/mês') + svg(W, H, s));
+    })();
+    (function () { // 24
+      const FIX = ['Moradia', 'Saúde', 'Seguros', 'Assinaturas', 'Imposto', 'Empréstimo', 'Doações', 'Profissionais'], W = 1120, H = 240, L = 44, T = 10, B = 28, max = niceMax(Math.max(1, ...TUDO.map(m => Math.max(desp(m), renda(m)))));
+      const s = barrasMes(B0, TUDO, W, H, L, T, B, 0, max, (m, i, x, w, Y) => { let f = 0, v = 0; Object.entries(q(m)).forEach(([c, val]) => { if (val >= 0) return; if (FIX.includes(c)) f -= val; else v -= val; }); const op = m > HOJE ? .5 : 1, r = renda(m); return `<rect x="${x}" y="${Y(f) + 1}" width="${w}" height="${Math.max(0, Y(0) - Y(f) - 1)}" rx="2" fill="#475569" opacity="${op}" data-tip="<b>${ml(m)}${futTxt(m)}</b><br>Fixo: ${R(f)}${r ? ' (' + Math.round(f / r * 100) + '% da renda)' : ''}"/><rect x="${x}" y="${Y(f + v) + 1}" width="${w}" height="${Math.max(0, Y(f) - Y(f + v) - 1)}" rx="2" fill="#f59e0b" opacity="${op}" data-tip="<b>${ml(m)}${futTxt(m)}</b><br>Variável: ${R(v)}"/>` + (r ? `<line x1="${x - 2}" x2="${x + w + 2}" y1="${Y(r)}" y2="${Y(r)}" stroke="var(--g-pos)" stroke-width="2.5" data-tip="<b>${ml(m)}</b><br>Renda: ${R(r)}"/>` : ''); });
+      card('Fixo × variável', 'Cinza = o que vem todo mês de qualquer jeito (moradia, saúde, seguros, assinaturas, impostos, empréstimo, ferramentas). Laranja = o que depende de escolha. Traço verde = renda.', svg(W, H + 6, s) + leg([['#475569', 'fixo'], ['#f59e0b', 'variável'], ['var(--g-pos)', 'renda']]), true);
+    })();
+    (function () { // 25
+      const ms = REAL12, W = 560, H = 230, L = 40, T = 10, B = 28, max = niceMax(Math.max(1, ...ms.map(m => Math.max(-(q(m).Mercado || 0), -(q(m)['Alimentação'] || 0))))), cw = (W - L - 8) / ms.length, X = i => L + cw * (i + .5), Y = v => T + (H - T - B) * (1 - v / max);
+      let s = yAxis(W, H, L, T, B, 0, max, 3);
+      [['Mercado', '#d97706', 0], ['Alimentação', '#f59e0b', 1]].forEach(([c, col, j]) => { s += `<polyline points="${ms.map((m, i) => X(i) + ',' + Y(-(q(m)[c] || 0))).join(' ')}" fill="none" stroke="${col}" stroke-width="2.5"/>`; ms.forEach((m, i) => { const v = -(q(m)[c] || 0); s += `<circle cx="${X(i)}" cy="${Y(v)}" r="4" fill="${j ? 'var(--g-card)' : col}" stroke="${col}" stroke-width="2" data-tip="<b>${ml(m)}</b><br>${c}: ${R(v)}"/>`; }); });
+      ms.forEach((m, i) => { s += `<text x="${X(i)}" y="${H - 10}" text-anchor="middle">${MN[+m.slice(5) - 1]}</text>`; });
+      const tm = ms.reduce((a, m) => a - (q(m).Mercado || 0), 0), ta = ms.reduce((a, m) => a - (q(m)['Alimentação'] || 0), 0);
+      card('Comer em casa × comer fora', 'Mercado contra Alimentação (restaurante, delivery, lanche).', hero((ta + tm ? Math.round(ta / (ta + tm) * 100) : 0) + '%', 'da comida dos últimos 12 meses foi fora de casa (' + R(ta) + ' fora × ' + R(tm) + ' mercado)') + svg(W, H, s) + leg([['#d97706', 'Mercado'], ['#f59e0b', 'Alimentação (bolinha vazada)']]));
+    })();
+
+    // ============ COMPARAÇÕES ============
+    grupo('Comparações');
+    (function () { // 26
+      const a1 = +HOJE.slice(0, 4), a0 = a1 - 1, mf = ULT.slice(5), per = y => months(y + '-01', y + '-' + mf), sumC = ms => { const t = {}; ms.forEach(m => Object.entries(q(m)).forEach(([c, v]) => { if (v < 0) t[c] = (t[c] || 0) - v; })); return t; };
+      const A = sumC(per(a0)), Bc = sumC(per(a1)); const d = Object.keys(Object.assign({}, A, Bc)).map(c => ({ c, x0: A[c] || 0, x1: Bc[c] || 0 })).filter(x => x.x0 + x.x1 > 500 && !/Imposto/.test(x.c)).sort((a, b) => Math.abs(b.x1 - b.x0) - Math.abs(a.x1 - a.x0)).slice(0, 16);
+      if (!d.length) return; const W = 560, L = 110, rh = 22, T = 18, H = T + d.length * rh + 8, max = niceMax(Math.max(...d.map(x => Math.max(x.x0, x.x1)))), X = v => L + (W - L - 60) * v / max;
+      let s = `<text x="${L}" y="10">0</text><text x="${W - 60}" y="10" text-anchor="end">${k(max)}</text>`;
+      d.forEach((x, i) => { const y = T + i * rh + 10, up = x.x1 > x.x0; s += `<text x="${L - 6}" y="${y + 4}" text-anchor="end" style="fill:var(--g-ink);font-size:11px">${x.c}</text><line x1="${L}" x2="${W - 60}" y1="${y}" y2="${y}" stroke="var(--g-grid)"/><line x1="${X(x.x0)}" x2="${X(x.x1)}" y1="${y}" y2="${y}" stroke="${up ? 'var(--g-neg)' : 'var(--g-pos)'}" stroke-width="3"/><circle cx="${X(x.x0)}" cy="${y}" r="5" fill="#94a3b8" stroke="var(--g-card)" stroke-width="2" data-tip="<b>${x.c}</b><br>${a0}: ${R(x.x0)}"/><circle cx="${X(x.x1)}" cy="${y}" r="5.5" fill="${up ? 'var(--g-neg)' : 'var(--g-pos)'}" stroke="var(--g-card)" stroke-width="2" data-tip="<b>${x.c}</b><br>${a1}: ${R(x.x1)}<br>${up ? '+' : ''}${R(x.x1 - x.x0)} vs ${a0}"/><text x="${Math.max(X(x.x0), X(x.x1)) + 9}" y="${y + 4}" style="fill:${up ? 'var(--g-neg)' : 'var(--g-pos)'};font-weight:700">${up ? '+' : '−'}${k(Math.abs(x.x1 - x.x0))}</text>`; });
+      card(a0 + ' × ' + a1 + ' (jan a ' + MN[+mf - 1] + ')', 'Cinza = ' + a0 + ', colorido = ' + a1 + ', mesmo período. Vermelho subiu, verde caiu.', svg(W, H, s) + leg([['#94a3b8', a0], ['var(--g-neg)', a1 + ' maior'], ['var(--g-pos)', a1 + ' menor']]), false, '2025 veio do Mobills; a classificação pode não bater 100% com a de hoje.');
+    })();
+    (function () { // 27
+      const cs = B0.metaCats(ULT).filter(c => !RENDA.includes(c) && !/Moradia|Saúde|Imposto|Empréstimo|Seguros|Doações/.test(c)).map(c => [c, REAL12.filter(m => -(q(m)[c] || 0) <= B0.meta(c, m)).length]).sort((a, b) => a[1] - b[1]);
+      if (!cs.length) return; const W = 560, L = 110, rh = 22, T = 18, H = T + cs.length * rh + 4, cw = (W - L - 60) / 12;
+      let s = REAL12.map((m, i) => `<text x="${L + cw * (i + .5)}" y="10" text-anchor="middle">${MN[+m.slice(5) - 1].slice(0, 1).toUpperCase()}</text>`).join('');
+      cs.forEach(([c, ok], j) => { const y = T + j * rh + 9; s += `<text x="${L - 6}" y="${y + 4}" text-anchor="end" style="fill:var(--g-ink);font-size:11px">${c}</text>`; REAL12.forEach((m, i) => { const v = -(q(m)[c] || 0), mt = B0.meta(c, m), dentro = v <= mt; s += `<circle cx="${L + cw * (i + .5)}" cy="${y}" r="7" fill="${dentro ? 'var(--g-pos)' : 'var(--g-neg)'}" data-tip="<b>${c} · ${ml(m)}</b><br>${R(v)} (meta ${R(mt)})<br>${dentro ? 'dentro' : 'estourou ' + R(v - mt)}"/>`; }); s += `<text x="${W - 52}" y="${y + 4}" style="fill:var(--g-ink);font-weight:700">${ok}/12</text>`; });
+      card('Quantos meses cada categoria ficou na meta', 'Uma bolinha por mês. Verde = dentro, vermelho = estourou. As de cima são as mais difíceis de segurar.', svg(W, H, s), false, 'Compara com as metas de cada mês no Planejamento.');
+    })();
+    (function () { // 28
+      const tot = {}, mix = {}; compras.forEach(c => { if (!B0.isCard(c.t)) return; const n = CARD_NOME[c.t.acc], cn = B0.nome(c.t); tot[n] = (tot[n] || 0) + c.v; (mix[n] = mix[n] || {})[cn] = (mix[n][cn] || 0) + c.v; });
+      const cs = Object.keys(tot).sort((a, b) => tot[b] - tot[a]); if (!cs.length) return; const W = 560, L = 90, T = 10, H = T + cs.length * 60;
+      let s = ''; cs.forEach((c, ci) => { const y = T + ci * 60; let acc = 0; s += `<text x="${L - 8}" y="${y + 20}" text-anchor="end" style="fill:var(--g-ink);font-weight:700;font-size:12px">${c}</text><text x="${L - 8}" y="${y + 34}" text-anchor="end">${k(tot[c])}/12m</text>`;
+        Object.entries(mix[c]).sort((a, b) => b[1] - a[1]).forEach(([cn, v]) => { const w = (W - L - 8) * v / tot[c]; s += `<rect x="${L + acc + 1}" y="${y + 6}" width="${Math.max(0, w - 2)}" height="32" rx="3" fill="${cor(cn)}" data-tip="<b>${c} · ${cn}</b><br>${R(v)} (${Math.round(v / tot[c] * 100)}%)"/>`; if (w > 44) s += `<text x="${L + acc + 5}" y="${y + 26}" style="fill:#fff;font-size:10px;font-weight:700">${cn.split(' ')[0]}</text>`; acc += w; }); });
+      card('Qual cartão é usado pra quê', 'Cada barra é 100% do que passou no cartão nos últimos 12 meses, dividido por categoria (parcelado pelo valor cheio).', svg(W, H, s));
+    })();
+
+    // ============ PLANEJAMENTO ============
+    grupo('Planejamento');
+    (function () { // 29
+      const d = {}; DATA.transactions.forEach(t => { if (t.tr) return; const pd = B0.pagoEm(t); if (!PROX12.includes(pd.slice(0, 7))) return; const dia = Math.min(31, +pd.slice(8)); const o = d[dia] = d[dia] || { e: 0, s: 0 }; if (t.val > 0) o.e += t.val / 12; else o.s -= t.val / 12; });
+      const max = niceMax(Math.max(1, ...Object.values(d).map(o => Math.max(o.e, o.s)))), W = 1120, H = 220, L = 44, T = 12, B = 26, cw = (W - L - 8) / 31, Y = v => T + (H - T - B) / 2 * (1 - v / max), Y0 = Y(0);
+      let s = ''; [max, max / 2, 0, -max / 2, -max].forEach(v => { s += `<line x1="${L}" x2="${W - 8}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v ? 'var(--g-grid)' : 'var(--g-axis)'}"/><text x="${L - 6}" y="${Y(v) + 3.5}" text-anchor="end">${v > 0 ? '+' : ''}${k(v)}</text>`; });
+      let pior = [0, 0]; for (let i = 1; i <= 31; i++) { const x = L + cw * (i - 1) + cw * .15, w = cw * .7, o = d[i] || { e: 0, s: 0 }; if (o.s > pior[1]) pior = [i, o.s]; if (o.e) s += `<rect x="${x}" y="${Y(o.e)}" width="${w}" height="${Y0 - Y(o.e)}" rx="2" fill="var(--g-pos)" data-tip="<b>Dia ${i}</b><br>Entra em média ${R(o.e)}"/>`; if (o.s) s += `<rect x="${x}" y="${Y0}" width="${w}" height="${Y(-o.s) - Y0}" rx="2" fill="var(--g-neg)" data-tip="<b>Dia ${i}</b><br>Sai em média ${R(o.s)}"/>`; s += `<text x="${x + w / 2}" y="${H - 8}" text-anchor="middle">${i}</text>`; }
+      card('Os dias do mês que pesam', 'Média por dia do mês nos próximos 12 meses (cartão no dia do vencimento): verde = entra, vermelho = sai.', svg(W, H, s), true, `Dia mais pesado: ${pior[0]} (${R(pior[1])} em média).`);
+    })();
+    (function () { // 30
+      const html = `<div class="g-sim"><label>Cortar por mês: <b data-simv="c">R$ 0</b><br><input data-sim="c" type="range" min="0" max="3000" step="50" value="0"></label><label>Renda extra por mês: <b data-simv="e">R$ 0</b><br><input data-sim="e" type="range" min="0" max="3000" step="50" value="0"></label><div class="g-simout"></div></div><svg class="g-simsvg" viewBox="0 0 1120 230"></svg>`;
+      if (!SHOW.has(30)) { N++; return; }
+      card('Simulador: e se eu cortar ou ganhar mais?', 'Mexa nas barrinhas e veja o saldo acumulado dos próximos 12 meses mudar. Parte do mesmo cálculo do gráfico 5 (suas metas + plano de dívidas).', html, true);
+      const el = host.lastElementChild.lastElementChild;
+      const draw = () => { const c = +el.querySelector('[data-sim="c"]').value, e = +el.querySelector('[data-sim="e"]').value; el.querySelector('[data-simv="c"]').textContent = R(c); el.querySelector('[data-simv="e"]').textContent = R(e);
+        let a = 0, a2 = 0; const pts = RES.map(([m, v]) => { a += v + c + e; return [m, a]; }), pb = RES.map(([, v]) => (a2 += v));
+        const all = pts.map(p => p[1]).concat(pb), min = -niceMax(Math.max(1, -Math.min(0, ...all))), max = niceMax(Math.max(1, ...all)), W = 1120, H = 230, L = 50, T = 12, B = 26, X = i => L + (W - L - 20) * (i + .5) / pts.length, Y = v => T + (H - T - B) * (1 - (v - min) / (max - min));
+        let s = yAxis(W, H, L, T, B, min, max, 4) + `<polyline points="${pb.map((v, i) => X(i) + ',' + Y(v)).join(' ')}" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 5"/><polyline points="${pts.map((p, i) => X(i) + ',' + Y(p[1])).join(' ')}" fill="none" stroke="#6366f1" stroke-width="3"/>`;
+        pts.forEach((p, i) => { s += `<circle cx="${X(i)}" cy="${Y(p[1])}" r="5" fill="${p[1] < 0 ? 'var(--g-neg)' : 'var(--g-pos)'}" stroke="var(--g-card)" stroke-width="2" data-tip="<b>${ml(p[0])}</b><br>Acumulado: ${R(p[1])}<br>sem mudança: ${R(pb[i])}"/><text x="${X(i)}" y="${H - 8}" text-anchor="middle">${ml(p[0])}</text>`; });
+        el.querySelector('.g-simsvg').innerHTML = s; const fim = pts[pts.length - 1][1], vira = pts.findIndex((p, i) => p[1] >= 0 && pts.slice(i).every(q2 => q2[1] >= 0));
+        el.querySelector('.g-simout').innerHTML = `Em ${ml(pts[pts.length - 1][0])}: <b style="color:${fim < 0 ? 'var(--g-neg)' : 'var(--g-pos)'}">${R(fim)}</b><br>${vira >= 0 ? 'Fica no azul a partir de <b>' + ml(pts[vira][0]) + '</b>' : 'Não sai do vermelho no período'}`; };
+      el.querySelectorAll('[data-sim]').forEach(i => i.addEventListener('input', draw)); draw();
+    })();
+    host.querySelectorAll('.g-grid').forEach(g => { if (!g.children.length) { g.previousElementSibling && g.previousElementSibling.remove(); g.remove(); } });
+  }
+
+  // tooltip único
+  document.addEventListener('mousemove', e => { const tt = document.getElementById('g30tt'); if (!tt) return; const el = e.target.closest && e.target.closest('#g30 [data-tip]'); if (!el) { tt.style.opacity = 0; return; } tt.innerHTML = el.getAttribute('data-tip'); tt.style.opacity = 1; let x = e.clientX + 14, y = e.clientY - 10; const r = tt.getBoundingClientRect(); if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14; if (y + r.height > innerHeight - 8) y = innerHeight - r.height - 8; tt.style.left = x + 'px'; tt.style.top = y + 'px'; });
+  return { render };
+})();
 
 // === TOOLTIPS GRÁFICOS ===
 function setupChartTooltip(chartId, tooltipId) {
