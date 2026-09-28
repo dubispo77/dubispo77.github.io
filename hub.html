@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-28T12:02:57-03:00">
+<meta name="hub-build" content="2026-09-28T12:03:40-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -17519,7 +17519,7 @@ const G30 = (function(){
 
   let N = 0, host = null;
   const grupo = t => { host.insertAdjacentHTML('beforeend', `<h2 class="g-grp">${t}</h2><div class="g-grid"></div>`); };
-  const SHOW = new Set([3, 4, 12, 14, 18, 19]); // escolhidos por ele em 28/09 (12 e 21 aguardando versão nova)
+  const SHOW = new Set([3, 4, 12, 14, 18, 19, 21]); // escolhidos por ele em 28/09 (12 e 21 aguardando versão nova)
   const card = (tit, why, html, wide, foot) => { N++; if (!SHOW.has(N)) return; host.lastElementChild.insertAdjacentHTML('beforeend', `<div class="g-card${wide ? ' wide' : ''}"><h3>${tit}</h3><div class="why">${why}</div>${html}${foot ? `<div class="foot">${foot}</div>` : ''}</div>`); };
   const hero = (b, s, cor) => `<div class="g-hero"><b${cor ? ` style="color:${cor}"` : ''}>${b}</b><span>${s}</span></div>`;
   const svg = (W, H, s) => `<svg viewBox="0 0 ${W} ${H}">${s}</svg>`;
