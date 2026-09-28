@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-28T12:10:31-03:00">
+<meta name="hub-build" content="2026-09-28T12:13:38-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -13116,7 +13116,9 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         cells.push(field('Lembrete', 'reminder', inner, { editable: editMode }));
       }
       if (hasRecurrence) {
+        // 'dNN' = a cada NN dias contados da ocorrência anterior (ex.: d30 = corte de cabelo).
         const RECUR_LABEL = { daily: 'Diário', weekly: 'Semanal', monthly: 'Mensal', yearly: 'Anual' };
+        const recRot = (v) => RECUR_LABEL[v] || (/^d\d+$/.test(v || '') ? 'A cada ' + v.slice(1) + ' dias' : v);
         const innerR = editMode
           ? `<select data-edit="recurrence">
               <option value="">Não repete</option>
@@ -13124,8 +13126,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
               <option value="weekly"  ${i.recurrence==='weekly'?'selected':''}>Semanal (mesmo dia da semana)</option>
               <option value="monthly" ${i.recurrence==='monthly'?'selected':''}>Mensal (mesmo dia do mês)</option>
               <option value="yearly"  ${i.recurrence==='yearly'?'selected':''}>Anual</option>
+              <option value="d15"     ${i.recurrence==='d15'?'selected':''}>A cada 15 dias</option>
+              <option value="d30"     ${i.recurrence==='d30'?'selected':''}>A cada 30 dias</option>
+              <option value="d45"     ${i.recurrence==='d45'?'selected':''}>A cada 45 dias</option>
+              <option value="d60"     ${i.recurrence==='d60'?'selected':''}>A cada 60 dias</option>
             </select>`
-          : (RECUR_LABEL[i.recurrence] || escHtml(i.recurrence));
+          : escHtml(recRot(i.recurrence));
         cells.push(field('Recorrência', 'recurrence', innerR, { editable: editMode }));
       }
       if (hasEstimated)  cells.push(field('Tempo', 'estimated', fmtMinutes(i.estimated_minutes)));
@@ -14893,6 +14899,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
                   <option value="weekly">Toda semana</option>
                   <option value="monthly">Todo m&ecirc;s</option>
                   <option value="yearly">Todo ano</option>
+                  <option value="d15">A cada 15 dias</option>
+                  <option value="d30">A cada 30 dias</option>
+                  <option value="d45">A cada 45 dias</option>
+                  <option value="d60">A cada 60 dias</option>
                 </select>
               </div>
             </div>
