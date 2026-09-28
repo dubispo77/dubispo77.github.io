@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-27T13:15:52-03:00">
+<meta name="hub-build" content="2026-09-28T11:36:41-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -16442,6 +16442,8 @@ function saldoDe(key) {
   const m = currentMonth;
   let s = 0;
   DATA.transactions.forEach(t => { if (t.acc === key && t.d.slice(0, 7) === m) s += t.val; });
+  // 28/09: pagamentos de fatura ficam escondidos da lista, mas SAEM da conta — entram no saldo do mês
+  (DATA.hiddenPays || []).forEach(h => { if (h.acc === key && h.d.slice(0, 7) === m) s += h.val; });
   return Math.round(s * 100) / 100;
 }
 function renderAccounts() {
@@ -16544,7 +16546,7 @@ function renderAccounts() {
       sub = 'fatura do mês';
     } else {
       valor = fmtS(saldoDe(key));
-      sub = 'movimentação';
+      sub = 'entrou − saiu no mês';
     }
     const c2 = (ACC_GRAD[key] || ['#7c3aed', '#4c1d95'])[1];
     return '<div class="mini-card' + sel(key) + '" data-selacc="' + key + '" style="border-color:' + c2 + ';color:white;background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
@@ -16552,7 +16554,7 @@ function renderAccounts() {
   };
   mini.innerHTML =
     '<div class="mini-card' + sel('all') + '" data-selacc="all" style="border-color:#1f2937;color:white;background:linear-gradient(135deg,#4b5563,#1f2937)">'
-    + 'Todas as contas<b>' + fmtS(totalMes) + '</b><div class="mc-sub">movimentação do mês</div></div>'
+    + 'Todas as contas<b>' + fmtS(totalMes) + '</b><div class="mc-sub">entrou − saiu (contas)</div></div>'
     + ORDER.map(miniHtml).join('');
 }
 document.addEventListener('click', e => {
