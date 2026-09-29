@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-28T12:13:38-03:00">
+<meta name="hub-build" content="2026-09-29T15:34:45-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -11320,8 +11320,11 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     return { year: d.getFullYear(), month: d.getMonth() };
   }
 
+  // 29/09: mês VISÍVEL na timeline — base das setas ‹ › (o cursor é sobrescrito pelo pré-carregamento das pontas)
+  let _shownYM = null;
   function updateLabelFromMonth(year, month) {
     if (_suppressLabelUpdate) return;
+    _shownYM = { year, month };
     document.getElementById('calLabel').textContent = `${MESES_LONG[month]} ${year}`;
     try { localStorage.setItem('hubCalMonth', year + '-' + month); } catch (_) {}
   }
@@ -11378,9 +11381,11 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const prev = addMonths(first.year, first.month, -1);
     if (_timelineLoaded.some(x => x.year === prev.year && x.month === prev.month)) return;
     _timelineLoaded.unshift(prev);
-    // Garante que items pra esse mês estão carregados
+    // Garante que items pra esse mês estão carregados (cursor volta ao que era: não pode sequestrar as setas)
+    const _cur0 = cursor;
     cursor = new Date(prev.year, prev.month, 15);
     await ensureRangeForCursor();
+    cursor = _cur0;
     const scroller = container.querySelector('.calM-scroll');
     const prevHeight = scroller.scrollHeight;
     const prevTop = scroller.scrollTop;
@@ -11399,8 +11404,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const next = addMonths(last.year, last.month, 1);
     if (_timelineLoaded.some(x => x.year === next.year && x.month === next.month)) return;
     _timelineLoaded.push(next);
+    const _cur0 = cursor;
     cursor = new Date(next.year, next.month, 15);
     await ensureRangeForCursor();
+    cursor = _cur0;
     const scroller = container.querySelector('.calM-scroll');
     const newBlock = buildMonthBlock(new Date(next.year, next.month, 1), { includeHeader: true });
     const wrap = scroller.querySelector('.calM-edge-bottom');
@@ -11977,6 +11984,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       // timeline (que mexe no scroll ao carregar meses), e o "Hoje" não saía do lugar.
       scroller.scrollTo({ top: target.offsetTop, behavior: 'auto' });
       updateLabelFromMonth(year, month);
+      _shownYM = { year, month };
+      cursor = new Date(year, month, 1);
       setTimeout(() => { _suppressLabelUpdate = false; }, 600);
     }
   }
@@ -12262,7 +12271,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   });
   document.getElementById('calPrev').addEventListener('click', async () => {
     if (view === 'month' && !chronoMode) {
-      const t = addMonths(cursor.getFullYear(), cursor.getMonth(), -1);
+      const base = _shownYM || { year: cursor.getFullYear(), month: cursor.getMonth() };
+      const t = addMonths(base.year, base.month, -1);
       await scrollToMonth(t.year, t.month);
       return;
     }
@@ -12273,7 +12283,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   });
   document.getElementById('calNext').addEventListener('click', async () => {
     if (view === 'month' && !chronoMode) {
-      const t = addMonths(cursor.getFullYear(), cursor.getMonth(), 1);
+      const base = _shownYM || { year: cursor.getFullYear(), month: cursor.getMonth() };
+      const t = addMonths(base.year, base.month, 1);
       await scrollToMonth(t.year, t.month);
       return;
     }
