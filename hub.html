@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-01T16:31:16-03:00">
+<meta name="hub-build" content="2026-10-01T16:46:03-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1760,6 +1760,14 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-field-value:focus-within { border-color: #7c3aed; }
 .tdm-field-value textarea, .tdm-field-value input, .tdm-field-value select { width: 100%; border: none; background: transparent; outline: none; font: inherit; resize: vertical; }
 .tdm-field-empty { color: #9ca3af; font-style: italic; }
+/* Telefone: número clicável (ligar) + atalho do WhatsApp */
+.tdm-tel-acoes { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tdm-tel-btn { color: #2563eb; text-decoration: none; font-variant-numeric: tabular-nums; }
+.tdm-tel-btn:hover { text-decoration: underline; }
+.tdm-tel-zap { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+  color: #15803d; background: #f0fdf4; border: 0.5px solid #bbf7d0; border-radius: 100px;
+  padding: 2px 9px; text-decoration: none; }
+.tdm-tel-zap:hover { background: #dcfce7; }
 /* ── Imagens do card (colar Ctrl+V, arrastar ou + ) — 21/09/2026 ── */
 .tdm-imgs { display: flex; flex-wrap: wrap; gap: 8px; }
 .tdm-img { position: relative; width: 84px; height: 84px; border-radius: 9px; overflow: hidden; border: 0.5px solid #e5e7eb; background: #f3f4f6; cursor: zoom-in; flex: none; }
@@ -12908,12 +12916,23 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     reminder: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3l-2 2M19 3l2 2"/></svg>',
     recurrence:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 20v-4h4"/></svg>',
     estimated:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    phone:    '<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
   };
 
   const FIELD_LABELS = {
     address: 'Local', notes: 'Notas', link_url: 'Link',
     attachment_url: 'Anexo', reminder_minutes: 'Lembrete',
+    phone: 'Telefone',
   };
+
+  // Telefone -> link do WhatsApp. Texto livre do Eduardo; aqui só tiramos o que não é dígito.
+  // 10/11 dígitos = número brasileiro sem DDI, então prefixa 55.
+  function telDigitos(tel) {
+    const d = String(tel || '').replace(/\D+/g, '');
+    if (!d) return '';
+    if (d.length === 10 || d.length === 11) return '55' + d;
+    return d;
+  }
 
   function formatWhen(item) {
     if (!item.date_start) return 'Sem data';
@@ -13022,6 +13041,21 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           </div>
         </div>
       </div>`;
+    }
+
+    // Telefone — presente em TODOS os cards (sempre em edição; na visualização só se tiver número).
+    if (editMode || i.phone) {
+      let innerTel;
+      if (editMode) {
+        innerTel = `<input type="tel" data-edit="phone" value="${escHtml(i.phone || '')}" placeholder="(11) 90000-0000">`;
+      } else {
+        const zap = telDigitos(i.phone);
+        innerTel = `<span class="tdm-tel-acoes">
+          <a class="tdm-tel-btn" href="tel:${escHtml(String(i.phone).replace(/[^\d+]/g, ''))}">${escHtml(i.phone)}</a>
+          ${zap ? `<a class="tdm-tel-zap" href="https://wa.me/${zap}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+        </span>`;
+      }
+      html += field('Telefone', 'phone', innerTel, { editable: editMode });
     }
 
     // Notas
