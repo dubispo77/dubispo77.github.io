@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-01T16:15:03-03:00">
+<meta name="hub-build" content="2026-10-01T16:24:17-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -13064,45 +13064,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       html += field('Anexo', 'attachment', inner, { editable: editMode });
     }
 
-    // Sub do Roadmap — escondido do body (Eduardo se guia pela pílula em cima).
-    // Mantém só em editMode caso ele queira reatribuir manualmente.
-    if (editMode) {
-      const subs = (window.roadmapSubs || []).filter(s => !i.area || s.area === i.area);
-      // Agrupa por path (depth visual via indent)
-      const currentSub = (window.roadmapSubs || []).find(s => s.id === i.parent_id);
-      const AREA_LABELS = {
-        pessoal: 'Pessoal', trabalho: 'Trabalho',
-        administracao: 'Finanças', casa: 'Casa', eventos: 'Eventos',
-        brasileirao_play: 'Brasileirão Play', aw_vz: 'AW+VZ', aniversarios: 'Aniversários', agenda_awvz: 'Agenda AW+VZ',
-      };
-      const innerSub = editMode
-        ? (() => {
-            const optionTags = ['<option value="">— Só na agenda (sem sub do roadmap) —</option>'];
-            // Agrupa por area (caso item.area seja vazio, mostra tudo)
-            const byArea = {};
-            (subs || []).forEach(s => {
-              byArea[s.area] = byArea[s.area] || [];
-              byArea[s.area].push(s);
-            });
-            for (const area of Object.keys(byArea)) {
-              optionTags.push(`<optgroup label="${escHtml(AREA_LABELS[area] || area)}">`);
-              for (const s of byArea[area]) {
-                const indent = '— '.repeat(s.depth || 0);
-                const sel = s.id === i.parent_id ? 'selected' : '';
-                optionTags.push(`<option value="${s.id}" ${sel}>${indent}${escHtml(s.title)}</option>`);
-              }
-              optionTags.push('</optgroup>');
-            }
-            return `<select data-edit="parent_id">${optionTags.join('')}</select>`;
-          })()
-        : (currentSub
-            ? `<span>${escHtml((currentSub.path || []).join(' › '))}</span>`
-            : '<span class="tdm-field-empty">Só na agenda</span>');
-      html += `<div class="tdm-field" data-field="parent_id">
-        <div class="tdm-field-label">📍 Sub do Roadmap</div>
-        <div class="tdm-field-value ${editMode ? 'editable' : ''}">${innerSub}</div>
-      </div>`;
-    }
 
     // Lembrete + Recorrência + Tempo (row de 2)
     const hasReminder = i.reminder_minutes != null || activeFields.has('reminder_minutes');
