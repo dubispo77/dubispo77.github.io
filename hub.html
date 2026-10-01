@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-01T16:24:17-03:00">
+<meta name="hub-build" content="2026-10-01T16:31:16-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -12881,6 +12881,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   let currentItem = null;
   let editMode = false;
+  let tdmSujo = false;                  // true assim que o Eduardo mexe em qualquer campo em edição
   let activeFields = new Set(); // campos visíveis (preenchidos ou recém-adicionados)
   let favoritesCache = null;    // [{id, label, address, lat, lng, icon}, ...]
   // Autocomplete de endereço (Google Places)
@@ -13723,6 +13724,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   async function open(item) {
     currentItem = item;
     editMode = false;
+    tdmSujo = false;
     activeFields = new Set();
     elTitle.textContent = (window.hubTiraEmoji ? window.hubTiraEmoji(item.title, item.area) : item.title) || '(sem título)';
     // Header colorido pela área (ou gradient esmeralda Brasileirão)
@@ -14496,11 +14498,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }, 0);
   }
 
-  function close() {
+  async function close() {
+    // Mexeu e clicou fora (ou no X, ou Esc): salva sozinho antes de sumir.
+    // Se o salvar for cancelado ou der erro, o card fica aberto pra não perder a edição.
+    if (editMode && tdmSujo && currentItem) {
+      const ok = await tdmSalvar();
+      if (!ok) return;
+    }
     overlay.classList.remove('open');
     overlay.setAttribute('aria-hidden', 'true');
     currentItem = null;
     editMode = false;
+    tdmSujo = false;
     // Some do display só depois da animação de saída (se não reabriu no meio).
     setTimeout(() => { if (!overlay.classList.contains('open')) overlay.classList.remove('mostrando'); }, 400);
   }
@@ -14585,12 +14594,20 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   btnEdit.addEventListener('click', () => {
     editMode = true;
+    tdmSujo = false;
     btnEdit.style.display = 'none';
     btnSave.style.display = 'inline-block';
     renderBody();
   });
 
-  btnSave.addEventListener('click', async () => {
+  // Qualquer mexida num campo marca o card como sujo — é o que dispara o auto-salvar ao sair.
+  ['input', 'change'].forEach(ev => {
+    elBody.addEventListener(ev, e => {
+      if (editMode && e.target.closest('[data-edit]')) tdmSujo = true;
+    });
+  });
+
+  async function tdmSalvar() {
     if (!currentItem) return;
     if (window.hubTravado && window.hubTravado(currentItem)) { window.hubAvisoGoogle(); return; }
     const updates = {};
@@ -14672,10 +14689,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       window.syncToGcal && window.syncToGcal('update', currentItem.id);
     }
     editMode = false;
+    tdmSujo = false;
     btnEdit.style.display = 'inline-block';
     btnSave.style.display = 'none';
     renderBody();
-  });
+    return true;
+  }
+  btnSave.addEventListener('click', tdmSalvar);
 
   btnDel.addEventListener('click', async () => {
     if (!currentItem) return;
@@ -14694,6 +14714,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (error) { alert('Erro: ' + error.message); return; }
     }
     if (window.hubToast) window.hubToast('Apagado ✓');
+    tdmSujo = false; editMode = false;
     close();
   });
 
@@ -14704,6 +14725,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     if (window.hubTravado && window.hubTravado(currentItem)) { window.hubAvisoGoogle(); return; }
     const id = currentItem.id;
     const eraFeito = currentItem.status === 'done';
+    if (editMode && tdmSujo) await tdmSalvar();
+    tdmSujo = false; editMode = false;
     close();
     if (window.hubAcaoCard) {
       await window.hubAcaoCard(id, 'toggle');
