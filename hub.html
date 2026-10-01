@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-09-29T15:34:45-03:00">
+<meta name="hub-build" content="2026-10-01T16:15:03-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -16664,7 +16664,31 @@ function saldoDe(key) {
   DATA.transactions.forEach(t => { if (t.acc === key && t.d.slice(0, 7) === m) s += t.val; });
   // 28/09: pagamentos de fatura ficam escondidos da lista, mas SAEM da conta — entram no saldo do mês
   (DATA.hiddenPays || []).forEach(h => { if (h.acc === key && h.d.slice(0, 7) === m) s += h.val; });
+  // 01/10: fatura do mês ainda NÃO paga sai como previsão da conta que paga (Visa debita automático no Bradesco;
+  // Nubank cartão sai da conta Nubank). Sem isso, mês futuro aparecia positivo como se nenhuma fatura fosse paga.
+  FATURA_PAGA_POR.forEach(f => { if (f.conta === key) s -= faturaPrevistaMes(f.cartao, m); });
   return Math.round(s * 100) / 100;
+}
+// cartão → conta que paga + palavra do lançamento "Pagamento fatura X". MP não tem conta fixa (ago/set variou).
+const FATURA_PAGA_POR = [
+  { cartao: 'brad-card', conta: 'brad-cc', chave: 'Bradesco' },
+  { cartao: 'nub-card', conta: 'nub-cc', chave: 'Nubank' },
+  { cartao: 'mp-card', conta: null, chave: 'Mercado Pago' },
+];
+// valor da fatura do mês m que AINDA vai sair: 0 se o pagamento real já entrou; senão a soma dos itens do cartão
+function faturaPrevistaMes(cartao, m) {
+  const f = FATURA_PAGA_POR.find(x => x.cartao === cartao);
+  if (!f) return 0;
+  if (m < new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 7)) return 0; // mês passado: só o real
+  const jaPaga = (DATA.hiddenPays || []).some(h => h.d.slice(0, 7) === m && (h.desc || '').indexOf(f.chave) >= 0);
+  if (jaPaga) return 0;
+  const inv = DATA.invoices[cartao];
+  const cur = inv ? inv.hist.find(h => h.m === m) : null;
+  if (cur && cur.st === 'paga') return 0;
+  let tot = 0;
+  DATA.transactions.forEach(t => { if (t.acc === cartao && !t.tr && t.d.slice(0, 7) === m) tot -= t.val; });
+  if (cur && cur.total) tot = Math.max(cur.total - (cur.pago || 0), 0); // banco publicou: vale o número do banco
+  return Math.max(Math.round(tot * 100) / 100, 0);
 }
 function renderAccounts() {
   const strip = document.getElementById('accountsStrip');
@@ -16753,8 +16777,10 @@ function renderAccounts() {
   const rotulo = document.getElementById('stripRotuloMes');
   if (rotulo) rotulo.textContent = monthLabel(currentMonth).toUpperCase() + ' · MOVIMENTAÇÃO E FATURAS DO MÊS';
   if (!mini) return;
+  // contas + faturas do mês sem conta fixa (MP) — as de conta fixa já saem dentro do saldoDe da conta
   const totalMes = ORDER.filter(k => DATA.accounts[k].type !== 'credit')
-    .reduce((s2, k) => s2 + saldoDe(k), 0);
+    .reduce((s2, k) => s2 + saldoDe(k), 0)
+    - FATURA_PAGA_POR.filter(f => !f.conta).reduce((s2, f) => s2 + faturaPrevistaMes(f.cartao, currentMonth), 0);
   const miniHtml = key => {
     const a = DATA.accounts[key];
     const c1 = (ACC_GRAD[key] || ['#7c3aed'])[0];
@@ -16762,11 +16788,16 @@ function renderAccounts() {
     if (a.type === 'credit') {
       const inv = DATA.invoices[key];
       const cur = inv ? inv.hist.find(h => h.m === currentMonth) : null;
-      valor = cur ? fmt(cur.total) : '—';
-      sub = 'fatura do mês';
+      if (cur) { valor = fmt(cur.total); sub = 'fatura do mês'; }
+      else {
+        // banco ainda não publicou: soma dos itens do cartão no mês (conferidos + previstos)
+        const prev = -DATA.transactions.filter(t => t.acc === key && !t.tr && t.d.slice(0, 7) === currentMonth).reduce((s2, t) => s2 + t.val, 0);
+        valor = prev > 0.005 ? fmt(prev) : '—';
+        sub = prev > 0.005 ? 'fatura prevista' : 'fatura do mês';
+      }
     } else {
       valor = fmtS(saldoDe(key));
-      sub = 'entrou − saiu no mês';
+      sub = currentMonth >= MES_HOJE ? 'entra − sai no mês (c/ faturas)' : 'entrou − saiu no mês';
     }
     const c2 = (ACC_GRAD[key] || ['#7c3aed', '#4c1d95'])[1];
     return '<div class="mini-card' + sel(key) + '" data-selacc="' + key + '" style="border-color:' + c2 + ';color:white;background:linear-gradient(135deg,' + c1 + ',' + c2 + ')">'
@@ -16774,7 +16805,7 @@ function renderAccounts() {
   };
   mini.innerHTML =
     '<div class="mini-card' + sel('all') + '" data-selacc="all" style="border-color:#1f2937;color:white;background:linear-gradient(135deg,#4b5563,#1f2937)">'
-    + 'Todas as contas<b>' + fmtS(totalMes) + '</b><div class="mc-sub">entrou − saiu (contas)</div></div>'
+    + 'Todas as contas<b>' + fmtS(totalMes) + '</b><div class="mc-sub">' + (currentMonth >= MES_HOJE ? 'entra − sai (c/ faturas)' : 'entrou − saiu (contas)') + '</div></div>'
     + ORDER.map(miniHtml).join('');
 }
 document.addEventListener('click', e => {
@@ -19043,7 +19074,7 @@ function finAviso(msg) {
         if (!acc) return;
         // pagamento de fatura fica no banco (conciliação) mas não aparece na UI — o valor já está nas compras do cartão
         // (guardado à parte porque afeta o saldo histórico da conta débito)
-        if ((r.description_clean || r.description || '').startsWith('Pagamento fatura')) { DATA.hiddenPays.push({ acc, d: r.date, val: parseFloat(r.amount) }); return; }
+        if ((r.description_clean || r.description || '').startsWith('Pagamento fatura')) { DATA.hiddenPays.push({ acc, d: r.date, val: parseFloat(r.amount), desc: (r.description_clean || r.description || '') }); return; }
         mesesSet.add(r.date.slice(0, 7));
         DATA.transactions.push({
           id: r.id, sf: r.source_file, pd: r.purchase_date || undefined, bill: r.bill || undefined, manual: r.lote === 'manual' || undefined,
