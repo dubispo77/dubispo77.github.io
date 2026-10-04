@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-03T20:37:49-03:00">
+<meta name="hub-build" content="2026-10-04T10:41:05-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -19106,6 +19106,20 @@ const finMob = (() => {
 #finMob .fm-acts button{flex:1;border:0;border-radius:12px;padding:12px 0;font:800 14px inherit;font-family:inherit;cursor:pointer;background:#f1eff7;color:#3b3550}
 #finMob .fm-acts .ok{background:#16a34a;color:#fff;flex:1.6}
 #finMob .fm-acts button:disabled{opacity:.5}
+#finMob .fm-row2{display:flex;gap:8px;margin-top:10px;align-items:stretch}
+#finMob .fm-sel{flex:1;min-width:0;position:relative}
+#finMob .fm-sel select{width:100%;-webkit-appearance:none;appearance:none;border:1.5px solid #e3dfee;background:#faf9fc;border-radius:12px;padding:10px 30px 10px 12px;font:600 13.5px inherit;font-family:inherit;color:#1a1828}
+#finMob .fm-sel:after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#8a8398;pointer-events:none}
+#finMob .fm-fixo{flex:none;display:flex;align-items:center;gap:7px;border:1.5px solid #e3dfee;background:#faf9fc;border-radius:12px;padding:0 12px;font:700 12.5px inherit;font-family:inherit;color:#4b4558;cursor:pointer}
+#finMob .fm-fixo i{width:18px;height:18px;border-radius:5px;border:2px solid #c9c2d6;display:grid;place-items:center;font-style:normal;font-size:11px;color:#fff}
+#finMob .fm-fixo.on{border-color:#6d28d9;background:#f3efff;color:#5b21b6}
+#finMob .fm-fixo.on i{background:#6d28d9;border-color:#6d28d9}
+#finMob .fm-fixo.off{opacity:.45}
+#finMob .fm-vinc{margin-top:10px;border-radius:12px;padding:10px 12px;font-size:12.5px;display:flex;align-items:center;gap:8px}
+#finMob .fm-vinc.sug{background:#fffbeb;border:1px dashed #f59e0b;color:#92400e}
+#finMob .fm-vinc.ok{background:#f3efff;border:1px solid #c4b5fd;color:#4c1d95}
+#finMob .fm-vinc button{flex:none;border:0;border-radius:9px;padding:7px 10px;font:800 12px inherit;font-family:inherit;cursor:pointer;background:#fff;color:#4c1d95;border:1px solid #c4b5fd}
+#finMob .fm-hintfx{font-size:11.5px;color:#4c3f9e;margin-top:6px}
 #finMob .fm-vazio{margin:40px 24px;text-align:center;color:#7a7389}
 #finMob .fm-vazio b{display:block;font-size:40px;margin-bottom:8px;color:#16a34a}
 #finMobVeu{position:fixed;inset:0;background:rgba(15,10,30,.38);z-index:9000;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -19133,6 +19147,13 @@ const finMob = (() => {
 #finMobGav .rap button{flex:1;border:1px solid #e3dfee;background:#faf9fc;border-radius:10px;padding:9px 0;font:700 12.5px inherit;font-family:inherit;color:#4b4558;cursor:pointer}
 #finMobGav .prev{font-size:12.5px;margin-top:12px;padding:10px 12px;border-radius:12px;background:#f6f5fa;color:#4b4558}
 #finMobGav .sv{width:100%;margin-top:14px;border:0;border-radius:14px;padding:14px;font:800 15px inherit;font-family:inherit;background:#6d28d9;color:#fff;cursor:pointer}
+#finMobGav .busca{width:100%;border:1.5px solid #e3dfee;border-radius:12px;padding:11px 12px;font:15px inherit;font-family:inherit;margin:10px 0 8px;background:#faf9fc}
+#finMobGav .lst{max-height:46vh;overflow-y:auto;margin:0 -4px;padding:0 4px}
+#finMobGav .pv{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid #f1eff6;cursor:pointer}
+#finMobGav .pv:active{background:#f6f5fa}
+#finMobGav .pv .d{font-size:11.5px;color:#8a8398}
+#finMobGav .pv .dif{font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;background:#f1eff7;color:#6b637a;white-space:nowrap}
+#finMobGav .pv .dif.perto{background:#dcfce7;color:#15803d}
 #finMobGav .pos{color:#16a34a}#finMobGav .neg{color:#dc2626}#finMobGav .mut{color:#8a8398}`;
 
   const R = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -19143,7 +19164,7 @@ const finMob = (() => {
   const ico = (slug, st) => { const c = catInfo(slug); return `<div class="fm-ic" style="background:${c.cor}22;color:${c.cor}"><svg><use href="#${c.ic}"/></svg>${st ? `<span class="st" style="background:${st}"></span>` : ''}</div>`; };
   const COR_ST = { paid: '#16a34a', half: '#14b8a6', pending: '#f59e0b', overdue: '#dc2626' };
   const ORD = ['brad-cc', 'brad-card', 'nub-cc', 'nub-card', 'mp-card', 'nub-pj', 'itau', 'nub-caixinha'];
-  const mesCurto = m => { const [y, mm] = m.split('-'); return ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][+mm - 1] + '/' + y.slice(2); };
+  const mesCurto = m => { if (!m) return '—'; const [y, mm] = String(m).split('-'); return ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][+mm - 1] + '/' + y.slice(2); };
 
   function faturaMes(k, m) {
     const inv = DATA.invoices[k];
@@ -19235,14 +19256,79 @@ const finMob = (() => {
       const sin = (r.ev && Array.isArray(r.ev.sinais)) ? r.ev.sinais : [];
       const raw = String(r.raw || '').split(' · ')[0];
       const nota = String(r.raw || '').split(' · ').slice(1).join(' · ');
+      const pT = r.parcela ? parseInt(String(r.parcela).split('/')[1], 10) : 0;
+      const fixoOff = !!(pT && pT > 1);
+      const cand = cfCand(r);
+      const vinc = r.vinculo
+        ? `<div class="fm-vinc ok">🔗 <span class="sp">Vinculado a <b>${esc(r.vinculo.desc)}</b> (${R(Number(r.vinculo.valor) || 0)}) — sai do planejamento ao aprovar</span><button data-fm-desv="${esc(r.id)}">desfazer</button></div>`
+        : cand ? `<div class="fm-vinc sug">💡 <span class="sp">Parece <b>${esc(cand.desc)}</b> (${R(cand.valor)})</span><button data-fm-usa="${esc(r.id)}">usar</button></div>` : '';
       return `<div class="fm-cf"><div class="raw">${esc(raw)}</div><div class="nm">${esc(r.desc)}</div>
         <div class="val ${r.valor < 0 ? 'neg' : 'pos'}">${RS(r.valor)}${r.parcela ? ` <span class="mut" style="font-size:14px">${esc(r.parcela)}</span>` : ''}</div>
         ${nota ? `<div class="nota">${esc(nota)}</div>` : ''}
-        <div class="fm-chips"><span class="fm-chip">${r.k === 'cartao' ? '💳' : '🏦'} ${esc(r.bloco || '')}</span><span class="fm-chip">${esc(r.cat || '')}</span>${r.dia ? `<span class="fm-chip">${esc(r.dia)}</span>` : ''}${sin.map(s => `<span class="fm-chip">${esc(s)}</span>`).join('')}</div>
-        <div class="fm-acts"><button class="ok" data-fm-ok="${esc(r.id)}">✓ Aprovar</button><button data-fm-nome="${esc(r.id)}">✎ Nome</button></div></div>`;
+        <div class="fm-chips"><span class="fm-chip">${r.k === 'cartao' ? '💳' : '🏦'} ${esc(r.bloco || '')}</span>${r.dia ? `<span class="fm-chip">${esc(r.dia)}</span>` : ''}${sin.map(x => `<span class="fm-chip">${esc(x)}</span>`).join('')}</div>
+        ${vinc}
+        <div class="fm-row2"><label class="fm-sel">${cfCatSelect(r.id, r.cat, r.valor).replace('class="cf-cat"', 'data-fm-cat="' + esc(r.id) + '"')}</label>
+          <button class="fm-fixo ${fixoOff ? 'off' : r._fixo ? 'on' : ''}" data-fm-fixo="${esc(r.id)}"><i>${r._fixo && !fixoOff ? '✓' : ''}</i>🔁 Fixo</button></div>
+        ${r._fixo && !fixoOff ? '<div class="fm-hintfx">Ao aprovar, vira gasto fixo: previsto todo mês daqui pra frente.</div>' : ''}
+        <div class="fm-acts"><button class="ok" data-fm-ok="${esc(r.id)}">✓ Aprovar</button><button data-fm-nome="${esc(r.id)}">✎ Nome</button><button data-fm-vinc="${esc(r.id)}">🔗 Vincular</button></div></div>`;
     }).join('');
     return topo('Conferir', CONF.length ? CONF.length + ' esperando o seu ✓' : 'tudo conferido') +
       (itens || '<div class="fm-vazio"><b>✓</b>Nada pra conferir.<br>O motor roda às 6h30 e às 17h.</div>');
+  }
+  // mesma gravação do cfVincula do desktop (import_review.vinculo/descricao/categoria/parcela/evidencia/flag)
+  async function vincula(r, f) {
+    const v = { desc: f.description, valor: Number(f.amount), n: f.installment_current || null, total: f.installment_total || null, tipo: f.source_file };
+    const difV = Math.round(Math.abs(Number(f.amount) - r.valor) * 100) / 100;
+    const evV = Object.assign({}, r.ev || {}, { previsto: f.description, previsto_valor: Number(f.amount), diferenca: difV, gasto_novo: false, sinais: ['vínculo manual do Eduardo'] });
+    if (r.k === 'cartao') {
+      const { error } = await window.sbClient.from('import_review').update({
+        vinculo: v, descricao: f.description, categoria: f.category || r.cat,
+        n_atual: f.installment_current || null, n_total: f.installment_total || null,
+        parcela: f.installment_total ? (f.installment_current + '/' + f.installment_total) : null,
+        evidencia: evV, flag: 'planejado', updated_at: new Date().toISOString(),
+      }).eq('id', r.id);
+      if (error) throw error;
+      r.flag = 'planejado';
+      r.parcela = f.installment_total ? (f.installment_current + '/' + f.installment_total) : null;
+    }
+    r.vinculo = v; r.desc = f.description; r.cat = f.category || r.cat; r.ev = evV;
+    window.__revJson = null;
+  }
+  async function abreVinculo(r) {
+    let veu = document.getElementById('finMobVeu'), gav = document.getElementById('finMobGav');
+    if (!veu) { veu = document.createElement('div'); veu.id = 'finMobVeu'; document.body.appendChild(veu); veu.onclick = fechaMeta; }
+    if (!gav) { gav = document.createElement('div'); gav.id = 'finMobGav'; document.body.appendChild(gav); }
+    gav.innerHTML = `<div class="pux"></div><b style="font-size:17px">Vincular a uma previsão</b><div class="mut" style="font-size:12.5px;margin-top:2px">${esc(r.desc)} · ${RS(r.valor)}</div>
+      <input class="busca" id="fmBusca" placeholder="🔍 buscar previsão…" autocomplete="off"><div class="lst" id="fmLst"><div class="mut" style="padding:14px 4px">carregando previsões…</div></div>`;
+    veu.classList.add('on'); requestAnimationFrame(() => gav.classList.add('on'));
+    if (!r._prevs) {
+      try {
+        const bill = r.bill || String(r.pd || '').slice(0, 7);
+        const { data, error } = await window.sbClient.from('transactions')
+          .select('description,category,amount,installment_current,installment_total,source_file,raw,account_id,date')
+          .eq('source', 'forecast').in('source_file', ['projecao', 'recorrencia']);
+        if (error) throw error;
+        r._prevs = (data || []).filter(f => ((f.raw || {}).bill || String(f.date || '').slice(0, 7)) === bill)
+          .sort((a, b) => ((a.account_id === r.account_id) === (b.account_id === r.account_id))
+            ? Math.abs(Number(a.amount) - r.valor) - Math.abs(Number(b.amount) - r.valor)
+            : (a.account_id === r.account_id ? -1 : 1));
+      } catch (e) { document.getElementById('fmLst').innerHTML = '<div class="neg" style="padding:14px 4px">Erro ao buscar previsões: ' + esc(e.message || e) + '</div>'; return; }
+    }
+    const nomeConta = id => { const k = (window.__accIdToKey || {})[id]; return k && DATA.accounts[k] ? DATA.accounts[k].name : ''; };
+    const desenha = q => {
+      const ls = r._prevs.map((f, i) => ({ f, i })).filter(x => !q || String(x.f.description).toLowerCase().includes(q));
+      document.getElementById('fmLst').innerHTML = ls.length ? ls.map(({ f, i }) => {
+        const d = Math.abs(Number(f.amount) - r.valor), outra = f.account_id && f.account_id !== r.account_id;
+        return `<div class="pv" data-fm-pv="${i}"><div class="sp"><div class="ell" style="font-weight:700">${esc(f.description)}</div><div class="d">${f.installment_total ? f.installment_current + '/' + f.installment_total + ' · ' : 'fixo · '}${R(Number(f.amount))}${outra && nomeConta(f.account_id) ? ' · previsto no ' + esc(nomeConta(f.account_id)) : ''}</div></div><span class="dif ${d <= 5 ? 'perto' : ''}">${d <= 0.005 ? 'exato' : 'Δ ' + R(d)}</span></div>`;
+      }).join('') : '<div class="mut" style="padding:14px 4px">Nenhuma previsão neste mês' + (q ? ' com "' + esc(q) + '"' : '') + '.</div>';
+      gav.querySelectorAll('[data-fm-pv]').forEach(el => el.onclick = async () => {
+        const f = r._prevs[+el.dataset.fmPv];
+        try { await vincula(r, f); fechaMeta(); finToast('🔗 Vinculado a "' + f.description + '"'); render(); }
+        catch (e) { finToast('✗ NÃO salvou: ' + (e.message || e), true); }
+      });
+    };
+    desenha('');
+    const b = document.getElementById('fmBusca'); b.oninput = () => desenha(b.value.trim().toLowerCase());
   }
 
   function render() {
@@ -19252,9 +19338,11 @@ const finMob = (() => {
       const st = document.createElement('style'); st.id = 'finMobCss'; st.textContent = CSS; document.head.appendChild(st);
       root = document.createElement('div'); root.id = 'finMob'; fin.prepend(root);
       root.addEventListener('click', clique);
+      root.addEventListener('change', trocaCat);
     }
     const y = root.closest('.main') ? root.closest('.main').scrollTop : 0;
     const n = CONF.length;
+    if (!currentMonth) { root.innerHTML = '<div class="fm-vazio" style="margin-top:80px">Carregando as finanças…</div>'; return; }
     root.innerHTML = `<div class="fm-tabs"><button data-fm-aba="plan" class="${aba === 'plan' ? 'on' : ''}">🎯 Planejamento</button><button data-fm-aba="cart" class="${aba === 'cart' ? 'on' : ''}">💳 Carteira</button><button data-fm-aba="conf" class="${aba === 'conf' ? 'on' : ''}">✓ Conferir${n ? `<span class="fm-bd">${n}</span>` : ''}</button></div>` +
       (aba === 'cart' ? vCart() : aba === 'conf' ? vConf() : vPlan());
     if (window.twemoji) try { twemoji.parse(root, { folder: 'svg', ext: '.svg' }); } catch (_) {}
@@ -19301,8 +19389,51 @@ const finMob = (() => {
     if (nm) {
       const r = CONF.find(x => String(x.id) === nm.dataset.fmNome); if (!r) return;
       const novo = prompt('Nome do lançamento:', r.desc || '');
-      if (novo && novo.trim()) { r.desc = novo.trim(); render(); }
+      if (novo && novo.trim() && novo.trim() !== r.desc) {
+        r.desc = novo.trim(); window.__revJson = null; render();
+        if (r.k === 'cartao') {
+          const { error } = await window.sbClient.from('import_review').update({ descricao: r.desc, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
+          if (error) finToast('✗ NÃO salvou: ' + error.message, true); else { r.flag = 'firme'; finToast('✓ Nome salvo'); }
+        }
+      }
+      return;
     }
+    const fx = e.target.closest('[data-fm-fixo]');
+    if (fx) {
+      if (fx.classList.contains('off')) { finToast('Compra parcelada não vira gasto fixo — as parcelas já entram sozinhas', true); return; }
+      const r = CONF.find(x => String(x.id) === fx.dataset.fmFixo); if (!r) return;
+      r._fixo = !r._fixo; render(); return;
+    }
+    const vc = e.target.closest('[data-fm-vinc]');
+    if (vc) { const r = CONF.find(x => String(x.id) === vc.dataset.fmVinc); if (r) abreVinculo(r); return; }
+    const us = e.target.closest('[data-fm-usa]');
+    if (us) {
+      const r = CONF.find(x => String(x.id) === us.dataset.fmUsa); if (!r) return;
+      const c = cfCand(r); if (!c) return;
+      const f = { description: c.desc, amount: c.valor, installment_current: c.n, installment_total: c.total, source_file: c.tipo || 'recorrencia', category: c.category };
+      try { await vincula(r, f); finToast('🔗 Vinculado a "' + c.desc + '"'); render(); } catch (err) { finToast('✗ NÃO salvou: ' + (err.message || err), true); }
+      return;
+    }
+    const dv = e.target.closest('[data-fm-desv]');
+    if (dv) {
+      const r = CONF.find(x => String(x.id) === dv.dataset.fmDesv); if (!r) return;
+      if (r.k === 'cartao') {
+        const evN = Object.assign({}, r.ev || {}, { previsto: null, previsto_valor: null, diferenca: null, gasto_novo: true, sinais: ['gasto novo confirmado pelo Eduardo'] });
+        const { error } = await window.sbClient.from('import_review').update({ vinculo: null, evidencia: evN, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
+        if (error) { finToast('✗ NÃO salvou: ' + error.message, true); return; }
+        r.ev = evN; r.flag = 'firme';
+      }
+      r.vinculo = null; window.__revJson = null; finToast('Vínculo desfeito — entra como gasto novo'); render();
+    }
+  }
+  async function trocaCat(e) {
+    const sel = e.target.closest('[data-fm-cat]'); if (!sel) return;
+    const r = CONF.find(x => String(x.id) === sel.dataset.fmCat); if (!r) return;
+    r.cat = sel.value; window.__revJson = null;
+    if (r.k === 'cartao') {
+      const { error } = await window.sbClient.from('import_review').update({ categoria: sel.value, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
+      if (error) finToast('✗ NÃO salvou: ' + error.message, true); else { r.flag = 'firme'; finToast('✓ Categoria: ' + (sel.value === 'TRANSFER' ? 'Transferência' : sel.value)); }
+    } else finToast('✓ Categoria: ' + (sel.value === 'TRANSFER' ? 'Transferência' : sel.value));
   }
 
   // ===== gaveta: mudar a meta do mês (mesma tabela do desktop) =====
