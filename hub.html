@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-04T10:41:05-03:00">
+<meta name="hub-build" content="2026-10-04T11:04:10-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -19046,6 +19046,18 @@ const finMob = (() => {
 #finMob .fm-mes{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:#6d28d9}
 #finMob .fm-mes button{border:0;background:#ede9fe;color:#6d28d9;font:800 14px inherit;border-radius:8px;padding:4px 10px;cursor:pointer}
 #finMob .fm-sub{margin:2px 18px 12px;color:#7a7389;font-size:13px}
+#finMob .fm-mesbar{display:flex;align-items:center;gap:8px;margin:10px 14px 4px}
+#finMob .fm-mesbar .seta{flex:none;width:52px;height:48px;border:0;border-radius:14px;background:#ede9fe;color:#6d28d9;font:800 24px inherit;font-family:inherit;cursor:pointer;display:grid;place-items:center}
+#finMob .fm-mesbar .seta:active{background:#ddd6fe}
+#finMob .fm-mesbar .seta:disabled{opacity:.3}
+#finMob .fm-mesbar .lbl{flex:1;height:48px;border:1.5px solid #e3dfee;border-radius:14px;background:#fff;font:800 18px inherit;font-family:inherit;color:#1a1828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+#finMob .fm-mesbar .lbl small{font-size:13px;color:#8a8398;font-weight:700}
+#finMobGav .ano{font-size:13px;font-weight:800;color:#7a7389;margin:14px 2px 6px}
+#finMobGav .meses{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#finMobGav .meses button{height:46px;border:1.5px solid #e3dfee;border-radius:12px;background:#faf9fc;font:700 14px inherit;font-family:inherit;color:#4b4558;cursor:pointer}
+#finMobGav .meses button.on{background:#6d28d9;border-color:#6d28d9;color:#fff}
+#finMobGav .meses button.hj{border-color:#6d28d9;color:#5b21b6}
+#finMobGav .atalho{width:100%;margin-top:16px;border:0;border-radius:14px;padding:13px;font:800 15px inherit;font-family:inherit;background:#f3efff;color:#5b21b6;cursor:pointer}
 #finMob .pos{color:#16a34a}#finMob .neg{color:#dc2626}#finMob .mut{color:#8a8398}
 #finMob .sp{flex:1;min-width:0}#finMob .ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #finMob .fm-alerta{margin:0 14px 12px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer}
@@ -19189,8 +19201,32 @@ const finMob = (() => {
     return { cats, metas, rec, pagas, prev, gasto: pagas + prev, bal: rec - metas, fats };
   }
 
+  const MESES_LONGO = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  const mesLongo = m => { if (!m) return '—'; const [y, mm] = String(m).split('-'); return MESES_LONGO[+mm - 1] + ' <small>' + y + '</small>'; };
   function topo(titulo, sub) {
-    return `<div class="fm-hd"><h3>${titulo}</h3><div class="fm-mes"><button data-fm-mes="-1">‹</button>${mesCurto(currentMonth)}<button data-fm-mes="1">›</button></div></div>${sub ? `<div class="fm-sub">${sub}</div>` : ''}`;
+    const i = MONTHS.indexOf(currentMonth);
+    return `<div class="fm-hd"><h3>${titulo}</h3></div>
+      <div class="fm-mesbar"><button class="seta" data-fm-mes="-1" ${i <= 0 ? 'disabled' : ''} aria-label="mês anterior">‹</button>
+        <button class="lbl" data-fm-meses>${mesLongo(currentMonth)} ▾</button>
+        <button class="seta" data-fm-mes="1" ${i >= MONTHS.length - 1 ? 'disabled' : ''} aria-label="próximo mês">›</button></div>
+      ${sub ? `<div class="fm-sub">${sub}</div>` : ''}`;
+  }
+  function abreMeses() {
+    let veu = document.getElementById('finMobVeu'), gav = document.getElementById('finMobGav');
+    if (!veu) { veu = document.createElement('div'); veu.id = 'finMobVeu'; document.body.appendChild(veu); veu.onclick = fechaMeta; }
+    if (!gav) { gav = document.createElement('div'); gav.id = 'finMobGav'; document.body.appendChild(gav); }
+    const hoje = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 7);
+    const porAno = {}; MONTHS.forEach(m => (porAno[m.slice(0, 4)] = porAno[m.slice(0, 4)] || []).push(m));
+    const abrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    gav.innerHTML = `<div class="pux"></div><b style="font-size:17px">Escolher mês</b>` +
+      Object.keys(porAno).sort().reverse().map(y => `<div class="ano">${y}</div><div class="meses">${porAno[y].map(m => `<button data-ir="${m}" class="${m === currentMonth ? 'on' : ''} ${m === hoje && m !== currentMonth ? 'hj' : ''}">${abrev[+m.slice(5) - 1]}</button>`).join('')}</div>`).join('') +
+      (MONTHS.includes(hoje) && hoje !== currentMonth ? `<button class="atalho" data-ir="${hoje}">Ir pro mês atual</button>` : '');
+    gav.style.maxHeight = '80vh'; gav.style.overflowY = 'auto';
+    gav.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => {
+      const alvo = b.dataset.ir, d = MONTHS.indexOf(alvo) - MONTHS.indexOf(currentMonth);
+      fechaMeta(); if (d) changeMonth(d);
+    });
+    veu.classList.add('on'); requestAnimationFrame(() => gav.classList.add('on'));
   }
   function vPlan() {
     const m = currentMonth, P = calcPlan(m);
@@ -19368,7 +19404,8 @@ const finMob = (() => {
     const a = e.target.closest('[data-fm-aba]');
     if (a) { aba = a.dataset.fmAba; store.set('hub_finmob_aba', aba); render(); const mn = root.closest('.main'); if (mn) mn.scrollTop = 0; return; }
     const mm = e.target.closest('[data-fm-mes]');
-    if (mm) { changeMonth(+mm.dataset.fmMes); return; }
+    if (mm) { if (!mm.disabled) changeMonth(+mm.dataset.fmMes); return; }
+    if (e.target.closest('[data-fm-meses]')) { abreMeses(); return; }
     const mt = e.target.closest('[data-fm-meta]');
     if (mt) { abreMeta(mt.dataset.fmMeta); return; }
     const ok = e.target.closest('[data-fm-ok]');
