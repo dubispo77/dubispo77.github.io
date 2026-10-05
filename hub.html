@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-05T19:00:52-03:00">
+<meta name="hub-build" content="2026-10-05T19:07:34-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -12265,6 +12265,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
           return;
         }
         if (act === 'toggle') {
+          if (window.hubToqueVazado && window.hubToqueVazado(id, 'toggle')) return;
           const item = itemsCache.find(i => i.id === id);
           if (!item) return;
           const newStatus = item.is_done ? 'planned' : 'done';
@@ -12317,7 +12318,34 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   });
   // 28/09: o corpo virou função pra que o gesto de arrastar no celular passe pelo
   // MESMO caminho — trava do Google, pergunta de série, toast, reload. Sem cópia.
+  // 05/10: toques vazando pro fundo concluíam tarefas sozinhas enquanto o Eduardo
+  // mudava a DATA pela ficha (3 itens concluídos em 40s, dois deles com a ficha de
+  // OUTRO item aberta). Escudo: concluir/apagar só passa se não houver seletor no ar
+  // e, com a ficha aberta, só pro item que está nela.
+  function hubToqueVazado(id, act) {
+    if (act !== 'toggle' && act !== 'del') return false;
+    const noAr = (sel) => {
+      const el = document.querySelector(sel);
+      return !!el && getComputedStyle(el).display !== 'none';
+    };
+    if (noAr('#hubDatePickerPop.open') || noAr('#hubTimePickerPop.open') || noAr('#hubSerieOv')) {
+      console.warn('[escudo] ignorei', act, id, '— seletor de data/hora/série aberto');
+      return true;
+    }
+    const ov = document.getElementById('tdmOverlay');
+    if (ov && ov.classList.contains('open') && window.hubCardAberto) {
+      const real = String(id).includes('#') ? String(id).split('#')[0] : String(id);
+      if (real !== window.hubCardAberto) {
+        console.warn('[escudo] ignorei', act, id, '— a ficha aberta é de', window.hubCardAberto);
+        return true;
+      }
+    }
+    return false;
+  }
+  window.hubToqueVazado = hubToqueVazado;
+
   window.hubAcaoCard = async function(id, act, btn) {
+    if (hubToqueVazado(id, act)) return;
     // Concluir/apagar muda a contagem de hoje: pede o recálculo sem esperar o realtime.
     setTimeout(() => { if (window.hubUpdateBadges) window.hubUpdateBadges(); }, 400);
     if (!sb || !session) return;
@@ -13907,6 +13935,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
 
   async function open(item) {
     currentItem = item;
+    window.hubCardAberto = item.id;
     editMode = false;
     tdmSujo = false;
     activeFields = new Set();
@@ -14692,6 +14721,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     overlay.classList.remove('open');
     overlay.setAttribute('aria-hidden', 'true');
     currentItem = null;
+    window.hubCardAberto = null;
     editMode = false;
     tdmSujo = false;
     // Some do display só depois da animação de saída (se não reabriu no meio).
