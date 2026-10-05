@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-04T11:08:48-03:00">
+<meta name="hub-build" content="2026-10-05T19:00:52-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2227,6 +2227,121 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #g30 .g-gauge{margin:10px 0 14px}#g30 .g-gauge .t{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;color:var(--g-ink)}#g30 .g-gauge .b{height:14px;border-radius:7px;background:var(--g-grid);overflow:hidden;display:flex}#g30 .g-gauge .b span{height:100%}
 #g30 .g-sim{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:4px 0 8px;font-size:12.5px;color:var(--g-ink)}#g30 .g-sim input{width:230px}
 #g30tt{position:fixed;pointer-events:none;background:#1f1b2d;color:#fff;font-size:12px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .1s;z-index:9999;max-width:280px;box-shadow:0 4px 14px rgba(0,0,0,.25);left:0;top:0}
+
+/* ══════════ ABA CALORIAS (05/10/2026) ══════════ */
+#calorias .kc-tile{background:#fff;border:1px solid var(--border-soft);border-radius:22px;padding:20px;position:relative;overflow:hidden}
+#calorias .kc-lbl,.kc-dr .kc-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint)}
+#calorias .kc-num{font-weight:850;letter-spacing:-.04em;line-height:1}
+.kc-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.kc-src{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;letter-spacing:.02em;white-space:nowrap;display:inline-block}
+.kc-src.taco{background:#dcfce7;color:#15803d}.kc-src.meu{background:#ede9fe;color:#5b21b6}.kc-src.rotulo{background:#fef3c7;color:#b45309}.kc-src.estimativa{background:#f1f5f9;color:#475569}.kc-src.web{background:#e0f2fe;color:#0369a1}
+.kc-btn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:650;font-family:inherit;padding:8px 14px;border-radius:12px;border:1px solid var(--border);background:#fff;color:var(--text);cursor:pointer;line-height:1.2;white-space:nowrap}
+.kc-btn:hover{background:#faf9fd}
+.kc-btn.pri{background:#1a1828;color:#fff;border-color:#1a1828}.kc-btn.pri:hover{background:#2d2840}
+.kc-btn.ok{background:#16a34a;color:#fff;border-color:#16a34a}.kc-btn.ok:hover{background:#15803d}
+.kc-btn.danger{color:#dc2626;border-color:#fecaca;background:#fff5f5}
+.kc-btn.soft{color:#5b4fcf;border-color:#c4b5fd;background:#f5f3ff}
+.kc-btn[disabled]{opacity:.5;pointer-events:none}
+#calorias .kc-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+#calorias .kc-bento{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+#kcHero{grid-column:span 2;grid-row:span 2;background:#1a1828!important;color:#fff;border:0!important;display:flex;flex-direction:column}
+#kcHero.over{background:linear-gradient(160deg,#2a1420 0%,#1a1828 70%)!important;box-shadow:0 0 0 2px #fb7185,0 18px 40px rgba(251,113,133,.25)}
+#kcHero .kc-big{font-size:clamp(60px,6.6vw,108px);white-space:nowrap}
+#kcHero .kc-box{flex:1;background:#ffffff0d;border:1px solid #ffffff14;border-radius:16px;padding:12px 16px;min-width:0}
+#kcHero .kc-mrow{display:grid;grid-template-columns:96px 1fr 130px;gap:12px;align-items:center;padding:7px 0}
+.kc-chip{cursor:pointer}
+.kc-meal{display:flex;justify-content:space-between;align-items:center;padding:11px 10px;margin:0 -10px;border-radius:14px;cursor:pointer;transition:background .12s}
+.kc-meal:hover{background:#f7f6fb}
+.kc-meal .kc-ed{opacity:0;font-size:12px;font-weight:650;color:#5b4fcf;background:#ede9fe;border-radius:8px;padding:4px 9px;margin-left:12px;transition:opacity .12s}
+.kc-meal:hover .kc-ed{opacity:1}
+.kc-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex-shrink:0}
+.kc-seg{display:inline-flex;background:#f1eff8;border-radius:12px;padding:3px}
+.kc-seg span{font-size:12.5px;font-weight:650;padding:6px 12px;border-radius:9px;color:var(--text-dim);cursor:pointer}
+.kc-seg span.on{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(30,20,60,.12)}
+.kc-stat{background:#f7f6fb;border-radius:14px;padding:10px 12px;min-width:0}
+.kc-hb{transition:filter .1s}.kc-hb:hover{filter:brightness(.93)}
+.kc-dot{background:#ef4444;color:#fff;border-radius:99px;font-size:11px;font-weight:800;min-width:20px;height:20px;padding:0 6px;display:inline-grid;place-items:center;line-height:1}
+/* conferência */
+.kc-cfp{background:#fff;border:1.5px solid #ddd9e8;border-radius:16px;padding:14px 18px;margin-bottom:16px}
+.kc-cfp summary{list-style:none;display:flex;align-items:center;gap:8px;font-weight:750;font-size:14.5px;cursor:pointer}
+.kc-cfp summary::-webkit-details-marker{display:none}
+.kc-cft{width:100%;border-collapse:collapse;font-size:13px}
+.kc-cft th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);padding:8px;border-bottom:1px solid var(--border-soft)}
+.kc-cft td{padding:10px 8px;border-bottom:1px solid #f2f0f7;vertical-align:middle}
+.kc-cft tr.kc-cfrow{cursor:pointer}.kc-cft tr.kc-cfrow:hover td{background:#faf9fd}
+.kc-thumb{width:64px;height:48px;border-radius:10px;object-fit:cover;display:block;background:#eee}
+.kc-gchip{display:inline-block;font-size:11.5px;font-weight:600;background:#f5f4f9;border:1px solid var(--border-soft);border-radius:99px;padding:3px 9px;margin:2px 4px 2px 0}
+.kc-okbtn{width:34px;height:34px;border-radius:10px;background:#16a34a;color:#fff;display:grid;place-items:center;font-weight:800;cursor:pointer;border:0}
+.kc-photo{position:relative;border-radius:16px;overflow:hidden;line-height:0;align-self:start;background:#16141f}
+.kc-photo img{width:100%;display:block}
+.kc-photo.pinmode{cursor:crosshair;box-shadow:0 0 0 3px #7c3aed}
+.kc-pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:#fff;color:#1a1828;font:800 12px/1 -apple-system,Inter,sans-serif;display:grid;place-items:center;box-shadow:0 0 0 3px #7c3aed,0 4px 10px rgba(0,0,0,.35)}
+.kc-pinn{width:22px;height:22px;border-radius:50%;background:#7c3aed;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0}
+/* editor de alimentos */
+.kc-it{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border-soft);border-radius:14px;margin-bottom:7px;background:#fff}
+.kc-step{display:flex;align-items:center;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0}
+.kc-step b{width:28px;height:30px;display:grid;place-items:center;cursor:pointer;color:var(--text-dim);font-size:15px;user-select:none}
+.kc-step b:hover{background:#f5f4f9}
+.kc-step input{width:48px;border:0;text-align:center;font-size:13px;font-weight:700;font-family:inherit;outline:none;background:transparent;color:var(--text)}
+.kc-trash{cursor:pointer;opacity:.45;padding:4px;font-size:14px}.kc-trash:hover{opacity:1}
+.kc-inp{width:100%;font-size:14px;font-weight:500;font-family:inherit;border:1.5px solid var(--border);border-radius:14px;padding:11px 14px;outline:none;color:var(--text);background:#fff;box-sizing:border-box}
+.kc-inp:focus{border-color:#7c3aed;box-shadow:0 0 0 4px #ede9fe}
+.kc-chips{display:flex;flex-wrap:wrap;gap:6px}
+.kc-chips span{font-size:12.5px;font-weight:650;padding:7px 12px;border-radius:999px;border:1px solid var(--border);cursor:pointer;color:var(--text-dim);background:#fff}
+.kc-chips span.on{background:#1a1828;color:#fff;border-color:#1a1828}
+.kc-sug{border:1px solid var(--border-soft);border-radius:14px;margin-top:6px;overflow:hidden;background:#fff}
+.kc-sug div{padding:9px 14px;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #f2f0f7}
+.kc-sug div:first-child{border-top:0}
+.kc-sug div:hover{background:#f7f6fb}
+.kc-askwrap{border:1.5px solid var(--border);border-radius:16px;background:#fff}
+.kc-askwrap:focus-within{border-color:#7c3aed;box-shadow:0 0 0 4px #ede9fe}
+.kc-askwrap textarea{width:100%;border:0;outline:none;resize:none;padding:12px 14px 4px;font-size:14px;font-family:inherit;color:var(--text);background:transparent;border-radius:16px;box-sizing:border-box}
+.kc-ibtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text-dim);padding:6px 10px;border-radius:10px;cursor:pointer;user-select:none}
+.kc-ibtn:hover{background:#f5f4f9;color:var(--text)}
+.kc-ibtn.go{background:#1a1828;color:#fff}.kc-ibtn.go:hover{background:#2d2840;color:#fff}
+.kc-ibtn.rec{color:#e11d48;background:#fff1f2}.kc-ibtn.rec svg{animation:kcrec 1s infinite}
+@keyframes kcrec{50%{opacity:.35}}
+/* gavetas */
+#kcScrim{position:fixed;inset:0;background:rgba(26,24,40,.35);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:1000}
+body.kc-open #kcScrim{opacity:1;pointer-events:auto}
+.kc-dr{position:fixed;top:0;right:0;bottom:0;width:480px;max-width:100vw;background:#fff;box-shadow:-20px 0 50px rgba(30,20,60,.18);transform:translateX(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;font-size:14px;color:var(--text);z-index:1010}
+.kc-dr.on{transform:none}
+.kc-dr .kc-dh{padding:22px 24px 14px;border-bottom:1px solid var(--border-soft)}
+.kc-dr .kc-db{flex:1;overflow-y:auto;padding:16px 24px}
+.kc-dr .kc-df{padding:14px 24px;border-top:1px solid var(--border-soft);display:flex;gap:10px;align-items:center}
+.kc-dr .kc-l2{font-size:11px;font-weight:800;color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
+.kc-grab{display:none}
+.kc-gm{display:grid;grid-template-columns:12px 100px 1fr 100px;gap:10px;align-items:center;margin-bottom:8px}
+.kc-gfield{position:relative;flex:1}
+.kc-gfield .kc-inp{padding-right:76px;font-size:16px;font-weight:700}
+.kc-gfield>span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12.5px;color:var(--text-faint);font-weight:600}
+#kcTip{display:none;position:absolute;z-index:5;background:#1a1828;color:#fff;border-radius:12px;padding:10px 12px;font-size:12px;pointer-events:none;min-width:150px;box-shadow:0 10px 24px rgba(0,0,0,.2);line-height:1.45}
+#kcToast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:#1a1828;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:all .2s;z-index:1020;pointer-events:none}
+#kcToast.on{opacity:1;transform:translateX(-50%)}
+.kc-addm{display:none!important}
+@media (max-width:768px){
+  #calorias .kc-hidem{display:none!important}
+  #calorias .kc-addm{display:inline-flex!important}
+  #calorias .kc-bento{grid-template-columns:1fr;gap:12px}
+  #calorias .kc-bento>.kc-tile{grid-column:auto!important;grid-row:auto!important;border-radius:20px;padding:16px}
+  #kcHero{order:1}#kcMealsTile{order:2}#kcHistTile{order:3}#kcWaTile{order:4}
+  #kcHero .kc-big{font-size:72px}
+  #kcHero .kc-box{padding:10px 12px}
+  #kcHero .kc-mrow{grid-template-columns:78px 1fr auto;gap:8px}
+  #kcHistStats{grid-template-columns:1fr 1fr!important}
+  .kc-meal .kc-ed{display:none}
+  .kc-hint{display:none}
+  .kc-cft th:nth-child(3),.kc-cft td.kc-hidecol{display:none}
+  .kc-dossie{grid-template-columns:1fr!important}
+  .kc-dr{top:auto;left:0;width:100%;height:92dvh;border-radius:24px 24px 0 0;transform:translateY(105%)}
+  .kc-dr.on{transform:none}
+  .kc-grab{display:block;width:40px;height:5px;border-radius:9px;background:#d4d0e2;margin:10px auto 0}
+  .kc-dr .kc-dh{padding:10px 18px 12px}.kc-dr .kc-db{padding:14px 18px}.kc-dr .kc-df{padding:12px 18px calc(12px + env(safe-area-inset-bottom))}
+  .kc-it{flex-wrap:wrap;gap:8px}.kc-it>.kc-itn{flex-basis:calc(100% - 40px)}
+  .kc-inp,.kc-step input,.kc-askwrap textarea{font-size:16px!important}
+  .kc-gm{grid-template-columns:12px 86px 1fr 70px}
+  #kcScrim{z-index:1950}.kc-dr{z-index:1960}
+}
 </style>
 </head>
 <body>
@@ -2283,6 +2398,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
       </div>
       <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span><span class="ni-caret" style="visibility:hidden">▸</span></div>
       <div class="nav-item" data-sec="compras"><span class="ni-icon">🛒</span><span class="ni-text">Compras</span><span id="badgeCompras" class="ni-badge badge-red" style="display:none">0</span></div>
+      <div class="nav-item" data-sec="calorias"><span class="ni-icon">🔥</span><span class="ni-text">Calorias</span><span id="badgeCalConf" class="ni-badge badge-red" style="display:none">0</span><span id="badgeCalorias" class="ni-badge" style="display:none">0</span></div>
     </div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">
@@ -4907,6 +5023,40 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
       </div>
     </section>
 
+
+    <!-- CALORIAS (05/10/2026) — dados em cal_meals/cal_items/cal_inbox/cal_goals; cérebro na edge function `calorias` -->
+    <section id="calorias" class="section">
+      <div class="section-header kc-head">
+        <div><div class="section-title">🔥 Calorias</div><div class="section-subtitle" id="kcSub">—</div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="kc-btn" id="kcBtnMetas" title="Metas"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg><span class="kc-hidem">Metas</span></span>
+          <span class="kc-btn" id="kcPrev" title="Dia anterior">‹</span>
+          <span class="kc-btn kc-hidem" id="kcHoje">Hoje</span>
+          <span class="kc-btn" id="kcNext" title="Próximo dia">›</span>
+          <span class="kc-btn pri kc-hidem" id="kcBtnAdd">＋ Adicionar refeição</span>
+          <span class="kc-btn pri kc-addm" id="kcBtnAddM" style="padding:7px 12px">＋</span>
+        </div>
+      </div>
+      <div class="section-body">
+        <div id="kcConf"></div>
+        <div class="kc-bento">
+          <div class="kc-tile" id="kcHero"></div>
+          <div class="kc-tile" id="kcHistTile" style="grid-column:span 2;grid-row:span 2">
+            <div class="kc-row"><span class="kc-lbl">Histórico</span><div class="kc-seg" id="kcHistSeg"><span data-r="7" class="on">7 dias</span><span data-r="30">30 dias</span><span data-r="90">3 meses</span></div></div>
+            <div id="kcHistStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px"></div>
+            <div id="kcWeek" style="position:relative"></div>
+          </div>
+          <div class="kc-tile" id="kcMealsTile" style="grid-column:span 2;grid-row:span 2">
+            <div class="kc-row"><span class="kc-lbl" id="kcMealsLbl">Refeições de hoje</span><span class="kc-hint" style="font-size:12px;color:var(--text-faint)">clique numa refeição para editar</span></div>
+            <div id="kcMeals" style="margin-top:8px"></div>
+          </div>
+          <div class="kc-tile" id="kcWaTile" style="grid-column:span 2;grid-row:span 2;background:#ecfdf5;border:0">
+            <div class="kc-row"><span class="kc-lbl" style="color:#047857">Pelo WhatsApp</span><span class="kc-src" id="kcStreak" style="background:#ffedd5;color:#c2410c;font-size:11px;padding:4px 10px"></span></div>
+            <div id="kcWa"></div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -19730,6 +19880,543 @@ try { finMob.render(); } catch (e) { console.warn('[finMob] 1º desenho', e); }
 })();
 
 if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: 'svg', ext: '.svg' });
+})();
+</script>
+
+<!-- ══════════ ABA CALORIAS — gavetas + lógica (05/10/2026) ══════════ -->
+<div id="kcScrim"></div>
+<aside class="kc-dr" id="kcDrMeal">
+  <div class="kc-grab"></div>
+  <div class="kc-dh">
+    <div class="kc-row"><div style="font-size:20px;font-weight:800;letter-spacing:-.02em" id="kcDmTitle">Adicionar refeição</div><span style="cursor:pointer;font-size:20px;color:var(--text-faint)" data-kc-act="close">✕</span></div>
+    <div style="font-size:12.5px;color:var(--text-dim);margin-top:4px" id="kcDmSub"></div>
+  </div>
+  <div class="kc-db">
+    <div id="kcAskBox">
+      <div class="kc-askwrap">
+        <textarea id="kcAsk" rows="2" placeholder="Escreva ou toque no microfone para falar…"></textarea>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 8px 8px">
+          <span id="kcMic" class="kc-ibtn" data-kc-act="mic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg><span id="kcMicLbl">Falar</span></span>
+          <span style="flex:1"></span>
+          <span class="kc-ibtn go" data-kc-act="calc" id="kcCalcBtn">Calcular <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+        </div>
+      </div>
+      <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px">O Claude separa os alimentos e busca os valores na TACO, nos seus alimentos ou estima. Confira abaixo antes de salvar.</div>
+    </div>
+    <div class="kc-l2">Refeição</div>
+    <div class="kc-chips" id="kcDmTipo"></div>
+    <div style="display:flex;gap:12px">
+      <div style="flex:1"><div class="kc-l2">Horário</div><input id="kcDmHora" class="kc-inp" type="time"></div>
+      <div style="flex:1"><div class="kc-l2">Dia</div><input id="kcDmDia" class="kc-inp" type="date"></div>
+    </div>
+    <div class="kc-l2 kc-row"><span>Alimentos</span><span id="kcDmTot" style="color:var(--text);letter-spacing:0;text-transform:none;font-size:13px"></span></div>
+    <div id="kcDmItems"></div>
+    <div id="kcDmImpact" style="margin-top:14px"></div>
+  </div>
+  <div class="kc-df">
+    <span class="kc-btn danger" data-kc-act="delmeal" id="kcDmDel" style="display:none">🗑️ Apagar refeição</span>
+    <span style="flex:1"></span>
+    <span class="kc-btn" data-kc-act="close">Cancelar</span>
+    <span class="kc-btn pri" data-kc-act="savemeal" id="kcDmSave">Salvar</span>
+  </div>
+</aside>
+<aside class="kc-dr" id="kcDrGoals">
+  <div class="kc-grab"></div>
+  <div class="kc-dh">
+    <div class="kc-row"><div style="font-size:20px;font-weight:800;letter-spacing:-.02em">Metas diárias</div><span style="cursor:pointer;font-size:20px;color:var(--text-faint)" data-kc-act="close">✕</span></div>
+    <div style="font-size:12.5px;color:var(--text-dim);margin-top:4px">Vale a partir de hoje. Os dias anteriores continuam com a meta que tinham.</div>
+  </div>
+  <div class="kc-db">
+    <div class="kc-l2">Calorias</div>
+    <div class="kc-gfield"><input id="kcGK" class="kc-inp" inputmode="numeric"><span>kcal / dia</span></div>
+    <div class="kc-l2 kc-row"><span>Macros</span><span class="kc-seg" style="text-transform:none;letter-spacing:0"><span id="kcGModeG" class="on" data-kc-act="gmode" data-m="g">gramas</span><span id="kcGModeP" data-kc-act="gmode" data-m="p">% das calorias</span></span></div>
+    <div class="kc-gm"><span style="width:10px;height:10px;border-radius:50%;background:#818cf8"></span><b style="font-size:13.5px">Proteína</b><div class="kc-gfield"><input id="kcGP" class="kc-inp" inputmode="numeric"><span class="kc-gu">g</span></div><span class="kc-gx" id="kcGPx" style="font-size:12px;color:var(--text-faint);text-align:right"></span></div>
+    <div class="kc-gm"><span style="width:10px;height:10px;border-radius:50%;background:#fbbf24"></span><b style="font-size:13.5px">Carboidrato</b><div class="kc-gfield"><input id="kcGC" class="kc-inp" inputmode="numeric"><span class="kc-gu">g</span></div><span class="kc-gx" id="kcGCx" style="font-size:12px;color:var(--text-faint);text-align:right"></span></div>
+    <div class="kc-gm"><span style="width:10px;height:10px;border-radius:50%;background:#f472b6"></span><b style="font-size:13.5px">Gordura</b><div class="kc-gfield"><input id="kcGG" class="kc-inp" inputmode="numeric"><span class="kc-gu">g</span></div><span class="kc-gx" id="kcGGx" style="font-size:12px;color:var(--text-faint);text-align:right"></span></div>
+    <div id="kcGCheck" style="margin-top:14px"></div>
+    <div style="margin-top:18px;border:1px solid var(--border-soft);border-radius:16px;padding:14px 16px">
+      <div style="font-size:13.5px;font-weight:700">Quer ajuda para definir?</div>
+      <div style="font-size:12.5px;color:var(--text-dim);margin-top:4px;line-height:1.45">No Chat do hub, passe peso, altura, idade, treinos por semana e o objetivo (perder, manter ou ganhar). O Claude sugere as metas e você ajusta aqui.</div>
+    </div>
+  </div>
+  <div class="kc-df"><span style="flex:1"></span><span class="kc-btn" data-kc-act="close">Cancelar</span><span class="kc-btn pri" data-kc-act="savegoals">Salvar metas</span></div>
+</aside>
+<div id="kcToast"></div>
+<script>
+(function () {
+  'use strict';
+  const FN_URL = 'https://bpyoaxdmejnnyixrjxel.supabase.co/functions/v1/calorias';
+  const TZ = 'America/Sao_Paulo';
+  const TYPES = [['cafe', 'Café da manhã', '☕', '#fef3c7'], ['pos', 'Pós-treino', '🥤', '#dbeafe'], ['almoco', 'Almoço', '🍽️', '#ede9fe'], ['lanche', 'Lanche', '🍌', '#fce7f3'], ['jantar', 'Jantar', '🌙', '#cffafe'], ['outro', 'Outro', '🍴', '#f1f5f9']];
+  const SRC = { taco: 'TACO', meu: 'MEUS', rotulo: 'RÓTULO', estimativa: '≈ ESTIMATIVA', web: 'WEB' };
+  const DN = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const DNL = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+  const MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  const S = { uid: null, day: null, meals: [], goals: [], dias: [], inbox: [], fotos: {}, range: 7, confOpen: true, openConf: null, confDraft: {}, pinFor: null, dm: null, gm: 'g', ready: false };
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = (n) => Math.round(Number(n) || 0).toLocaleString('pt-BR');
+  const T = (t) => TYPES.find((x) => x[0] === t) || TYPES[5];
+  const ymd = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(d);
+  const todaySP = () => ymd(new Date());
+  const addDays = (s, n) => { const d = new Date(s + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const dow = (s) => new Date(s + 'T12:00:00Z').getUTCDay();
+  const horaSP = (iso) => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
+  const nowHM = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
+  const tot = (its, k) => (its || []).reduce((a, x) => a + Number(x.qtd) * Number(x[k + '_un']), 0);
+  const mealsTot = (k) => S.meals.reduce((a, m) => a + tot(m.cal_items, k), 0);
+  function goalFor(d) {
+    let g = null;
+    for (const x of S.goals) if (x.valido_desde <= d) g = x;
+    return g || S.goals[0] || { kcal: 2000, prot: 160, carb: 220, gord: 65 };
+  }
+  function toast(t) { const e = $('kcToast'); e.textContent = '✓ ' + t; e.classList.add('on'); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove('on'), 1900); }
+  function guessType() {
+    const [h, m] = nowHM().split(':').map(Number); const x = h + m / 60;
+    return x >= 5 && x < 10.5 ? 'cafe' : x < 15 ? 'almoco' : x < 18.5 ? 'lanche' : x < 23 ? 'jantar' : 'outro';
+  }
+  async function callFn(body) {
+    const { data: { session } } = await window.sbClient.auth.getSession();
+    const r = await fetch(FN_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (session ? session.access_token : ''), apikey: (typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '') }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || ('erro ' + r.status));
+    return j;
+  }
+
+  // ───────────────────────── dados ─────────────────────────
+  let _lt = null;
+  function reload() { clearTimeout(_lt); _lt = setTimeout(load, 250); }
+  async function load() {
+    const sb = window.sbClient; if (!sb || !S.uid) return;
+    const d0 = S.day, d1 = addDays(S.day, 1);
+    const [g, m, di, ib] = await Promise.all([
+      sb.from('cal_goals').select('*').order('valido_desde', { ascending: true }),
+      sb.from('cal_meals').select('*, cal_items(*)').gte('comido_em', d0 + 'T00:00:00-03:00').lt('comido_em', d1 + 'T00:00:00-03:00').order('comido_em', { ascending: true }),
+      sb.from('cal_dias').select('*').gte('dia', addDays(todaySP(), -100)).order('dia', { ascending: true }),
+      sb.from('cal_inbox').select('*').eq('status', 'pendente').order('recebido_em', { ascending: true }),
+    ]);
+    if (g.error || m.error) console.warn('[calorias]', (g.error || m.error).message);
+    S.goals = g.data || []; S.meals = m.data || []; S.dias = di.data || []; S.inbox = ib.data || [];
+    S.meals.forEach((x) => (x.cal_items || []).sort((a, b) => a.ordem - b.ordem));
+    const falta = S.inbox.map((x) => x.foto_path).filter((p) => p && !S.fotos[p]);
+    if (falta.length) {
+      const { data } = await sb.storage.from('calorias').createSignedUrls(falta, 3600 * 6);
+      (data || []).forEach((r) => { if (r.signedUrl) S.fotos[r.path] = r.signedUrl; });
+    }
+    S.ready = true;
+    render();
+  }
+
+  // ───────────────────────── render ─────────────────────────
+  function render() {
+    if (!S.ready) return;
+    const hoje = todaySP(), d = S.day;
+    const dt = new Date(d + 'T12:00:00Z');
+    const lbl = DNL[dt.getUTCDay()].replace(/^./, (c) => c.toUpperCase()) + ', ' + dt.getUTCDate() + ' de ' + MES[dt.getUTCMonth()];
+    $('kcSub').textContent = lbl + (d === hoje ? ' · hoje' : '');
+    $('kcHoje').style.display = d === hoje ? 'none' : '';
+    $('kcNext').style.opacity = d >= hoje ? '.35' : '';
+    renderHero(); renderMeals(); renderHist(); renderWa(); renderConf(); renderBadge();
+  }
+
+  function renderHero() {
+    const G = goalFor(S.day), META = G.kcal;
+    const k = mealsTot('kcal'), over = k - META, pct = META ? k / META : 0;
+    const h = $('kcHero'); h.classList.toggle('over', over > 0);
+    const seg = META / 20, filled = Math.min(k / seg, 20), extra = over > 0 ? Math.min(Math.ceil(over / seg), 20) : 0;
+    const fillC = over > 0 ? '#c6f432' : pct >= 0.9 ? '#fbbf24' : '#c6f432';
+    let bar = '';
+    for (let i = 0; i < 20; i++) { const f = i + 1 <= filled ? 1 : (i < filled ? 0.5 : 0); bar += `<i style="flex:1;height:12px;border-radius:9px;background:${f ? fillC : '#2d2840'};opacity:${f === 0.5 ? 0.55 : 1}"></i>`; }
+    if (extra) { bar += '<i style="width:2px;height:24px;margin:-6px 4px;background:#fff;border-radius:2px"></i>'; for (let i = 0; i < extra; i++) bar += '<i style="flex:1;height:12px;border-radius:9px;background:#fb7185;box-shadow:0 0 10px #fb718599"></i>'; }
+    const P = mealsTot('prot'), C = mealsTot('carb'), Gd = mealsTot('gord');
+    const mrow = (l, v, m, c) => { const o = v > m; return `<div class="kc-mrow"><span style="font-size:13px;color:#cfcbe0;font-weight:600">${l}</span><div style="height:8px;background:#2d2840;border-radius:9px;overflow:hidden"><i style="display:block;height:100%;width:${Math.min(m ? v / m : 0, 1) * 100}%;background:${c};border-radius:9px"></i></div><span style="font-size:13px;text-align:right;white-space:nowrap"><b style="color:#fff">${fmt(v)}</b><span style="color:#8f87a6"> / ${m} g</span> <span style="font-size:11.5px;font-weight:700;color:${o ? '#fda4af' : '#a89eb8'}">${o ? '+' + fmt(v - m) : '−' + fmt(m - v)}</span></span></div>`; };
+    const box = (l, v, c, sub) => `<div class="kc-box"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8f87a6">${l}</div><div style="font-size:30px;font-weight:850;letter-spacing:-.03em;color:${c};margin-top:2px;white-space:nowrap">${v}<span style="font-size:14px;font-weight:600;color:#8f87a6;letter-spacing:0"> kcal</span></div><div style="font-size:11.5px;color:#8f87a6">${sub}</div></div>`;
+    const big = over > 0
+      ? `<div class="kc-num kc-big" style="color:#fb7185">+${fmt(over)}<span style="font-size:24px;color:#fda4af;letter-spacing:0;font-weight:600"> kcal acima</span></div>`
+      : `<div class="kc-num kc-big" style="color:${pct >= 0.9 ? '#fbbf24' : '#fff'}">${fmt(-over)}<span style="font-size:24px;color:#a89eb8;letter-spacing:0;font-weight:600"> kcal</span></div>`;
+    const pend = S.inbox.length ? `<div data-kc-act="goconf" style="cursor:pointer;margin-top:12px;background:#ffffff0d;border:1px dashed #ffffff30;border-radius:12px;padding:9px 12px;font-size:12.5px;color:#cfcbe0;display:flex;align-items:center;gap:10px"><span class="kc-dot">${S.inbox.length}</span><span style="flex:1">foto${S.inbox.length > 1 ? 's' : ''} esperando conferência · <b style="color:#fff">≈ ${fmt(S.inbox.reduce((a, r) => a + tot(r.palpite, 'kcal'), 0))} kcal</b> ainda fora da conta</span><span style="color:#c4b5fd;font-weight:700;white-space:nowrap">Conferir →</span></div>` : '';
+    h.innerHTML = `
+      <div class="kc-row"><span class="kc-lbl" style="color:${over > 0 ? '#fda4af' : '#a89eb8'}">${over > 0 ? '⚠ Passou da meta' : pct >= 0.9 ? 'Quase lá' : (S.day === todaySP() ? 'Ainda cabem hoje' : 'Sobraram neste dia')}</span><span class="kc-src" data-kc-act="goals" title="Editar metas" style="cursor:pointer;background:${over > 0 ? '#4c1d2b' : '#2d2840'};color:${over > 0 ? '#fda4af' : '#c4b5fd'}">META ${fmt(META)} ✎</span></div>
+      <div style="margin:14px 0 16px">${big}</div>
+      <div style="display:flex;gap:4px;align-items:center">${bar}</div>
+      <div style="display:flex;gap:10px;margin:16px 0 10px">${box('Consumidas', fmt(k), '#fff', `${Math.round(pct * 100)}% da meta · ${S.meals.length} refeiç${S.meals.length === 1 ? 'ão' : 'ões'}`)}${over > 0 ? box('Passou', fmt(over), '#fb7185', 'acima de ' + fmt(META)) : box('Faltam', fmt(-over), pct >= 0.9 ? '#fbbf24' : '#c6f432', 'até a meta de ' + fmt(META))}</div>
+      <div style="border-top:1px solid #ffffff14;padding-top:6px">${mrow('Proteína', P, G.prot, '#818cf8')}${mrow('Carboidrato', C, G.carb, '#fbbf24')}${mrow('Gordura', Gd, G.gord, '#f472b6')}</div>${pend}`;
+  }
+
+  function renderMeals() {
+    $('kcMealsLbl').textContent = S.day === todaySP() ? 'Refeições de hoje' : 'Refeições do dia';
+    const G = goalFor(S.day), falta = G.kcal - mealsTot('kcal');
+    const orig = { whatsapp: '<span title="pelo WhatsApp" style="font-size:11px;margin-left:6px;opacity:.7">💬</span>', foto: '<span title="da Conferência" style="font-size:11px;margin-left:6px;opacity:.7">📸</span>', hub: '' };
+    $('kcMeals').innerHTML = S.meals.map((m) => {
+      const ty = T(m.tipo), its = m.cal_items || [];
+      return `<div class="kc-meal" data-kc-act="editmeal" data-id="${m.id}"><div style="display:flex;gap:12px;align-items:center;min-width:0"><div class="kc-ico" style="background:${ty[3]}">${ty[2]}</div><div style="min-width:0"><div style="font-size:14px;font-weight:650">${ty[1]}${orig[m.origem] || ''}</div><div style="font-size:12px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px">${horaSP(m.comido_em)} · ${esc(its.map((x) => x.nome.toLowerCase()).join(', ') || 'sem alimentos')}</div></div></div><div style="display:flex;align-items:center"><div style="text-align:right"><div style="font-size:16px;font-weight:800">${fmt(tot(its, 'kcal'))}</div><div style="font-size:11px;color:var(--text-faint)">${fmt(tot(its, 'prot'))} g prot</div></div><span class="kc-ed">✏️ Editar</span></div></div>`;
+    }).join('') + `<div class="kc-meal" data-kc-act="add" style="color:var(--text-faint)"><div style="display:flex;gap:12px;align-items:center"><div class="kc-ico" style="border:1.5px dashed var(--border)">＋</div><span style="font-size:14px">Adicionar refeição</span></div><span style="font-size:13px">${falta > 0 ? 'cabem até ' + fmt(falta) : ''}</span></div>`;
+  }
+
+  function renderWa() {
+    const hoje = todaySP();
+    let streak = 0, d = hoje;
+    const tem = new Set(S.dias.filter((x) => Number(x.refeicoes) > 0).map((x) => x.dia));
+    if (!tem.has(d)) d = addDays(d, -1);
+    while (tem.has(d)) { streak++; d = addDays(d, -1); }
+    $('kcStreak').textContent = streak ? `🔥 ${streak} dia${streak > 1 ? 's' : ''} seguido${streak > 1 ? 's' : ''} registrando` : '';
+    $('kcStreak').style.display = streak ? '' : 'none';
+    const wa = S.meals.filter((m) => m.origem === 'whatsapp' && m.texto_original).slice(-3).reverse();
+    $('kcWa').innerHTML = wa.length ? wa.map((m) => `<div style="display:grid;grid-template-columns:44px 1fr 1fr;gap:10px;align-items:start;margin-top:10px"><span style="font-size:11.5px;font-weight:700;color:#047857;padding-top:10px">${horaSP(m.comido_em)}</span><div style="background:#fff;border-radius:14px 14px 14px 4px;padding:10px 12px;font-size:12.5px;color:#064e3b">🎤 "${esc(String(m.texto_original).slice(0, 140))}"</div><div style="background:#d1fae5;border-radius:14px 14px 4px 14px;padding:10px 12px;font-size:12.5px;color:#064e3b">✅ ${T(m.tipo)[1]}: <b>${fmt(tot(m.cal_items, 'kcal'))} kcal</b> · ${fmt(tot(m.cal_items, 'prot'))} g prot</div></div>`).join('')
+      : `<div style="margin-top:14px;font-size:13px;color:#065f46;line-height:1.55">Manda pro robô do WhatsApp do jeito que você falaria:<br><b>"almocei arroz, feijão e um bife grande"</b> ou <b>"tomei 2 scoops de whey"</b>.<br>Foto de prato vai para a Conferência e só entra na conta depois do seu ✓.</div>`;
+  }
+
+  function renderBadge() {
+    const nav = document.querySelector('.nav-item[data-sec="calorias"]'); if (!nav) return;
+    const hoje = todaySP(), G = goalFor(hoje);
+    const kH = S.day === hoje ? mealsTot('kcal') : Number((S.dias.find((x) => x.dia === hoje) || {}).kcal || 0);
+    const b = $('badgeCalorias'), c = $('badgeCalConf'), o = kH - G.kcal;
+    if (b) { b.style.display = ''; b.textContent = o > 0 ? '+' + fmt(o) : fmt(-o); b.style.background = o > 0 ? '#fee2e2' : '#dcfce7'; b.style.color = o > 0 ? '#b91c1c' : '#15803d'; }
+    if (c) { c.style.display = S.inbox.length ? '' : 'none'; c.textContent = S.inbox.length; }
+  }
+
+  // ───────────────────────── histórico ─────────────────────────
+  function renderHist() {
+    document.querySelectorAll('#kcHistSeg span').forEach((e) => e.classList.toggle('on', +e.dataset.r === S.range));
+    const hoje = todaySP(), map = {};
+    S.dias.forEach((x) => { map[x.dia] = x; });
+    if (S.day === hoje) map[hoje] = { dia: hoje, kcal: mealsTot('kcal'), prot: mealsTot('prot'), refeicoes: S.meals.length };
+    const val = (d) => Number((map[d] || {}).kcal || 0), prot = (d) => Number((map[d] || {}).prot || 0);
+    let data = [];
+    if (S.range === 7) {
+      for (let i = 6; i >= 0; i--) { const d = addDays(hoje, -i); data.push({ d, v: val(d), p: prot(d), today: i === 0, meta: goalFor(d).kcal, mp: goalFor(d).prot }); }
+    } else if (S.range === 30) {
+      for (let i = 29; i >= 0; i--) { const d = addDays(hoje, -i); data.push({ d, v: val(d), p: prot(d), today: i === 0, meta: goalFor(d).kcal, mp: goalFor(d).prot }); }
+    } else {
+      const seg = addDays(hoje, -((dow(hoje) + 6) % 7));
+      for (let w = 12; w >= 0; w--) {
+        const ini = addDays(seg, -7 * w); let s = 0, n = 0, metas = 0;
+        for (let i = 0; i < 7; i++) { const d = addDays(ini, i); if (d > hoje) break; const v = val(d); if (v > 0) { s += v; n++; metas += goalFor(d).kcal; } }
+        data.push({ d: ini, v: n ? s / n : 0, p: 0, week: 1, today: w === 0, meta: n ? metas / n : goalFor(ini).kcal });
+      }
+    }
+    const reg = data.filter((x) => x.v > 0 && !x.future);
+    const avg = reg.length ? reg.reduce((a, x) => a + x.v, 0) / reg.length : 0;
+    const inMeta = reg.filter((x) => x.v <= x.meta).length;
+    // tendência: período anterior equivalente
+    let trend = '';
+    if (S.range !== 90 && reg.length) {
+      const n = S.range, ref = S.range === 7 ? addDays(hoje, -13) : addDays(hoje, -59);
+      const prev = []; for (let i = 0; i < n; i++) { const v = val(addDays(ref, i)); if (v > 0) prev.push(v); }
+      if (prev.length) { const pa = prev.reduce((a, b) => a + b, 0) / prev.length, t = (avg - pa) / pa * 100; trend = `${t < 0 ? '↓' : '↑'} ${Math.abs(t).toFixed(0)}% vs ${S.range === 7 ? '7 dias antes' : '30 dias antes'}`; }
+    }
+    if (!trend) trend = reg.length ? (S.range === 90 ? 'média das semanas' : 'primeiro período') : 'sem registros ainda';
+    const stat = (l, v, s, c) => `<div class="kc-stat"><div style="font-size:10.5px;font-weight:800;color:var(--text-faint);letter-spacing:.06em;text-transform:uppercase">${l}</div><div style="font-size:20px;font-weight:850;letter-spacing:-.03em;margin-top:3px;color:${c || 'var(--text)'}">${v}</div><div style="font-size:11px;color:var(--text-faint);margin-top:1px">${s}</div></div>`;
+    const protOk = reg.filter((x) => x.p >= (x.mp || 160)).length;
+    $('kcHistStats').innerHTML = stat('Média', reg.length ? fmt(avg) : '—', trend)
+      + stat(S.range === 90 ? 'Semanas na meta' : 'Dias na meta', `${inMeta}<span style="font-size:13px;color:var(--text-faint)">/${reg.length}</span>`, S.range === 90 ? 'média ≤ meta' : 'até a meta do dia', '#16a34a')
+      + stat('Passou', `${reg.length - inMeta}`, S.range === 90 ? 'semanas acima' : 'dias acima', '#e11d48')
+      + (S.range === 90 ? stat('Registros', `${S.dias.filter((x) => Number(x.refeicoes) > 0).length}`, 'dias com refeição') : stat('Proteína ✓', `${protOk}<span style="font-size:13px;color:var(--text-faint)">/${reg.length}</span>`, 'dias com a meta batida', '#4338ca'));
+    const H = 190, maxV = Math.max(2200, ...data.map((x) => Math.max(x.v, x.meta))) * 1.12, gap = S.range === 30 ? 3 : S.range === 90 ? 6 : 10;
+    const metaNow = goalFor(hoje).kcal;
+    let w = `<div style="position:relative;height:${H + (S.range === 7 ? 18 : 0)}px;display:flex;align-items:flex-end;gap:${gap}px;margin-top:${S.range === 7 ? 14 : 8}px" data-kc-hist>`;
+    w += `<div style="position:absolute;left:0;right:0;bottom:${metaNow / maxV * H}px;border-top:1.5px dashed #7c3aed;z-index:2;pointer-events:none"><span style="position:absolute;right:0;top:-17px;font-size:10.5px;font-weight:800;color:#7c3aed;background:#fff;padding-left:6px">META ${fmt(metaNow)}</span></div>`;
+    if (avg) w += `<div style="position:absolute;left:0;right:0;bottom:${avg / maxV * H}px;border-top:1.5px dotted #a89eb8;z-index:2;pointer-events:none"><span style="position:absolute;left:0;top:-16px;font-size:10.5px;font-weight:700;color:#a89eb8;background:#fff;padding-right:6px">média ${fmt(avg)}</span></div>`;
+    data.forEach((x, i) => {
+      const o = x.v > x.meta, sel = !x.week && x.d === S.day;
+      const bg = !x.v ? '#f1eff8' : x.today ? (o ? '#f43f5e' : '#7c3aed') : (o ? '#fda4af' : '#c4b5fd');
+      const lab = S.range === 7 && x.v ? `<div style="position:absolute;top:-17px;left:0;right:0;text-align:center;font-size:11px;font-weight:800;color:${x.today ? (o ? '#f43f5e' : '#7c3aed') : 'var(--text-dim)'}">${fmt(x.v)}</div>` : '';
+      const pdot = S.range !== 90 && x.v && x.p >= (x.mp || 160) ? `<div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:${S.range === 30 ? 4 : 7}px;height:${S.range === 30 ? 4 : 7}px;border-radius:50%;background:#fff;opacity:.9"></div>` : '';
+      const hgt = x.future ? 40 : (x.v ? Math.max(x.v / maxV * H, 6) : 6);
+      w += `<div class="kc-hb" data-i="${i}" style="flex:1;position:relative;height:${hgt}px;background:${x.future ? 'transparent' : bg};${x.future ? 'border:1.5px dashed #ddd6fe;' : ''}border-radius:${S.range === 30 ? 3 : 7}px ${S.range === 30 ? 3 : 7}px 3px 3px;cursor:${x.week || x.future ? 'default' : 'pointer'};${sel ? 'outline:2px solid #1a1828;outline-offset:2px;' : ''}">${lab}${pdot}</div>`;
+    });
+    w += `</div><div style="display:flex;gap:${gap}px;margin-top:6px">` + data.map((x, i) => {
+      const dd = new Date(x.d + 'T12:00:00Z'); let t = '';
+      if (S.range === 7) t = DN[dd.getUTCDay()] + ' ' + dd.getUTCDate();
+      else if (S.range === 30) t = (i % 5 === 4 || x.today) ? dd.getUTCDate() + '/' + (dd.getUTCMonth() + 1) : '';
+      else t = (i % 2 === 0 || x.today) ? dd.getUTCDate() + '/' + (dd.getUTCMonth() + 1) : '';
+      return `<span style="flex:1;text-align:center;font-size:${S.range === 7 ? 11.5 : 10.5}px;font-weight:${x.today ? 800 : 600};color:${x.today ? '#7c3aed' : 'var(--text-faint)'};white-space:nowrap">${t}${x.today && S.range === 7 ? ' · hoje' : ''}</span>`;
+    }).join('') + '</div>';
+    w += `<div style="display:flex;gap:14px;font-size:11px;color:var(--text-faint);margin-top:12px;white-space:nowrap;flex-wrap:wrap"><span><span style="color:#c4b5fd">■</span> na meta</span><span><span style="color:#fda4af">■</span> passou</span><span><span style="color:#d4d0e2">■</span> sem registro</span>${S.range !== 90 ? '<span>⚪ proteína ✓</span>' : ''}<span class="kc-hint" style="margin-left:auto">clique para abrir o dia</span></div><div id="kcTip"></div>`;
+    $('kcWeek').innerHTML = w; S._hist = data;
+  }
+  function tipShow(el) {
+    const x = S._hist[+el.dataset.i]; const t = $('kcTip'); if (!x || !x.v || !t) { if (t) t.style.display = 'none'; return; }
+    const o = x.v - x.meta, dd = new Date(x.d + 'T12:00:00Z');
+    t.innerHTML = `<div style="font-weight:800;margin-bottom:4px">${x.week ? 'Semana de ' + dd.getUTCDate() + '/' + (dd.getUTCMonth() + 1) : DN[dd.getUTCDay()] + ', ' + dd.getUTCDate() + '/' + (dd.getUTCMonth() + 1) + (x.today ? ' · hoje' : '')}</div><div>${x.week ? 'Média ' : ''}<b>${fmt(x.v)} kcal</b></div><div style="color:${o > 0 ? '#fda4af' : '#86efac'}">${o > 0 ? '+' + fmt(o) + ' acima da meta' : 'sobraram ' + fmt(-o)}</div>${x.p ? `<div style="opacity:.75">Proteína ${fmt(x.p)} g ${x.p >= (x.mp || 160) ? '✓' : ''}</div>` : ''}`;
+    t.style.display = 'block';
+    const r = el.getBoundingClientRect(), p = $('kcWeek').getBoundingClientRect();
+    t.style.left = Math.max(0, Math.min(r.left - p.left + r.width / 2 - 80, p.width - 170)) + 'px';
+    t.style.top = (r.top - p.top - 80) + 'px';
+  }
+
+  // ───────────────────────── editor de alimentos (refeição e conferência) ─────────────────────────
+  // ctx = 'dm' (gaveta) ou o id da conferência
+  function getList(ctx) { return ctx === 'dm' ? S.dm.itens : S.confDraft[ctx].itens; }
+  function itemsHTML(ctx, numerar) {
+    const list = getList(ctx);
+    const rows = list.map((x, i) => `<div class="kc-it">${numerar ? `<span class="kc-pinn">${i + 1}</span>` : ''}<div class="kc-itn" style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:650">${esc(x.nome)}</div><div style="font-size:11.5px;color:var(--text-faint);margin-top:2px">P ${fmt(x.qtd * x.prot_un)} · C ${fmt(x.qtd * x.carb_un)} · G ${fmt(x.qtd * x.gord_un)} <span class="kc-src ${x.fonte}" style="margin-left:4px">${SRC[x.fonte] || x.fonte}</span></div></div><div class="kc-step"><b data-kc-act="qty" data-ctx="${ctx}" data-i="${i}" data-d="-1">−</b><input value="${String(x.qtd).replace('.', ',')}" data-kc-qty data-ctx="${ctx}" data-i="${i}"><b data-kc-act="qty" data-ctx="${ctx}" data-i="${i}" data-d="1">+</b></div><span style="font-size:11.5px;color:var(--text-faint);width:44px">${esc(x.unidade)}</span><b style="width:40px;text-align:right;font-size:14px">${fmt(x.qtd * x.kcal_un)}</b><span class="kc-trash" data-kc-act="rmitem" data-ctx="${ctx}" data-i="${i}">🗑️</span></div>`).join('');
+    return rows + `<div style="position:relative"><input class="kc-inp" placeholder="＋ Adicionar alimento${ctx === 'dm' ? '' : ' que não identifiquei'}…" data-kc-search="${ctx}" style="border-style:dashed;font-size:13.5px"><div data-kc-sug="${ctx}"></div></div>`;
+  }
+  function itemFromFood(f) {
+    if (f.porcao_nome && Number(f.porcao_g) > 0) { const g = Number(f.porcao_g); return { nome: f.nome, qtd: 1, unidade: f.porcao_nome, passo: 1, kcal_un: f.kcal * g / 100, prot_un: f.prot * g / 100, carb_un: f.carb * g / 100, gord_un: f.gord * g / 100, fonte: f.fonte === 'taco' ? 'taco' : 'meu', food_id: f.id }; }
+    return { nome: tacoNome(f.nome), qtd: 100, unidade: 'g', passo: 10, kcal_un: f.kcal / 100, prot_un: f.prot / 100, carb_un: f.carb / 100, gord_un: f.gord / 100, fonte: f.fonte === 'taco' ? 'taco' : 'meu', food_id: f.id };
+  }
+  function tacoNome(n) { // "Frango, peito, sem pele, grelhado" -> "Frango peito sem pele grelhado"
+    const p = String(n).split(',').map((s) => s.trim()).filter(Boolean); return p.length > 1 ? p[0] + ' ' + p.slice(1).join(' ').toLowerCase() : n;
+  }
+  let _st = null;
+  function onSearch(inp) {
+    const ctx = inp.dataset.kcSearch, termo = inp.value.trim(), box = document.querySelector(`[data-kc-sug="${ctx}"]`);
+    clearTimeout(_st);
+    if (termo.length < 2) { box.innerHTML = ''; return; }
+    _st = setTimeout(async () => {
+      let res = [];
+      try { res = (await callFn({ action: 'buscar', termo })).resultados || []; } catch (e) { console.warn(e); }
+      S._sug = res;
+      box.innerHTML = `<div class="kc-sug">${res.map((f, i) => `<div data-kc-act="pickfood" data-ctx="${ctx}" data-i="${i}"><span>${esc(tacoNome(f.nome))} <span class="kc-src ${f.fonte === 'taco' ? 'taco' : 'meu'}">${f.fonte === 'taco' ? 'TACO' : 'MEUS'}</span></span><span style="color:var(--text-faint);font-size:12px;white-space:nowrap">${f.porcao_nome ? fmt(f.kcal * f.porcao_g / 100) + ' kcal/' + esc(f.porcao_nome) : fmt(f.kcal) + ' kcal/100 g'}</span></div>`).join('')}<div data-kc-act="aifood" data-ctx="${ctx}" style="color:#5b4fcf;font-weight:600">✨ Calcular "${esc(termo)}" com o Claude${res.length ? '' : ' (não achei na TACO)'}</div></div>`;
+    }, 250);
+  }
+  function rerenderCtx(ctx) { if (ctx === 'dm') renderDm(); else renderConf(); }
+
+  // ───────────────────────── gaveta da refeição ─────────────────────────
+  function openDr(id) { document.body.classList.add('kc-open'); document.querySelectorAll('.kc-dr').forEach((d) => d.classList.toggle('on', d.id === id)); }
+  function closeDr() { document.body.classList.remove('kc-open'); document.querySelectorAll('.kc-dr').forEach((d) => d.classList.remove('on')); stopMic(); }
+  function openAdd() {
+    const hoje = todaySP();
+    S.dm = { id: null, tipo: S.day === hoje ? guessType() : 'almoco', itens: [], dia: S.day, hora: S.day === hoje ? nowHM() : '12:00' };
+    $('kcDmTitle').textContent = 'Adicionar refeição'; $('kcDmSub').textContent = 'Escreva ou fale do jeito que você mandaria no WhatsApp.';
+    $('kcAskBox').style.display = ''; $('kcAsk').value = ''; $('kcDmDel').style.display = 'none';
+    renderDm(); openDr('kcDrMeal'); setTimeout(() => $('kcAsk').focus(), 280);
+  }
+  function openEdit(id) {
+    const m = S.meals.find((x) => x.id === id); if (!m) return;
+    S.dm = { id, tipo: m.tipo, dia: ymd(new Date(m.comido_em)), hora: horaSP(m.comido_em), texto: m.texto_original, itens: (m.cal_items || []).map((x) => ({ nome: x.nome, qtd: Number(x.qtd), unidade: x.unidade, passo: Number(x.passo) || 1, kcal_un: Number(x.kcal_un), prot_un: Number(x.prot_un), carb_un: Number(x.carb_un), gord_un: Number(x.gord_un), fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y })) };
+    $('kcDmTitle').textContent = 'Editar ' + T(m.tipo)[1].toLowerCase(); $('kcDmSub').textContent = 'Ajuste quantidades, troque ou remova alimentos.';
+    $('kcAskBox').style.display = 'none'; $('kcDmDel').style.display = '';
+    renderDm(); openDr('kcDrMeal');
+  }
+  function renderDm() {
+    const dm = S.dm; if (!dm) return;
+    $('kcDmTipo').innerHTML = TYPES.map((t) => `<span class="${t[0] === dm.tipo ? 'on' : ''}" data-kc-act="dmtipo" data-t="${t[0]}">${t[2]} ${t[1]}</span>`).join('');
+    $('kcDmHora').value = dm.hora; $('kcDmDia').value = dm.dia;
+    $('kcDmItems').innerHTML = dm.itens.length ? itemsHTML('dm', false) : `<div style="border:1.5px dashed var(--border);border-radius:14px;padding:18px;text-align:center;color:var(--text-faint);font-size:13px;margin-bottom:8px">Escreva ou fale acima e toque em Calcular, ou busque um alimento abaixo</div>` + itemsHTML('dm', false);
+    const dk = tot(dm.itens, 'kcal'); $('kcDmTot').innerHTML = dm.itens.length ? `<b>${fmt(dk)} kcal</b>` : '';
+    // impacto no dia (só quando o dia da refeição é o dia aberto)
+    if (dm.itens.length && dm.dia === S.day) {
+      const META = goalFor(dm.dia).kcal, before = mealsTot('kcal') - (dm.id ? tot((S.meals.find((m) => m.id === dm.id) || {}).cal_items, 'kcal') : 0), after = before + dk, ov = after - META, base = Math.max(after, META);
+      $('kcDmImpact').innerHTML = `<div style="border-radius:14px;padding:14px 16px;background:${ov > 0 ? '#fff1f2' : '#f0fdf4'};border:1px solid ${ov > 0 ? '#fecdd3' : '#bbf7d0'}"><div class="kc-row" style="font-size:13px"><span style="color:var(--text-dim)">Total do dia com esta refeição</span><b>${fmt(after)} / ${fmt(META)}</b></div><div style="height:8px;background:#fff;border-radius:9px;margin:10px 0 8px;overflow:hidden;display:flex"><i style="width:${before / base * 100}%;background:#a78bfa"></i><i style="width:${dk / base * 100}%;background:${ov > 0 ? '#f43f5e' : '#22c55e'}"></i></div><div style="font-size:12.5px;font-weight:650;color:${ov > 0 ? '#be123c' : '#15803d'}">${ov > 0 ? '⚠ Vai passar ' + fmt(ov) + ' kcal da meta' : '✓ Ainda sobram ' + fmt(-ov) + ' kcal'}</div></div>`;
+    } else $('kcDmImpact').innerHTML = '';
+  }
+  async function calcAsk() {
+    const txt = $('kcAsk').value.trim(); if (!txt) { $('kcAsk').focus(); return; }
+    const b = $('kcCalcBtn'); b.style.opacity = '.5'; b.firstChild.textContent = 'Calculando… ';
+    try {
+      const r = await callFn({ action: 'parse', texto: txt });
+      if (!r.comida || !r.itens.length) { toast('Não identifiquei alimentos nisso'); }
+      else {
+        S.dm.itens.push(...r.itens.map(limpaItem)); S.dm.texto = txt;
+        if (!S.dm.id && r.refeicao) S.dm.tipo = r.refeicao;
+        if (r.quando) { const d = new Date(r.quando); S.dm.dia = ymd(d); S.dm.hora = horaSP(r.quando); }
+        $('kcAsk').value = '';
+        renderDm();
+        if (r.pergunta) toast(r.pergunta);
+      }
+    } catch (e) { alert('Não consegui calcular agora: ' + e.message); }
+    b.style.opacity = ''; b.firstChild.textContent = 'Calcular ';
+  }
+  function limpaItem(x) { return { nome: x.nome, qtd: Number(x.qtd), unidade: x.unidade, passo: Number(x.passo) || 1, kcal_un: Number(x.kcal_un), prot_un: Number(x.prot_un), carb_un: Number(x.carb_un), gord_un: Number(x.gord_un), fonte: x.fonte, food_id: x.food_id || null, pin_x: x.pin_x ?? null, pin_y: x.pin_y ?? null }; }
+  async function saveMeal() {
+    const dm = S.dm, sb = window.sbClient;
+    dm.hora = $('kcDmHora').value || dm.hora; dm.dia = $('kcDmDia').value || dm.dia;
+    const itens = dm.itens.filter((x) => x.qtd > 0);
+    if (!itens.length) { toast('Adicione pelo menos um alimento'); return; }
+    const btn = $('kcDmSave'); btn.setAttribute('disabled', '');
+    try {
+      const quando = `${dm.dia}T${dm.hora}:00-03:00`;
+      let mealId = dm.id;
+      if (mealId) {
+        const u = await sb.from('cal_meals').update({ tipo: dm.tipo, comido_em: quando }).eq('id', mealId); if (u.error) throw u.error;
+        const d = await sb.from('cal_items').delete().eq('meal_id', mealId); if (d.error) throw d.error;
+      } else {
+        const ins = await sb.from('cal_meals').insert({ user_id: S.uid, tipo: dm.tipo, comido_em: quando, origem: 'hub', texto_original: dm.texto || null }).select('id').single(); if (ins.error) throw ins.error;
+        mealId = ins.data.id;
+      }
+      const rows = itens.map((x, i) => ({ meal_id: mealId, user_id: S.uid, ordem: i, nome: x.nome, qtd: x.qtd, unidade: x.unidade, passo: x.passo, kcal_un: x.kcal_un, prot_un: x.prot_un, carb_un: x.carb_un, gord_un: x.gord_un, fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y }));
+      const r = await sb.from('cal_items').insert(rows); if (r.error) throw r.error;
+      const novo = !dm.id; closeDr(); if (dm.dia !== S.day) S.day = dm.dia; await load(); toast(novo ? 'Refeição adicionada' : 'Refeição atualizada');
+    } catch (e) { alert('Não consegui salvar: ' + (e.message || e)); }
+    btn.removeAttribute('disabled');
+  }
+  async function delMeal() {
+    if (!S.dm || !S.dm.id || !confirm('Apagar esta refeição?')) return;
+    const r = await window.sbClient.from('cal_meals').delete().eq('id', S.dm.id);
+    if (r.error) { alert(r.error.message); return; }
+    closeDr(); await load(); toast('Refeição apagada');
+  }
+
+  // ───────────────────────── microfone (ditado do navegador) ─────────────────────────
+  let _rec = null;
+  function stopMic() { if (_rec) { try { _rec.stop(); } catch (_) {} } }
+  function toggleMic() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { toast('Este navegador não tem ditado — use o microfone do teclado'); $('kcAsk').focus(); return; }
+    if (_rec) { stopMic(); return; }
+    const rec = new SR(); rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = true;
+    const base = $('kcAsk').value ? $('kcAsk').value.trim() + ' ' : '';
+    rec.onresult = (ev) => { let t = ''; for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript; $('kcAsk').value = base + t; };
+    rec.onend = () => { _rec = null; $('kcMic').classList.remove('rec'); $('kcMicLbl').textContent = 'Falar'; };
+    rec.onerror = (e) => { if (e.error === 'not-allowed') toast('Permita o microfone no navegador'); };
+    _rec = rec; rec.start(); $('kcMic').classList.add('rec'); $('kcMicLbl').textContent = 'Ouvindo… toque para parar';
+  }
+
+  // ───────────────────────── conferência (fotos do WhatsApp) ─────────────────────────
+  function draftOf(r) {
+    if (!S.confDraft[r.id]) S.confDraft[r.id] = { tipo: r.tipo_sugerido || 'outro', itens: (r.palpite || []).map(limpaItem) };
+    return S.confDraft[r.id];
+  }
+  function renderConf() {
+    const box = $('kcConf'); if (!box) return;
+    if (!S.inbox.length) { box.innerHTML = ''; return; }
+    const alta = S.inbox.filter((r) => r.confianca === 'alta').length;
+    const CONF = { alta: ['#dcfce7', '#15803d', 'confiança alta'], media: ['#fef9c3', '#a16207', 'confiança média'], baixa: ['#fee2e2', '#b91c1c', 'confira com atenção'] };
+    const rows = S.inbox.map((r) => {
+      const dr = draftOf(r), aberto = S.openConf === r.id, rec = new Date(r.recebido_em), dia = ymd(rec), c = CONF[r.confianca] || CONF.media;
+      const quando = (dia === todaySP() ? 'hoje' : dia === addDays(todaySP(), -1) ? 'ontem' : rec.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: TZ })) + ' · ' + horaSP(r.recebido_em);
+      const img = S.fotos[r.foto_path] || '';
+      let html = `<tr class="kc-cfrow" data-kc-act="togconf" data-id="${r.id}" style="${aberto ? 'background:#faf8ff' : ''}"><td style="width:72px">${img ? `<img class="kc-thumb" src="${img}" alt="">` : '<div class="kc-thumb"></div>'}</td><td style="white-space:nowrap;font-weight:700;font-size:12px;color:var(--text-dim)">${quando}<div style="font-weight:500;margin-top:2px">${T(dr.tipo)[2]} ${T(dr.tipo)[1]}</div></td><td class="kc-hidecol">${dr.itens.map((i) => `<span class="kc-gchip">${esc(i.nome)}</span>`).join('')}<div style="margin-top:3px"><span class="kc-src" style="background:${c[0]};color:${c[1]}">${c[2]}</span>${r.legenda ? ` <span style="font-size:11.5px;color:var(--text-faint)">"${esc(r.legenda.slice(0, 60))}"</span>` : ''}</div></td><td style="text-align:right;font-weight:800;white-space:nowrap">≈ ${fmt(tot(dr.itens, 'kcal'))}<div style="font-size:11px;color:var(--text-faint);font-weight:500">${dr.itens.length} ${dr.itens.length === 1 ? 'item' : 'itens'}</div></td><td style="width:44px">${aberto ? '' : `<button class="kc-okbtn" data-kc-act="approve" data-id="${r.id}" title="Aprovar">✓</button>`}</td></tr>`;
+      if (aberto) {
+        const pins = dr.itens.map((x, i) => x.pin_x != null ? `<span class="kc-pin" style="left:${x.pin_x}%;top:${x.pin_y}%">${i + 1}</span>` : '').join('');
+        const pinMode = S.pinFor && S.pinFor.id === r.id;
+        html += `<tr><td colspan="5" style="padding:4px 8px 18px;background:#faf8ff"><div class="kc-dossie" style="display:grid;grid-template-columns:minmax(0,340px) 1fr;gap:20px;border:1px solid #e9e4f7;background:#fff;border-radius:16px;padding:16px">
+          <div><div class="kc-photo${pinMode ? ' pinmode' : ''}" data-kc-photo="${r.id}">${img ? `<img src="${img}" alt="">` : '<div style="padding:60px;color:#fff;text-align:center;line-height:1.4">sem foto</div>'}${pins}</div>${pinMode ? `<div style="font-size:12px;color:#5b4fcf;margin-top:8px;font-weight:600">👆 Toque na foto onde está o item ${S.pinFor.i + 1} · <span data-kc-act="nopin" style="text-decoration:underline;cursor:pointer">pular</span></div>` : ''}</div>
+          <div><div class="kc-row" style="margin-bottom:10px"><b style="font-size:14px">O que eu vi no prato</b><span class="kc-btn soft" data-kc-act="focussearch" data-ctx="${r.id}" style="padding:6px 12px;font-size:12.5px">＋ Adicionar alimento</span></div>${itemsHTML(r.id, true)}
+          <div style="margin-top:12px" class="kc-chips">${TYPES.map((t) => `<span class="${t[0] === dr.tipo ? 'on' : ''}" data-kc-act="cftipo" data-id="${r.id}" data-t="${t[0]}">${t[2]} ${t[1]}</span>`).join('')}</div>
+          <div class="kc-row" style="margin-top:14px;flex-wrap:wrap;row-gap:10px"><div style="font-size:12.5px;color:var(--text-dim)">Total <b style="color:var(--text);font-size:16px">${fmt(tot(dr.itens, 'kcal'))} kcal</b> · entra em ${quando.split(' · ')[0]} às ${horaSP(r.recebido_em)}</div><div style="display:flex;gap:8px"><span class="kc-btn" data-kc-act="discard" data-id="${r.id}">Descartar</span><span class="kc-btn ok" data-kc-act="approve" data-id="${r.id}">Aprovar ✓</span></div></div></div></div></td></tr>`;
+      }
+      return html;
+    }).join('');
+    box.innerHTML = `<details class="kc-cfp" id="kcConfBox"${S.confOpen ? ' open' : ''}><summary>📸 Conferência <span class="kc-dot">${S.inbox.length}</span><span style="margin-left:auto;font-weight:400;font-size:12px;color:var(--text-faint)">nada entra na conta sem o seu ✓</span></summary>
+      ${alta ? `<div style="margin:10px 0 4px;display:flex;gap:10px;align-items:center"><span class="kc-btn" data-kc-act="approvealta" style="padding:6px 12px;font-size:12.5px">✓ Aprovar os de confiança alta (${alta})</span><span class="kc-hint" style="font-size:12px;color:var(--text-faint)">clique numa linha para abrir a foto</span></div>` : ''}
+      <table class="kc-cft"><tr><th>Foto</th><th>Quando</th><th>O que o Claude viu</th><th style="text-align:right">Kcal</th><th></th></tr>${rows}</table></details>`;
+    $('kcConfBox').addEventListener('toggle', (e) => { S.confOpen = e.target.open; });
+  }
+  async function approve(id) {
+    const r = S.inbox.find((x) => x.id === id); if (!r) return;
+    const dr = draftOf(r), itens = dr.itens.filter((x) => x.qtd > 0), sb = window.sbClient;
+    if (!itens.length) { toast('Sem alimentos — descarte ou adicione algum'); return; }
+    try {
+      const ins = await sb.from('cal_meals').insert({ user_id: S.uid, tipo: dr.tipo, comido_em: r.recebido_em, origem: 'foto', foto_path: r.foto_path, texto_original: r.legenda }).select('id').single(); if (ins.error) throw ins.error;
+      const rows = itens.map((x, i) => ({ meal_id: ins.data.id, user_id: S.uid, ordem: i, nome: x.nome, qtd: x.qtd, unidade: x.unidade, passo: x.passo, kcal_un: x.kcal_un, prot_un: x.prot_un, carb_un: x.carb_un, gord_un: x.gord_un, fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y }));
+      const it = await sb.from('cal_items').insert(rows); if (it.error) throw it.error;
+      const up = await sb.from('cal_inbox').update({ status: 'aprovado', meal_id: ins.data.id }).eq('id', id); if (up.error) throw up.error;
+      delete S.confDraft[id]; if (S.openConf === id) S.openConf = null; S.pinFor = null;
+      await load(); toast('Aprovado — entrou na conta');
+    } catch (e) { alert('Não consegui aprovar: ' + (e.message || e)); }
+  }
+  async function discard(id) {
+    if (!confirm('Descartar esta foto? Ela não entra na conta.')) return;
+    const r = await window.sbClient.from('cal_inbox').update({ status: 'descartado' }).eq('id', id);
+    if (r.error) { alert(r.error.message); return; }
+    delete S.confDraft[id]; if (S.openConf === id) S.openConf = null; await load(); toast('Foto descartada');
+  }
+
+  // ───────────────────────── metas ─────────────────────────
+  function openGoals() {
+    const G = goalFor(todaySP()); $('kcGK').value = G.kcal; $('kcGP').value = G.prot; $('kcGC').value = G.carb; $('kcGG').value = G.gord; S.gm = 'g'; gMode('g', true); openDr('kcDrGoals');
+  }
+  function gVals() { const K = +$('kcGK').value || 0; return [K, ...[['kcGP', 4], ['kcGC', 4], ['kcGG', 9]].map(([id, kc]) => { const v = +String($(id).value).replace(',', '.') || 0; return S.gm === 'g' ? Math.round(v) : Math.round(v / 100 * K / kc); })]; }
+  function gMode(m, silent) {
+    const [K, P, C, Gd] = silent ? gVals() : gVals(); S.gm = m;
+    $('kcGModeG').classList.toggle('on', m === 'g'); $('kcGModeP').classList.toggle('on', m === 'p');
+    if (m === 'g') { $('kcGP').value = P; $('kcGC').value = C; $('kcGG').value = Gd; } else { $('kcGP').value = Math.round(P * 4 / K * 100); $('kcGC').value = Math.round(C * 4 / K * 100); $('kcGG').value = Math.round(Gd * 9 / K * 100); }
+    document.querySelectorAll('.kc-gu').forEach((e) => { e.textContent = m === 'g' ? 'g' : '%'; }); gCalc();
+  }
+  function gCalc() {
+    const [K, P, C, Gd] = gVals(), pc = (v, k) => K ? Math.round(v * k / K * 100) : 0;
+    $('kcGPx').textContent = S.gm === 'g' ? `${pc(P, 4)}% · ${fmt(P * 4)} kcal` : `${P} g`;
+    $('kcGCx').textContent = S.gm === 'g' ? `${pc(C, 4)}% · ${fmt(C * 4)} kcal` : `${C} g`;
+    $('kcGGx').textContent = S.gm === 'g' ? `${pc(Gd, 9)}% · ${fmt(Gd * 9)} kcal` : `${Gd} g`;
+    const sum = P * 4 + C * 4 + Gd * 9, d = sum - K, ok = Math.abs(d) <= K * 0.05, base = Math.max(sum, K) || 1;
+    $('kcGCheck').innerHTML = `<div style="border-radius:14px;padding:12px 14px;font-size:12.5px;background:${ok ? '#f0fdf4' : '#fffbeb'};border:1px solid ${ok ? '#bbf7d0' : '#fde68a'};color:${ok ? '#15803d' : '#b45309'}"><div style="display:flex;height:8px;border-radius:9px;overflow:hidden;margin-bottom:8px;background:#fff"><i style="width:${P * 4 / base * 100}%;background:#818cf8"></i><i style="width:${C * 4 / base * 100}%;background:#fbbf24"></i><i style="width:${Gd * 9 / base * 100}%;background:#f472b6"></i></div>${ok ? `✓ Os macros somam ${fmt(sum)} kcal, batendo com a meta.` : `⚠ Os macros somam ${fmt(sum)} kcal, ${fmt(Math.abs(d))} ${d > 0 ? 'acima' : 'abaixo'} da meta de ${fmt(K)}. Pode salvar assim, mas vale ajustar.`}</div>`;
+  }
+  async function saveGoals() {
+    const [K, P, C, Gd] = gVals(); if (!K) { toast('Coloque a meta de calorias'); return; }
+    const r = await window.sbClient.from('cal_goals').upsert({ user_id: S.uid, valido_desde: todaySP(), kcal: K, prot: P, carb: C, gord: Gd }, { onConflict: 'user_id,valido_desde' });
+    if (r.error) { alert('Não consegui salvar: ' + r.error.message); return; }
+    closeDr(); await load(); toast('Metas atualizadas');
+  }
+
+  // ───────────────────────── eventos ─────────────────────────
+  document.addEventListener('click', (ev) => {
+    const ph = ev.target.closest('[data-kc-photo]');
+    if (ph && S.pinFor && S.pinFor.id === ph.dataset.kcPhoto) {
+      const img = ph.querySelector('img'); if (!img) return;
+      const rc = img.getBoundingClientRect(), dr = S.confDraft[S.pinFor.id], it = dr && dr.itens[S.pinFor.i];
+      if (it) { it.pin_x = Math.round((ev.clientX - rc.left) / rc.width * 1000) / 10; it.pin_y = Math.round((ev.clientY - rc.top) / rc.height * 1000) / 10; }
+      S.pinFor = null; renderConf(); return;
+    }
+    const el = ev.target.closest('[data-kc-act]'); if (!el) return;
+    const a = el.dataset.kcAct, ctx = el.dataset.ctx, i = +el.dataset.i;
+    if (a === 'close') closeDr();
+    else if (a === 'add') openAdd();
+    else if (a === 'editmeal') openEdit(el.dataset.id);
+    else if (a === 'goals') openGoals();
+    else if (a === 'goconf') { S.confOpen = true; renderConf(); $('kcConf').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (a === 'calc') calcAsk();
+    else if (a === 'mic') toggleMic();
+    else if (a === 'dmtipo') { S.dm.tipo = el.dataset.t; renderDm(); }
+    else if (a === 'savemeal') saveMeal();
+    else if (a === 'delmeal') delMeal();
+    else if (a === 'qty') { const l = getList(ctx), x = l[i]; x.qtd = Math.max(0, Math.round((x.qtd + (+el.dataset.d) * (x.passo || 1)) * 100) / 100); rerenderCtx(ctx); }
+    else if (a === 'rmitem') { getList(ctx).splice(i, 1); if (S.pinFor && S.pinFor.id === ctx) S.pinFor = null; rerenderCtx(ctx); }
+    else if (a === 'pickfood') { const f = (S._sug || [])[i]; if (!f) return; getList(ctx).push(itemFromFood(f)); if (ctx !== 'dm' && S.fotos[(S.inbox.find((r) => r.id === ctx) || {}).foto_path]) S.pinFor = { id: ctx, i: getList(ctx).length - 1 }; rerenderCtx(ctx); }
+    else if (a === 'aifood') {
+      const inp = document.querySelector(`[data-kc-search="${ctx}"]`), termo = inp ? inp.value.trim() : '';
+      if (!termo) return; el.textContent = '✨ Calculando…';
+      callFn({ action: 'parse', texto: termo }).then((r) => { if (r.itens && r.itens.length) { getList(ctx).push(...r.itens.map(limpaItem)); if (ctx !== 'dm' && r.itens.length === 1) S.pinFor = { id: ctx, i: getList(ctx).length - 1 }; } else toast('Não identifiquei esse alimento'); rerenderCtx(ctx); }).catch((e) => { alert(e.message); rerenderCtx(ctx); });
+    }
+    else if (a === 'focussearch') { const inp = document.querySelector(`[data-kc-search="${ctx}"]`); if (inp) inp.focus(); }
+    else if (a === 'nopin') { S.pinFor = null; renderConf(); }
+    else if (a === 'togconf') { if (ev.target.closest('.kc-okbtn')) return; S.openConf = S.openConf === el.dataset.id ? null : el.dataset.id; S.pinFor = null; renderConf(); }
+    else if (a === 'cftipo') { draftOf(S.inbox.find((r) => r.id === el.dataset.id)).tipo = el.dataset.t; renderConf(); }
+    else if (a === 'approve') { ev.stopPropagation(); approve(el.dataset.id); }
+    else if (a === 'discard') discard(el.dataset.id);
+    else if (a === 'approvealta') { (async () => { for (const r of S.inbox.filter((x) => x.confianca === 'alta')) await approve(r.id); })(); }
+    else if (a === 'gmode') gMode(el.dataset.m);
+    else if (a === 'savegoals') saveGoals();
+  });
+  document.addEventListener('input', (ev) => {
+    const t = ev.target;
+    if (t.matches && t.matches('[data-kc-search]')) onSearch(t);
+    else if (t.matches && t.matches('[data-kc-qty]')) { const x = getList(t.dataset.ctx)[+t.dataset.i]; x.qtd = Math.max(0, parseFloat(String(t.value).replace(',', '.')) || 0); }
+    else if (t.id && /^kcG[KPCG]$/.test(t.id)) gCalc();
+  });
+  document.addEventListener('change', (ev) => { const t = ev.target; if (t.matches && t.matches('[data-kc-qty]')) rerenderCtx(t.dataset.ctx); else if (t.id === 'kcDmHora' && S.dm) S.dm.hora = t.value; else if (t.id === 'kcDmDia' && S.dm) { S.dm.dia = t.value; renderDm(); } });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && document.body.classList.contains('kc-open')) closeDr(); if (ev.key === 'Enter' && ev.target.id === 'kcAsk' && !ev.shiftKey) { ev.preventDefault(); calcAsk(); } });
+  document.addEventListener('mouseover', (ev) => { const b = ev.target.closest && ev.target.closest('.kc-hb'); if (b) tipShow(b); else if (ev.target.closest && !ev.target.closest('[data-kc-hist]') && $('kcTip')) $('kcTip').style.display = 'none'; });
+  $('kcScrim').addEventListener('click', closeDr);
+  $('kcBtnAdd').addEventListener('click', openAdd); $('kcBtnAddM').addEventListener('click', openAdd);
+  $('kcBtnMetas').addEventListener('click', openGoals);
+  $('kcPrev').addEventListener('click', () => { S.day = addDays(S.day, -1); load(); });
+  $('kcNext').addEventListener('click', () => { if (S.day >= todaySP()) return; S.day = addDays(S.day, 1); load(); });
+  $('kcHoje').addEventListener('click', () => { S.day = todaySP(); load(); });
+  $('kcHistSeg').addEventListener('click', (ev) => { const s = ev.target.closest('[data-r]'); if (!s) return; S.range = +s.dataset.r; renderHist(); });
+  $('kcWeek').addEventListener('click', (ev) => { const b = ev.target.closest('.kc-hb'); if (!b) return; const x = S._hist[+b.dataset.i]; if (!x || x.week || x.future) return; S.day = x.d; load(); $('calorias').scrollIntoView({ behavior: 'smooth' }); });
+
+  // ───────────────────────── início ─────────────────────────
+  async function init() {
+    if (!window.sbClient) return;
+    const { data: { session } } = await window.sbClient.auth.getSession();
+    if (!session) return;
+    S.uid = session.user.id; S.day = todaySP();
+    await load();
+    try {
+      const ch = window.sbClient.channel('kc-calorias');
+      ['cal_meals', 'cal_items', 'cal_inbox', 'cal_goals'].forEach((t) => ch.on('postgres_changes', { event: '*', schema: 'public', table: t, filter: 'user_id=eq.' + S.uid }, reload));
+      ch.subscribe();
+    } catch (e) { console.warn('[calorias] realtime', e); }
+    // virou o dia com a aba aberta: volta pra hoje
+    setInterval(() => { const h = todaySP(); if (S._hoje && S._hoje !== h && S.day === S._hoje) { S.day = h; load(); } S._hoje = h; }, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) reload(); });
+  }
+  window.kcCalorias = { reload: load, state: S };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
 </body>
