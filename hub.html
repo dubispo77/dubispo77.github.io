@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-09T20:04:35-03:00">
+<meta name="hub-build" content="2026-10-09T20:05:30-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -54,6 +54,16 @@ html, body {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   background: var(--card);
   box-shadow: -4px 0 24px rgba(30,20,60,.08);
+}
+/* 09/10 — barra de rolagem da página mais "durinha" (pedido do Eduardo): sempre visível, mais larga,
+   alça com tamanho mínimo e cor firme. Só no computador; no celular segue a nativa. */
+@media (min-width: 769px) {
+  .main::-webkit-scrollbar { width: 14px; }
+  .main::-webkit-scrollbar-track { background: #efedf4; border-left: 1px solid #e4e1ec; }
+  .main::-webkit-scrollbar-thumb { background: #9d95b3; border-radius: 8px; border: 3px solid #efedf4; min-height: 60px; }
+  .main::-webkit-scrollbar-thumb:hover { background: #7c6fa0; }
+  .main::-webkit-scrollbar-thumb:active { background: #5b4fcf; }
+  @supports not selector(::-webkit-scrollbar) { .main { scrollbar-width: auto; scrollbar-color: #9d95b3 #efedf4; } }
 }
 
 /* ── SIDEBAR ── */
@@ -2229,6 +2239,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #g30tt{position:fixed;pointer-events:none;background:#1f1b2d;color:#fff;font-size:12px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .1s;z-index:9999;max-width:280px;box-shadow:0 4px 14px rgba(0,0,0,.25);left:0;top:0}
 
 
+
 /* ══════════ ABA CALORIAS (05/10/2026) ══════════ */
 #calorias .kc-tile{background:#fff;border:1px solid var(--border-soft);border-radius:22px;padding:20px;position:relative;overflow:hidden}
 #calorias .kc-lbl,.kc-dr .kc-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint)}
@@ -2326,6 +2337,8 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
 .kc-sbox-sm{border-style:dashed;border-radius:14px}.kc-sbox-sm input{font-size:13.5px;padding:8px 0}
 .kc-res{border:1px solid var(--border-soft);border-radius:16px;margin-top:8px;background:#fff;box-shadow:0 10px 28px rgba(30,20,60,.08);overflow:hidden;max-height:420px;overflow-y:auto}
 .kc-rload{padding:14px 16px;font-size:13px;color:var(--text-faint)}
+#calorias ~ * .kc-rweb,.kc-rweb{animation:kcPulse 1.4s ease-in-out infinite}
+@keyframes kcPulse{50%{opacity:.45}}
 .kc-rchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 12px;border-bottom:1px solid #f2f0f7;background:#faf9fd}
 .kc-rchips span[data-kc-act]{font-size:12px;font-weight:650;padding:5px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--text-dim)}
 .kc-rchips span[data-kc-act]:hover{border-color:#7c3aed;color:#5b4fcf}
@@ -5045,6 +5058,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
         </div>
       </div>
     </section>
+
 
 
 
@@ -19686,13 +19700,19 @@ const finMob = (() => {
     if (!gav) { gav = document.createElement('div'); gav.id = 'finMobGav'; document.body.appendChild(gav); }
     const br = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const num = s => { const v = parseFloat(String(s).replace(/\./g, '').replace(',', '.')); return isNaN(v) ? null : v; };
-    const topo2 = Math.max(c.total, c.meta, 50) * 2, passo = topo2 > 6000 ? 50 : topo2 > 1500 ? 25 : 10, MAX = Math.ceil(topo2 / passo) * passo;
-    const pL = Math.min(c.total / MAX * 100, 100);
+    // 09/10 ("tá indo muito rápido"): a trilha cobre só ±30% em volta do valor (antes era 0 → 2×), passo fino;
+    // se o valor digitado sair da faixa, ela se recentra
+    const ref0 = Math.max(c.meta, c.total, 100);
+    const passo = ref0 > 6000 ? 10 : ref0 > 1500 ? 5 : 1;
+    let MIN = 0, MAX = 0;
+    const faixa = ref => { MIN = Math.max(0, Math.floor(ref * 0.7 / passo) * passo); MAX = Math.ceil(ref * 1.3 / passo) * passo; };
+    faixa(ref0);
+    const pL = Math.min(Math.max((c.total - MIN) / (MAX - MIN) * 100, 0), 100);
     gav.innerHTML = `<div class="pux"></div><div class="tt">${ico(slug)}<div style="flex:1"><b style="font-size:17px">${esc(ci.nome)}</b><div class="mut" style="font-size:12.5px">meta de ${mesCurto(m)}${baseMeta ? ' · base ' + R(baseMeta) : ''}</div></div></div>
       <div class="info">Lançado no mês: <b>${R(c.total)}</b> · conferido ${R(c.pagas)}</div>
       <div class="campo"><span>R$</span><input id="fmMv" inputmode="decimal" value="${c.meta ? br(c.meta) : ''}" placeholder="${br(Math.ceil(c.total / 50) * 50)}"></div>
-      <div class="sl"><div class="trk"><i id="fmTrk"></i></div><div class="lanc" style="left:${pL}%"></div><input type="range" id="fmRg" min="0" max="${MAX}" step="${passo}">
-        <div class="esc"><span>R$ 0</span><b style="left:${Math.min(Math.max(pL, 18), 82)}%">lançado ${R(c.total)}</b><span>R$ ${MAX.toLocaleString('pt-BR')}</span></div></div>
+      <div class="sl"><div class="trk"><i id="fmTrk"></i></div><div class="lanc" id="fmLanc" style="left:${pL}%"></div><input type="range" id="fmRg" min="${MIN}" max="${MAX}" step="${passo}">
+        <div class="esc"><span id="fmMin">R$ ${MIN.toLocaleString('pt-BR')}</span><b id="fmLancT" style="left:${Math.min(Math.max(pL, 18), 82)}%">lançado ${R(c.total)}</b><span id="fmMax">R$ ${MAX.toLocaleString('pt-BR')}</span></div></div>
       <div class="rap"><button data-q="lanc">= lançado</button><button data-q="-10">−10%</button><button data-q="+10">+10%</button>${baseMeta ? '<button data-q="base">= base</button>' : ''}</div>
       <div class="prev" id="fmPrev"></div><button class="sv" id="fmSv">Salvar meta</button>`;
     const inp = document.getElementById('fmMv'), rg = document.getElementById('fmRg'), trk = document.getElementById('fmTrk');
@@ -19701,8 +19721,22 @@ const finMob = (() => {
       document.getElementById('fmPrev').innerHTML = v == null ? 'Digite ou arraste pra definir a meta.'
         : `${v < c.total ? '⚠ Já está ' + R(c.total - v) + ' acima dessa meta. ' : 'Sobram ' + R(v - c.total) + ' nessa categoria. '}Balanço do mês: <b class="${bal < 0 ? 'neg' : 'pos'}">${RS(bal)}</b>${Math.abs(bal - P.bal) > .004 ? ' <span class="mut">(antes ' + RS(P.bal) + ')</span>' : ''}`;
     };
-    const syncRg = () => { const v = num(inp.value) || 0; rg.value = v; trk.style.width = Math.min(v / MAX * 100, 100) + '%'; };
-    rg.oninput = () => { inp.value = br(+rg.value); trk.style.width = (rg.value / MAX * 100) + '%'; prevw(); };
+    const pinta = () => {
+      const pc = v => Math.min(Math.max((v - MIN) / (MAX - MIN) * 100, 0), 100);
+      trk.style.width = pc(+rg.value) + '%';
+      const pl = pc(c.total), lanc = document.getElementById('fmLanc'), lt = document.getElementById('fmLancT');
+      const dentro = c.total >= MIN && c.total <= MAX;
+      lanc.style.display = lt.style.display = dentro ? '' : 'none';
+      lanc.style.left = pl + '%'; lt.style.left = Math.min(Math.max(pl, 18), 82) + '%';
+      document.getElementById('fmMin').textContent = 'R$ ' + MIN.toLocaleString('pt-BR');
+      document.getElementById('fmMax').textContent = 'R$ ' + MAX.toLocaleString('pt-BR');
+    };
+    const syncRg = () => {
+      const v = num(inp.value) || 0;
+      if (v < MIN || v > MAX) { faixa(Math.max(v, 100)); rg.min = MIN; rg.max = MAX; }
+      rg.value = v; pinta();
+    };
+    rg.oninput = () => { inp.value = br(+rg.value); pinta(); prevw(); };
     inp.oninput = () => { syncRg(); prevw(); };
     gav.querySelectorAll('.rap button').forEach(b => b.onclick = () => {
       const q = b.dataset.q, base = num(inp.value) ?? (c.meta || c.total);
@@ -19936,6 +19970,7 @@ try { finMob.render(); } catch (e) { console.warn('[finMob] 1º desenho', e); }
 if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: 'svg', ext: '.svg' });
 })();
 </script>
+
 
 
 <!-- ══════════ ABA CALORIAS — gavetas + lógica (05/10/2026) ══════════ -->
@@ -20215,21 +20250,31 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
   function tacoNome(n) { // "Frango, peito, sem pele, grelhado" -> "Frango peito sem pele grelhado"
     const p = String(n).split(',').map((s) => s.trim()).filter(Boolean); return p.length > 1 ? p[0] + ' ' + p.slice(1).join(' ').toLowerCase() : n;
   }
-  let _st = null, _seq = 0;
+  let _st = null, _seq = 0, _wt = null;
   function sugBox(ctx) { return document.querySelector(`[data-kc-sug="${ctx}"]`); }
   function onSearch(inp) {
     const ctx = inp.dataset.kcSearch, termo = inp.value.trim(), box = sugBox(ctx);
-    clearTimeout(_st);
+    clearTimeout(_st); clearTimeout(_wt);
     if (termo.length < 2) { box.innerHTML = ''; return; }
     box.innerHTML = `<div class="kc-res"><div class="kc-rload">Buscando “${esc(termo)}”…</div></div>`;
     const seq = ++_seq;
+    S._res = S._res || {};
+    const pinta = () => { if (seq === _seq) box.innerHTML = resultsHTML(ctx, S._res[ctx], termo); };
     _st = setTimeout(async () => {
       let r = { meus: [], taco: [], marcas: [], chips: [] };
       try { r = await callFn({ action: 'buscar', termo }); } catch (e) { console.warn(e); }
       if (seq !== _seq) return;
-      S._res = S._res || {}; S._res[ctx] = r;
-      box.innerHTML = resultsHTML(ctx, r, termo);
+      r.web = termo.length >= 3 ? 'carregando' : null; r._seq = seq;
+      S._res[ctx] = r; pinta();
     }, 280);
+    // internet: sempre, depois que ele para de digitar (cache no servidor — a mesma busca não gasta de novo)
+    if (termo.length >= 3) _wt = setTimeout(async () => {
+      let itens = [];
+      try { itens = (await callFn({ action: 'webbusca', termo })).itens || []; } catch (e) { console.warn(e); }
+      if (seq !== _seq) return;
+      const espera = () => { if (seq !== _seq) return; if (!S._res[ctx] || S._res[ctx]._seq !== seq) return setTimeout(espera, 150); S._res[ctx].web = itens; pinta(); };
+      espera();
+    }, 900);
   }
   function porcaoMarca(p) {
     const n = (p.nome + ' ' + (p.marca || '')).toLowerCase();
@@ -20242,10 +20287,12 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     let h = '';
     if (r.chips && r.chips.length > 1) h += `<div class="kc-rchips"><span style="font-size:11px;font-weight:800;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin-right:2px">Marcas</span>${r.chips.map((b) => `<span data-kc-act="chip" data-ctx="${ctx}" data-b="${esc(b)}">${esc(b)}</span>`).join('')}</div>`;
     if (r.meus && r.meus.length) h += `<div class="kc-rsec">Seus alimentos</div>` + r.meus.map((f, i) => row('meus', i, '<span class="kc-rico" style="background:#ede9fe">⭐</span>', esc(f.nome), f.porcao_nome ? `1 ${esc(f.porcao_nome)} = ${fmt(f.porcao_g)} g` : 'por 100 g', f.porcao_nome ? `${fmt(f.kcal * f.porcao_g / 100)} kcal` : `${fmt(f.kcal)} kcal`)).join('');
+    if (r.web === 'carregando') h += `<div class="kc-rsec">Na internet</div><div class="kc-rload kc-rweb">🔎 Procurando “${esc(termo)}” na internet…</div>`;
+    else if (Array.isArray(r.web) && r.web.length) h += `<div class="kc-rsec">Na internet</div>` + r.web.map((p, i) => row('web', i, '<span class="kc-rico" style="background:#fef3c7">🌐</span>', esc(p.nome), `${esc(p.marca || 'sem marca')}${p.porcao_nome ? ` · 1 ${esc(p.porcao_nome)} = ${fmt(p.porcao_g)} g` : ' · por 100 g'}${p.via === 'estimativa' ? ' · ≈ estimativa' : ''}`, p.porcao_nome ? `${fmt(p.kcal * p.porcao_g / 100)} kcal` : `${fmt(p.kcal)} kcal`)).join('');
     if (r.marcas && r.marcas.length) h += `<div class="kc-rsec">Produtos de marca</div>` + r.marcas.map((p, i) => { const pc = porcaoMarca(p); return row('marcas', i, p.img ? `<img class="kc-rico" src="${esc(p.img)}" alt="" loading="lazy">` : '<span class="kc-rico" style="background:#e0f2fe">🏷️</span>', esc(p.nome), `${esc(p.marca || 'sem marca')}${pc ? ` · 1 ${pc[0]} ≈ ${pc[1]} g` : ' · por 100 g'}`, pc ? `${fmt(p.kcal * pc[1] / 100)} kcal` : `${fmt(p.kcal)} kcal`); }).join('');
     if (r.taco && r.taco.length) h += `<div class="kc-rsec">Genéricos · TACO</div>` + r.taco.map((f, i) => row('taco', i, '<span class="kc-rico" style="background:#dcfce7">🥗</span>', esc(tacoNome(f.nome)), 'por 100 g', `${fmt(f.kcal)} kcal`)).join('');
     if (!h) h = `<div class="kc-rload">Nada encontrado para “${esc(termo)}”.</div>`;
-    h += `<div class="kc-rfoot"><span data-kc-act="webfood" data-ctx="${ctx}">🔎 Não achou? Procurar “${esc(termo)}” na internet</span>${ctx === 'dm' ? '' : `<span data-kc-act="aifood" data-ctx="${ctx}">✨ Calcular com o Claude</span>`}</div>`;
+    if (ctx !== 'dm') h += `<div class="kc-rfoot"><span data-kc-act="aifood" data-ctx="${ctx}">✨ Calcular com o Claude</span></div>`;
     return `<div class="kc-res">${h}</div>`;
   }
   async function salvaMeu(f) { // produto de marca ou da internet vira "meu alimento" — da próxima vez aparece primeiro
@@ -20264,6 +20311,7 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
   function pick(ctx, k, i) {
     const r = (S._res || {})[ctx]; if (!r) return;
     if (k === 'meus' || k === 'taco') { const f = r[k][i]; if (f) addPicked(ctx, itemFromFood(f)); return; }
+    if (k === 'web') { const p = (r.web || [])[i]; if (p) addWeb(ctx, p); return; }
     const p = r.marcas[i]; if (!p) return;
     const pc = porcaoMarca(p), nome = (p.marca && !p.nome.toLowerCase().includes(p.marca.toLowerCase()) ? p.marca + ' — ' : '') + p.nome;
     const it = pc ? { nome, qtd: 1, unidade: pc[0], passo: 1, kcal_un: p.kcal * pc[1] / 100, prot_un: p.prot * pc[1] / 100, carb_un: p.carb * pc[1] / 100, gord_un: p.gord * pc[1] / 100, fonte: 'web', food_id: null }
@@ -20271,19 +20319,13 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     addPicked(ctx, it);
     salvaMeu({ nome, kcal: p.kcal, prot: p.prot, carb: p.carb, gord: p.gord, porcao_nome: pc ? pc[0] : null, porcao_g: pc ? pc[1] : null }).then((id) => { it.food_id = id; });
   }
-  async function webFood(ctx, el) {
-    const inp = document.querySelector(`[data-kc-search="${ctx}"]`), termo = inp ? inp.value.trim() : '';
-    if (!termo) return;
-    el.textContent = '🔎 Procurando o rótulo na internet… (uns segundos)'; el.style.pointerEvents = 'none';
-    try {
-      const p = await callFn({ action: 'web', termo });
-      const nome = (p.marca && !p.nome.toLowerCase().includes(p.marca.toLowerCase()) ? p.marca + ' — ' : '') + p.nome;
-      const g = p.porcao_nome && p.porcao_g ? p.porcao_g : null;
-      const it = g ? { nome, qtd: 1, unidade: p.porcao_nome, passo: 1, kcal_un: p.kcal * g / 100, prot_un: p.prot * g / 100, carb_un: p.carb * g / 100, gord_un: p.gord * g / 100, fonte: p.via === 'web' ? 'web' : 'estimativa', food_id: null }
-                   : { nome, qtd: 100, unidade: 'g', passo: 10, kcal_un: p.kcal / 100, prot_un: p.prot / 100, carb_un: p.carb / 100, gord_un: p.gord / 100, fonte: p.via === 'web' ? 'web' : 'estimativa', food_id: null };
-      addPicked(ctx, it);
-      salvaMeu({ nome, kcal: p.kcal, prot: p.prot, carb: p.carb, gord: p.gord, porcao_nome: g ? p.porcao_nome : null, porcao_g: g }).then((id) => { it.food_id = id; });
-    } catch (e) { el.textContent = '😕 Não achei esse produto. Tente outro nome ou descreva a refeição.'; el.style.pointerEvents = ''; }
+  function addWeb(ctx, p) {
+    const nome = (p.marca && !p.nome.toLowerCase().includes(p.marca.toLowerCase()) ? p.marca + ' — ' : '') + p.nome;
+    const g = p.porcao_nome && p.porcao_g ? p.porcao_g : null, fonte = p.via === 'estimativa' ? 'estimativa' : 'web';
+    const it = g ? { nome, qtd: 1, unidade: p.porcao_nome, passo: 1, kcal_un: p.kcal * g / 100, prot_un: p.prot * g / 100, carb_un: p.carb * g / 100, gord_un: p.gord * g / 100, fonte, food_id: null }
+                 : { nome, qtd: 100, unidade: 'g', passo: 10, kcal_un: p.kcal / 100, prot_un: p.prot / 100, carb_un: p.carb / 100, gord_un: p.gord / 100, fonte, food_id: null };
+    addPicked(ctx, it);
+    salvaMeu({ nome, kcal: p.kcal, prot: p.prot, carb: p.carb, gord: p.gord, porcao_nome: g ? p.porcao_nome : null, porcao_g: g }).then((id) => { it.food_id = id; });
   }
   function rerenderCtx(ctx) { if (ctx === 'dm') renderDm(); else renderConf(); }
 
@@ -20482,7 +20524,6 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     else if (a === 'rmitem') { getList(ctx).splice(i, 1); if (S.pinFor && S.pinFor.id === ctx) S.pinFor = null; rerenderCtx(ctx); }
     else if (a === 'pick') pick(ctx, el.dataset.k, i);
     else if (a === 'chip') { const inp = document.querySelector(`[data-kc-search="${ctx}"]`); if (inp) { const b = el.dataset.b; inp.value = (inp.value.replace(new RegExp('\\s*' + b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i'), '') + ' ' + b).trim(); onSearch(inp); inp.focus(); } }
-    else if (a === 'webfood') webFood(ctx, el);
     else if (a === 'askmode') { $('kcAskBox').style.display = ''; $('kcAskLink').style.display = 'none'; $('kcAsk').focus(); }
     else if (a === 'aifood') {
       const inp = document.querySelector(`[data-kc-search="${ctx}"]`), termo = inp ? inp.value.trim() : '';
