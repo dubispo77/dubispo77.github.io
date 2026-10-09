@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-09T20:05:49-03:00">
+<meta name="hub-build" content="2026-10-09T20:12:25-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -19285,6 +19285,14 @@ const finMob = (() => {
 #finMob .fm-hero .v{font-size:30px;font-weight:800;letter-spacing:-.6px;margin:2px 0 10px}
 #finMob .fm-hero .bar{height:9px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;display:flex}
 #finMob .fm-hero .bar i{display:block;height:100%}
+#finMob .fm-hero.devendo{background:linear-gradient(135deg,#7f1d1d,#450a0a)}
+#finMob .fm-hero .sb2{font-size:12px;opacity:.75;margin:-6px 0 10px}
+#finMob .fm-estouro{margin:12px 14px 0;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:16px;padding:11px 14px;font-size:13px;color:#9a3412}
+#finMob .fm-cobrir{margin-top:8px;width:100%;border:1.5px dashed #f97316;background:#fff7ed;color:#c2410c;border-radius:10px;padding:8px;font:800 12.5px inherit;font-family:inherit;cursor:pointer}
+#finMobGav .pote{display:flex;justify-content:space-between;align-items:center;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;background:#f6f5fa}
+#finMobGav .pote b{font-size:15px}
+#finMobGav .tira{margin-top:10px;border:1.5px solid #fed7aa;background:#fff7ed;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#9a3412}
+#finMobGav .tira select{width:100%;margin-top:6px;border:1.5px solid #fdba74;border-radius:10px;padding:9px 10px;font:600 13.5px inherit;font-family:inherit;background:#fff;color:#1a1828}
 #finMob .fm-hero .leg{display:flex;justify-content:space-between;font-size:11.5px;margin-top:7px;opacity:.85;gap:8px}
 #finMob .fm-kp{background:#fff;margin:12px 14px 0;border-radius:18px;padding:4px 14px}
 #finMob .fm-k{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid #f1eff6}
@@ -19416,7 +19424,11 @@ const finMob = (() => {
     const rec = txOf(m, t => !t.tr && t.val > 0).reduce((s, t) => s + t.val, 0);
     const pagas = cats.reduce((s, c) => s + c.pagas, 0), prev = cats.reduce((s, c) => s + c.prev, 0);
     const fats = ['brad-card', 'nub-card', 'mp-card'].filter(k => DATA.accounts[k]).reduce((s, k) => s + faturaMes(k, m).v, 0);
-    return { cats, metas, rec, pagas, prev, gasto: pagas + prev, bal: rec - metas, fats };
+    // 09/10 (base zero, opção A escolhida pelo Eduardo): o bolo = receitas planejadas do mês; cada categoria "segura"
+    // o maior entre a meta e o já lançado — estouro come o bolo na hora, até ele cobrir tirando de outra.
+    const aloc = cats.reduce((s, c) => s + Math.max(c.meta, c.total), 0);
+    const estouros = cats.filter(c => c.total > c.meta + 0.004);
+    return { cats, metas, rec, pagas, prev, gasto: pagas + prev, bal: rec - metas, fats, aloc, disp: rec - aloc, estouros };
   }
 
   const MESES_LONGO = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -19452,20 +19464,26 @@ const finMob = (() => {
     const alerta = CONF.length ? `<div class="fm-alerta" data-fm-aba="conf"><div class="n">${CONF.length}</div><div class="sp"><b>${CONF.length === 1 ? '1 lançamento' : CONF.length + ' lançamentos'} pra conferir</b><div class="mut ell" style="font-size:12.5px">${esc(CONF.slice(0, 4).map(r => r.desc).join(' · '))}</div></div><b style="color:#dc2626;font-size:18px">›</b></div>` : '';
     const cats = P.cats.map(c => {
       const ci = catInfo(c.slug), alvo = Math.max(c.meta, c.total, 0.01);
-      const pc = c.pagas / alvo * 100, pp = c.prev / alvo * 100, passou = c.meta > 0 && c.total > c.meta + 0.004;
+      const pc = c.pagas / alvo * 100, pp = c.prev / alvo * 100, passou = c.total > c.meta + 0.004;
       return `<div class="fm-cat" data-fm-meta="${esc(c.slug)}"><div class="t">${ico(c.slug)}<div class="sp"><div class="nm ell">${esc(ci.nome)}</div>${c.meta > 0 ? `<span class="fm-mp">meta ${R(c.meta)}</span>` : '<span class="fm-mp vazia">+ meta</span>'}</div>
-        <div class="r"><b>${R(c.total)}</b><span class="${passou ? 'neg' : ''}">${passou ? 'passou ' + R(c.total - c.meta) : c.meta > 0 ? 'sobra ' + R(c.meta - c.total) : ''}</span></div></div>
+        <div class="r"><b>${R(c.total)}</b><span class="${passou ? 'neg' : ''}">${passou ? 'estourou ' + R(c.total - c.meta) : 'livre ' + R(c.meta - c.total)}</span></div></div>
         <div class="bar"><i style="width:${Math.min(pc, 100)}%;background:${ci.cor}"></i><i style="width:${Math.max(Math.min(pp, 100 - pc), 0)}%;background:${ci.cor}55"></i></div>
-        <div class="rs"><span>conferido ${R(c.pagas)}</span><span>previsto ${R(c.prev)}</span></div></div>`;
+        <div class="rs"><span>conferido ${R(c.pagas)}</span><span>previsto ${R(c.prev)}</span></div>
+        ${passou ? `<button class="fm-cobrir" data-fm-cobrir="${esc(c.slug)}">Cobrir estouro de ${R(c.total - c.meta)} tirando de outra categoria</button>` : ''}</div>`;
     }).join('');
-    return topo('Planejamento', 'quanto sobra do que entra, pelas suas metas') + alerta +
-      `<div class="fm-hero"><div class="l">Balanço planejado do mês</div><div class="v">${RS(P.bal)}</div>
-        <div class="bar"><i style="width:${P.pagas / base * 100}%;background:#a78bfa"></i><i style="width:${P.prev / base * 100}%;background:#a78bfa66"></i></div>
-        <div class="leg"><span>■ já gasto ${R(P.pagas)}</span><span>▫ ainda vai sair ${R(P.prev)}</span></div></div>
+    const dev = P.disp < -0.004, pDist = P.rec > 0 ? Math.min(P.aloc / P.rec * 100, 100) : 100;
+    const totEst = P.estouros.reduce((s, c) => s + (c.total - c.meta), 0);
+    const avisoEst = P.estouros.length ? `<div class="fm-estouro">⚠ <b>${P.estouros.length === 1 ? '1 categoria estourou' : P.estouros.length + ' categorias estouraram'}</b> (${R(totEst)} a mais que a meta): ${esc(P.estouros.map(c => catInfo(c.slug).nome).join(', '))}. Cubra tirando de quem tem folga.</div>` : '';
+    return topo('Planejamento', 'o que você planeja receber, distribuído nas categorias') + alerta +
+      `<div class="fm-hero ${dev ? 'devendo' : ''}"><div class="l">${dev ? 'Você está devendo' : 'Pra distribuir'}</div><div class="v">${R(Math.abs(P.disp))}</div>
+        <div class="sb2">receitas planejadas ${R(P.rec)} − distribuído ${R(P.aloc)}</div>
+        <div class="bar"><i style="width:${pDist}%;background:${dev ? '#fca5a5' : '#a78bfa'}"></i></div>
+        <div class="leg"><span>■ distribuído ${R(P.aloc)}</span><span>${dev ? 'faltam ' + R(-P.disp) : '▫ livre ' + R(P.disp)}</span></div></div>
+      ${avisoEst}
       <div class="fm-kp">
-        <div class="fm-k"><div class="i" style="background:#dcfce7">↑</div><div class="l">Receitas</div><div class="v pos">${R(P.rec)}</div></div>
-        <div class="fm-k"><div class="i" style="background:#fee2e2">↓</div><div class="l">Gastos planejados</div><div class="v neg">${R(P.metas)}</div></div>
-        <div class="fm-k"><div class="i" style="background:#ede9fe">⏳</div><div class="l">Restam na meta</div><div class="v ${P.metas - P.gasto < 0 ? 'neg' : ''}">${RN(P.metas - P.gasto)}</div></div>
+        <div class="fm-k"><div class="i" style="background:#dcfce7">↑</div><div class="l">Receitas planejadas</div><div class="v pos">${R(P.rec)}</div></div>
+        <div class="fm-k"><div class="i" style="background:#ede9fe">◫</div><div class="l">Distribuído nas categorias</div><div class="v">${R(P.aloc)}</div></div>
+        <div class="fm-k"><div class="i" style="background:#fee2e2">↓</div><div class="l">Já gasto (conferido)</div><div class="v neg">${R(P.pagas)}</div></div>
         <div class="fm-k"><div class="i" style="background:#e0f2fe">💳</div><div class="l">Faturas do mês</div><div class="v">${R(P.fats)}</div></div></div>
       <div class="fm-sec"><b>Por categoria</b><span>toque pra mudar a meta</span></div>${cats || '<div class="fm-vazio">Sem lançamentos neste mês.</div>'}`;
   }
@@ -19624,6 +19642,8 @@ const finMob = (() => {
     const mm = e.target.closest('[data-fm-mes]');
     if (mm) { if (!mm.disabled) changeMonth(+mm.dataset.fmMes); return; }
     if (e.target.closest('[data-fm-meses]')) { abreMeses(); return; }
+    const cb = e.target.closest('[data-fm-cobrir]');
+    if (cb) { abreMeta(cb.dataset.fmCobrir, true); return; }
     const mt = e.target.closest('[data-fm-meta]');
     if (mt) { abreMeta(mt.dataset.fmMeta); return; }
     const ok = e.target.closest('[data-fm-ok]');
@@ -19692,35 +19712,59 @@ const finMob = (() => {
   }
 
   // ===== gaveta: mudar a meta do mês (mesma tabela do desktop) =====
-  function abreMeta(slug) {
+  function abreMeta(slug, cobrir) {
     const m = currentMonth, P = calcPlan(m), c = P.cats.find(x => x.slug === slug) || { slug, meta: metaDe(slug, m), total: 0, pagas: 0, prev: 0 };
     const ci = catInfo(slug), baseMeta = DATA.budgets[slug] || 0;
     let veu = document.getElementById('finMobVeu'), gav = document.getElementById('finMobGav');
     if (!veu) { veu = document.createElement('div'); veu.id = 'finMobVeu'; document.body.appendChild(veu); veu.onclick = fechaMeta; }
     if (!gav) { gav = document.createElement('div'); gav.id = 'finMobGav'; document.body.appendChild(gav); }
+    gav.style.maxHeight = '88vh'; gav.style.overflowY = 'auto';
     const br = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const num = s => { const v = parseFloat(String(s).replace(/\./g, '').replace(',', '.')); return isNaN(v) ? null : v; };
-    // 09/10 ("tá indo muito rápido"): a trilha cobre só ±30% em volta do valor (antes era 0 → 2×), passo fino;
-    // se o valor digitado sair da faixa, ela se recentra
+    // deslizante lento (09/10): faixa ±30% em volta do valor, passo fino, recentra se sair da faixa
     const ref0 = Math.max(c.meta, c.total, 100);
     const passo = ref0 > 6000 ? 10 : ref0 > 1500 ? 5 : 1;
     let MIN = 0, MAX = 0;
     const faixa = ref => { MIN = Math.max(0, Math.floor(ref * 0.7 / passo) * passo); MAX = Math.ceil(ref * 1.3 / passo) * passo; };
-    faixa(ref0);
+    faixa(cobrir ? Math.max(c.total, 100) : ref0);
     const pL = Math.min(Math.max((c.total - MIN) / (MAX - MIN) * 100, 0), 100);
-    gav.innerHTML = `<div class="pux"></div><div class="tt">${ico(slug)}<div style="flex:1"><b style="font-size:17px">${esc(ci.nome)}</b><div class="mut" style="font-size:12.5px">meta de ${mesCurto(m)}${baseMeta ? ' · base ' + R(baseMeta) : ''}</div></div></div>
-      <div class="info">Lançado no mês: <b>${R(c.total)}</b> · conferido ${R(c.pagas)}</div>
-      <div class="campo"><span>R$</span><input id="fmMv" inputmode="decimal" value="${c.meta ? br(c.meta) : ''}" placeholder="${br(Math.ceil(c.total / 50) * 50)}"></div>
+    // base zero: quem tem folga (meta acima do lançado) pode ceder
+    const doadoras = P.cats.filter(x => x.slug !== slug && x.meta - x.total > 0.004).map(x => ({ slug: x.slug, folga: Math.round((x.meta - x.total) * 100) / 100, meta: x.meta }))
+      .sort((a, b) => b.folga - a.folga);
+    const inicial = cobrir ? Math.ceil(c.total * 100) / 100 : c.meta;
+    gav.innerHTML = `<div class="pux"></div><div class="tt">${ico(slug)}<div style="flex:1"><b style="font-size:17px">${esc(ci.nome)}</b><div class="mut" style="font-size:12.5px">${cobrir ? 'cobrir o estouro' : 'meta de ' + mesCurto(m)}${baseMeta ? ' · base ' + R(baseMeta) : ''}</div></div></div>
+      <div class="info">Lançado no mês: <b>${R(c.total)}</b> · conferido ${R(c.pagas)} · meta atual ${R(c.meta)}</div>
+      <div class="campo"><span>R$</span><input id="fmMv" inputmode="decimal" value="${inicial ? br(inicial) : ''}" placeholder="${br(Math.ceil(c.total / 50) * 50)}"></div>
       <div class="sl"><div class="trk"><i id="fmTrk"></i></div><div class="lanc" id="fmLanc" style="left:${pL}%"></div><input type="range" id="fmRg" min="${MIN}" max="${MAX}" step="${passo}">
         <div class="esc"><span id="fmMin">R$ ${MIN.toLocaleString('pt-BR')}</span><b id="fmLancT" style="left:${Math.min(Math.max(pL, 18), 82)}%">lançado ${R(c.total)}</b><span id="fmMax">R$ ${MAX.toLocaleString('pt-BR')}</span></div></div>
       <div class="rap"><button data-q="lanc">= lançado</button><button data-q="-10">−10%</button><button data-q="+10">+10%</button>${baseMeta ? '<button data-q="base">= base</button>' : ''}</div>
-      <div class="prev" id="fmPrev"></div><button class="sv" id="fmSv">Salvar meta</button>`;
-    const inp = document.getElementById('fmMv'), rg = document.getElementById('fmRg'), trk = document.getElementById('fmTrk');
+      <div class="pote" id="fmPote"></div>
+      <div class="tira" id="fmTira" style="display:none">Não tem dinheiro livre pra isso. <b>Tirar de:</b>
+        <select id="fmDe">${doadoras.map(d => `<option value="${esc(d.slug)}">${esc(catInfo(d.slug).nome)} — livre ${R(d.folga)}</option>`).join('')}<option value="">não tirar (fico devendo)</option></select>
+        <div id="fmTiraTxt" style="margin-top:6px"></div></div>
+      <button class="sv" id="fmSv">Salvar meta</button>`;
+    const inp = document.getElementById('fmMv'), rg = document.getElementById('fmRg'), trk = document.getElementById('fmTrk'), de = document.getElementById('fmDe');
+    let plano = { v: null, falta: 0, tira: 0, de: null };
     const prevw = () => {
-      const v = num(inp.value), metasSem = P.metas - c.meta, bal = P.rec - (metasSem + (v || 0));
-      document.getElementById('fmPrev').innerHTML = v == null ? 'Digite ou arraste pra definir a meta.'
-        : `${v < c.total ? '⚠ Já está ' + R(c.total - v) + ' acima dessa meta. ' : 'Sobram ' + R(v - c.total) + ' nessa categoria. '}Balanço do mês: <b class="${bal < 0 ? 'neg' : 'pos'}">${RS(bal)}</b>${Math.abs(bal - P.bal) > .004 ? ' <span class="mut">(antes ' + RS(P.bal) + ')</span>' : ''}`;
+      const v = num(inp.value);
+      const antes = Math.max(c.meta, c.total), depois = Math.max(v || 0, c.total);
+      const dispNovo = P.disp - (depois - antes);
+      plano = { v, falta: 0, tira: 0, de: null };
+      const tiraBox = document.getElementById('fmTira');
+      if (v != null && dispNovo < -0.004 && depois > antes + 0.004) {
+        tiraBox.style.display = '';
+        const d = doadoras.find(x => x.slug === de.value);
+        const precisa = Math.min(-dispNovo, depois - antes);
+        if (d) { plano.tira = Math.min(precisa, d.folga); plano.de = d.slug; }
+        plano.falta = Math.max(-dispNovo - plano.tira, 0);
+        document.getElementById('fmTiraTxt').innerHTML = d
+          ? `Tira <b>${R(plano.tira)}</b> de ${esc(catInfo(d.slug).nome)} (meta ${R(d.meta)} → ${R(d.meta - plano.tira)})${plano.falta > 0.004 ? ` · ainda faltam <b>${R(plano.falta)}</b>` : ''}`
+          : `Fica devendo <b>${R(-dispNovo)}</b>.`;
+      } else tiraBox.style.display = 'none';
+      const dispFinal = dispNovo + plano.tira;
+      document.getElementById('fmPote').innerHTML = `<span>${dispFinal < -0.004 ? 'Você fica devendo' : 'Pra distribuir depois'}</span><b class="${dispFinal < -0.004 ? 'neg' : 'pos'}">${R(Math.abs(dispFinal))}</b>`;
     };
+    de.onchange = prevw;
     const pinta = () => {
       const pc = v => Math.min(Math.max((v - MIN) / (MAX - MIN) * 100, 0), 100);
       trk.style.width = pc(+rg.value) + '%';
@@ -19740,7 +19784,7 @@ const finMob = (() => {
     inp.oninput = () => { syncRg(); prevw(); };
     gav.querySelectorAll('.rap button').forEach(b => b.onclick = () => {
       const q = b.dataset.q, base = num(inp.value) ?? (c.meta || c.total);
-      if (q === 'lanc') inp.value = br(Math.ceil(c.total));
+      if (q === 'lanc') inp.value = br(Math.ceil(c.total * 100) / 100);
       if (q === '-10') inp.value = br(Math.round(base * .9));
       if (q === '+10') inp.value = br(Math.round(base * 1.1));
       if (q === 'base') inp.value = br(baseMeta);
@@ -19749,10 +19793,14 @@ const finMob = (() => {
     document.getElementById('fmSv').onclick = async () => {
       const v = num(inp.value);
       if (v == null || v < 0) { finToast('Digite um valor', true); return; }
-      (DATA.metasMes[m] = DATA.metasMes[m] || {})[slug] = v;
+      const mm = (DATA.metasMes[m] = DATA.metasMes[m] || {});
+      mm[slug] = v;
+      let novoDe = null;
+      if (plano.de && plano.tira > 0.004) { const d = doadoras.find(x => x.slug === plano.de); novoDe = Math.round((d.meta - plano.tira) * 100) / 100; mm[plano.de] = novoDe; }
       fechaMeta(); renderPlan();
       await salvaMeta(m, slug, v);
-      finToast('✓ Meta de ' + ci.nome + ': ' + R(v));
+      if (novoDe != null) await salvaMeta(m, plano.de, novoDe);
+      finToast('✓ ' + ci.nome + ': ' + R(v) + (novoDe != null ? ' · tirou ' + R(plano.tira) + ' de ' + catInfo(plano.de).nome : ''));
     };
     syncRg(); prevw();
     veu.classList.add('on'); requestAnimationFrame(() => gav.classList.add('on'));
