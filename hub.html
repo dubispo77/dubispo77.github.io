@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-09T20:12:25-03:00">
+<meta name="hub-build" content="2026-10-09T20:18:04-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2240,6 +2240,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 
 
 
+
 /* ══════════ ABA CALORIAS (05/10/2026) ══════════ */
 #calorias .kc-tile{background:#fff;border:1px solid var(--border-soft);border-radius:22px;padding:20px;position:relative;overflow:hidden}
 #calorias .kc-lbl,.kc-dr .kc-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint)}
@@ -2311,6 +2312,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .kc-ibtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text-dim);padding:6px 10px;border-radius:10px;cursor:pointer;user-select:none}
 .kc-ibtn:hover{background:#f5f4f9;color:var(--text)}
 .kc-ibtn.go{background:#1a1828;color:#fff}.kc-ibtn.go:hover{background:#2d2840;color:#fff}
+.kc-ibtn.busy{color:#5b4fcf;background:#ede9fe;pointer-events:none}.kc-ibtn.busy svg{animation:kcPulse 1s infinite}
 .kc-ibtn.rec{color:#e11d48;background:#fff1f2}.kc-ibtn.rec svg{animation:kcrec 1s infinite}
 @keyframes kcrec{50%{opacity:.35}}
 /* gavetas */
@@ -5058,6 +5060,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
         </div>
       </div>
     </section>
+
 
 
 
@@ -20021,6 +20024,7 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
 
 
 
+
 <!-- ══════════ ABA CALORIAS — gavetas + lógica (05/10/2026) ══════════ -->
 <div id="kcScrim"></div>
 <aside class="kc-dr" id="kcDrMeal">
@@ -20379,7 +20383,7 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
 
   // ───────────────────────── gaveta da refeição ─────────────────────────
   function openDr(id) { document.body.classList.add('kc-open'); document.querySelectorAll('.kc-dr').forEach((d) => d.classList.toggle('on', d.id === id)); }
-  function closeDr() { document.body.classList.remove('kc-open'); document.querySelectorAll('.kc-dr').forEach((d) => d.classList.remove('on')); stopMic(); }
+  function closeDr() { document.body.classList.remove('kc-open'); document.querySelectorAll('.kc-dr').forEach((d) => d.classList.remove('on')); stopMic(true); }
   function openAdd() {
     const hoje = todaySP();
     S.dm = { id: null, tipo: S.day === hoje ? guessType() : 'almoco', itens: [], dia: S.day, hora: S.day === hoje ? nowHM() : '12:00' };
@@ -20454,20 +20458,66 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     closeDr(); await load(); toast('Refeição apagada');
   }
 
-  // ───────────────────────── microfone (ditado do navegador) ─────────────────────────
+  // ───────────────────────── microfone ─────────────────────────
+  // Grava o áudio e manda transcrever no servidor (Gemini com vocabulário de comida e marcas).
+  // O ditado do navegador errava muito ("way", "esculpi"). Para sozinho depois de ~2 s de silêncio.
   let _rec = null;
-  function stopMic() { if (_rec) { try { _rec.stop(); } catch (_) {} } }
-  function toggleMic() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const alvo = $('kcAskBox').style.display === 'none' ? $('kcQ') : $('kcAsk');
-    if (!SR) { toast('Este navegador não tem ditado — use o microfone do teclado'); alvo.focus(); return; }
+  function micUI(estado, txt) {
+    const m = $('kcMic'); if (!m) return;
+    m.classList.toggle('rec', estado === 'rec'); m.classList.toggle('busy', estado === 'busy');
+    $('kcMicLbl').textContent = txt || '';
+  }
+  function stopMic(cancelar) { if (_rec) { _rec.cancelar = !!cancelar; try { _rec.mr.state !== 'inactive' && _rec.mr.stop(); } catch (_) {} } }
+  async function toggleMic() {
     if (_rec) { stopMic(); return; }
-    const rec = new SR(); rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = true;
-    const base = alvo.value ? alvo.value.trim() + ' ' : '';
-    rec.onresult = (ev) => { let t = ''; for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript; alvo.value = base + t; if (alvo.id === 'kcQ') onSearch(alvo); };
-    rec.onend = () => { _rec = null; $('kcMic').classList.remove('rec'); $('kcMicLbl').textContent = ''; };
-    rec.onerror = (e) => { if (e.error === 'not-allowed') toast('Permita o microfone no navegador'); };
-    _rec = rec; rec.start(); $('kcMic').classList.add('rec'); $('kcMicLbl').textContent = 'Ouvindo…';
+    if (!navigator.mediaDevices || !window.MediaRecorder) { toast('Este navegador não grava áudio — use o microfone do teclado'); $('kcQ').focus(); return; }
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+    catch (e) { toast('Permita o microfone no navegador'); return; }
+    const tipos = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+    const mime = tipos.find((t) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+    const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined), partes = [];
+    const rec = _rec = { mr, cancelar: false };
+    // detector de silêncio
+    let ctx = null, falou = false, ultimoSom = Date.now(); const t0 = Date.now();
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)(); const an = ctx.createAnalyser(); an.fftSize = 1024;
+      ctx.createMediaStreamSource(stream).connect(an); const buf = new Uint8Array(an.fftSize);
+      const tick = () => {
+        if (_rec !== rec || mr.state === 'inactive') return;
+        an.getByteTimeDomainData(buf); let pk = 0; for (let i = 0; i < buf.length; i++) pk = Math.max(pk, Math.abs(buf[i] - 128));
+        if (pk > 10) { falou = true; ultimoSom = Date.now(); }
+        const parado = Date.now() - ultimoSom;
+        if ((falou && parado > 2000) || (!falou && Date.now() - t0 > 7000) || Date.now() - t0 > 45000) { stopMic(); return; }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    } catch (_) {}
+    mr.ondataavailable = (e) => { if (e.data && e.data.size) partes.push(e.data); };
+    mr.onstop = async () => {
+      stream.getTracks().forEach((t) => t.stop()); try { ctx && ctx.close(); } catch (_) {}
+      _rec = null;
+      if (rec.cancelar) { micUI(''); return; }
+      const blob = new Blob(partes, { type: mr.mimeType || mime || 'audio/webm' });
+      if (blob.size < 1500) { micUI(''); toast('Não ouvi nada — tente de novo'); return; }
+      micUI('busy', 'Entendendo…');
+      try {
+        const b64 = await new Promise((ok, err) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = err; fr.readAsDataURL(blob); });
+        const { texto } = await callFn({ action: 'transcrever', b64, mime: blob.type });
+        micUI('');
+        if (!texto || !texto.trim()) { toast('Não ouvi nada — tente de novo'); return; }
+        usaFala(texto.trim());
+      } catch (e) { micUI(''); toast('Não consegui entender o áudio — tente de novo'); }
+    };
+    mr.start(250); micUI('rec', 'Ouvindo…');
+  }
+  // Frase curta ("whey growth") vira busca; frase com quantidade ou vários alimentos é calculada direto.
+  function usaFala(t) {
+    const palavras = t.split(/\s+/).length;
+    const refeicao = /\d|\b(um|uma|dois|duas|tr[eê]s|meio|meia|e|com|scoops?|gramas?|g|colher|colheres|concha|fatias?|copo|prato|comi|tomei|bebi)\b/i.test(t) && palavras > 2;
+    if (!refeicao) { const q = $('kcQ'); q.value = t; onSearch(q); q.focus(); return; }
+    $('kcAskBox').style.display = ''; $('kcAskLink').style.display = 'none';
+    $('kcAsk').value = t; toast('🎤 ' + t.slice(0, 80)); calcAsk();
   }
 
   // ───────────────────────── conferência (fotos do WhatsApp) ─────────────────────────
