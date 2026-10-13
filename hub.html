@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-13T14:19:48-03:00">
+<meta name="hub-build" content="2026-10-13T14:25:13-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -20282,8 +20282,8 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
   // ctx = 'dm' (gaveta) ou o id da conferência
   function getList(ctx) { return ctx === 'dm' ? S.dm.itens : S.confDraft[ctx].itens; }
   // Medidas caseiras (g ou ml por unidade). Líquido: 1 ml ≈ 1 g.
-  const MEDIDAS = { 'g': 1, 'ml': 1, 'xícara': 240, 'copo': 200, 'copo americano': 190, 'colher de sopa': 15, 'colher de chá': 5, 'concha': 100, 'scoop': 30, 'lata': 350, 'garrafa': 500, 'fatia': 25 };
-  const MEDIDAS_MENU = ['g', 'ml', 'xícara', 'copo', 'colher de sopa', 'colher de chá', 'concha'];
+  const MEDIDAS = { 'g': 1, 'ml': 1, 'litro': 1000, 'xícara': 240, 'copo': 200, 'copo americano': 190, 'colher de sopa': 15, 'colher de chá': 5, 'concha': 100, 'scoop': 30, 'lata': 350, 'garrafa': 500, 'fatia': 25 };
+  const MEDIDAS_MENU = ['g', 'ml', 'litro', 'xícara', 'copo', 'lata', 'colher de sopa', 'colher de chá', 'concha'];
   const LIQUIDO = /\b(leite|suco|refri|refrigerante|coca|guaran[aá]|iogurte|bebida|achocolatado|nescau|toddy|caf[eé]|ch[aá]|[aá]gua de coco|vitamina|shake|kefir|cerveja|vinho|isot[oô]nico|energ[eé]tico|caldo|sopa)\b/i;
   function gramsOf(x) { const g = Number(x.g_un); if (g > 0) return g; return MEDIDAS[x.unidade] || null; }
   function porMedidaPadrao(nome, per100) { // alimento sem porção: líquido vem em copo, o resto em 100 g
@@ -20296,8 +20296,8 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     const totalG = x.qtd * gAtual, f = gNova / gAtual;
     ['kcal_un', 'prot_un', 'carb_un', 'gord_un'].forEach((k) => { x[k] = x[k] * f; });
     const eraPeso = x.unidade === 'g' || x.unidade === 'ml', viraPeso = nova === 'g' || nova === 'ml';
-    x.qtd = viraPeso ? Math.round(totalG) : (eraPeso ? 1 : Math.max(0.5, Math.round(totalG / gNova * 2) / 2));
-    x.unidade = nova; x.g_un = gNova; x.passo = viraPeso ? 10 : (nova.startsWith('colher') ? 1 : 0.5);
+    x.qtd = viraPeso ? Math.round(totalG) : nova === 'litro' ? Math.max(0.1, Math.round(totalG / 1000 * 100) / 100) : (eraPeso ? 1 : Math.max(0.5, Math.round(totalG / gNova * 2) / 2));
+    x.unidade = nova; x.g_un = gNova; x.passo = viraPeso ? 10 : (nova === 'litro' ? 0.1 : nova.startsWith('colher') ? 1 : 0.5);
   }
   function unidadeHTML(ctx, i, x) {
     const g = gramsOf(x);
