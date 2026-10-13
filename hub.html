@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-09T20:18:04-03:00">
+<meta name="hub-build" content="2026-10-13T14:19:48-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2238,9 +2238,6 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #g30 .g-sim{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:4px 0 8px;font-size:12.5px;color:var(--g-ink)}#g30 .g-sim input{width:230px}
 #g30tt{position:fixed;pointer-events:none;background:#1f1b2d;color:#fff;font-size:12px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .1s;z-index:9999;max-width:280px;box-shadow:0 4px 14px rgba(0,0,0,.25);left:0;top:0}
 
-
-
-
 /* ══════════ ABA CALORIAS (05/10/2026) ══════════ */
 #calorias .kc-tile{background:#fff;border:1px solid var(--border-soft);border-radius:22px;padding:20px;position:relative;overflow:hidden}
 #calorias .kc-lbl,.kc-dr .kc-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint)}
@@ -2312,6 +2309,8 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .kc-ibtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text-dim);padding:6px 10px;border-radius:10px;cursor:pointer;user-select:none}
 .kc-ibtn:hover{background:#f5f4f9;color:var(--text)}
 .kc-ibtn.go{background:#1a1828;color:#fff}.kc-ibtn.go:hover{background:#2d2840;color:#fff}
+.kc-un{font:inherit;font-size:11.5px;color:var(--text-dim);background:transparent;border:1px solid transparent;border-radius:8px;padding:3px 2px;width:84px;cursor:pointer;-webkit-appearance:none;appearance:none;text-overflow:ellipsis;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 9px) 50%,calc(100% - 5px) 50%;background-size:4px 4px;background-repeat:no-repeat;padding-right:14px}
+.kc-un:hover{border-color:var(--border,#e4e1ec);background-color:#f8f7fb;color:var(--text)}
 .kc-ibtn.busy{color:#5b4fcf;background:#ede9fe;pointer-events:none}.kc-ibtn.busy svg{animation:kcPulse 1s infinite}
 .kc-ibtn.rec{color:#e11d48;background:#fff1f2}.kc-ibtn.rec svg{animation:kcrec 1s infinite}
 @keyframes kcrec{50%{opacity:.35}}
@@ -5060,10 +5059,6 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
         </div>
       </div>
     </section>
-
-
-
-
 
     <!-- CALORIAS (05/10/2026) — dados em cal_meals/cal_items/cal_inbox/cal_goals; cérebro na edge function `calorias` -->
     <section id="calorias" class="section">
@@ -20022,9 +20017,6 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
 })();
 </script>
 
-
-
-
 <!-- ══════════ ABA CALORIAS — gavetas + lógica (05/10/2026) ══════════ -->
 <div id="kcScrim"></div>
 <aside class="kc-dr" id="kcDrMeal">
@@ -20289,15 +20281,41 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
   // ───────────────────────── editor de alimentos (refeição e conferência) ─────────────────────────
   // ctx = 'dm' (gaveta) ou o id da conferência
   function getList(ctx) { return ctx === 'dm' ? S.dm.itens : S.confDraft[ctx].itens; }
+  // Medidas caseiras (g ou ml por unidade). Líquido: 1 ml ≈ 1 g.
+  const MEDIDAS = { 'g': 1, 'ml': 1, 'xícara': 240, 'copo': 200, 'copo americano': 190, 'colher de sopa': 15, 'colher de chá': 5, 'concha': 100, 'scoop': 30, 'lata': 350, 'garrafa': 500, 'fatia': 25 };
+  const MEDIDAS_MENU = ['g', 'ml', 'xícara', 'copo', 'colher de sopa', 'colher de chá', 'concha'];
+  const LIQUIDO = /\b(leite|suco|refri|refrigerante|coca|guaran[aá]|iogurte|bebida|achocolatado|nescau|toddy|caf[eé]|ch[aá]|[aá]gua de coco|vitamina|shake|kefir|cerveja|vinho|isot[oô]nico|energ[eé]tico|caldo|sopa)\b/i;
+  function gramsOf(x) { const g = Number(x.g_un); if (g > 0) return g; return MEDIDAS[x.unidade] || null; }
+  function porMedidaPadrao(nome, per100) { // alimento sem porção: líquido vem em copo, o resto em 100 g
+    if (LIQUIDO.test(nome)) return { qtd: 1, unidade: 'copo', passo: 1, g_un: 200, kcal_un: per100.kcal * 2, prot_un: per100.prot * 2, carb_un: per100.carb * 2, gord_un: per100.gord * 2 };
+    return { qtd: 100, unidade: 'g', passo: 10, g_un: 1, kcal_un: per100.kcal / 100, prot_un: per100.prot / 100, carb_un: per100.carb / 100, gord_un: per100.gord / 100 };
+  }
+  function trocaMedida(x, nova) {
+    const gAtual = gramsOf(x), gNova = MEDIDAS[nova] || (nova === x._porcao_nome ? x._porcao_g : null);
+    if (!gAtual || !gNova || nova === x.unidade) return;
+    const totalG = x.qtd * gAtual, f = gNova / gAtual;
+    ['kcal_un', 'prot_un', 'carb_un', 'gord_un'].forEach((k) => { x[k] = x[k] * f; });
+    const eraPeso = x.unidade === 'g' || x.unidade === 'ml', viraPeso = nova === 'g' || nova === 'ml';
+    x.qtd = viraPeso ? Math.round(totalG) : (eraPeso ? 1 : Math.max(0.5, Math.round(totalG / gNova * 2) / 2));
+    x.unidade = nova; x.g_un = gNova; x.passo = viraPeso ? 10 : (nova.startsWith('colher') ? 1 : 0.5);
+  }
+  function unidadeHTML(ctx, i, x) {
+    const g = gramsOf(x);
+    if (!g) return `<span style="font-size:11.5px;color:var(--text-faint);width:64px">${esc(x.unidade)}</span>`;
+    const ops = [...new Set([x.unidade, ...(x._porcao_nome ? [x._porcao_nome] : []), ...MEDIDAS_MENU])];
+    return `<select class="kc-un" data-kc-unit data-ctx="${ctx}" data-i="${i}" title="Trocar a medida">${ops.map((u) => `<option${u === x.unidade ? ' selected' : ''}>${esc(u)}</option>`).join('')}</select>`;
+  }
   function itemsHTML(ctx, numerar) {
     const list = getList(ctx);
-    const rows = list.map((x, i) => `<div class="kc-it">${numerar ? `<span class="kc-pinn">${i + 1}</span>` : ''}<div class="kc-itn" style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:650">${esc(x.nome)}</div><div style="font-size:11.5px;color:var(--text-faint);margin-top:2px">P ${fmt(x.qtd * x.prot_un)} · C ${fmt(x.qtd * x.carb_un)} · G ${fmt(x.qtd * x.gord_un)} <span class="kc-src ${x.fonte}" style="margin-left:4px">${SRC[x.fonte] || x.fonte}</span></div></div><div class="kc-step"><b data-kc-act="qty" data-ctx="${ctx}" data-i="${i}" data-d="-1">−</b><input value="${String(x.qtd).replace('.', ',')}" data-kc-qty data-ctx="${ctx}" data-i="${i}"><b data-kc-act="qty" data-ctx="${ctx}" data-i="${i}" data-d="1">+</b></div><span style="font-size:11.5px;color:var(--text-faint);width:44px">${esc(x.unidade)}</span><b style="width:40px;text-align:right;font-size:14px">${fmt(x.qtd * x.kcal_un)}</b><span class="kc-trash" data-kc-act="rmitem" data-ctx="${ctx}" data-i="${i}">🗑️</span></div>`).join('');
+    const rows = list.map((x, i) => `<div class="kc-it">${numerar ? `<span class="kc-pinn">${i + 1}</span>` : ''}<div class="kc-itn" style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:650">${esc(x.nome)}</div><div style="font-size:11.5px;color:var(--text-faint);margin-top:2px">P ${fmt(x.qtd * x.prot_un)} · C ${fmt(x.qtd * x.carb_un)} · G ${fmt(x.qtd * x.gord_un)} <span class="kc-src ${x.fonte}" style="margin-left:4px">${SRC[x.fonte] || x.fonte}</span></div></div><div class="kc-step"><b data-kc-act="qty" data-ctx="${ctx}" data-i="${i}" data-d="-1">−</b><input value="${String(x.qtd).replace('.', ',')}" data-kc-qty data-ctx="${ctx}" data-i="${i}"><b data-kc-act="qty" data-ctx="${ctx}" data-i="${i}" data-d="1">+</b></div>${unidadeHTML(ctx, i, x)}<b style="width:40px;text-align:right;font-size:14px">${fmt(x.qtd * x.kcal_un)}</b><span class="kc-trash" data-kc-act="rmitem" data-ctx="${ctx}" data-i="${i}">🗑️</span></div>`).join('');
     if (ctx === 'dm') return rows;
     return rows + `<div style="position:relative"><div class="kc-sbox kc-sbox-sm">${SEARCH_SVG}<input data-kc-search="${ctx}" autocomplete="off" placeholder="＋ Adicionar alimento ou marca que não identifiquei…"></div><div data-kc-sug="${ctx}"></div></div>`;
   }
   function itemFromFood(f) {
-    if (f.porcao_nome && Number(f.porcao_g) > 0) { const g = Number(f.porcao_g); return { nome: f.nome, qtd: 1, unidade: f.porcao_nome, passo: 1, kcal_un: f.kcal * g / 100, prot_un: f.prot * g / 100, carb_un: f.carb * g / 100, gord_un: f.gord * g / 100, fonte: f.fonte === 'taco' ? 'taco' : 'meu', food_id: f.id }; }
-    return { nome: tacoNome(f.nome), qtd: 100, unidade: 'g', passo: 10, kcal_un: f.kcal / 100, prot_un: f.prot / 100, carb_un: f.carb / 100, gord_un: f.gord / 100, fonte: f.fonte === 'taco' ? 'taco' : 'meu', food_id: f.id };
+    const fonte = f.fonte === 'taco' ? 'taco' : 'meu';
+    if (f.porcao_nome && Number(f.porcao_g) > 0) { const g = Number(f.porcao_g); return { nome: f.nome, qtd: 1, unidade: f.porcao_nome, passo: 1, g_un: g, _porcao_nome: f.porcao_nome, _porcao_g: g, kcal_un: f.kcal * g / 100, prot_un: f.prot * g / 100, carb_un: f.carb * g / 100, gord_un: f.gord * g / 100, fonte, food_id: f.id }; }
+    const nome = fonte === 'taco' ? tacoNome(f.nome) : f.nome;
+    return { nome, ...porMedidaPadrao(nome, { kcal: +f.kcal, prot: +f.prot, carb: +f.carb, gord: +f.gord }), fonte, food_id: f.id };
   }
   function tacoNome(n) { // "Frango, peito, sem pele, grelhado" -> "Frango peito sem pele grelhado"
     const p = String(n).split(',').map((s) => s.trim()).filter(Boolean); return p.length > 1 ? p[0] + ' ' + p.slice(1).join(' ').toLowerCase() : n;
@@ -20366,16 +20384,16 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     if (k === 'web') { const p = (r.web || [])[i]; if (p) addWeb(ctx, p); return; }
     const p = r.marcas[i]; if (!p) return;
     const pc = porcaoMarca(p), nome = (p.marca && !p.nome.toLowerCase().includes(p.marca.toLowerCase()) ? p.marca + ' — ' : '') + p.nome;
-    const it = pc ? { nome, qtd: 1, unidade: pc[0], passo: 1, kcal_un: p.kcal * pc[1] / 100, prot_un: p.prot * pc[1] / 100, carb_un: p.carb * pc[1] / 100, gord_un: p.gord * pc[1] / 100, fonte: 'web', food_id: null }
-                  : { nome, qtd: 100, unidade: 'g', passo: 10, kcal_un: p.kcal / 100, prot_un: p.prot / 100, carb_un: p.carb / 100, gord_un: p.gord / 100, fonte: 'web', food_id: null };
+    const it = pc ? { nome, qtd: 1, unidade: pc[0], passo: 1, g_un: pc[1], _porcao_nome: pc[0], _porcao_g: pc[1], kcal_un: p.kcal * pc[1] / 100, prot_un: p.prot * pc[1] / 100, carb_un: p.carb * pc[1] / 100, gord_un: p.gord * pc[1] / 100, fonte: 'web', food_id: null }
+                  : { nome, ...porMedidaPadrao(nome, p), fonte: 'web', food_id: null };
     addPicked(ctx, it);
     salvaMeu({ nome, kcal: p.kcal, prot: p.prot, carb: p.carb, gord: p.gord, porcao_nome: pc ? pc[0] : null, porcao_g: pc ? pc[1] : null }).then((id) => { it.food_id = id; });
   }
   function addWeb(ctx, p) {
     const nome = (p.marca && !p.nome.toLowerCase().includes(p.marca.toLowerCase()) ? p.marca + ' — ' : '') + p.nome;
     const g = p.porcao_nome && p.porcao_g ? p.porcao_g : null, fonte = p.via === 'estimativa' ? 'estimativa' : 'web';
-    const it = g ? { nome, qtd: 1, unidade: p.porcao_nome, passo: 1, kcal_un: p.kcal * g / 100, prot_un: p.prot * g / 100, carb_un: p.carb * g / 100, gord_un: p.gord * g / 100, fonte, food_id: null }
-                 : { nome, qtd: 100, unidade: 'g', passo: 10, kcal_un: p.kcal / 100, prot_un: p.prot / 100, carb_un: p.carb / 100, gord_un: p.gord / 100, fonte, food_id: null };
+    const it = g ? { nome, qtd: 1, unidade: p.porcao_nome, passo: 1, g_un: g, _porcao_nome: p.porcao_nome, _porcao_g: g, kcal_un: p.kcal * g / 100, prot_un: p.prot * g / 100, carb_un: p.carb * g / 100, gord_un: p.gord * g / 100, fonte, food_id: null }
+                 : { nome, ...porMedidaPadrao(nome, p), fonte, food_id: null };
     addPicked(ctx, it);
     salvaMeu({ nome, kcal: p.kcal, prot: p.prot, carb: p.carb, gord: p.gord, porcao_nome: g ? p.porcao_nome : null, porcao_g: g }).then((id) => { it.food_id = id; });
   }
@@ -20394,7 +20412,7 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
   }
   function openEdit(id) {
     const m = S.meals.find((x) => x.id === id); if (!m) return;
-    S.dm = { id, tipo: m.tipo, dia: ymd(new Date(m.comido_em)), hora: horaSP(m.comido_em), texto: m.texto_original, itens: (m.cal_items || []).map((x) => ({ nome: x.nome, qtd: Number(x.qtd), unidade: x.unidade, passo: Number(x.passo) || 1, kcal_un: Number(x.kcal_un), prot_un: Number(x.prot_un), carb_un: Number(x.carb_un), gord_un: Number(x.gord_un), fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y })) };
+    S.dm = { id, tipo: m.tipo, dia: ymd(new Date(m.comido_em)), hora: horaSP(m.comido_em), texto: m.texto_original, itens: (m.cal_items || []).map((x) => ({ nome: x.nome, qtd: Number(x.qtd), unidade: x.unidade, passo: Number(x.passo) || 1, kcal_un: Number(x.kcal_un), prot_un: Number(x.prot_un), carb_un: Number(x.carb_un), gord_un: Number(x.gord_un), fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y, g_un: x.g_un != null ? Number(x.g_un) : null })) };
     $('kcDmTitle').textContent = 'Editar ' + T(m.tipo)[1].toLowerCase(); $('kcDmSub').textContent = 'Ajuste quantidades, troque ou remova alimentos.';
     $('kcAskBox').style.display = 'none'; $('kcAskLink').style.display = ''; $('kcQ').value = ''; sugBox('dm').innerHTML = ''; $('kcDmDel').style.display = '';
     renderDm(); openDr('kcDrMeal');
@@ -20428,7 +20446,7 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     } catch (e) { alert('Não consegui calcular agora: ' + e.message); }
     b.style.opacity = ''; b.firstChild.textContent = 'Calcular ';
   }
-  function limpaItem(x) { return { nome: x.nome, qtd: Number(x.qtd), unidade: x.unidade, passo: Number(x.passo) || 1, kcal_un: Number(x.kcal_un), prot_un: Number(x.prot_un), carb_un: Number(x.carb_un), gord_un: Number(x.gord_un), fonte: x.fonte, food_id: x.food_id || null, pin_x: x.pin_x ?? null, pin_y: x.pin_y ?? null }; }
+  function limpaItem(x) { return { nome: x.nome, qtd: Number(x.qtd), unidade: x.unidade, passo: Number(x.passo) || 1, kcal_un: Number(x.kcal_un), prot_un: Number(x.prot_un), carb_un: Number(x.carb_un), gord_un: Number(x.gord_un), fonte: x.fonte, food_id: x.food_id || null, pin_x: x.pin_x ?? null, pin_y: x.pin_y ?? null, g_un: Number(x.g_un ?? x._g_por_unidade) || (x.unidade === 'g' || x.unidade === 'ml' ? 1 : null) }; }
   async function saveMeal() {
     const dm = S.dm, sb = window.sbClient;
     dm.hora = $('kcDmHora').value || dm.hora; dm.dia = $('kcDmDia').value || dm.dia;
@@ -20445,7 +20463,7 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
         const ins = await sb.from('cal_meals').insert({ user_id: S.uid, tipo: dm.tipo, comido_em: quando, origem: 'hub', texto_original: dm.texto || null }).select('id').single(); if (ins.error) throw ins.error;
         mealId = ins.data.id;
       }
-      const rows = itens.map((x, i) => ({ meal_id: mealId, user_id: S.uid, ordem: i, nome: x.nome, qtd: x.qtd, unidade: x.unidade, passo: x.passo, kcal_un: x.kcal_un, prot_un: x.prot_un, carb_un: x.carb_un, gord_un: x.gord_un, fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y }));
+      const rows = itens.map((x, i) => ({ meal_id: mealId, user_id: S.uid, ordem: i, nome: x.nome, qtd: x.qtd, unidade: x.unidade, passo: x.passo, kcal_un: x.kcal_un, prot_un: x.prot_un, carb_un: x.carb_un, gord_un: x.gord_un, fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y, g_un: gramsOf(x) }));
       const r = await sb.from('cal_items').insert(rows); if (r.error) throw r.error;
       const novo = !dm.id; closeDr(); if (dm.dia !== S.day) S.day = dm.dia; await load(); toast(novo ? 'Refeição adicionada' : 'Refeição atualizada');
     } catch (e) { alert('Não consegui salvar: ' + (e.message || e)); }
@@ -20557,7 +20575,7 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     if (!itens.length) { toast('Sem alimentos — descarte ou adicione algum'); return; }
     try {
       const ins = await sb.from('cal_meals').insert({ user_id: S.uid, tipo: dr.tipo, comido_em: r.recebido_em, origem: 'foto', foto_path: r.foto_path, texto_original: r.legenda }).select('id').single(); if (ins.error) throw ins.error;
-      const rows = itens.map((x, i) => ({ meal_id: ins.data.id, user_id: S.uid, ordem: i, nome: x.nome, qtd: x.qtd, unidade: x.unidade, passo: x.passo, kcal_un: x.kcal_un, prot_un: x.prot_un, carb_un: x.carb_un, gord_un: x.gord_un, fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y }));
+      const rows = itens.map((x, i) => ({ meal_id: ins.data.id, user_id: S.uid, ordem: i, nome: x.nome, qtd: x.qtd, unidade: x.unidade, passo: x.passo, kcal_un: x.kcal_un, prot_un: x.prot_un, carb_un: x.carb_un, gord_un: x.gord_un, fonte: x.fonte, food_id: x.food_id, pin_x: x.pin_x, pin_y: x.pin_y, g_un: gramsOf(x) }));
       const it = await sb.from('cal_items').insert(rows); if (it.error) throw it.error;
       const up = await sb.from('cal_inbox').update({ status: 'aprovado', meal_id: ins.data.id }).eq('id', id); if (up.error) throw up.error;
       delete S.confDraft[id]; if (S.openConf === id) S.openConf = null; S.pinFor = null;
@@ -20644,7 +20662,7 @@ if (window.twemoji) twemoji.parse(document.getElementById('finapp'), { folder: '
     else if (t.matches && t.matches('[data-kc-qty]')) { const x = getList(t.dataset.ctx)[+t.dataset.i]; x.qtd = Math.max(0, parseFloat(String(t.value).replace(',', '.')) || 0); }
     else if (t.id && /^kcG[KPCG]$/.test(t.id)) gCalc();
   });
-  document.addEventListener('change', (ev) => { const t = ev.target; if (t.matches && t.matches('[data-kc-qty]')) rerenderCtx(t.dataset.ctx); else if (t.id === 'kcDmHora' && S.dm) S.dm.hora = t.value; else if (t.id === 'kcDmDia' && S.dm) { S.dm.dia = t.value; renderDm(); } });
+  document.addEventListener('change', (ev) => { const t = ev.target; if (t.matches && t.matches('[data-kc-unit]')) { const x = getList(t.dataset.ctx)[+t.dataset.i]; if (x) { trocaMedida(x, t.value); rerenderCtx(t.dataset.ctx); } } else if (t.matches && t.matches('[data-kc-qty]')) rerenderCtx(t.dataset.ctx); else if (t.id === 'kcDmHora' && S.dm) S.dm.hora = t.value; else if (t.id === 'kcDmDia' && S.dm) { S.dm.dia = t.value; renderDm(); } });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && document.body.classList.contains('kc-open')) closeDr(); if (ev.key === 'Enter' && ev.target.id === 'kcAsk' && !ev.shiftKey) { ev.preventDefault(); calcAsk(); } if (ev.key === 'Enter' && ev.target.matches && ev.target.matches('[data-kc-search]')) { ev.preventDefault(); const f = document.querySelector(`[data-kc-sug="${ev.target.dataset.kcSearch}"] .kc-ritem`); if (f) f.click(); } });
   document.addEventListener('mouseover', (ev) => { const b = ev.target.closest && ev.target.closest('.kc-hb'); if (b) tipShow(b); else if (ev.target.closest && !ev.target.closest('[data-kc-hist]') && $('kcTip')) $('kcTip').style.display = 'none'; });
   $('kcScrim').addEventListener('click', closeDr);
