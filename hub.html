@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-14T14:40:35-03:00">
+<meta name="hub-build" content="2026-10-15T09:21:50-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -16044,6 +16044,38 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     };
     refresh();
     setInterval(refresh, 60000);
+  };
+  tryInit();
+})();
+
+// ── 15/10: ALERTA DE CONEXÃO BANCÁRIA PARADA ("quando isso acontece você precisa me avisar") ──
+// Lê o último log do motor (sync-diario → result.conexoes_alerta). Se tiver algo, mostra faixa vermelha no topo do hub.
+(function finConexoesAlerta() {
+  const start = Date.now();
+  const tryInit = () => {
+    if (!window.sbClient) { if (Date.now() - start > 30000) return; return setTimeout(tryInit, 600); }
+    let fechadoAte = 0;
+    const refresh = async () => {
+      try {
+        const { data } = await window.sbClient.from('sync_logs').select('ran_at,result')
+          .eq('task_name', 'sync-diario').order('ran_at', { ascending: false }).limit(1).maybeSingle();
+        const al = (data && data.result && data.result.conexoes_alerta) || [];
+        let el = document.getElementById('hubConAlerta');
+        if (!al.length || Date.now() < fechadoAte) { if (el) el.remove(); return; }
+        if (!el) {
+          el = document.createElement('div'); el.id = 'hubConAlerta';
+          el.style.cssText = 'position:sticky;top:0;z-index:9999;background:#b91c1c;color:#fff;padding:10px 44px 10px 16px;font:600 14px/1.4 -apple-system,BlinkMacSystemFont,Inter,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.25)';
+          document.body.insertBefore(el, document.body.firstChild);
+        }
+        const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        el.innerHTML = '⚠ Conexão bancária parada — os lançamentos dessa conta NÃO estão chegando no hub:<br>' +
+          al.map(a => '• ' + esc(a)).join('<br>') +
+          '<br><a href="https://meu.pluggy.ai" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline">Abrir o MeuPluggy pra reconectar ↗</a>' +
+          '<button aria-label="fechar" style="position:absolute;right:10px;top:8px;background:none;border:0;color:#fff;font-size:20px;cursor:pointer">×</button>';
+        el.querySelector('button').onclick = () => { fechadoAte = Date.now() + 2 * 3600000; el.remove(); };
+      } catch (e) { console.warn('[conexoes]', e); }
+    };
+    refresh(); setInterval(refresh, 300000);
   };
   tryInit();
 })();
