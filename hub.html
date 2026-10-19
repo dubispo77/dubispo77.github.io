@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-15T09:21:50-03:00">
+<meta name="hub-build" content="2026-10-19T18:55:57-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1030,6 +1030,17 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell.is-mes-end   { border-right: 3px solid #6b7280; }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
+/* Feriado — grafite azulado (escolha do Eduardo, 19/10). Fica longe das cores das
+   categorias (vermelho/azul/roxo/amarelo) e do roxo do dia de hoje. */
+.calM-cell.feriado { background: #cfd8e3; }
+.calM-cell.feriado .calM-num { background: #475569; color: #fff; }
+.calM-cell.feriado .calM-fer { display: block; font-size: 9px; font-weight: 800; color: #334155;
+  text-transform: uppercase; letter-spacing: .02em; margin-top: 3px; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Hoje E feriado ao mesmo tempo: hoje manda no fundo, o feriado fica só no nome */
+.calM-cell.is-today.feriado { background: #ddd6fe; }
+.calM-cell.is-today.feriado .calM-num { background: #7c3aed; color: #fff; }
+.calM-cell.is-today.feriado .calM-fer { color: #475569; }
 .calM-num { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
 .calM-ev { position: relative; margin-top: 5px; padding: 7px 9px; border-radius: 7px; border-left: 4px solid; color: #fff; cursor: pointer; min-height: 32px; margin-bottom: 0; }
 /* Item completo: opaco e fica no fim do dia (via JS sort por order/status) */
@@ -1380,6 +1391,11 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calMM-day-header:not(.calMM-hoje) { display: flex; align-items: center; gap: 6px; padding: 8px 12px 4px; font-size: 12.5px; font-weight: 700; color: var(--text); background: var(--card); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; border-top: 1px solid var(--border-soft); }
 .calMM-day-header .w { font-size: 10px; color: var(--text-dim); font-weight: 600; }
 .calMM-day-header .cnt { font-size: 9.5px; color: var(--text-dim); background: var(--bg); padding: 0 6px; border-radius: 99px; font-weight: 700; }
+/* Feriado no celular: cabeçalho do dia em grafite azulado + etiqueta com o nome */
+.calMM-day-header.feriado { color: #334155; }
+.calMM-day-header .fer-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+  color: #334155; background: #cfd8e3; border-radius: 99px; padding: 1px 7px; margin-left: auto; }
+.calMM-day-header .fer-tag + .cnt { margin-left: 5px; }
 .calMM-day-header .dots { display: flex; gap: 2px; margin-left: 2px; }
 .calMM-day-header .dots i { width: 5px; height: 5px; border-radius: 50%; display: block; }
 .calMM-day-header .car { margin-left: auto; color: var(--text-faint); font-size: 12px; width: 16px; text-align: center; transition: transform .15s; }
@@ -5968,6 +5984,65 @@ window.hubSerieIrmas = function(sb, item, fromIso, cols) {
   return q.gt('date_start', fromIso).neq('id', item.id).order('date_start');
 };
 // Pergunta "só este" ou "este e os próximos". Devolve Promise<'uma'|'todas'|null>.
+// ── FERIADOS (19/10) — calculados aqui dentro, sem depender do Google nem de rede.
+// Fixos + móveis (derivados da Páscoa pelo algoritmo de Meeus) + estadual de SP +
+// municipal da capital. Os móveis valem pra sempre: não há lista pra atualizar todo ano.
+// Pra acrescentar folga/emenda sua: window.HUB_FERIADOS_EXTRA = { '2026-12-24': 'Véspera' }.
+(function(){
+  const cache = {};
+  function _ymd(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function pascoa(Y){
+    const a=Y%19, b=Math.floor(Y/100), c=Y%100, d=Math.floor(b/4), e=b%4,
+          f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3),
+          h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4,
+          l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451),
+          n=h+l-7*m+114;
+    return new Date(Y, Math.floor(n/31)-1, (n%31)+1);
+  }
+  // [curto (cabe na célula), completo (vai no title)]
+  const FIXOS = [
+    ['01-01', 'Ano-Novo',          'Confraternização Universal'],
+    ['01-25', 'Aniv. de SP',       'Aniversário de São Paulo'],
+    ['04-21', 'Tiradentes',        'Tiradentes'],
+    ['05-01', 'Dia do Trabalho',   'Dia do Trabalho'],
+    ['07-09', 'Revolução de 32',   'Revolução Constitucionalista (SP)'],
+    ['09-07', 'Independência',     'Independência do Brasil'],
+    ['10-12', 'N. S. Aparecida',   'Nossa Senhora Aparecida'],
+    ['11-02', 'Finados',           'Finados'],
+    ['11-15', 'República',         'Proclamação da República'],
+    ['11-20', 'Consc. Negra',      'Dia da Consciência Negra'],
+    ['12-25', 'Natal',             'Natal'],
+  ];
+  function doAno(Y){
+    if (cache[Y]) return cache[Y];
+    const f = {};
+    FIXOS.forEach(([md, curto, completo]) => { f[Y + '-' + md] = [curto, completo]; });
+    const p = pascoa(Y);
+    const mv = (off, curto, completo) => {
+      const d = new Date(p.getFullYear(), p.getMonth(), p.getDate() + off);
+      f[_ymd(d)] = [curto, completo];
+    };
+    mv(-48, 'Carnaval', 'Carnaval (segunda)');
+    mv(-47, 'Carnaval', 'Carnaval (terça)');
+    mv(-2,  'Sexta Santa', 'Sexta-feira da Paixão');
+    mv(60,  'Corpus Christi', 'Corpus Christi');
+    cache[Y] = f;
+    return f;
+  }
+  function busca(d){
+    const data = (typeof d === 'string') ? d.slice(0,10) : _ymd(d);
+    const ano = parseInt(data.slice(0,4), 10);
+    if (!ano) return null;
+    const extra = window.HUB_FERIADOS_EXTRA && window.HUB_FERIADOS_EXTRA[data];
+    if (extra) return [extra, extra];
+    return doAno(ano)[data] || null;
+  }
+  window.hubFeriado      = (d) => { const f = busca(d); return f ? f[1] : null; };  // nome completo
+  window.hubFeriadoCurto = (d) => { const f = busca(d); return f ? f[0] : null; };  // cabe na célula
+})();
+
 window.hubPerguntaSerie = function(item, verbo) {
   return new Promise((resolve) => {
     let ov = document.getElementById('hubSerieOv');
@@ -11558,14 +11633,18 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         ? `<div class="calM-overflow">${items.slice(visible.length).map(cardHtml).join('')}</div>`
         : '';
       const moreHtml = extra > 0 ? `<span class="calM-more">+ ${extra} mais</span>` : '';
+      const ferCurto = (!isOut && window.hubFeriadoCurto) ? window.hubFeriadoCurto(d) : null;
+      const ferNome  = ferCurto && window.hubFeriado ? window.hubFeriado(d) : '';
       const classes = [
         isOut ? 'is-out' : '',
         isToday ? 'is-today' : '',
         isMesStart ? 'is-mes-start' : '',
         isMesEnd ? 'is-mes-end' : '',
+        ferCurto ? 'feriado' : '',
       ].filter(Boolean).join(' ');
+      const ferHtml = ferCurto ? `<span class="calM-fer" title="${ferNome}">${ferCurto}</span>` : '';
       cells += `<div class="calM-cell ${classes}${extra > 0 ? ' has-more' : ''}" data-date="${ymd(d)}">
-        <span class="calM-num">${d.getDate()}</span>
+        <span class="calM-num">${d.getDate()}</span>${ferHtml}
         ${evHtml}${moreHtml}${overflowHtml}
       </div>`;
     }
@@ -11823,16 +11902,20 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       const items = itemsForDate(cur);
       const overdueCount = items.filter(it => it.is_overdue).length;
       const rows = items.map(mmRowHtml).join('');
+      // Feriado: no celular a agenda é lista, então o destaque vai no cabeçalho do dia.
+      const ferCurto = window.hubFeriadoCurto ? window.hubFeriadoCurto(cur) : null;
+      const ferCls = ferCurto ? ' feriado' : '';
+      const ferTag = ferCurto ? `<span class="fer-tag">${ferCurto}</span>` : '';
       if (isToday) {
         // Hoje é um dia como os outros na lista — só com destaque. Os números ficam
         // no quadradinho fixo acima da faixa (pedido 20/09).
         html += `<section class="calMM-day-section hoje" data-day="${key}">
-          <div class="calMM-day-header is-today" data-day="${key}" data-year="${y}" data-month="${m}">Hoje <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span><span class="cnt">${items.length}</span></div>
+          <div class="calMM-day-header is-today${ferCls}" data-day="${key}" data-year="${y}" data-month="${m}">Hoje <span class="w">· ${MM_DIA[cur.getDay()]} ${d} ${MM_MES[m]}</span>${ferTag}<span class="cnt">${items.length}</span></div>
           <div class="calMM-body"><div class="calMM-body-in">${rows || '<div class="calMM-day-empty">Nada agendado</div>'}</div></div>
         </section>`;
       } else if (items.length === 0) {
         html += `<section class="calMM-day-section closed vazio" data-day="${key}">
-          <div class="calMM-day-header vazio" data-day="${key}" data-year="${y}" data-month="${m}">${MM_DIA[cur.getDay()].charAt(0).toUpperCase()}${MM_DIA[cur.getDay()].slice(1)} ${d}${diff === 1 ? ' · amanhã' : ''} <span class="w">— nada</span></div>
+          <div class="calMM-day-header vazio${ferCls}" data-day="${key}" data-year="${y}" data-month="${m}">${MM_DIA[cur.getDay()].charAt(0).toUpperCase()}${MM_DIA[cur.getDay()].slice(1)} ${d}${diff === 1 ? ' · amanhã' : ''} <span class="w">— nada</span>${ferTag}</div>
         </section>`;
       } else {
         // Todos os dias mostram todas as tarefas (pedido 20/09): sem dropdown.
@@ -11843,7 +11926,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         const hc = (isPast && overdueCount > 0) ? ' is-overdue-day' : '';
         const cnt = (isPast && overdueCount > 0) ? `${overdueCount} atrasado${overdueCount > 1 ? 's' : ''}` : String(items.length);
         html += `<section class="calMM-day-section${isPast ? ' passado' : ''}" data-day="${key}">
-          <div class="calMM-day-header${hc}" data-day="${key}" data-year="${y}" data-month="${m}">${label}<span class="cnt">${cnt}</span></div>
+          <div class="calMM-day-header${hc}${ferCls}" data-day="${key}" data-year="${y}" data-month="${m}">${label}${ferTag}<span class="cnt">${cnt}</span></div>
           <div class="calMM-body"><div class="calMM-body-in">${rows}</div></div>
         </section>`;
       }
