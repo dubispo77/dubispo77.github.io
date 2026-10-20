@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-19T18:55:57-03:00">
+<meta name="hub-build" content="2026-10-20T10:00:23-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -2164,6 +2164,9 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #finapp .cf-novo.on, #finapp .cf-novo:hover { background: #ede9f5; border-style: solid; border-color: #5b4fcf; }
 #finapp table.rev-tb td.rv-desc { min-width: 170px; }
 #finapp table.rev-tb td[contenteditable] { outline: none; border-radius: 6px; }
+#finapp .pd-desc-ed { outline: none; border-radius: 6px; cursor: text; }
+#finapp .pd-desc-ed:hover { background: #f5f3ff; }
+#finapp .pd-desc-ed:focus { background: #eef4ff; box-shadow: inset 0 0 0 1.5px #93b4f5; }
 #finapp table.rev-tb td[contenteditable]:focus { background: #eef4ff; box-shadow: inset 0 0 0 1.5px #93b4f5; }
 #finapp .rev-tb select, #finapp .rev-tb input.rv-cat { border: 1px solid #ddd9d2; border-radius: 7px; padding: 3px 6px; font-size: 12px; background: #fff; max-width: 150px; }
 #finapp .rv-raw { color: var(--muted, #999); font-size: 11px; max-width: 190px; }
@@ -17073,7 +17076,7 @@ function planDetailRow(slug, m) {
       + tx.map(t => '<tr data-txid="' + (t.id || '') + '" data-txi="' + DATA.transactions.indexOf(t) + '">'
         + '<td>' + statusIcon(t.st) + '</td>'
         + '<td style="white-space:nowrap;color:var(--muted);font-weight:600">' + dayLabel(effDate(t)) + '</td>'
-        + '<td>' + t.desc + '</td>'
+        + (t.id ? '<td class="pd-desc-ed" contenteditable spellcheck="false" data-desc="' + t.id + '" title="Clique pra renomear — salva em todo lugar">' + t.desc + '</td>' : '<td>' + t.desc + '</td>')
         + '<td><span class="cat-cell pd-cat" title="Trocar categoria">' + miniCi(t.cat) + '<span class="cat-name">' + DATA.cats[t.cat].name + '</span></span></td>'
         + '<td>' + parcCell(t.parc) + '</td>'
         + '<td>' + accBadge(t.acc) + '</td>'
@@ -17135,7 +17138,25 @@ document.addEventListener('click', e => {
   renderPlan();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.target.closest && e.target.closest('.pd-val-ed')) { e.preventDefault(); e.target.blur(); }
+  if (e.key === 'Enter' && e.target.closest && e.target.closest('.pd-val-ed, .pd-desc-ed')) { e.preventDefault(); e.target.blur(); }
+  if (e.key === 'Escape' && e.target.closest && e.target.closest('.pd-desc-ed')) {
+    const t = DATA.transactions.find(x => x.id === e.target.dataset.desc); if (t) e.target.textContent = t.desc; e.target.blur();
+  }
+});
+// 20/10: renomear o lançamento direto no detalhe do Planejamento — mesma RPC da aba Transações
+// (renomeia a fonte: recorrência / cadeia de parcelas / lançamento real), então vale em todo lugar.
+document.addEventListener('focusout', e => {
+  const cell = e.target.closest && e.target.closest('.pd-desc-ed');
+  if (!cell) return;
+  const t = DATA.transactions.find(x => x.id === cell.dataset.desc);
+  const v = cell.textContent.replace(/\s+/g, ' ').trim();
+  if (!t) return;
+  if (!v) { cell.textContent = t.desc; return; }
+  if (v === t.desc) return;
+  const antes = t.desc;
+  DATA.transactions.forEach(x => { if (x.desc === antes && x.acc === t.acc && (x.id === t.id || (x.parc && t.parc))) x.desc = v; });
+  t.desc = v;
+  persistTxEdit(t.id, { description: v, description_clean: v });
 });
 // valor previsto: linha manual → muda o valor; linha de recorrência → vale SÓ pra este mês
 // (suprime a previsão do mês e cria uma linha manual com o valor novo — a recorrência segue igual nos outros meses)
