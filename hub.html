@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-22T10:57:30-03:00">
+<meta name="hub-build" content="2026-10-22T14:48:29-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1030,17 +1030,17 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-cell.is-mes-end   { border-right: 3px solid #6b7280; }
 .calM-cell.is-today { background: #ddd6fe; }
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
-/* Feriado — grafite azulado (escolha do Eduardo, 19/10). Fica longe das cores das
-   categorias (vermelho/azul/roxo/amarelo) e do roxo do dia de hoje. */
-.calM-cell.feriado { background: #cfd8e3; }
-.calM-cell.feriado .calM-num { background: #475569; color: #fff; }
-.calM-cell.feriado .calM-fer { display: block; font-size: 9px; font-weight: 800; color: #334155;
+/* Feriado — verde-água (trocado em 22/10, era grafite). Único tom que não encosta
+   em nenhuma categoria: vermelho/azul/roxo/amarelo e o roxo do dia de hoje ficam livres. */
+.calM-cell.feriado { background: #ccfbf1; }
+.calM-cell.feriado .calM-num { background: #0d9488; color: #fff; }
+.calM-cell.feriado .calM-fer { display: block; font-size: 9px; font-weight: 800; color: #0f766e;
   text-transform: uppercase; letter-spacing: .02em; margin-top: 3px; line-height: 1.2;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Hoje E feriado ao mesmo tempo: hoje manda no fundo, o feriado fica só no nome */
 .calM-cell.is-today.feriado { background: #ddd6fe; }
 .calM-cell.is-today.feriado .calM-num { background: #7c3aed; color: #fff; }
-.calM-cell.is-today.feriado .calM-fer { color: #475569; }
+.calM-cell.is-today.feriado .calM-fer { color: #0f766e; }
 .calM-num { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 999px; display: inline-block; min-width: 18px; text-align: center; color: #111827; }
 .calM-ev { position: relative; margin-top: 5px; padding: 7px 9px; border-radius: 7px; border-left: 4px solid; color: #fff; cursor: pointer; min-height: 32px; margin-bottom: 0; }
 /* Item completo: opaco e fica no fim do dia (via JS sort por order/status) */
@@ -1391,10 +1391,10 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calMM-day-header:not(.calMM-hoje) { display: flex; align-items: center; gap: 6px; padding: 8px 12px 4px; font-size: 12.5px; font-weight: 700; color: var(--text); background: var(--card); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; border-top: 1px solid var(--border-soft); }
 .calMM-day-header .w { font-size: 10px; color: var(--text-dim); font-weight: 600; }
 .calMM-day-header .cnt { font-size: 9.5px; color: var(--text-dim); background: var(--bg); padding: 0 6px; border-radius: 99px; font-weight: 700; }
-/* Feriado no celular: cabeçalho do dia em grafite azulado + etiqueta com o nome */
-.calMM-day-header.feriado { color: #334155; }
+/* Feriado no celular: cabeçalho do dia em verde-água + etiqueta com o nome */
+.calMM-day-header.feriado { color: #0f766e; }
 .calMM-day-header .fer-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
-  color: #334155; background: #cfd8e3; border-radius: 99px; padding: 1px 7px; margin-left: auto; }
+  color: #0f766e; background: #ccfbf1; border-radius: 99px; padding: 1px 7px; margin-left: auto; }
 .calMM-day-header .fer-tag + .cnt { margin-left: 5px; }
 .calMM-day-header .dots { display: flex; gap: 2px; margin-left: 2px; }
 .calMM-day-header .dots i { width: 5px; height: 5px; border-radius: 50%; display: block; }
