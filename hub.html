@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-20T10:00:23-03:00">
+<meta name="hub-build" content="2026-10-22T10:57:30-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -5255,6 +5255,56 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
   // 5s com a aba visível (o navegador mesmo reduz pra ~1/min quando está em segundo plano)
   setInterval(check, 5 * 1000);
 })();
+
+// ── VIRADA DO DIA (22/10) ─────────────────────────────────────────────────
+// O hub fica aberto de um dia pro outro (aba no Mac, PWA no celular). O "hoje"
+// de cada tela é calculado na hora de desenhar — e nada redesenhava depois da
+// meia-noite. Resultado: no dia seguinte a agenda continuava ancorada no dia
+// anterior, o selo "hoje" ficava no dia errado e os compromissos do dia de
+// verdade pareciam ter sumido; só clicando em "Hoje" é que voltava ao lugar.
+// Aqui a gente vigia a data local e, quando ela vira, recarrega igual ao
+// auto-update faz com build nova — assim TUDO que depende de hoje refaz a conta
+// (agenda, badges, roadmap, janela da semana, rolagem do celular).
+(function hubViradaDoDia() {
+  if (location.protocol === 'file:') return;
+  const hoje = () => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  };
+  let dia = hoje();
+  let pendente = false;
+  function digitando() {
+    const ae = document.activeElement;
+    if (!ae) return false;
+    if (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA') return !!(ae.value && ae.value.trim());
+    if (ae.isContentEditable) return !!(ae.textContent && ae.textContent.trim());
+    return false;
+  }
+  function recarrega(novo) {
+    // Trava anti-loop: se já recarregamos por causa deste dia há menos de 1 min, não insiste.
+    try {
+      const ult = sessionStorage.getItem('HUB_VIRADA');
+      if (ult) { const [d2, t] = ult.split('|'); if (d2 === novo && Date.now() - Number(t) < 60000) return; }
+      sessionStorage.setItem('HUB_VIRADA', novo + '|' + Date.now());
+    } catch (_) {}
+    if (window.hubToast) window.hubToast('Virou o dia — atualizando a agenda…');
+    setTimeout(() => location.replace(location.pathname + '?hubreload=' + Date.now()), 250);
+  }
+  function checa() {
+    const agora = hoje();
+    if (agora === dia) return;
+    dia = agora;
+    if (digitando()) { pendente = true; return; }
+    recarrega(agora);
+  }
+  document.addEventListener('focusout', () => { if (pendente && !digitando()) { pendente = false; recarrega(dia); } });
+  // Acordar o Mac / voltar pro app não dispara timer, mas dispara estes:
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checa(); });
+  window.addEventListener('focus', checa);
+  window.addEventListener('pageshow', checa);
+  setInterval(checa, 30 * 1000);
+})();
+
 // ── AUTH (Fase 3) ── Verifica login antes de renderizar o hub.
 const SUPABASE_URL  = 'https://bpyoaxdmejnnyixrjxel.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_CGepP1Mo0DSzqMYniO9ARg_URCUsHV1';
