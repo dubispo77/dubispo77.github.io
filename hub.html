@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-10-22T14:48:29-03:00">
+<meta name="hub-build" content="2026-11-02T09:42:03-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -19320,6 +19320,26 @@ function cfMatchDesc(s) {
     .slice(0, 2);
   return toks.length ? '%' + toks.join('%') + '%' : '%' + String(s || '').slice(0, 20) + '%';
 }
+// 02/11 (bug "mudo o nome na conferência e volta"): lançamento de CONTA (inbox) só mudava na tela — nada era
+// gravado, e o próximo recarregar trazia o nome antigo. E no cartão o erro do update não era checado (dizia "✓ Salvo"
+// mesmo sem salvar). Agora os dois tipos gravam no banco e acusam erro de verdade.
+async function confSalvaCampos(r, c) {
+  const sb = window.sbClient; if (!sb) throw new Error('sem conexão');
+  if (r.k === 'cartao') {
+    const upd = { flag: 'firme', updated_at: new Date().toISOString() };
+    if (c.desc != null) upd.descricao = c.desc;
+    if (c.cat != null) upd.categoria = c.cat;
+    const { error } = await sb.from('import_review').update(upd).eq('id', r.id);
+    if (error) throw error;
+    r.flag = 'firme';
+  } else {
+    const upd = {};
+    if (c.desc != null) upd.description_sugerida = c.desc;
+    if (c.cat != null) upd.category_sugerida = c.cat;
+    const { error } = await sb.from('inbox_transactions').update(upd).eq('id', r.id);
+    if (error) throw error;
+  }
+}
 async function confAprovar(r) {
   if (r.k === 'cartao') {
     // blindagem contra corrida (bug do Tinder Boost, 07/09): garante que a ÚLTIMA edição local
@@ -19470,24 +19490,16 @@ function bindReview() {
       const r = CONF.find(x => x.id === inp.dataset.id); if (!r) return;
       const v = inp.value.trim(); if (!v || v === r.desc) return;
       r.desc = v; window.__revJson = null;
-      if (r.k === 'cartao') {
-        try {
-          await window.sbClient.from('import_review').update({ descricao: v, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
-          r.flag = 'firme'; finToast('✓ Salvo');
-        } catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
-      }
+      try { await confSalvaCampos(r, { desc: v }); finToast('✓ Nome salvo'); }
+      catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
     });
   });
   box.querySelectorAll('.cf-cat').forEach(sel => {
     sel.addEventListener('change', async () => {
       const r = CONF.find(x => x.id === sel.dataset.id); if (!r) return;
       r.cat = sel.value; window.__revJson = null;
-      if (r.k === 'cartao') {
-        try {
-          await window.sbClient.from('import_review').update({ categoria: sel.value, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
-          r.flag = 'firme'; finToast('✓ Salvo');
-        } catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
-      }
+      try { await confSalvaCampos(r, { cat: sel.value }); finToast('✓ Salvo'); }
+      catch (e2) { finToast('✗ NÃO salvou: ' + (e2.message || e2), true); }
     });
   });
   async function cfVincula(r, f) {
@@ -20122,10 +20134,8 @@ const finMob = (() => {
       const novo = prompt('Nome do lançamento:', r.desc || '');
       if (novo && novo.trim() && novo.trim() !== r.desc) {
         r.desc = novo.trim(); window.__revJson = null; render();
-        if (r.k === 'cartao') {
-          const { error } = await window.sbClient.from('import_review').update({ descricao: r.desc, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
-          if (error) finToast('✗ NÃO salvou: ' + error.message, true); else { r.flag = 'firme'; finToast('✓ Nome salvo'); }
-        }
+        try { await confSalvaCampos(r, { desc: r.desc }); finToast('✓ Nome salvo'); }
+        catch (err) { finToast('✗ NÃO salvou: ' + (err.message || err), true); }
       }
       return;
     }
@@ -20161,10 +20171,8 @@ const finMob = (() => {
     const sel = e.target.closest('[data-fm-cat]'); if (!sel) return;
     const r = CONF.find(x => String(x.id) === sel.dataset.fmCat); if (!r) return;
     r.cat = sel.value; window.__revJson = null;
-    if (r.k === 'cartao') {
-      const { error } = await window.sbClient.from('import_review').update({ categoria: sel.value, flag: 'firme', updated_at: new Date().toISOString() }).eq('id', r.id);
-      if (error) finToast('✗ NÃO salvou: ' + error.message, true); else { r.flag = 'firme'; finToast('✓ Categoria: ' + (sel.value === 'TRANSFER' ? 'Transferência' : sel.value)); }
-    } else finToast('✓ Categoria: ' + (sel.value === 'TRANSFER' ? 'Transferência' : sel.value));
+    try { await confSalvaCampos(r, { cat: sel.value }); finToast('✓ Categoria: ' + (sel.value === 'TRANSFER' ? 'Transferência' : sel.value)); }
+    catch (err) { finToast('✗ NÃO salvou: ' + (err.message || err), true); }
   }
 
   // ===== gaveta: mudar a meta do mês (mesma tabela do desktop) =====
