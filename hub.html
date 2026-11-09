@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-09T11:57:58-03:00">
+<meta name="hub-build" content="2026-11-09T12:03:25-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -6615,6 +6615,10 @@ window.hubInlineRename = function(el, itemId, currentTitle, onDone) {
   let finished = false;
   async function finish(save) {
     if (finished) return; finished = true;
+    // 09/11: ao sair do campo, o blur salva E o clique que tirou o foco continua viajando.
+    // Como a lista se redesenha no meio, esse clique caía num card novo que apareceu
+    // debaixo do cursor — quase sempre no ✓ — e concluía tarefa sozinho. Carência de 600ms.
+    window.__hubRenameAte = Date.now() + 600;
     const val = input.value.trim();
     if (!save || !val || val === (currentTitle || '')) { el.innerHTML = prevHtml; onDone && onDone(null); return; }
     el.textContent = val;
@@ -6731,10 +6735,15 @@ document.getElementById('catlistBody')?.addEventListener('click', async e => {
     const sb = window.sbClient;
     if (actBtn.dataset.catact === 'rename') {
       const titleEl = card.querySelector('.catl-title');
-      window.hubInlineRename(titleEl, id, titleEl.textContent, () => { if (_catlistSlug) renderCatList(_catlistSlug); });
+      // Redesenha DEPOIS que o clique pendente terminar de viajar (senão o card novo
+      // nasce debaixo do cursor e leva o clique).
+      window.hubInlineRename(titleEl, id, titleEl.textContent, () => {
+        setTimeout(() => { if (_catlistSlug) renderCatList(_catlistSlug); }, 180);
+      });
       return;
     }
     if (actBtn.dataset.catact === 'toggle' && sb) {
+      if (window.hubToqueVazado && window.hubToqueVazado(id, 'toggle')) return;
       const nowDone = !card.classList.contains('is-done');
       card.classList.toggle('is-done', nowDone);
       const { error } = await sb.from('items').update({ status: nowDone ? 'done' : 'planned', done_at: nowDone ? new Date().toISOString() : null }).eq('id', id);
@@ -8198,6 +8207,7 @@ document.addEventListener('click', async e => {
     return;
   }
   if (act === 'toggle') {
+    if (window.hubToqueVazado && window.hubToqueVazado(id, 'toggle')) return;
     const isDone = card.classList.contains('is-done');
     const newStatus = isDone ? 'planned' : 'done';
     await sb.from('items').update({ status: newStatus, done_at: newStatus === 'done' ? new Date().toISOString() : null }).eq('id', id);
@@ -12588,6 +12598,14 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     };
     if (noAr('#hubDatePickerPop.open') || noAr('#hubTimePickerPop.open') || noAr('#hubSerieOv')) {
       console.warn('[escudo] ignorei', act, id, '— seletor de data/hora/série aberto');
+      return true;
+    }
+    if (Date.now() < (window.__hubRenameAte || 0)) {
+      console.warn('[escudo] ignorei', act, id, '— acabou de renomear (clique do blur)');
+      return true;
+    }
+    if (document.querySelector('.catl-card input, .calM-ev input, .calMM-card input, .funil-nm input')) {
+      console.warn('[escudo] ignorei', act, id, '— tem um campo de renomear aberto');
       return true;
     }
     const ov = document.getElementById('tdmOverlay');
