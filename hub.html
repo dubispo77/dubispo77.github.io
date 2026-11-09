@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-02T09:42:03-03:00">
+<meta name="hub-build" content="2026-11-09T11:54:26-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -4219,6 +4219,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
             <option value="">Todas as etapas</option>
             <option value="pendente">Ainda não contatados (sem DM)</option>
             <option value="msg">DM enviado</option>
+            <option value="wpp">WhatsApp enviado</option>
             <option value="tel">Com contato telefônico</option>
             <option value="resp">Falaram com a comunicação</option>
           </select>
@@ -4235,6 +4236,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
                 <th style="text-align:center">Mensagem<br>no Instagram</th>
                 <th>Telefone do gabinete</th>
                 <th style="text-align:center">Contato<br>telefônico</th>
+                <th style="text-align:center">Mensagem<br>no WhatsApp</th>
                 <th>Resp. comunicação<br>(nome)</th>
                 <th>Resp. comunicação<br>(contato)</th>
                 <th style="text-align:center">Falou com o<br>responsável</th>
@@ -4242,7 +4244,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
                 <th>Notas</th>
               </tr>
             </thead>
-            <tbody id="funilTbody"><tr><td colspan="11" style="padding:24px;text-align:center;color:var(--text-dim)">⏳ Carregando...</td></tr></tbody>
+            <tbody id="funilTbody"><tr><td colspan="12" style="padding:24px;text-align:center;color:var(--text-dim)">⏳ Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -4292,6 +4294,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
             <option value="">Todas as etapas</option>
             <option value="pendente">Ainda não contatados (sem DM)</option>
             <option value="msg">DM enviado</option>
+            <option value="wpp">WhatsApp enviado</option>
             <option value="tel">Com contato telefônico</option>
             <option value="resp">Falaram com a comunicação</option>
           </select>
@@ -4309,6 +4312,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
                 <th style="text-align:center">Mensagem<br>no Instagram</th>
                 <th>Telefone do gabinete</th>
                 <th style="text-align:center">Contato<br>telefônico</th>
+                <th style="text-align:center">Mensagem<br>no WhatsApp</th>
                 <th>Resp. comunicação<br>(nome)</th>
                 <th>Resp. comunicação<br>(contato)</th>
                 <th style="text-align:center">Falou com o<br>responsável</th>
@@ -4316,7 +4320,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
                 <th>Notas</th>
               </tr>
             </thead>
-            <tbody id="eltTbody"><tr><td colspan="12" style="padding:24px;text-align:center;color:var(--text-dim)">⏳ Carregando...</td></tr></tbody>
+            <tbody id="eltTbody"><tr><td colspan="13" style="padding:24px;text-align:center;color:var(--text-dim)">⏳ Carregando...</td></tr></tbody>
           </table>
         </div>
         <div id="eltPop"><img alt=""><div class="ep-nm"></div><div class="ep-l"></div></div>
@@ -16300,6 +16304,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (fEtapa) {
         if (fEtapa === 'pendente' && r.msg_ig === 'Sim') return;
         if (fEtapa === 'msg' && r.msg_ig !== 'Sim') return;
+        if (fEtapa === 'wpp' && r.msg_wpp !== 'Sim') return;
         if (fEtapa === 'tel' && r.cont_tel !== 'Sim') return;
         if (fEtapa === 'resp' && r.falou_resp !== 'Sim') return;
       }
@@ -16312,6 +16317,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         '<td style="text-align:center"><button class="' + tgClass(r.msg_ig) + '" data-f="msg_ig">' + tgText(r.msg_ig) + '</button></td>' +
         '<td><span class="funil-tel">' + esc(r.telefone) + '</span></td>' +
         '<td style="text-align:center"><button class="' + tgClass(r.cont_tel) + '" data-f="cont_tel">' + tgText(r.cont_tel) + '</button></td>' +
+        '<td style="text-align:center"><button class="' + tgClass(r.msg_wpp) + '" data-f="msg_wpp">' + tgText(r.msg_wpp) + '</button></td>' +
         '<td><input class="funil-txt" data-f="nome_resp" value="' + esc(r.nome_resp) + '" placeholder="nome..."></td>' +
         '<td><input class="funil-txt" data-f="contato_resp" value="' + esc(r.contato_resp) + '" placeholder="tel / @ / e-mail"></td>' +
         '<td style="text-align:center"><button class="' + tgClass(r.falou_resp) + '" data-f="falou_resp">' + tgText(r.falou_resp) + '</button></td>' +
@@ -16491,6 +16497,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (fEtapa) {
         if (fEtapa === 'pendente' && r.msg_ig === 'Sim') return;
         if (fEtapa === 'msg' && r.msg_ig !== 'Sim') return;
+        if (fEtapa === 'wpp' && r.msg_wpp !== 'Sim') return;
         if (fEtapa === 'tel' && r.cont_tel !== 'Sim') return;
         if (fEtapa === 'resp' && r.falou_resp !== 'Sim') return;
       }
@@ -16505,6 +16512,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         '<td style="text-align:center"><button class="' + tgClass(r.msg_ig) + '" data-f="msg_ig">' + tgText(r.msg_ig) + '</button></td>' +
         '<td><input class="funil-txt" data-f="telefone" value="' + esc(r.telefone) + '" placeholder="' + (r.mandato === 'Reeleito' ? '' : 'em 2027') + '"></td>' +
         '<td style="text-align:center"><button class="' + tgClass(r.cont_tel) + '" data-f="cont_tel">' + tgText(r.cont_tel) + '</button></td>' +
+        '<td style="text-align:center"><button class="' + tgClass(r.msg_wpp) + '" data-f="msg_wpp">' + tgText(r.msg_wpp) + '</button></td>' +
         '<td><input class="funil-txt" data-f="nome_resp" value="' + esc(r.nome_resp) + '" placeholder="nome..."></td>' +
         '<td><input class="funil-txt" data-f="contato_resp" value="' + esc(r.contato_resp) + '" placeholder="tel / @ / e-mail"></td>' +
         '<td style="text-align:center"><button class="' + tgClass(r.falou_resp) + '" data-f="falou_resp">' + tgText(r.falou_resp) + '</button></td>' +
