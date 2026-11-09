@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-09T12:03:25-03:00">
+<meta name="hub-build" content="2026-11-09T14:03:30-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -4188,7 +4188,8 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
           .funil-nm { font-weight:600; white-space:nowrap; }
           .funil-pp { display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:600; background:#fdecea; color:#c0392b; }
           .funil-casabadge { display:inline-block; padding:2px 8px; border-radius:5px; font-size:11px; font-weight:600; white-space:nowrap; }
-          .funil-cb-alesp { background:#e8eff7; color:#2c5aa0; }
+          .funil-cb-lid { background: #ede9fe; color: #5b21b6; }
+.funil-cb-alesp { background:#e8eff7; color:#2c5aa0; }
           .funil-cb-cam { background:#fdf3d8; color:#b8860b; }
           .funil-cb-tv { background:#e7e0f5; color:#5b3fa6; }
           .funil-cb-news { background:#d8eef0; color:#1a6b73; }
@@ -4209,6 +4210,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
           <select id="funilFCasa">
             <option value="">Todas as Casas</option>
             <option value="ALESP">ALESP</option>
+            <option value="Liderança">Lideranças</option>
             <option value="Câmara SP">Câmara SP</option>
             <option value="TV Alesp">TV Alesp</option>
             <option value="BNews">BNews</option>
@@ -16271,7 +16273,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     return '<a class="funil-ig" href="https://www.google.com/search?q=' + q + '" target="_blank" rel="noopener">buscar IG ↗</a>';
   }
   function casaBadge(casa) {
-    const cls = casa === 'ALESP' ? 'funil-cb-alesp' : casa === 'TV Alesp' ? 'funil-cb-tv' : casa === 'BNews' ? 'funil-cb-news' : casa === 'Agência' ? 'funil-cb-ag' : 'funil-cb-cam';
+    const cls = casa === 'ALESP' ? 'funil-cb-alesp' : casa === 'Liderança' ? 'funil-cb-lid' : casa === 'TV Alesp' ? 'funil-cb-tv' : casa === 'BNews' ? 'funil-cb-news' : casa === 'Agência' ? 'funil-cb-ag' : 'funil-cb-cam';
     return '<span class="funil-casabadge ' + cls + '">' + esc(casa) + '</span>';
   }
 
