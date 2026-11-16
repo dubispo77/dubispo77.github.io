@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-09T14:03:30-03:00">
+<meta name="hub-build" content="2026-11-16T19:33:43-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -3209,6 +3209,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
   }
 #finapp .ci-pessoais{ background: #06b6d4; }
 #finapp .ci-saude{ background: #b91c1c; }
+#finapp .ci-suplementos{ background: #10b981; }
 #finapp .ci-conveniencia{ background: #94a3b8; }
 #finapp .ci-moradia{ background: #ea580c; }
 #finapp .ci-presentes{ background: #c026d3; }
@@ -16639,6 +16640,7 @@ const DATA = {
     moradia:     { name:'Moradia',          ci:'ci-moradia',     icon:'i-house',   color:'#ea580c' },
     imposto:     { name:'Imposto',          ci:'ci-imposto',     icon:'i-lion',    color:'#f87171' },
     saude:       { name:'Saúde',            ci:'ci-saude',       icon:'i-pill',    color:'#dc2626' },
+    suplementos: { name:'Suplementos',      ci:'ci-suplementos', icon:'i-pill',    color:'#10b981' }, /* 16/11 a pedido do Eduardo */
     reembolso:   { name:'Reembolso',        ci:'ci-reembolso',   icon:'i-refresh', color:'#4ade80' },
     coisas:      { name:'Coisas para casa', ci:'ci-coisas',      icon:'i-fridge',  color:'#eab308' },
     assinaturas: { name:'Assinaturas',      ci:'ci-assinaturas', icon:'i-pen',     color:'#6366f1' },
@@ -18938,7 +18940,7 @@ document.addEventListener('click', async e => {
 // Layout escolhido em 06/09: conciliação "previsto × chegou × diferença" (opção 10)
 // com dossiê expansível por linha (opção 5). Cartão vem da sala de espera import_review
 // (tx_id null até aprovar → RPC aprovar_review cria a transação); conta vem de inbox_transactions.
-const REV_CATS = ['Alimentação','Aluguel','Assinaturas','Coisas para casa','Conveniência','Doações','Extras','Green','Imposto','Investimento','Lazer','Mercado','Moradia','Pessoais','Presentes','Profissionais','Reembolso','Resgate','Salário','Saúde','Seguros','Transporte','TRANSFER'];
+const REV_CATS = ['Alimentação','Aluguel','Assinaturas','Coisas para casa','Conveniência','Doações','Extras','Green','Imposto','Investimento','Lazer','Mercado','Moradia','Pessoais','Presentes','Profissionais','Reembolso','Resgate','Salário','Saúde','Seguros','Suplementos','Transporte','TRANSFER'];
 // tipo de cada categoria (r=receita, d=despesa, n=neutra) + emoji do ícone — decisão do Eduardo 07/09:
 // dropdown "inteligente com todas": o grupo do sinal do lançamento vem primeiro, mas nada some.
 const CAT_META = {
@@ -18947,7 +18949,7 @@ const CAT_META = {
   'Conveniência':['🏪','d'], 'Doações':['❤️','d'], 'Green':['🌿','d'], 'Imposto':['🦁','d'],
   'Investimento':['📈','d'], 'Lazer':['🏖️','d'], 'Mercado':['🛒','d'], 'Moradia':['🏠','d'],
   'Pessoais':['👕','d'], 'Presentes':['🎁','d'], 'Profissionais':['💼','d'], 'Saúde':['💊','d'],
-  'Seguros':['🛡️','d'], 'Transporte':['🚗','d'],
+  'Seguros':['🛡️','d'], 'Suplementos':['💪','d'], 'Transporte':['🚗','d'],
   'Extras':['📦','d'], 'TRANSFER':['🔀','n'],
 };
 function cfCatSelect(id, atual, valor) {
