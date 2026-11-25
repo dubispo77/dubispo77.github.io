@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-25T14:47:53-03:00">
+<meta name="hub-build" content="2026-11-25T14:58:30-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -12626,6 +12626,10 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       console.warn('[escudo] ignorei', act, id, '— acabou de renomear (clique do blur)');
       return true;
     }
+    if (Date.now() < (window.__hubArrastouAte || 0)) {
+      console.warn('[escudo] ignorei', act, id, '— acabou de arrastar (clique fantasma do drop)');
+      return true;
+    }
     if (document.querySelector('.catl-card input, .calM-ev input, .calMM-card input, .funil-nm input')) {
       console.warn('[escudo] ignorei', act, id, '— tem um campo de renomear aberto');
       return true;
@@ -12892,6 +12896,8 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   const soltarTrava = () => document.body.classList.remove('hub-arrastando');
   document.addEventListener('drop', soltarTrava, true);
   document.addEventListener('dragend', soltarTrava, true);
+  document.addEventListener('drop', () => { window.__hubArrastouAte = Date.now() + 700; }, true);
+  document.addEventListener('dragend', () => { window.__hubArrastouAte = Date.now() + 700; }, true);
   document.addEventListener('mouseup', soltarTrava, true);
   container.addEventListener('dragend', e => {
     soltarTrava();
@@ -12934,6 +12940,12 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   });
   // Função compartilhada — desktop drop + mobile touchend usam a mesma.
   async function aplicarDropEmCelula(id, cell) {
+    // 25/11 — soltar o card dispara um 'click' logo depois do 'mouseup', e o
+    // render() abaixo reconstrói a célula ANTES desse clique chegar. Resultado:
+    // o clique caía no card recém-nascido debaixo do cursor, bem onde fica o ✓
+    // que aparece no hover — e a tarefa que ele acabou de mover ficava concluída.
+    // Mesma doença do renomear. 700ms de carência resolvem.
+    window.__hubArrastouAte = Date.now() + 700;
     document.body.classList.remove('hub-arrastando');
     document.querySelectorAll('.calM-cell').forEach(c => c.style.outline = '');
     const newDate = cell?.dataset?.date;
