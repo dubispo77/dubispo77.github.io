@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-16T19:33:43-03:00">
+<meta name="hub-build" content="2026-11-25T14:47:53-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -6200,10 +6200,29 @@ window.hubApagarSerie = async function(item, fromIso) {
   const { data, error } = await window.hubSerieIrmas(sb, item, fromIso, 'id,google_event_id,serie_id');
   if (error) { window.hubToast && window.hubToast('⚠ Não achei as próximas: ' + error.message, true); return; }
   const ids = (data || []).filter(x => window.hubSerieKey(x) === key).map(x => x.id);
-  if (!ids.length) return;
-  const { error: e2 } = await sb.from('items').delete().in('id', ids);
-  if (e2) { window.hubToast && window.hubToast('⚠ Não apagou as próximas: ' + e2.message, true); return; }
-  window.hubToast && window.hubToast(ids.length + (ids.length === 1 ? ' próxima apagada' : ' próximas apagadas') + ' ✓');
+  if (ids.length) {
+    const { error: e2 } = await sb.from('items').delete().in('id', ids);
+    if (e2) { window.hubToast && window.hubToast('⚠ Não apagou as próximas: ' + e2.message, true); return; }
+  }
+  // 25/11 — ESTA É A PARTE QUE FALTAVA. Apagar as linhas futuras não bastava: as
+  // passadas continuavam com recurrence preenchido, e estender_series() (cron 03:15)
+  // pegava a última sobrevivente e remontava a série inteira de madrugada. Agora a
+  // série é ENCERRADA: o que sobra perde a recorrência e o cron passa direto
+  // (o filtro dele exige recurrence not null). O passado fica como histórico.
+  const sid = item.serie_id || (item.raw && item.raw.serie_id);
+  let encerrou = null;
+  if (sid) {
+    encerrou = await sb.from('items').update({ recurrence: null }).eq('serie_id', sid).not('recurrence', 'is', null);
+  } else {
+    encerrou = await sb.from('items').update({ recurrence: null }).like('google_event_id', key + '_%').not('recurrence', 'is', null);
+  }
+  if (encerrou && encerrou.error) {
+    window.hubToast && window.hubToast('⚠ Apaguei, mas não encerrei a série: ' + encerrou.error.message, true);
+    return;
+  }
+  window.hubToast && window.hubToast(ids.length
+    ? (ids.length + (ids.length === 1 ? ' próxima apagada' : ' próximas apagadas') + ' · série encerrada ✓')
+    : 'Série encerrada ✓');
 };
 // Calendário do Google de cada área. Explícito: 'pessoal' tem 2 calendários no banco
 // e um deles é o do Santos (só leitura) — o chute automático pode cair no errado.
