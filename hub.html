@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-25T14:58:30-03:00">
+<meta name="hub-build" content="2026-11-26T11:57:38-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -11884,15 +11884,20 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
         <div class="calM-edge-bottom" data-edge="bottom" style="height:1px"></div>
       </div>
     `;
-    // Scroll inicial: posiciona no mês atual (do meio)
+    // Scroll inicial: o DIA DE HOJE no meio da tela (antes era o topo do mês).
     const scroller = container.querySelector('.calM-scroll');
     const middle = container.querySelector(`.calM-month[data-month-key="${monthKey(c.getFullYear(), c.getMonth())}"]`);
     if (middle && scroller) {
       // Sem animação no primeiro carregamento
       _suppressLabelUpdate = true;
       scroller.scrollTop = middle.offsetTop;
+      const hojeYmd = ymd(new Date());
+      // Dois frames: o primeiro fecha o layout do grid, o segundo mede certo.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        centralizarDia(hojeYmd);
+        _suppressLabelUpdate = false;
+      }));
       updateLabelFromMonth(c.getFullYear(), c.getMonth());
-      requestAnimationFrame(() => { _suppressLabelUpdate = false; });
     }
     setupTimelineObservers();
   }
@@ -12416,6 +12421,22 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   // Faz scroll suave até um mês específico (timeline). Carrega o mês se não estiver no DOM.
+  // 26/11 — abrir/atualizar o hub caía no TOPO do mês, não no dia de hoje: se
+  // hoje está na 4ª semana, ele nascia fora da tela. Agora a célula do dia fica
+  // no meio da área visível. Mede por getBoundingClientRect porque a célula está
+  // dentro de .calM-grid > .calM-month e o offsetTop não é relativo ao scroller.
+  function centralizarDia(ymdStr) {
+    const scroller = container.querySelector('.calM-scroll');
+    const cell = container.querySelector('.calM-cell[data-date="' + ymdStr + '"]:not(.is-out)');
+    if (!scroller || !cell) return false;
+    const rc = cell.getBoundingClientRect();
+    const rs = scroller.getBoundingClientRect();
+    const alvo = scroller.scrollTop + (rc.top - rs.top) - (scroller.clientHeight - rc.height) / 2;
+    scroller.scrollTop = Math.max(0, alvo);
+    return true;
+  }
+  window.hubCentralizarHoje = () => centralizarDia(ymd(new Date()));
+
   async function scrollToMonth(year, month) {
     if (chronoMode) { cursor = new Date(year, month, 1); render(); return; }
     let target = container.querySelector(`.calM-month[data-month-key="${monthKey(year, month)}"]`);
@@ -12793,6 +12814,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     }
     if (view === 'month' && !chronoMode) {
       await scrollToMonth(today.getFullYear(), today.getMonth());
+      requestAnimationFrame(() => centralizarDia(ymd(today)));
       return;
     }
     cursor = today;
