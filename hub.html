@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-27T11:17:58-03:00">
+<meta name="hub-build" content="2026-11-27T11:23:31-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1028,7 +1028,8 @@ table.data-table tr:hover td { background: var(--bg); }
 /* Borda forte na transição entre meses (cinza médio — roxo é só pro dia atual) */
 .calM-cell.is-mes-start { border-left: 3px solid #6b7280; }
 .calM-cell.is-mes-end   { border-right: 3px solid #6b7280; }
-.calM-cell.is-today { background: #d0c6fd; }
+.calM-cell.is-today { background: #d0c6fd; box-shadow: inset 0 0 0 1px #7c3aed; }
+/* contorno por dentro (inset): marca o dia sem empurrar o grid 1px pro lado */
 .calM-cell.is-today .calM-num { background: #7c3aed; color: #fff; }
 /* Feriado — verde-água (trocado em 22/10, era grafite). Único tom que não encosta
    em nenhuma categoria: vermelho/azul/roxo/amarelo e o roxo do dia de hoje ficam livres. */
