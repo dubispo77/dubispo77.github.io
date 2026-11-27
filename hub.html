@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-27T11:27:11-03:00">
+<meta name="hub-build" content="2026-11-27T11:35:25-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1256,21 +1256,33 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
   padding: 2px 8px;
   font-size: 11px;
   position: relative;
-  margin-left: -3px;
-  margin-right: -3px;
+  /* A célula tem 8px de padding + 1px de borda. Sangrando 9px de cada lado a
+     faixa encosta na vizinha e vira uma barra só, como no Google. */
+  margin-left: -9px;
+  margin-right: -9px;
+  width: calc(100% + 18px);
   border-left: 0;
   border-right: 0;
+}
+/* Faixa não estica no hover (o card normal estica pra mostrar ✓ e ✕) */
+.calM-ev.calM-ev-span:hover, .calM-ev.calM-ev-span.show-actions {
+  width: calc(100% + 18px);
+  padding-right: 8px;
 }
 .calM-ev.calM-ev-span-start {
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;
   margin-left: 0;
+  width: calc(100% + 9px);
 }
+.calM-ev.calM-ev-span-start:hover, .calM-ev.calM-ev-span-start.show-actions { width: calc(100% + 9px); }
 .calM-ev.calM-ev-span-end {
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
   margin-right: 0;
+  width: calc(100% + 9px);
 }
+.calM-ev.calM-ev-span-end:hover, .calM-ev.calM-ev-span-end.show-actions { width: calc(100% + 9px); }
 .calM-ev.calM-ev-span-mid::before,
 .calM-ev.calM-ev-span-end::before {
   /* Esconde título no meio/fim — só na faixa start aparece */
@@ -1284,11 +1296,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calM-ev.calM-ev-span-end .hr {
   visibility: hidden;
 }
-.calM-ev.calM-ev-span-end::after {
-  content: '▸';
-  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
-  font-size: 10px; color: rgba(0,0,0,0.4); z-index: 1;
-}
+
 .badge-gcal {
   position: absolute; top: 4px; right: 6px;
   font-size: 11px; opacity: 0.6; pointer-events: none;
@@ -11432,19 +11440,40 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     };
   }
   // Item multi-dia: tem date_end no dia seguinte+ ao date_start (ignora hora)
-  function itemSpansDay(item, target) {
+  // 27/11 — multi-dia de volta, no formato do Google (faixa atravessando os dias).
+  // O detalhe que fazia isso dar errado antes: num evento de DIA INTEIRO o Google
+  // manda o fim EXCLUSIVO. Toda conta do mês ("Aluguel", "MEI", "Nubank") chega
+  // aqui com date_end = dia seguinte, e tratar isso como multi-dia transformava
+  // cada boleto numa barra de 2 dias. Por isso: dia inteiro só vira faixa com 2+
+  // dias de diferença, e o último dia pintado é o de fim MENOS UM.
+  // Evento com hora só vira faixa se durar 24h ou mais — assim um jogo que começa
+  // 22h30 e acaba 00h30 continua aparecendo só no dia em que começou.
+  function spanLimites(item) {
     const raw = item.raw;
-    if (!raw?.date_end) return false;
-    const start = new Date(raw.date_start); start.setHours(0,0,0,0);
-    const end = new Date(raw.date_end); end.setHours(0,0,0,0);
-    if (end <= start) return false; // mesmo dia ou inválido
+    if (!raw || !raw.date_end) return null;
+    const ini = new Date(raw.date_start); ini.setHours(0,0,0,0);
+    const fimRaw = new Date(raw.date_end);
+    if (raw.has_time) {
+      if (fimRaw.getTime() - new Date(raw.date_start).getTime() < 86400000) return null;
+      const fim = new Date(fimRaw); fim.setHours(0,0,0,0);
+      return fim > ini ? { ini, fim } : null;
+    }
+    const fim = new Date(fimRaw); fim.setHours(0,0,0,0);
+    fim.setDate(fim.getDate() - 1); // fim exclusivo do Google
+    return fim > ini ? { ini, fim } : null;
+  }
+  function itemEhMultiDia(item) { return !!spanLimites(item); }
+  function itemSpansDay(item, target) {
+    const lim = spanLimites(item);
+    if (!lim) return false;
     const t = new Date(target); t.setHours(0,0,0,0);
-    if (t.getTime() === start.getTime()) return false; // já incluído como direct
-    return t > start && t <= end;
+    if (t.getTime() === lim.ini.getTime()) return false; // o dia de início entra como direct
+    return t > lim.ini && t <= lim.fim;
   }
   function makeSpanOccurrence(parent, target) {
     const targetYmd = ymd(target);
-    const endYmd = parent.raw?.date_end ? ymd(new Date(parent.raw.date_end)) : null;
+    const lim = spanLimites(parent);
+    const endYmd = lim ? ymd(lim.fim) : null;
     return {
       ...parent,
       id: `${parent.id}#span-${targetYmd}`,
@@ -11462,11 +11491,13 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
       if (!areaFilter) return !(window.HUB_AREAS_FORA_DA_GERAL || []).includes(a);
       return a === areaFilter && !window.hubEhJogoSoDoGoogle(i.raw);
     };
-    const direct = itemsCache.filter(i => i.date === t && passArea(i));
+    const direct = itemsCache.filter(i => i.date === t && passArea(i))
+      // No dia de início, o card vira a ponta esquerda da faixa.
+      .map(i => itemEhMultiDia(i) ? { ...i, is_span: true, span_position: 'start' } : i);
     // 21/09: recorrência é materializada no banco (serie_id) — nada de ocorrência virtual.
     const recurring = [];
-    // Regra Eduardo: sem multi-dia. Não geramos mais "spans" — item aparece só no dia de início.
-    return sortItemsForDay([...direct, ...recurring]);
+    const spans = itemsCache.filter(i => passArea(i) && itemSpansDay(i, d)).map(i => makeSpanOccurrence(i, d));
+    return sortItemsForDay([...direct, ...recurring, ...spans]);
   }
   function escHtml(s) { return (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
