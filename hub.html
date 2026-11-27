@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-27T11:14:29-03:00">
+<meta name="hub-build" content="2026-11-27T11:17:58-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1142,7 +1142,6 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev .hr { font-size: 11px; opacity: .92; line-height: 1.2; display: block; font-weight: 700; letter-spacing: -.01em; }
 .calM-ev .ti { font-size: 12.5px; font-weight: 650; line-height: 1.3; }
 .calM-ev.proj-pessoal       { background: #fca5a5; border-color: #dc2626; color: #7f1d1d; }
-.calM-ev.proj-agenda_awvz   { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
 .calM-ev.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
 .calM-ev.proj-saude         { background: #bae6fd; border-color: #0ea5e9; color: #075985; }
 .calM-ev.proj-administracao { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
@@ -1151,7 +1150,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.proj-brasileirao_play { background: #6ee7a0; border-color: #15803d; color: #14532d; }
 .calM-ev.proj-aw_vz         { background: #fbcfe8; border-color: #ff1493; color: #831843; }
 .calM-ev.proj-aniversarios  { background: #ecfccb; border-color: #65a30d; color: #365314; }
-.calM-ev.proj-mozinhos      { background: #f5d0fe; border-color: #a21caf; color: #701a75; }
+.calM-ev.proj-mozinhos      { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
 /* Santos: mesmo formato de todas as outras áreas — só background, cor da borda e
    cor do texto. Antes esta regra redefinia 'border' e 'border-radius', e como quem
    desenha o card hoje é a camada .calM-ev-in (raio 7px, borda esquerda de 4px), as
@@ -1308,7 +1307,6 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calW-card .ti { font-size: 12px; font-weight: 600; line-height: 1.3; }
 .calW-card .hr { font-size: 10px; opacity: .8; margin-top: 2px; font-weight: 500; }
 .calW-card.proj-pessoal       { background: #fca5a5; color: #7f1d1d; border-left: 3px solid #dc2626; }
-.calW-card.proj-agenda_awvz   { background: #bfdbfe; color: #1e3a8a; border-left: 3px solid #2563eb; }
 .calW-card.proj-trabalho      { background: #93c5fd; color: #1e3a8a; border-left: 3px solid #2563eb; }
 .calW-card.proj-saude         { background: #bae6fd; color: #075985; border-left: 3px solid #0ea5e9; }
 .calW-card.proj-administracao { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
@@ -1317,7 +1315,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calW-card.proj-brasileirao_play { background: #6ee7a0; color: #14532d; border-left: 3px solid #15803d; }
 .calW-card.proj-aw_vz         { background: #fbcfe8; color: #831843; border-left: 3px solid #ff1493; }
 .calW-card.proj-aniversarios  { background: #ecfccb; color: #365314; border-left: 3px solid #65a30d; }
-.calW-card.proj-mozinhos      { background: #f5d0fe; color: #701a75; border-left: 3px solid #a21caf; }
+.calW-card.proj-mozinhos      { background: #bfdbfe; color: #1e3a8a; border-left: 3px solid #2563eb; }
 .calW-card.proj-santos        { background: #fafafa; color: #000000; border: 0.5px solid #d4d4d8; border-left: 6px solid #52525b; border-radius: 0 6px 6px 0; }
 .calW-card.proj-financas      { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
 .calW-card.proj-rotina        { background: #fecaca; color: #7f1d1d; border-left: 3px solid #dc2626; }
@@ -1459,7 +1457,6 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 #hubToastAcao button { border: none; background: transparent; color: #c4b5fd; font: inherit; font-size: 11.5px;
   font-weight: 800; text-transform: uppercase; letter-spacing: .05em; cursor: pointer; padding: 2px 0; flex: none; }
 .calMM-card.proj-pessoal       { background: #fca5a5; border-color: #dc2626; color: #7f1d1d; }
-.calMM-card.proj-agenda_awvz   { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
 .calMM-card.proj-trabalho      { background: #93c5fd; border-color: #2563eb; color: #1e3a8a; }
 .calMM-card.proj-saude         { background: #bae6fd; border-color: #0ea5e9; color: #075985; }
 .calMM-card.proj-administracao { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
@@ -1468,7 +1465,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calMM-card.proj-brasileirao_play { background: #6ee7a0; border-color: #15803d; color: #14532d; }
 .calMM-card.proj-aw_vz         { background: #fbcfe8; border-color: #ff1493; color: #831843; }
 .calMM-card.proj-aniversarios  { background: #ecfccb; border-color: #65a30d; color: #365314; }
-.calMM-card.proj-mozinhos      { background: #f5d0fe; border-color: #a21caf; color: #701a75; }
+.calMM-card.proj-mozinhos      { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
 .calMM-card.proj-santos        { background: #fafafa; border-color: #52525b; color: #000; box-shadow: inset 0 0 0 .5px #d4d4d8; }
 .calMM-card.proj-financas      { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
 .calMM-card.proj-rotina        { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
@@ -1491,9 +1488,8 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-head.area-eventos       { background: linear-gradient(135deg, #ea580c, #9a3412); }
 .tdm-head.area-brasileirao_play { background: linear-gradient(135deg, #16a34a, #15803d); }
 .tdm-head.area-aw_vz         { background: linear-gradient(135deg, #ff1493, #be185d); }
-.tdm-head.area-agenda_awvz   { background: linear-gradient(135deg, #3b82f6, #1e40af); }
 .tdm-head.area-aniversarios  { background: linear-gradient(135deg, #84cc16, #3f6212); }
-.tdm-head.area-mozinhos      { background: linear-gradient(135deg, #d946ef, #86198f); }
+.tdm-head.area-mozinhos      { background: linear-gradient(135deg, #3b82f6, #1e40af); }
 .tdm-head.area-financas      { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
 .tdm-head.area-rotina        { background: linear-gradient(135deg, #dc2626, #991b1b); }
 .tdm-head.area-brasileirao   { background: linear-gradient(135deg, #059669, #064e3b); }
@@ -1595,9 +1591,8 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-head.area-eventos .tdm-wdc-month       { color: #9a3412; }
 .tdm-head.area-brasileirao_play .tdm-wdc-month { color: #15803d; }
 .tdm-head.area-aw_vz .tdm-wdc-month         { color: #be185d; }
-.tdm-head.area-agenda_awvz .tdm-wdc-month   { color: #1e40af; }
 .tdm-head.area-aniversarios .tdm-wdc-month  { color: #365314; }
-.tdm-head.area-mozinhos .tdm-wdc-month      { color: #701a75; }
+.tdm-head.area-mozinhos .tdm-wdc-month      { color: #1e40af; }
 .tdm-head.area-brasileirao .tdm-wdc-month   { color: #064e3b; }
 /* Input de data: tem que estar renderizado pro showPicker() funcionar.
    Truque: posição absoluta + opacidade 0 + tamanho mínimo. */
@@ -2454,9 +2449,8 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
         <div class="nav-subitem" data-cat="administracao"><span class="cat-dot" style="--c:#7c3aed"></span><span class="ni-text">Finanças</span></div>
         <div class="nav-subitem" data-cat="casa"><span class="cat-dot" style="--c:#eab308"></span><span class="ni-text">Casa</span></div>
         <div class="nav-subitem" data-cat="aw_vz"><span class="cat-dot" style="--c:#ff1493"></span><span class="ni-text">AW+VZ</span></div>
-        <div class="nav-subitem" data-cat="agenda_awvz"><span class="cat-dot" style="--c:#2563eb"></span><span class="ni-text">Agenda AW+VZ</span></div>
         <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#65a30d"></span><span class="ni-text">Aniversários</span></div>
-        <div class="nav-subitem" data-cat="mozinhos"><span class="cat-dot" style="--c:#a21caf"></span><span class="ni-text">Mozinhos</span></div>
+        <div class="nav-subitem" data-cat="mozinhos"><span class="cat-dot" style="--c:#2563eb"></span><span class="ni-text">Mozinhos</span></div>
       </div>
       <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span><span class="ni-caret" style="visibility:hidden">▸</span></div>
       <div class="nav-item" data-sec="compras"><span class="ni-icon">🛒</span><span class="ni-text">Compras</span><span id="badgeCompras" class="ni-badge badge-red" style="display:none">0</span></div>
@@ -5992,10 +5986,11 @@ window.HUB_READONLY_CALS = ['f8cdsjfdevg4m5oee6cdjmsjmo@group.calendar.google.co
 // Nas páginas de categoria (Pessoal e companhia) ele é escondido — lá ficam só as
 // coisas que o Eduardo realmente cadastrou naquela categoria.
 // Áreas que existem como categoria própria mas NÃO aparecem na agenda geral.
-// 'agenda_awvz' é o espelho da agenda das chefes: é consulta, não é a agenda dele.
-window.HUB_AREAS_FORA_DA_GERAL = ['agenda_awvz'];
+// 27/11: a Agenda AW+VZ (espelho da agenda da Andréa) foi desvinculada a pedido
+// do Eduardo — conta extra desativada, 1419 itens apagados, categoria removida.
+window.HUB_AREAS_FORA_DA_GERAL = []; // 27/11: Agenda AW+VZ desvinculada do hub
 // Áreas espelhadas de outra conta Google: o hub NUNCA escreve nelas.
-window.HUB_AREAS_SO_LEITURA = ['agenda_awvz'];
+window.HUB_AREAS_SO_LEITURA = []; // 27/11: Agenda AW+VZ desvinculada do hub
 // Regra Eduardo (21/09): card que existe no Google é SÓ LEITURA no hub — nome, data,
 // hora, duração, categoria, campos e apagar ficam travados; edita-se no Google e a
 // sync de 5 min traz pro hub. O que continua no hub: concluir/reabrir e reordenar
@@ -6605,9 +6600,8 @@ const CATLIST_META = {
   administracao:    { name: 'Finanças',         color: '#7c3aed' },
   casa:             { name: 'Casa',             color: '#eab308' },
   aw_vz:            { name: 'AW+VZ',            color: '#ff1493' },
-  agenda_awvz:      { name: 'Agenda AW+VZ',      color: '#2563eb' },
   aniversarios:     { name: 'Aniversários',     color: '#65a30d' },
-  mozinhos:         { name: 'Mozinhos',         color: '#a21caf' },
+  mozinhos:         { name: 'Mozinhos',         color: '#2563eb' },
 };
 window.CATLIST_META = CATLIST_META;
 let _catlistSlug = null;
@@ -8740,7 +8734,6 @@ function _dateToMRoadmap(d) {
 
 const AREA_DEFAULTS = {
   pessoal:       { emoji: '🙋', colorSoft: '#fca5a5', badgeColor: '#dc2626', badge: '' },
-  agenda_awvz:   { emoji: '🏢', colorSoft: '#bfdbfe', badgeColor: '#2563eb', badge: '' },
   trabalho:      { emoji: '💼', colorSoft: '#93c5fd', badgeColor: '#2563eb', badge: '' },
   saude:         { emoji: '🏃', colorSoft: '#86efac', badgeColor: '#16a34a', badge: '' },
   administracao: { emoji: '💰', colorSoft: '#c4b5fd', badgeColor: '#7c3aed', badge: '' },
@@ -10785,7 +10778,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   function areaColor(area) {
-    return { saude:'#0ea5e9', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', pessoal:'#dc2626', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#a21caf', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' }[area] || '#6b637a';
+    return { saude:'#0ea5e9', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', pessoal:'#dc2626', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#2563eb', financas:'#7c3aed', rotina:'#dc2626' }[area] || '#6b637a';
   }
 
   // ── Carrega projetos (constrói mapa id → projeto) ──
@@ -11942,7 +11935,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   let _mobileLoadedRange = null; // {start: Date, end: Date}
   const _mmToggled = {};          // ymd -> true (aberto) / false (fechado), só quando ele mexeu
   const MM_DOT = { pessoal:'#dc2626', administracao:'#7c3aed', financas:'#7c3aed', casa:'#eab308', eventos:'#ea580c',
-    brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#a21caf', agenda_awvz:'#2563eb', santos:'#52525b',
+    brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#2563eb', santos:'#52525b',
     saude:'#0ea5e9', trabalho:'#2563eb', rotina:'#dc2626' };
   const MM_MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const MM_DIA = ['dom','seg','ter','qua','qui','sex','sáb'];
@@ -12525,7 +12518,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const old = document.querySelector('.cal-day-popover');
     if (old) old.remove();
   }
-  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#0ea5e9', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#a21caf', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' };
+  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#0ea5e9', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#2563eb', financas:'#7c3aed', rotina:'#dc2626' };
 
   function openPopoverFor(cellEl, dateStr) {
     closePopover();
@@ -14055,7 +14048,6 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   // Áreas espelhadas não entram no TDM_AREAS (não dá pra mover item pra elas),
   // mas o card precisa saber o nome certo pra mostrar na pílula.
   const TDM_AREAS_SO_LEITURA = [
-    { slug: 'agenda_awvz', name: 'Agenda AW+VZ', emoji: '🏢' },
   ];
   function areaPillLabel(item) {
     if (item && item.metadata && item.metadata.brasileirao) return '⚽ Brasileirão Play ▾';
