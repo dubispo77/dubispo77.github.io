@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#5b4fcf">
-<meta name="hub-build" content="2026-11-26T12:25:09-03:00">
+<meta name="hub-build" content="2026-11-27T11:12:47-03:00">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/assets/favicon/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/icon-192.png">
@@ -1151,6 +1151,7 @@ table.data-table tr:hover td { background: var(--bg); }
 .calM-ev.proj-brasileirao_play { background: #6ee7a0; border-color: #15803d; color: #14532d; }
 .calM-ev.proj-aw_vz         { background: #fbcfe8; border-color: #ff1493; color: #831843; }
 .calM-ev.proj-aniversarios  { background: #ecfccb; border-color: #65a30d; color: #365314; }
+.calM-ev.proj-mozinhos      { background: #f5d0fe; border-color: #a21caf; color: #701a75; }
 /* Santos: mesmo formato de todas as outras áreas — só background, cor da borda e
    cor do texto. Antes esta regra redefinia 'border' e 'border-radius', e como quem
    desenha o card hoje é a camada .calM-ev-in (raio 7px, borda esquerda de 4px), as
@@ -1316,6 +1317,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calW-card.proj-brasileirao_play { background: #6ee7a0; color: #14532d; border-left: 3px solid #15803d; }
 .calW-card.proj-aw_vz         { background: #fbcfe8; color: #831843; border-left: 3px solid #ff1493; }
 .calW-card.proj-aniversarios  { background: #ecfccb; color: #365314; border-left: 3px solid #65a30d; }
+.calW-card.proj-mozinhos      { background: #f5d0fe; color: #701a75; border-left: 3px solid #a21caf; }
 .calW-card.proj-santos        { background: #fafafa; color: #000000; border: 0.5px solid #d4d4d8; border-left: 6px solid #52525b; border-radius: 0 6px 6px 0; }
 .calW-card.proj-financas      { background: #c4b5fd; color: #3b0764; border-left: 3px solid #7c3aed; }
 .calW-card.proj-rotina        { background: #fecaca; color: #7f1d1d; border-left: 3px solid #dc2626; }
@@ -1466,6 +1468,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .calMM-card.proj-brasileirao_play { background: #6ee7a0; border-color: #15803d; color: #14532d; }
 .calMM-card.proj-aw_vz         { background: #fbcfe8; border-color: #ff1493; color: #831843; }
 .calMM-card.proj-aniversarios  { background: #ecfccb; border-color: #65a30d; color: #365314; }
+.calMM-card.proj-mozinhos      { background: #f5d0fe; border-color: #a21caf; color: #701a75; }
 .calMM-card.proj-santos        { background: #fafafa; border-color: #52525b; color: #000; box-shadow: inset 0 0 0 .5px #d4d4d8; }
 .calMM-card.proj-financas      { background: #c4b5fd; border-color: #7c3aed; color: #3b0764; }
 .calMM-card.proj-rotina        { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
@@ -1490,6 +1493,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-head.area-aw_vz         { background: linear-gradient(135deg, #ff1493, #be185d); }
 .tdm-head.area-agenda_awvz   { background: linear-gradient(135deg, #3b82f6, #1e40af); }
 .tdm-head.area-aniversarios  { background: linear-gradient(135deg, #84cc16, #3f6212); }
+.tdm-head.area-mozinhos      { background: linear-gradient(135deg, #d946ef, #86198f); }
 .tdm-head.area-financas      { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
 .tdm-head.area-rotina        { background: linear-gradient(135deg, #dc2626, #991b1b); }
 .tdm-head.area-brasileirao   { background: linear-gradient(135deg, #059669, #064e3b); }
@@ -1593,6 +1597,7 @@ body.hub-arrastando .calM-cell.has-more .calM-more { opacity: 1 !important; }
 .tdm-head.area-aw_vz .tdm-wdc-month         { color: #be185d; }
 .tdm-head.area-agenda_awvz .tdm-wdc-month   { color: #1e40af; }
 .tdm-head.area-aniversarios .tdm-wdc-month  { color: #365314; }
+.tdm-head.area-mozinhos .tdm-wdc-month      { color: #701a75; }
 .tdm-head.area-brasileirao .tdm-wdc-month   { color: #064e3b; }
 /* Input de data: tem que estar renderizado pro showPicker() funcionar.
    Truque: posição absoluta + opacidade 0 + tamanho mínimo. */
@@ -2451,6 +2456,7 @@ body.kc-open #kcScrim{opacity:1;pointer-events:auto}
         <div class="nav-subitem" data-cat="aw_vz"><span class="cat-dot" style="--c:#ff1493"></span><span class="ni-text">AW+VZ</span></div>
         <div class="nav-subitem" data-cat="agenda_awvz"><span class="cat-dot" style="--c:#2563eb"></span><span class="ni-text">Agenda AW+VZ</span></div>
         <div class="nav-subitem" data-cat="aniversarios"><span class="cat-dot" style="--c:#65a30d"></span><span class="ni-text">Aniversários</span></div>
+        <div class="nav-subitem" data-cat="mozinhos"><span class="cat-dot" style="--c:#a21caf"></span><span class="ni-text">Mozinhos</span></div>
       </div>
       <div class="nav-item" data-sec="administracao"><span class="ni-icon">💰</span><span class="ni-text">Finanças</span><span id="badgeAdministracao" class="ni-badge badge-red" style="display:none">0</span><span class="ni-caret" style="visibility:hidden">▸</span></div>
       <div class="nav-item" data-sec="compras"><span class="ni-icon">🛒</span><span class="ni-text">Compras</span><span id="badgeCompras" class="ni-badge badge-red" style="display:none">0</span></div>
@@ -6227,6 +6233,8 @@ window.hubApagarSerie = async function(item, fromIso) {
 // Calendário do Google de cada área. Explícito: 'pessoal' tem 2 calendários no banco
 // e um deles é o do Santos (só leitura) — o chute automático pode cair no errado.
 window.HUB_AREA_CAL = {
+  // Agenda compartilhada com a Sté — é a única área que o hub escreve no Google.
+  mozinhos: 'fe09d819c76da6dcd9351860d5153f410352349dc3485444d377cc113b2aa670@group.calendar.google.com',
   pessoal: 'eduardo.romanobispo@gmail.com',
   administracao: '87f2c55fe83824ab64b1f8ff5877fdf30db973705a0863a51f1de6704ea294e7@group.calendar.google.com',
   casa: '9ade00a183d369b2ae6ed95d8bc32b3fa7091e7e51bd5c7a26c919cd16ec9d5e@group.calendar.google.com',
@@ -6599,6 +6607,7 @@ const CATLIST_META = {
   aw_vz:            { name: 'AW+VZ',            color: '#ff1493' },
   agenda_awvz:      { name: 'Agenda AW+VZ',      color: '#2563eb' },
   aniversarios:     { name: 'Aniversários',     color: '#65a30d' },
+  mozinhos:         { name: 'Mozinhos',         color: '#a21caf' },
 };
 window.CATLIST_META = CATLIST_META;
 let _catlistSlug = null;
@@ -10776,7 +10785,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   }
 
   function areaColor(area) {
-    return { saude:'#0ea5e9', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', pessoal:'#dc2626', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' }[area] || '#6b637a';
+    return { saude:'#0ea5e9', trabalho:'#2563eb', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', pessoal:'#dc2626', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#a21caf', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' }[area] || '#6b637a';
   }
 
   // ── Carrega projetos (constrói mapa id → projeto) ──
@@ -11933,7 +11942,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
   let _mobileLoadedRange = null; // {start: Date, end: Date}
   const _mmToggled = {};          // ymd -> true (aberto) / false (fechado), só quando ele mexeu
   const MM_DOT = { pessoal:'#dc2626', administracao:'#7c3aed', financas:'#7c3aed', casa:'#eab308', eventos:'#ea580c',
-    brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', agenda_awvz:'#2563eb', santos:'#52525b',
+    brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#a21caf', agenda_awvz:'#2563eb', santos:'#52525b',
     saude:'#0ea5e9', trabalho:'#2563eb', rotina:'#dc2626' };
   const MM_MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const MM_DIA = ['dom','seg','ter','qua','qui','sex','sáb'];
@@ -12516,7 +12525,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     const old = document.querySelector('.cal-day-popover');
     if (old) old.remove();
   }
-  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#0ea5e9', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' };
+  const PROJECT_COLORS = { pessoal:'#dc2626', trabalho:'#2563eb', saude:'#0ea5e9', administracao:'#7c3aed', casa:'#eab308', eventos:'#ea580c', brasileirao_play:'#16a34a', aw_vz:'#ff1493', aniversarios:'#65a30d', mozinhos:'#a21caf', financas:'#7c3aed', rotina:'#dc2626', agenda_awvz:'#2563eb' };
 
   function openPopoverFor(cellEl, dateStr) {
     closePopover();
@@ -14041,6 +14050,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     { slug: 'eventos',          name: 'Eventos',          emoji: '🎟️' },
     { slug: 'aw_vz',            name: 'AW+VZ',            emoji: '🤝' },
     { slug: 'aniversarios',     name: 'Aniversários',     emoji: '🎂' },
+    { slug: 'mozinhos',         name: 'Mozinhos',         emoji: '💜' },
   ];
   // Áreas espelhadas não entram no TDM_AREAS (não dá pra mover item pra elas),
   // mas o card precisa saber o nome certo pra mostrar na pílula.
@@ -15345,6 +15355,7 @@ setupGenericArea('eventos',  { color: '#ea580c', icon: '🎟️', subtitle: 'Com
     { slug: 'eventos',          name: 'Eventos',          emoji: '🎟️' },
     { slug: 'aw_vz',            name: 'AW+VZ',            emoji: '🤝' },
     { slug: 'aniversarios',     name: 'Aniversários',     emoji: '🎂' },
+    { slug: 'mozinhos',         name: 'Mozinhos',         emoji: '💜' },
   ];
   const MESES_LONG = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
